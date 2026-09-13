@@ -14,7 +14,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 class DoctorDashboardScreen extends StatelessWidget {
   const DoctorDashboardScreen({super.key});
-
   @override
   Widget build(BuildContext context) => const _DoctorDashboard();
 }
@@ -115,17 +114,17 @@ class _DoctorDashboardState extends State<_DoctorDashboard> {
         _doctorHeader(dark), const SizedBox(height: 14), _statGrid(uid, dark), const SizedBox(height: 14),
         _action(context, 'assets/images/services/calendar_booking.png', 'المواعيد', 'متابعة المواعيد والحجوزات', AppRouter.consultation),
         _action(context, 'assets/images/services/medical_community.png', 'مجتمع صحتك', 'عرض المنشورات والتعليقات والمشاركات', AppRouter.community),
-        _action(context, 'assets/images/services/medical_records.png', 'السجلات الطبية', 'الوصول المصرح إلى بيانات المرضى', AppRouter.dashboard),
+        _action(context, 'assets/images/services/medical_records.png', 'السجلات الطبية', 'الوصول المصرح إلى بيانات المرضى', AppRouter.appointments),
         _action(context, 'assets/images/services/wallet.png', 'المحفظة', 'المعاملات والأرصدة', AppRouter.wallet),
       ]),
     );
   }
 
   Widget _statGrid(String? uid, bool dark) => FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-    future: uid == null ? null : FirebaseFirestore.instance.collection('appointments').where('doctorId', isEqualTo: uid).limit(50).get(),
+    future: uid == null ? null : FirebaseFirestore.instance.collection('appointments').where('doctorId', isEqualTo: uid).get(),
     builder: (_, snap) {
       final count = snap.data?.docs.length ?? 0;
-      return Row(children: [Expanded(child: _stat('المواعيد', '$count', 'assets/images/services/calendar_booking.png', dark)), const SizedBox(width: 10), Expanded(child: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(future: uid == null ? null : FirebaseFirestore.instance.collection('community_posts').where('userId', isEqualTo: uid).limit(50).get(), builder: (_, posts) => _stat('المنشورات', '${posts.data?.docs.length ?? 0}', 'assets/images/services/medical_community.png', dark)))]);
+      return Row(children: [Expanded(child: _stat('المواعيد', '$count', 'assets/images/services/calendar_booking.png', dark)), const SizedBox(width: 10), Expanded(child: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(future: uid == null ? null : FirebaseFirestore.instance.collection('community_posts').where('userId', isEqualTo: uid).get(), builder: (_, posts) => _stat('المنشورات', '${posts.data?.docs.length ?? 0}', 'assets/images/services/medical_community.png', dark)))]);
     },
   );
 
