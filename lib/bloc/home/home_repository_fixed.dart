@@ -98,7 +98,20 @@ class HomeRepositoryFixed {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getTips() async => [];
+  Future<List<Map<String, dynamic>>> getTips({int limit = 6}) async {
+    try {
+      final f = firestore;
+      if (f == null) return [];
+      final snapshot = await f
+          .collection('tips')
+          .where('isPublished', isEqualTo: true)
+          .limit(limit)
+          .get();
+      return snapshot.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+    } catch (_) {
+      return [];
+    }
+  }
 
   Future<List<Map<String, dynamic>>> getCommunityPosts({int limit = 10}) async {
     try {
