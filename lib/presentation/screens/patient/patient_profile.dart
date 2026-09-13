@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/nextcloud_service.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/edit_profile/edit_profile_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class PatientProfile extends StatefulWidget {
   const PatientProfile({super.key});
@@ -18,8 +22,11 @@ class PatientProfile extends StatefulWidget {
 class _PatientProfileState extends State<PatientProfile> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ImagePicker _picker = ImagePicker();
+  final NextcloudService _nextcloud = NextcloudService();
   Map<String, dynamic>? _userData;
   bool _isLoading = true;
+  bool _isUploadingAvatar = false;
 
   @override
   void initState() {
@@ -28,16 +35,16 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Future<void> _loadUserData() async {
-    setState(() => _isLoading = true);
+    if (mounted) setState(() => _isLoading = true);
     final user = _auth.currentUser;
     if (user == null) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
       return;
     }
     try {
       final doc = await _firestore.collection('users').doc(user.uid).get();
       if (doc.exists) {
-        setState(() => _userData = doc.data() as Map<String, dynamic>);
+        if (mounted) setState(() => _userData = doc.data());
       } else {
         _userData = {
           'name': user.displayName ?? 'مستخدم',
@@ -49,7 +56,70 @@ class _PatientProfileState extends State<PatientProfile> {
     } catch (e) {
       print('❌ Error loading user data: $e');
     }
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  String? _avatarUrl(User? user) {
+    final avatar = _userData?['avatar']?.toString().trim();
+    if (avatar != null && avatar.isNotEmpty) return avatar;
+    final photoUrl = _userData?['photoUrl']?.toString().trim();
+    if (photoUrl != null && photoUrl.isNotEmpty) return photoUrl;
+    final authPhoto = user?.photoURL?.trim();
+    if (authPhoto != null && authPhoto.isNotEmpty) return authPhoto;
+    return null;
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    if (_isUploadingAvatar) return;
+    final user = _auth.currentUser;
+    if (user == null) {
+      ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+      return;
+    }
+
+    try {
+      final image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+
+      if (mounted) setState(() => _isUploadingAvatar = true);
+      ToastService.showInfo('⏳ جاري رفع صورة الحساب...');
+
+      await _nextcloud.loadConfig();
+      final result = await _nextcloud.uploadFile(
+        file: File(image.path),
+        path: 'profiles/${user.uid}',
+        fileName: 'avatar.jpg',
+        createShare: true,
+      );
+
+      if (!result.success || result.url == null || result.url!.isEmpty) {
+        throw StateError(result.error ?? 'تعذر الحصول على رابط صورة الحساب');
+      }
+
+      final url = result.url!;
+      await _firestore.collection('users').doc(user.uid).set({
+        'avatar': url,
+        'photoUrl': url,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (mounted) {
+        setState(() {
+          _userData = {...?_userData, 'avatar': url, 'photoUrl': url};
+        });
+      }
+      ToastService.showSuccess('✅ تم تحديث صورة الحساب بنجاح');
+    } catch (e) {
+      print('❌ Avatar upload failed: $e');
+      ToastService.showError('❌ فشل رفع صورة الحساب: $e');
+    } finally {
+      if (mounted) setState(() => _isUploadingAvatar = false);
+    }
   }
 
   @override
@@ -58,7 +128,7 @@ class _PatientProfileState extends State<PatientProfile> {
     final user = _auth.currentUser;
     final name = _userData?['name'] ?? user?.displayName ?? 'مستخدم';
     final email = _userData?['email'] ?? user?.email ?? '';
-    final photoUrl = _userData?['photoUrl'] ?? user?.photoURL;
+    final photoUrl = _avatarUrl(user);
     final bloodType = _userData?['bloodType'] ?? 'غير محدد';
     final weight = _userData?['weight'] ?? '--';
     final height = _userData?['height'] ?? '--';
@@ -101,15 +171,10 @@ class _PatientProfileState extends State<PatientProfile> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Header
             _buildProfileHeader(photoUrl, name, email, isDark),
             const SizedBox(height: 20),
-
-            // ✅ الإحصائيات السريعة
             _buildQuickStats(isDark),
             const SizedBox(height: 20),
-
-            // ✅ المعلومات الشخصية
             _buildInfoSection('المعلومات الشخصية', isDark),
             const SizedBox(height: 12),
             _buildInfoCard([
@@ -121,18 +186,12 @@ class _PatientProfileState extends State<PatientProfile> {
               {'icon': Icons.email_rounded, 'label': 'البريد الإلكتروني', 'value': email},
             ], isDark),
             const SizedBox(height: 20),
-
-            // ✅ الإحصائيات الصحية
             _buildInfoSection('الإحصائيات الصحية', isDark),
             const SizedBox(height: 12),
             _buildHealthStats(isDark),
             const SizedBox(height: 20),
-
-            // ✅ الإجراءات السريعة
             _buildQuickActions(isDark),
             const SizedBox(height: 20),
-
-            // ✅ زر تسجيل الخروج
             _buildLogoutButton(isDark),
           ],
         ),
@@ -143,41 +202,55 @@ class _PatientProfileState extends State<PatientProfile> {
   Widget _buildProfileHeader(String? photoUrl, String name, String email, bool isDark) {
     return Row(
       children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 3),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(40),
-            child: photoUrl != null && photoUrl.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: photoUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person, size: 40),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person, size: 40),
-                    ),
-                  )
-                : Container(
-                    color: AppColors.primary.withOpacity(0.1),
-                    child: Center(
-                      child: Text(
-                        name.isNotEmpty ? name[0] : 'م',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+        GestureDetector(
+          onTap: _pickAndUploadAvatar,
+          child: Stack(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 3),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(40),
+                  child: photoUrl != null && photoUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: photoUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.person, size: 40),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.person, size: 40),
+                          ),
+                        )
+                      : Container(
+                          color: AppColors.primary.withOpacity(0.1),
+                          child: Center(
+                            child: Text(
+                              name.isNotEmpty ? name[0] : 'م',
+                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primary),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                  child: _isUploadingAvatar
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(width: 16),
@@ -185,42 +258,19 @@ class _PatientProfileState extends State<PatientProfile> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                name,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
+              Text(name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
               const SizedBox(height: 4),
-              Text(
-                email,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
+              Text(email, style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600])),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.circle, color: Colors.green, size: 8),
                     SizedBox(width: 4),
-                    Text(
-                      'نشط',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    Text('نشط', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.w500)),
                   ],
                 ),
               ),
@@ -238,128 +288,49 @@ class _PatientProfileState extends State<PatientProfile> {
       {'label': 'التحاليل', 'value': '8', 'icon': Icons.science_rounded, 'color': AppColors.purple},
       {'label': 'الزيارات', 'value': '6', 'icon': Icons.local_hospital_rounded, 'color': AppColors.info},
     ];
-
-    return Row(
-      children: stats.map((stat) {
-        final color = stat['color'] as Color;
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Icon(stat['icon'] as IconData, color: color, size: 22),
-                const SizedBox(height: 4),
-                Text(
-                  stat['value'] as String,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                Text(
-                  stat['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
+    return Row(children: stats.map((stat) {
+      final color = stat['color'] as Color;
+      return Expanded(child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4)]),
+        child: Column(children: [
+          Icon(stat['icon'] as IconData, color: color, size: 22),
+          const SizedBox(height: 4),
+          Text(stat['value'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+          Text(stat['label'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+        ]),
+      ));
+    }).toList());
   }
 
   Widget _buildInfoSection(String title, bool isDark) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 20,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-      ],
-    );
+    return Row(children: [
+      Container(width: 4, height: 20, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
+      const SizedBox(width: 8),
+      Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+    ]);
   }
 
   Widget _buildInfoCard(List<Map<String, dynamic>> items, bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.2,
-      ),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8, childAspectRatio: 1.2),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
         final value = item['value'] as String;
         final hasValue = value != 'غير محدد' && value != '--';
-
         return Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: hasValue ? Colors.green.withOpacity(0.2) : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                item['icon'] as IconData,
-                color: hasValue ? AppColors.primary : Colors.grey,
-                size: 20,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: hasValue ? (isDark ? Colors.white : Colors.black87) : Colors.grey,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                item['label'] as String,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
+          decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: hasValue ? Colors.green.withOpacity(0.2) : (isDark ? Colors.grey[700]! : Colors.grey[200]!))),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(item['icon'] as IconData, color: hasValue ? AppColors.primary : Colors.grey, size: 20),
+            const SizedBox(height: 4),
+            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: hasValue ? (isDark ? Colors.white : Colors.black87) : Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(item['label'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+          ]),
         );
       },
     );
@@ -372,48 +343,26 @@ class _PatientProfileState extends State<PatientProfile> {
       {'label': 'معدل القلب', 'value': '72', 'status': 'طبيعي', 'color': Colors.green},
       {'label': 'الوزن', 'value': '75 كجم', 'status': 'مستقر', 'color': Colors.orange},
     ];
-
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.4,
-      ),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8, childAspectRatio: 1.4),
       itemCount: stats.length,
       itemBuilder: (context, index) {
         final stat = stats[index];
         final color = stat['color'] as Color;
-
         return Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.2)),
-          ),
-          child: Row(
-            children: [
-              Container(width: 4, height: 30, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(stat['label'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600])),
-                    Text(stat['value'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Text(stat['status'] as String, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w500)),
-              ),
-            ],
-          ),
+          decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.2))),
+          child: Row(children: [
+            Container(width: 4, height: 30, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(stat['label'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+              Text(stat['value'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+            ])),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(stat['status'] as String, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w500))),
+          ]),
         );
       },
     );
@@ -426,39 +375,22 @@ class _PatientProfileState extends State<PatientProfile> {
       {'icon': Icons.local_pharmacy_rounded, 'label': 'صيدلية', 'color': Colors.green},
       {'icon': Icons.science_rounded, 'label': 'مختبر', 'color': Colors.purple},
     ];
-
-    return Row(
-      children: actions.map((action) {
-        final color = action['color'] as Color;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () {},
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[200]!),
-              ),
-              child: Column(
-                children: [
-                  Icon(action['icon'] as IconData, color: color, size: 24),
-                  const SizedBox(height: 4),
-                  Text(
-                    action['label'] as String,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
+    return Row(children: actions.map((action) {
+      final color = action['color'] as Color;
+      return Expanded(child: GestureDetector(
+        onTap: () {},
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[200]!)),
+          child: Column(children: [
+            Icon(action['icon'] as IconData, color: color, size: 24),
+            const SizedBox(height: 4),
+            Text(action['label'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+          ]),
+        ),
+      ));
+    }).toList());
   }
 
   Widget _buildLogoutButton(bool isDark) {
@@ -467,17 +399,8 @@ class _PatientProfileState extends State<PatientProfile> {
       child: OutlinedButton.icon(
         onPressed: () => _showLogoutDialog(context),
         icon: const Icon(Icons.logout_rounded, color: Colors.red),
-        label: const Text(
-          'تسجيل الخروج',
-          style: TextStyle(color: Colors.red, fontSize: 16),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.red),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+        label: const Text('تسجيل الخروج', style: TextStyle(color: Colors.red, fontSize: 16)),
+        style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
       ),
     );
   }
@@ -486,28 +409,17 @@ class _PatientProfileState extends State<PatientProfile> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('تسجيل الخروج'),
+        title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء', style: TextStyle(color: Colors.grey))),
           ElevatedButton(
             onPressed: () {
               _auth.signOut();
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const AuthScreen()),
-                (route) => false,
-              );
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const AuthScreen()), (route) => false);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             child: const Text('تسجيل الخروج'),
           ),
         ],
