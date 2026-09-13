@@ -21,8 +21,6 @@ class NextcloudService {
   String username = '';
   String password = '';
 
-  /// Loads the platform Nextcloud account configured for this installation.
-  /// Credentials remain in secure storage and are never written to Firestore.
   Future<void> loadConfig() async {
     baseUrl = (await _storage.read(key: 'sehatak.nextcloud.base_url') ?? '')
         .trim()
@@ -82,8 +80,8 @@ class NextcloudService {
       .where((part) => part.isNotEmpty && part != '.')
       .join('/');
 
-  /// The platform's canonical media root. It mirrors NEXTCLOUD_ROOT_PATH in
-  /// the server implementation, whose production default is `Sehatak`.
+  /// Keep media in the same platform namespace as the server-side Nextcloud
+  /// service. Its configured/default root is `Sehatak`.
   String _platformPath(String path) {
     final clean = _cleanLogicalPath(path);
     if (clean.isEmpty) return 'Sehatak';
@@ -102,9 +100,8 @@ class NextcloudService {
     return '${_normalizedBase()}/remote.php/dav/files/${Uri.encodeComponent(username)}/$cleanPath';
   }
 
-  /// Creates every directory in the path before PUT. WebDAV does not create
-  /// missing parent folders automatically; this was the main difference from
-  /// the tested server-side upload path.
+  /// WebDAV PUT does not create parent folders. Create them first so the
+  /// Flutter path behaves like the verified server-side upload implementation.
   Future<void> _ensureDirectories(String directory) async {
     var current = '';
     for (final part in _cleanLogicalPath(directory).split('/')) {
@@ -114,14 +111,11 @@ class NextcloudService {
         _davUrl(current),
         options: Options(
           method: 'MKCOL',
-          headers: {
-            'Authorization': 'Basic ${_authToken()}',
-          },
+          headers: {'Authorization': 'Basic ${_authToken()}'},
           validateStatus: (status) => status != null,
         ),
       );
       final status = response.statusCode ?? 0;
-      // 201 = created, 405 = already exists. Both are valid for our purpose.
       if (status != 201 && status != 405) {
         throw StateError('فشل إنشاء مجلد الوسائط في Nextcloud: HTTP $status');
       }
@@ -146,11 +140,10 @@ class NextcloudService {
         return const NextcloudUploadResult(success: false, error: 'اسم الملف غير صالح');
       }
 
-      // Keep the exact production storage namespace used by the server path:
-      // Sehatak/chats/{chatId}/{folder}/{fileName}
       final logicalDirectory = _platformPath(path);
       final remotePath = '$logicalDirectory/$name';
       final davUrl = _davUrl(remotePath);
+      final fileLength = await file.length();
 
       await _ensureDirectories(logicalDirectory);
 
@@ -161,6 +154,7 @@ class NextcloudService {
           headers: {
             'Authorization': 'Basic ${_authToken()}',
             'Content-Type': 'application/octet-stream',
+            'Content-Length': fileLength.toString(),
           },
           contentType: 'application/octet-stream',
           validateStatus: (status) => status != null,
@@ -169,8 +163,6 @@ class NextcloudService {
       );
 
       final status = response.statusCode ?? 0;
-      // Nextcloud WebDAV PUT normally returns 201 for a new object and 204
-      // when replacing an existing object.
       if (status != 201 && status != 204) {
         return NextcloudUploadResult(
           success: false,
@@ -228,19 +220,22 @@ class NextcloudService {
     }
   }
 
-  /// Checks the actual public download endpoint without requiring a HEAD
-  /// implementation and without downloading an entire large video/audio file.
+  /// Verifies the real public download endpoint with a one-byte range request.
+  /// This avoids relying on HEAD, which is frequently disabled by proxies.
   Future<bool> verifyPublicUrl(String url) async {
+    final client = http.Client();
     try {
       final request = http.Request('GET', Uri.parse(url));
       request.headers['Range'] = 'bytes=0-0';
-      final streamed = await http.Client().send(request).timeout(const Duration(seconds: 20));
+      final streamed = await client.send(request).timeout(const Duration(seconds: 20));
       final status = streamed.statusCode;
       final contentLength = streamed.contentLength;
       await streamed.stream.drain<void>();
       return (status == 200 || status == 206) && (contentLength == null || contentLength > 0);
     } catch (_) {
       return false;
+    } finally {
+      client.close();
     }
   }
 
