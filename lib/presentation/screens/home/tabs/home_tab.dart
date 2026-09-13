@@ -181,10 +181,112 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _doctors(HomeState state, bool dark) {
     final doctors = state.doctors.take(6).toList();
-    return _section(title: 'أفضل الأطباء', dark: dark, more: () => _go(AppRouter.doctors), child: doctors.isEmpty ? _empty('لا يوجد أطباء موثقون متاحون حالياً', dark) : SizedBox(height: 220, child: ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 16), scrollDirection: Axis.horizontal, itemCount: doctors.length, separatorBuilder: (_, __) => const SizedBox(width: 12), itemBuilder: (_, index) { final doctor = doctors[index]; final image = (doctor['photoUrl'] ?? doctor['image'] ?? '').toString(); final id = (doctor['id'] ?? doctor['uid'] ?? '').toString(); return InkWell(onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'), borderRadius: BorderRadius.circular(18), child: Container(width: 168, padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(18)), child: Column(children: [ClipRRect(borderRadius: BorderRadius.circular(14), child: image.isEmpty ? Container(height: 92, width: double.infinity, color: AppColors.primary.withOpacity(.08), child: const Icon(Icons.person, color: AppColors.primary, size: 42)) : AppImage(imageUrl: image, height: 92, width: double.infinity, fit: BoxFit.cover)), const SizedBox(height: 8), Text((doctor['name'] ?? 'طبيب').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), const SizedBox(height: 3), Text((doctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: AppColors.primary)), const Spacer(), Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 15), const SizedBox(width: 3), Text('${doctor['rating'] ?? 0}', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : _muted))])]))); }));
+    if (doctors.isEmpty) {
+      return _section(
+        title: 'أفضل الأطباء',
+        dark: dark,
+        more: () => _go(AppRouter.doctors),
+        child: _empty('لا يوجد أطباء موثقون متاحون حالياً', dark),
+      );
+    }
+    return _section(
+      title: 'أفضل الأطباء',
+      dark: dark,
+      more: () => _go(AppRouter.doctors),
+      child: SizedBox(
+        height: 220,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          itemCount: doctors.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (_, index) {
+            final doctor = doctors[index];
+            final image = (doctor['photoUrl'] ?? doctor['image'] ?? '').toString();
+            final id = (doctor['id'] ?? doctor['uid'] ?? '').toString();
+            return InkWell(
+              onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'),
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                width: 168,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(18)),
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: image.isEmpty
+                          ? Container(height: 92, width: double.infinity, color: AppColors.primary.withOpacity(.08), child: const Icon(Icons.person, color: AppColors.primary, size: 42))
+                          : AppImage(imageUrl: image, height: 92, width: double.infinity, fit: BoxFit.cover),
+                    ),
+                    const SizedBox(height: 8),
+                    Text((doctor['name'] ?? 'طبيب').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                    const SizedBox(height: 3),
+                    Text((doctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: AppColors.primary)),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.star_rounded, color: Colors.amber, size: 15),
+                        const SizedBox(width: 3),
+                        Text('${doctor['rating'] ?? 0}', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : _muted)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
-  Widget _productsSection(bool dark) => _section(title: 'منتجات الصيدلية', dark: dark, more: () => _go(AppRouter.pharmacy), child: FutureBuilder<List<ProductModel>>(future: _products, builder: (_, snapshot) { if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator(strokeWidth: 2))); final products = snapshot.data ?? const <ProductModel>[]; if (products.isEmpty) return _empty('لا توجد منتجات متاحة حالياً', dark); return SizedBox(height: 210, child: ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 16), scrollDirection: Axis.horizontal, itemCount: products.length > 8 ? 8 : products.length, separatorBuilder: (_, __) => const SizedBox(width: 10), itemBuilder: (_, index) { final product = products[index]; final image = product.imageUrl ?? ''; return InkWell(onTap: () => _go(AppRouter.pharmacy), borderRadius: BorderRadius.circular(16), child: Container(width: 154, padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Center(child: image.isEmpty ? const Icon(Icons.medication_outlined, color: AppColors.primary, size: 48) : AppImage(imageUrl: image, height: 100, width: 100, fit: BoxFit.contain)), const SizedBox(height: 6), Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)), const Spacer(), Text('${product.price} ريال', style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900))]))); })); }));
+  Widget _productsSection(bool dark) => _section(
+        title: 'منتجات الصيدلية',
+        dark: dark,
+        more: () => _go(AppRouter.pharmacy),
+        child: FutureBuilder<List<ProductModel>>(
+          future: _products,
+          builder: (_, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+            final products = snapshot.data ?? const <ProductModel>[];
+            if (products.isEmpty) return _empty('لا توجد منتجات متاحة حالياً', dark);
+            return SizedBox(
+              height: 210,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: products.length > 8 ? 8 : products.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, index) {
+                  final product = products[index];
+                  final image = product.imageUrl ?? '';
+                  return InkWell(
+                    onTap: () => _go(AppRouter.pharmacy),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: 154,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(child: image.isEmpty ? const Icon(Icons.medication_outlined, color: AppColors.primary, size: 48) : AppImage(imageUrl: image, height: 100, width: 100, fit: BoxFit.contain)),
+                          const SizedBox(height: 6),
+                          Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
+                          const Spacer(),
+                          Text('${product.price} ريال', style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      );
 
   Widget _discover(bool dark) {
     final items = [
@@ -193,10 +295,61 @@ class _HomeTabState extends State<HomeTab>
       {'name': 'خريطة', 'asset': 'assets/icons/services/map_location.png', 'route': AppRouter.map},
       {'name': 'باقات', 'asset': 'assets/icons/services/packages.png', 'route': AppRouter.services},
     ];
-    return _section(title: 'اكتشف المزيد', dark: dark, child: SizedBox(height: 112, child: ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 16), scrollDirection: Axis.horizontal, itemCount: items.length, separatorBuilder: (_, __) => const SizedBox(width: 10), itemBuilder: (_, index) { final item = items[index]; return InkWell(onTap: () => _go(item['route']!), borderRadius: BorderRadius.circular(16), child: Container(width: 92, decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Image.asset(item['asset']!, width: 42, height: 42, fit: BoxFit.contain), const SizedBox(height: 8), Text(item['name']!, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text))]))); }));
+    return _section(
+      title: 'اكتشف المزيد',
+      dark: dark,
+      child: SizedBox(
+        height: 112,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (_, index) {
+            final item = items[index];
+            return InkWell(
+              onTap: () => _go(item['route']!),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: 92,
+                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(item['asset']!, width: 42, height: 42, fit: BoxFit.contain),
+                    const SizedBox(height: 8),
+                    Text(item['name']!, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
-  Widget _section({required String title, required bool dark, Widget? child, VoidCallback? more}) => Padding(padding: const EdgeInsets.only(top: 18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(children: [Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text))), if (more != null) TextButton(onPressed: more, child: const Text('المزيد'))])), if (child != null) child]);
+  Widget _section({required String title, required bool dark, Widget? child, VoidCallback? more}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text))),
+                if (more != null) TextButton(onPressed: more, child: const Text('المزيد')),
+              ],
+            ),
+          ),
+          if (child != null) child,
+        ],
+      ),
+    );
+  }
 
   Widget _empty(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(text, style: TextStyle(color: dark ? Colors.white70 : _muted))));
 
