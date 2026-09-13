@@ -22,6 +22,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _bloodTypeController = TextEditingController();
   final _allergiesController = TextEditingController();
 
+  static const List<String> _bloodTypes = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
+  ];
+
   bool _isLoading = true;
   bool _isSaving = false;
 
@@ -44,11 +55,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final doc = await _firestore.collection('users').doc(user.uid).get();
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
+        final savedBloodType = (data['bloodType'] ?? 'O+').toString().trim();
         setState(() {
           _nameController.text = data['name'] ?? user.displayName ?? '';
           _phoneController.text = data['phone'] ?? user.phoneNumber ?? '';
           _addressController.text = data['address'] ?? '';
-          _bloodTypeController.text = data['bloodType'] ?? '';
+          _bloodTypeController.text = _bloodTypes.contains(savedBloodType) ? savedBloodType : 'O+';
           _allergiesController.text = data['allergies'] ?? '';
         });
       } else {
@@ -56,13 +68,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         setState(() {
           _nameController.text = user.displayName ?? '';
           _phoneController.text = user.phoneNumber ?? '';
+          _bloodTypeController.text = 'O+';
         });
       }
     } catch (e) {
       print('❌ Error loading user data: $e');
+      if (mounted && _bloodTypeController.text.trim().isEmpty) {
+        _bloodTypeController.text = 'O+';
+      }
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _saveProfile() async {
@@ -72,6 +90,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _isSaving = true);
 
     try {
+      final bloodType = _bloodTypes.contains(_bloodTypeController.text)
+          ? _bloodTypeController.text
+          : 'O+';
+
       // ✅ تحديث DisplayName في Firebase Auth
       await user.updateDisplayName(_nameController.text.trim());
 
@@ -80,7 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
-        'bloodType': _bloodTypeController.text.trim(),
+        'bloodType': bloodType,
         'allergies': _allergiesController.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -98,7 +120,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ToastService.showError('❌ فشل التحديث: $e');
     }
 
-    setState(() => _isSaving = false);
+    if (mounted) {
+      setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -176,12 +200,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               enabled: !_isSaving,
             ),
             const SizedBox(height: 16),
-            _buildTextField(
-              controller: _bloodTypeController,
-              label: 'فصيلة الدم',
-              icon: Icons.bloodtype_rounded,
-              enabled: !_isSaving,
-            ),
+            _buildBloodTypeField(),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _allergiesController,
@@ -224,6 +243,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBloodTypeField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selected = _bloodTypes.contains(_bloodTypeController.text)
+        ? _bloodTypeController.text
+        : 'O+';
+
+    return DropdownButtonFormField<String>(
+      value: selected,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'فصيلة الدم',
+        prefixIcon: const Icon(Icons.bloodtype_rounded, color: AppColors.primary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      items: _bloodTypes
+          .map((type) => DropdownMenuItem<String>(
+                value: type,
+                child: Text(type, textAlign: TextAlign.right),
+              ))
+          .toList(),
+      onChanged: _isSaving
+          ? null
+          : (value) {
+              if (value != null) {
+                setState(() => _bloodTypeController.text = value);
+              }
+            },
     );
   }
 
