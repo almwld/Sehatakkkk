@@ -20,7 +20,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onAuthRequired,
   });
 
-  // 25% أصغر من 65px: 48.75px
   static const double _barHeight = 48.75;
   static const double _itemHeight = 48.75;
 
@@ -126,7 +125,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
                           gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
                           shape: BoxShape.circle,
                           boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.45), blurRadius: 8, spreadRadius: 1.5, offset: const Offset(0, 3))],
-                          border: Border.all(color: isDark ? const Color(0xFF0B1121) : Colors.white, width: 2.5),
                         ),
                         child: const Icon(Icons.chat_rounded, color: Colors.white, size: 20),
                       ),
