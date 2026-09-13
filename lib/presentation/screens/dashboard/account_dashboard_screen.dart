@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/admin/dashboard/admin_dashboard.dart';
-import 'package:sehatak/presentation/screens/dashboard/account_settings_screen.dart';
 import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/dashboard/hospital_dashboard.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
@@ -42,9 +43,7 @@ class AccountDashboardScreen extends StatelessWidget {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const AccountSettingsScreen()),
-                        ),
+                        onTap: () => context.push(AppRouter.accountSettings),
                         borderRadius: BorderRadius.circular(24),
                         child: Container(
                           width: 46,
