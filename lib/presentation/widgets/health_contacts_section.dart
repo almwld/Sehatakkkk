@@ -13,6 +13,7 @@ import 'package:sehatak/presentation/widgets/status_row.dart';
 class HealthContactsSection extends StatefulWidget {
   final bool isDark;
   const HealthContactsSection({super.key, required this.isDark});
+
   @override
   State<HealthContactsSection> createState() => _HealthContactsSectionState();
 }
@@ -22,6 +23,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
   final ChatService _chatService = ChatService();
   final TextEditingController _searchController = TextEditingController();
   Stream<List<UserStatusModel>>? _statusStream;
+  Future<List<_DirectoryRecord>>? _directoryFuture;
   String _search = '';
   bool _opening = false;
 
@@ -29,6 +31,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
   void initState() {
     super.initState();
     _statusStream = _statusService.streamActiveStatuses();
+    _directoryFuture = _loadDirectory();
     _searchController.addListener(() {
       if (mounted) setState(() => _search = _searchController.text.trim().toLowerCase());
     });
@@ -46,38 +49,33 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       stream: _statusStream,
       builder: (context, statusSnapshot) {
         final statuses = statusSnapshot.data ?? const <UserStatusModel>[];
-        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: FirebaseFirestore.instance.collection('doctors').snapshots(),
-          builder: (context, doctorsSnapshot) {
-            return FutureBuilder<List<_DirectoryRecord>>(
-              future: _loadDirectory(doctorsSnapshot.data?.docs ?? const []),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-                }
-                final records = snapshot.data ?? const <_DirectoryRecord>[];
-                return Column(
-                  children: [
-                    _buildStatuses(statuses),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      child: TextField(
-                        controller: _searchController,
-                        textDirection: TextDirection.rtl,
-                        decoration: InputDecoration(
-                          hintText: 'ابحث في التواصل الصحي...',
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: _search.isEmpty ? null : IconButton(icon: const Icon(Icons.clear), onPressed: _searchController.clear),
-                          filled: true,
-                          fillColor: widget.isDark ? const Color(0xFF162039) : Colors.white,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-                        ),
-                      ),
+        return FutureBuilder<List<_DirectoryRecord>>(
+          future: _directoryFuture,
+          builder: (context, directorySnapshot) {
+            if (directorySnapshot.connectionState == ConnectionState.waiting && !directorySnapshot.hasData) {
+              return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            }
+            final records = directorySnapshot.data ?? const <_DirectoryRecord>[];
+            return Column(
+              children: [
+                _buildStatuses(statuses),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: TextField(
+                    controller: _searchController,
+                    textDirection: TextDirection.rtl,
+                    decoration: InputDecoration(
+                      hintText: 'ابحث في التواصل الصحي...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _search.isEmpty ? null : IconButton(icon: const Icon(Icons.clear), onPressed: _searchController.clear),
+                      filled: true,
+                      fillColor: widget.isDark ? const Color(0xFF162039) : Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
                     ),
-                    Expanded(child: _buildDirectory(records)),
-                  ],
-                );
-              },
+                  ),
+                ),
+                Expanded(child: _buildDirectory(records)),
+              ],
             );
           },
         );
@@ -121,11 +119,22 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       if (_search.isNotEmpty && !record.searchText.contains(_search)) continue;
       grouped.putIfAbsent(record.category, () => <_DirectoryRecord>[]).add(record);
     }
-    const order = <String>['أطباء','صيدليات','مرافق صحية','مستشفيات','مختبرات','مندوب توصيل','مسعف ميداني','عينة مخبر منزلي'];
-    final visible = order.where((title) => (grouped[title]?.isNotEmpty ?? false)).toList();
+
+    const order = <String>[
+      'أطباء',
+      'صيدليات',
+      'مرافق صحية',
+      'مستشفيات',
+      'مختبرات',
+      'مندوب توصيل',
+      'مسعف ميداني',
+      'عينة مخبر منزلي',
+    ];
+    final visible = order.where((title) => grouped[title]?.isNotEmpty ?? false).toList();
     if (visible.isEmpty) {
       return Center(child: Text(_search.isEmpty ? 'لا توجد حسابات صحية متاحة للتواصل حالياً.' : 'لا توجد نتائج مطابقة.', style: TextStyle(color: widget.isDark ? Colors.white70 : Colors.black54)));
     }
+
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 100),
       itemCount: visible.length,
@@ -139,13 +148,15 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(2, 12, 2, 7),
-          child: Row(children: [
-            Container(width: 4, height: 22, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4))),
-            const SizedBox(width: 8),
-            Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            const Spacer(),
-            Text('${items.length}', style: TextStyle(color: widget.isDark ? Colors.white54 : Colors.black45, fontSize: 12)),
-          ]),
+          child: Row(
+            children: [
+              Container(width: 4, height: 22, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4))),
+              const SizedBox(width: 8),
+              Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+              const Spacer(),
+              Text('${items.length}', style: TextStyle(color: widget.isDark ? Colors.white54 : Colors.black45, fontSize: 12)),
+            ],
+          ),
         ),
         ...items.map(_buildContactCard),
       ],
@@ -174,9 +185,10 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
     );
   }
 
-  Future<List<_DirectoryRecord>> _loadDirectory(List<QueryDocumentSnapshot<Map<String, dynamic>>> doctorDocs) async {
+  Future<List<_DirectoryRecord>> _loadDirectory() async {
     final records = <_DirectoryRecord>[];
     final self = FirebaseAuth.instance.currentUser?.uid;
+
     void add(String category, String id, Map<String, dynamic> data, IconData icon) {
       final userId = (data['userId'] ?? data['uid'] ?? data['ownerId'] ?? id).toString();
       if (userId.isEmpty || userId == self) return;
@@ -185,31 +197,46 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       final subtitle = (data['specialty'] ?? data['description'] ?? data['address'] ?? data['location'] ?? category).toString().trim();
       records.add(_DirectoryRecord(category: category, userId: userId, name: name.isEmpty ? 'حساب صحي' : name, image: image, subtitle: subtitle.isEmpty ? category : subtitle, icon: icon, data: data));
     }
-    for (final d in doctorDocs) add('أطباء', d.id, d.data(), Icons.medical_services_outlined);
+
+    Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> collection(String name) async {
+      try {
+        return (await FirebaseFirestore.instance.collection(name).limit(100).get()).docs;
+      } catch (e) {
+        debugPrint('health directory $name error: $e');
+        return const [];
+      }
+    }
+
+    Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> healthRole(String role) async {
+      try {
+        return (await FirebaseFirestore.instance.collection('health_contacts').where('role', isEqualTo: role).limit(100).get()).docs;
+      } catch (e) {
+        debugPrint('health directory role $role error: $e');
+        return const [];
+      }
+    }
+
     final results = await Future.wait([
-      _getCollection('pharmacies'), _getCollection('hospitals'), _getCollection('labs'),
-      _getRoleCollection('delivery'), _getRoleCollection('paramedic'), _getRoleCollection('service'),
+      collection('doctors'),
+      collection('pharmacies'),
+      collection('hospitals'),
+      collection('labs'),
+      healthRole('delivery'),
+      healthRole('paramedic'),
+      healthRole('service'),
     ]);
-    for (final d in results[0]) add('صيدليات', d.id, d.data(), Icons.local_pharmacy_outlined);
-    for (final d in results[1]) add('مستشفيات', d.id, d.data(), Icons.local_hospital_outlined);
-    for (final d in results[2]) {
+
+    for (final d in results[0]) add('أطباء', d.id, d.data(), Icons.medical_services_outlined);
+    for (final d in results[1]) add('صيدليات', d.id, d.data(), Icons.local_pharmacy_outlined);
+    for (final d in results[2]) add('مستشفيات', d.id, d.data(), Icons.local_hospital_outlined);
+    for (final d in results[3]) {
       add('مختبرات', d.id, d.data(), Icons.science_outlined);
       if (_isHomeSample(d.data())) add('عينة مخبر منزلي', d.id, d.data(), Icons.home_work_outlined);
     }
-    for (final d in results[3]) add('مندوب توصيل', d.id, d.data(), Icons.delivery_dining);
-    for (final d in results[4]) add('مسعف ميداني', d.id, d.data(), Icons.emergency);
-    for (final d in results[5]) add(_isHospital(d.data()) ? 'مستشفيات' : 'مرافق صحية', d.id, d.data(), Icons.health_and_safety_outlined);
+    for (final d in results[4]) add('مندوب توصيل', d.id, d.data(), Icons.delivery_dining);
+    for (final d in results[5]) add('مسعف ميداني', d.id, d.data(), Icons.emergency);
+    for (final d in results[6]) add(_isHospital(d.data()) ? 'مستشفيات' : 'مرافق صحية', d.id, d.data(), Icons.health_and_safety_outlined);
     return records;
-  }
-
-  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _getCollection(String name) async {
-    try { return (await FirebaseFirestore.instance.collection(name).limit(100).get()).docs; }
-    catch (e) { debugPrint('health directory $name error: $e'); return const []; }
-  }
-
-  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _getRoleCollection(String role) async {
-    try { return (await FirebaseFirestore.instance.collection('health_contacts').where('role', isEqualTo: role).limit(100).get()).docs; }
-    catch (e) { debugPrint('health directory role $role error: $e'); return const []; }
   }
 
   bool _isHospital(Map<String, dynamic> data) {
