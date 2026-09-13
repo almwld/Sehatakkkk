@@ -424,3 +424,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
         children: [
           Icon(Icons.qr_code, size: 120, color: AppColors.primary),
           const SizedBox(height: 8),
+          Text('رمز الملف الصحي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
