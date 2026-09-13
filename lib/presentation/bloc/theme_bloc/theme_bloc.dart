@@ -16,7 +16,10 @@ class ThemeBloc extends Cubit<ThemeState> {
   static const String _themePreferenceKey = 'sehatak_theme_mode';
 
   ThemeBloc({ThemeMode initialMode = ThemeMode.dark})
-      : super(ThemeState.initial(initialMode));
+      : super(ThemeState.initial(initialMode)) {
+    // استرجاع اختيار المستخدم تلقائياً عند تشغيل التطبيق.
+    _loadAndApplySavedTheme();
+  }
 
   Future<void> toggleTheme() async {
     final newMode = state.themeMode == ThemeMode.light
@@ -31,23 +34,25 @@ class ThemeBloc extends Cubit<ThemeState> {
     await _saveThemeMode(mode);
   }
 
-  static Future<ThemeMode> loadSavedThemeMode() async {
+  Future<void> _loadAndApplySavedTheme() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      if (isClosed) return;
+
       final saved = prefs.getString(_themePreferenceKey);
-      switch (saved) {
-        case 'light':
-          return ThemeMode.light;
-        case 'dark':
-          return ThemeMode.dark;
-        case 'system':
-          return ThemeMode.system;
-        default:
-          // لا يوجد اختيار محفوظ: استخدم الثيم الرسمي الليلي.
-          return ThemeMode.dark;
+      final mode = switch (saved) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        'system' => ThemeMode.system,
+        _ => ThemeMode.dark,
+      };
+
+      // لا نعيد إصدار الحالة إذا كان المستخدم لم يغير شيئاً.
+      if (mode != state.themeMode) {
+        emit(ThemeState(themeMode: mode));
       }
-    } catch (_) {
-      return ThemeMode.dark;
+    } catch (e) {
+      debugPrint('❌ Failed to load theme preference: $e');
     }
   }
 
