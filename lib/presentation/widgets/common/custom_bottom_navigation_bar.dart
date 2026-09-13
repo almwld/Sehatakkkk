@@ -20,7 +20,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onAuthRequired,
   });
 
-  static const double _barHeight = 65.0;
+  // 25% أصغر من 65px: 48.75px
+  static const double _barHeight = 48.75;
+  static const double _itemHeight = 48.75;
 
   static const List<NavItem> _navItems = [
     NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
@@ -49,11 +51,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
           color: backgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
-            ),
+            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, -4)),
           ],
         ),
         child: SafeArea(
@@ -63,9 +61,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: _navItems.map((item) {
-              return item.isSpecial
-                  ? _buildSpecialChatButton(item, isDark)
-                  : _buildNavItem(item, isDark);
+              return item.isSpecial ? _buildSpecialChatButton(item, isDark) : _buildNavItem(item, isDark);
             }).toList(),
           ),
         ),
@@ -75,41 +71,22 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   Widget _buildNavItem(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
-    final color = isSelected
-        ? AppColors.primary
-        : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
+    final color = isSelected ? AppColors.primary : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
 
     return Expanded(
       child: GestureDetector(
         onTap: () => _handleTap(item),
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
-          height: 65,
+          height: _itemHeight,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(item.icon, color: color, size: 22),
-              const SizedBox(height: 3),
-              Text(
-                item.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: color,
-                ),
-              ),
+              Icon(item.icon, color: color, size: 19),
               const SizedBox(height: 2),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: isSelected ? 12 : 0,
-                height: 2,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: color)),
+              const SizedBox(height: 1),
+              AnimatedContainer(duration: const Duration(milliseconds: 200), width: isSelected ? 10 : 0, height: 2, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
             ],
           ),
         ),
@@ -126,7 +103,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         onTap: () => _handleTap(item),
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
-          height: 65,
+          height: _itemHeight,
           child: Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.center,
@@ -135,49 +112,26 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 minWidth: 0,
                 maxWidth: double.infinity,
                 minHeight: 0,
-                maxHeight: 120,
+                maxHeight: 90,
                 alignment: Alignment.topCenter,
                 child: Transform.translate(
-                  offset: const Offset(0, -18),
+                  offset: const Offset(0, -13.5),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 52,
-                        height: 52,
+                        width: 39,
+                        height: 39,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.primaryDark],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
                           shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.45),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: isDark ? const Color(0xFF0B1121) : Colors.white,
-                            width: 3,
-                          ),
+                          boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.45), blurRadius: 8, spreadRadius: 1.5, offset: const Offset(0, 3))],
+                          border: Border.all(color: isDark ? const Color(0xFF0B1121) : Colors.white, width: 2.5),
                         ),
-                        child: const Icon(Icons.chat_rounded, color: Colors.white, size: 26),
+                        child: const Icon(Icons.chat_rounded, color: Colors.white, size: 20),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: isSelected ? AppColors.primary : inactiveColor,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        ),
-                      ),
+                      const SizedBox(height: 1),
+                      Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8, color: isSelected ? AppColors.primary : inactiveColor, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
                     ],
                   ),
                 ),
@@ -206,11 +160,5 @@ class NavItem {
   final bool isProtected;
   final bool isSpecial;
 
-  const NavItem({
-    required this.index,
-    required this.icon,
-    required this.label,
-    this.isProtected = false,
-    this.isSpecial = false,
-  });
+  const NavItem({required this.index, required this.icon, required this.label, this.isProtected = false, this.isSpecial = false});
 }
