@@ -80,6 +80,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _subscribeStatuses() {
+    _statusSubscription?.cancel();
     try {
       _statusSubscription = _statusService.streamActiveStatuses().listen(
         (items) {
@@ -424,12 +425,23 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted || _openingChat) return;
     setState(() => _openingChat = true);
     try {
+      // Clear this user's unread badge as soon as the conversation is opened.
+      // The chat stream then immediately redraws the tile with unreadCount == 0.
+      await _chatService.markAsRead(chatId);
+      if (!mounted) return;
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: name, groupImage: image.isEmpty ? null : image),
         ),
       );
+      // Also reconcile any messages that arrived while the room was visible.
+      if (mounted) {
+        await _chatService.markAsRead(chatId);
+      }
+    } catch (e) {
+      debugPrint('open existing chat error: $e');
+      if (mounted) ToastService.showError('تعذر فتح المحادثة: $e');
     } finally {
       if (mounted) setState(() => _openingChat = false);
     }
@@ -461,6 +473,8 @@ class _ChatScreenState extends State<ChatScreen> {
         patientImage: user.photoURL,
       );
       if (!mounted || chatId.trim().isEmpty) return;
+      await _chatService.markAsRead(chatId);
+      if (!mounted) return;
       await Navigator.push(
         context,
         MaterialPageRoute(
