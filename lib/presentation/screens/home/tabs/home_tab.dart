@@ -230,7 +230,7 @@ class _HomeTabState extends State<HomeTab>
                     const SizedBox(height: 3),
                     Text((doctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: AppColors.primary)),
                     const Spacer(),
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 15), const SizedBox(width: 3), Text('${doctor['rating'] ?? 0}', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : _muted))]]),
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 15), const SizedBox(width: 3), Text('${doctor['rating'] ?? 0}', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : _muted))]),
                   ]),
                 ),
               );
