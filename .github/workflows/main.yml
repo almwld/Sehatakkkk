@@ -18,19 +18,14 @@ jobs:
       with:
         fetch-depth: 0
 
-    # ─────────────────────────────────────────────
-    # ملاحظة: خطوات الـpython3 scripts أدناه
-    # تُعدّل كود المصدر ثم تدفعه إلى master.
-    # هذا يمكن أن يُسبب infinite build loop إذا
-    # كانت التعديلات دائمًا غير حتمية (non-deterministic).
-    # نُبقيها كما هي الآن، وننصح بمراجعتها لاحقًا.
-    # ─────────────────────────────────────────────
-
     - name: 🩺 Apply health contact directory
       run: python3 scripts/apply_health_contact_directory.py
 
     - name: 📊 Apply dynamic vitals integration
       run: python3 scripts/apply_dynamic_vitals_v2.py
+
+    - name: 🛠️ Apply unified Sehatak prompt repairs
+      run: python3 scripts/apply_unified_prompt_repairs.py
 
     - name: 📝 Commit generated source changes
       run: |
@@ -40,19 +35,9 @@ jobs:
         fi
         git config user.name 'github-actions[bot]'
         git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-        git add lib/presentation/screens/chat/chat_screen.dart \
-          lib/presentation/widgets/health_contacts_section.dart \
-          lib/core/services/vitals_service.dart \
-          lib/presentation/widgets/live_vitals_grid.dart \
-          lib/presentation/screens/health/health_dashboard.dart \
-          lib/presentation/screens/vitals/vitals_dashboard_screen.dart \
-          lib/presentation/screens/more/more_screen.dart \
-          lib/presentation/screens/blood_pressure/blood_pressure_screen.dart \
-          lib/presentation/screens/glucose_tracker/glucose_tracker_screen.dart \
-          lib/presentation/screens/weight_tracker/weight_tracker_screen.dart \
-          lib/services/heart_rate_service.dart
+        git add -A
         git diff --cached --check
-        git commit -m 'feat: make vitals dashboards dynamic'
+        git commit -m 'feat: apply unified Sehatak prompt repairs'
         git push origin HEAD:master
 
     - name: ☕ Setup Java
@@ -67,10 +52,6 @@ jobs:
         flutter-version: '3.16.0'
         channel: 'stable'
         cache: true
-
-    # ✅ تم حذف خطوة cp المكسورة.
-    # الملف android/app/google-services.json موجود في المستودع
-    # ومُتتبَّع عبر git، فلا حاجة لنسخه.
 
     - name: 📦 Install dependencies
       run: flutter pub get
@@ -89,7 +70,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: app-armeabi-v7a
-        path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+        path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
 
     - name: 📤 Upload x86_64
