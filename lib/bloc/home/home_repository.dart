@@ -78,7 +78,22 @@ class HomeRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getTips() async => [];
+  Future<List<Map<String, dynamic>>> getTips({int limit = 6}) async {
+    try {
+      final firestore = _firestore;
+      if (firestore == null) return [];
+      final snapshot = await firestore.collection('tips').where('isPublished', isEqualTo: true).limit(limit).get();
+      final tips = snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+      tips.sort((a, b) {
+        final at = a['createdAt'];
+        final bt = b['createdAt'];
+        return at is Timestamp && bt is Timestamp ? bt.compareTo(at) : 0;
+      });
+      return tips;
+    } catch (_) {
+      return [];
+    }
+  }
 
   Future<List<Map<String, dynamic>>> getCommunityPosts({int limit = 10}) async {
     try {
