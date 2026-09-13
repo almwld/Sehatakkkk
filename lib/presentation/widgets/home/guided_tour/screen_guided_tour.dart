@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'tour_manager.dart';
@@ -247,43 +248,63 @@ class _TourBubble extends StatelessWidget {
   final VoidCallback onNext;
 
   @override
-  Widget build(BuildContext context) => Material(
-        color: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: step.accentColor.withOpacity(.30)),
-            boxShadow: [BoxShadow(blurRadius: 24, offset: const Offset(0, 8), color: Colors.black.withOpacity(.25))],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(children: [
-                Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: step.accentColor.withOpacity(.15), shape: BoxShape.circle), child: Text(step.emoji, style: const TextStyle(fontSize: 22))),
-                const SizedBox(width: 10),
-                Expanded(child: Text(step.title, style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900))),
-              ]),
-              const SizedBox(height: 12),
-              Text(step.description, textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6)),
-              if (step.actionHint != null) ...[
-                const SizedBox(height: 10),
-                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.09), borderRadius: BorderRadius.circular(10)), child: Text(step.actionHint!, textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? const Color(0xCC182329) : const Color(0xD9FFFFFF);
+    final titleColor = isDark ? Colors.white : const Color(0xFF172126);
+    final bodyColor = isDark ? Colors.white70 : const Color(0xFF405057);
+    final borderColor = step.accentColor.withOpacity(isDark ? .48 : .34);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+            decoration: BoxDecoration(
+              color: surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: borderColor, width: 1.1),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                  color: Colors.black.withOpacity(isDark ? .42 : .20),
+                ),
               ],
-              const Spacer(),
-              Row(children: [TextButton(onPressed: onSkip, child: const Text('تخطي')), const Spacer(), Text('${index + 1}/$total', style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.black54))]),
-              Row(children: [
-                if (index > 0) ...[
-                  OutlinedButton(onPressed: onPrevious, child: const Text('السابق')),
-                  const SizedBox(width: 8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(children: [
+                  Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: step.accentColor.withOpacity(.18), shape: BoxShape.circle, border: Border.all(color: step.accentColor.withOpacity(.24))), child: Text(step.emoji, style: const TextStyle(fontSize: 22))),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(step.title, style: TextStyle(color: titleColor, fontSize: 18, fontWeight: FontWeight.w900))),
+                ]),
+                const SizedBox(height: 12),
+                Text(step.description, textAlign: TextAlign.right, style: TextStyle(color: bodyColor, fontSize: 14, height: 1.6)),
+                if (step.actionHint != null) ...[
+                  const SizedBox(height: 10),
+                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.10), borderRadius: BorderRadius.circular(10)), child: Text(step.actionHint!, textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
                 ],
-                Expanded(child: FilledButton(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor, foregroundColor: Colors.white), child: Text(index == total - 1 ? 'تم' : 'التالي'))),
-              ]),
-            ],
+                const Spacer(),
+                Row(children: [TextButton(onPressed: onSkip, style: TextButton.styleFrom(foregroundColor: bodyColor), child: const Text('تخطي')), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.white.withOpacity(isDark ? .08 : .45), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white.withOpacity(.16))), child: Text('${index + 1}/$total', style: TextStyle(color: bodyColor, fontWeight: FontWeight.w800)))]),
+                Row(children: [
+                  if (index > 0) ...[
+                    OutlinedButton(onPressed: onPrevious, style: OutlinedButton.styleFrom(foregroundColor: step.accentColor, side: BorderSide(color: step.accentColor.withOpacity(.40))), child: const Text('السابق')),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(child: FilledButton(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor, foregroundColor: Colors.white), child: Text(index == total - 1 ? 'تم' : 'التالي'))),
+                ]),
+              ],
+            ),
           ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _SpotlightPainter extends CustomPainter {
