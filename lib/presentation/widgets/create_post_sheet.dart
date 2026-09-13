@@ -16,7 +16,10 @@ class CreatePostSheet extends StatefulWidget {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => const CreatePostSheet(),
+        builder: (_) => BlocProvider(
+          create: (_) => CommunityBloc(),
+          child: const CreatePostSheet(),
+        ),
       );
 
   @override
