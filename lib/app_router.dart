@@ -9,7 +9,7 @@ import 'package:sehatak/presentation/screens/blood_donation/blood_donation_scree
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/community/community_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
+import 'package:sehatak/presentation/screens/dashboard/account_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -60,7 +60,7 @@ class AppRouter {
       GoRoute(path: hospitals, builder: (_, __) => const HospitalScreen()),
       GoRoute(path: chat, builder: (_, __) => const ChatScreen()),
       GoRoute(path: more, builder: (_, __) => ScreenTours.wrapMore(const MoreScreen())),
-      GoRoute(path: dashboard, builder: (_, __) => const RoleBasedDashboardScreen()),
+      GoRoute(path: dashboard, builder: (_, __) => const AccountDashboardScreen()),
       GoRoute(path: profile, builder: (_, __) => ScreenTours.wrapProfile(const PatientProfile())),
       GoRoute(path: appointments, builder: (_, __) => const PatientAppointments()),
       GoRoute(path: notifications, builder: (_, __) => const NotificationsScreen()),
@@ -91,7 +91,7 @@ class AppRouter {
       case hospitals: return MaterialPageRoute(builder: (_) => const HospitalScreen(), settings: routeSettings);
       case chat: return MaterialPageRoute(builder: (_) => const ChatScreen(), settings: routeSettings);
       case more: return MaterialPageRoute(builder: (_) => ScreenTours.wrapMore(const MoreScreen()), settings: routeSettings);
-      case dashboard: return MaterialPageRoute(builder: (_) => const RoleBasedDashboardScreen(), settings: routeSettings);
+      case dashboard: return MaterialPageRoute(builder: (_) => const AccountDashboardScreen(), settings: routeSettings);
       case profile: return MaterialPageRoute(builder: (_) => ScreenTours.wrapProfile(const PatientProfile()), settings: routeSettings);
       case appointments: return MaterialPageRoute(builder: (_) => const PatientAppointments(), settings: routeSettings);
       case notifications: return MaterialPageRoute(builder: (_) => const NotificationsScreen(), settings: routeSettings);
