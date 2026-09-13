@@ -30,6 +30,29 @@ jobs:
     - name: 🧩 Finish unified chat and routing repairs
       run: python3 scripts/finish_unified_prompt_repairs.py
 
+    - name: 🛡️ Validate chat service declarations
+      run: |
+        python3 - <<'PY'
+        from pathlib import Path
+        path = Path('lib/core/services/chat_service.dart')
+        text = path.read_text(encoding='utf-8')
+        marker = 'Future<void> markAsDelivered(String chatId)'
+        count = text.count(marker)
+        print(f'markAsDelivered declarations: {count}')
+        if count > 1:
+            first = text.find(marker)
+            second = text.find(marker, first + 1)
+            block_end = text.find('\n  Future<void>', second)
+            if block_end == -1:
+                block_end = text.find('\n}', second)
+            text = text[:second] + text[block_end:]
+            path.write_text(text, encoding='utf-8')
+            count = text.count(marker)
+            print(f'After deduplication: {count}')
+        if count != 1:
+            raise SystemExit('chat_service.dart must contain exactly one markAsDelivered declaration')
+        PY
+
     - name: 📝 Commit generated source changes
       run: |
         if git diff --quiet; then
