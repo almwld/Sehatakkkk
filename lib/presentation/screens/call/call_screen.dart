@@ -421,10 +421,10 @@ class _CallScreenState extends State<CallScreen> {
   Widget top(String s) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      _assetButton(asset: AppImages.phoneCall, onTap: end, rotation: 135),
+      _iconButton(icon: Icons.call_end, onTap: end, color: red),
       badge(joined ? fmt(seconds) : s),
       if (widget.isVideo && remoteTrack != null)
-        _textButton('↕', () => setState(() => swapped = !swapped))
+        _iconButton(icon: Icons.flip_camera_ios_rounded, onTap: () => setState(() => swapped = !swapped), color: Colors.white)
       else
         const SizedBox(width: 44),
     ],
@@ -446,16 +446,16 @@ class _CallScreenState extends State<CallScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
       decoration: BoxDecoration(color: card.withOpacity(.9), border: Border.all(color: Colors.white.withOpacity(.1)), borderRadius: BorderRadius.circular(30)),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        button(AppImages.audioRecord, 'سماعة', card, toggleSpeaker, active: speaker),
-        button(AppImages.microphone, 'كتم', cyan, mute, active: muted),
-        if (widget.isVideo) button(AppImages.videoCall, 'كاميرا', cyan, toggleCamera, active: !camera),
-        if (widget.isVideo) button(AppImages.videoCall, 'تبديل', teal, switchCamera),
-        button(AppImages.phoneCall, 'إنهاء', red, end, main: true, rotation: 135),
+        button(Icons.volume_up, 'سماعة', card, toggleSpeaker, active: speaker),
+        button(muted ? Icons.mic_off : Icons.mic, 'كتم', cyan, mute, active: muted),
+        if (widget.isVideo) button(camera ? Icons.videocam : Icons.videocam_off, 'كاميرا', cyan, toggleCamera, active: !camera),
+        if (widget.isVideo) button(Icons.cameraswitch_rounded, 'تبديل', teal, switchCamera),
+        button(Icons.call_end, 'إنهاء', red, end, main: true),
       ]),
     ),
   );
 
-  Widget button(String asset, String label, Color color, VoidCallback action, {bool active = false, bool main = false, double rotation = 0}) => Column(
+  Widget button(IconData icon, String label, Color color, VoidCallback action, {bool active = false, bool main = false}) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
       GestureDetector(
@@ -468,8 +468,7 @@ class _CallScreenState extends State<CallScreen> {
             color: main ? color : (active ? color.withOpacity(.22) : color.withOpacity(.12)),
             border: Border.all(color: main ? color : color.withOpacity(.7), width: main ? 0 : 1.4),
           ),
-          padding: EdgeInsets.all(main ? 18 : 15),
-          child: Transform.rotate(angle: rotation * 3.1415926535 / 180, child: Image.asset(asset, fit: BoxFit.contain)),
+          child: Icon(icon, color: Colors.white, size: main ? 32 : 26),
         ),
       ),
       const SizedBox(height: 5),
@@ -477,25 +476,13 @@ class _CallScreenState extends State<CallScreen> {
     ],
   );
 
-  Widget _assetButton({required String asset, required VoidCallback onTap, double rotation = 0}) => GestureDetector(
+  Widget _iconButton({required IconData icon, required VoidCallback onTap, required Color color}) => GestureDetector(
     onTap: onTap,
     child: Container(
       width: 44,
       height: 44,
       decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle, border: Border.all(color: Colors.white.withOpacity(.16))),
-      padding: const EdgeInsets.all(11),
-      child: Transform.rotate(angle: rotation * 3.1415926535 / 180, child: Image.asset(asset, fit: BoxFit.contain)),
-    ),
-  );
-
-  Widget _textButton(String text, VoidCallback onTap) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: 44,
-      height: 44,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle, border: Border.all(color: Colors.white.withOpacity(.16))),
-      child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 27, fontWeight: FontWeight.w600)),
+      child: Icon(icon, color: color, size: 23),
     ),
   );
 
