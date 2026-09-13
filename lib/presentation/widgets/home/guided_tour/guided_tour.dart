@@ -220,8 +220,8 @@ class _GuidedTourState extends State<GuidedTour> {
         break;
     }
 
-    left = left.clamp(16.0, maxLeft < 16 ? 16.0 : maxLeft);
-    top = top.clamp(16.0, maxTop < 16 ? 16.0 : maxTop);
+    left = left.clamp(16.0, maxLeft < 16 ? 16.0 : maxLeft).toDouble();
+    top = top.clamp(16.0, maxTop < 16 ? 16.0 : maxTop).toDouble();
     return Rect.fromLTWH(left, top, _bubbleWidth, height);
   }
 }
