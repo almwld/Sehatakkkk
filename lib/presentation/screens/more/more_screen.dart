@@ -16,6 +16,7 @@ import 'package:sehatak/presentation/screens/blood_donation/blood_donation_scree
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
+import 'package:sehatak/presentation/screens/delivery/delivery_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
@@ -175,7 +176,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/hospital.png', 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
           {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
           {'icon': 'assets/images/services/packages.png', 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
-          {'icon': 'assets/images/services/delivery.png', 'title': 'خدمات التوصيل', 'subtitle': 'توصيل الأدوية للمنزل', 'screen': const PharmacyScreen()},
+          {'icon': 'assets/images/services/delivery.png', 'title': 'خدمات التوصيل', 'subtitle': 'توصيل الأدوية للمنزل', 'screen': const DeliveryScreen()},
         ];
       case 'إعدادات':
         return [
