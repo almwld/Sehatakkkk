@@ -95,7 +95,6 @@ class NotificationService {
   Future<void>? _initialization;
   bool _initialized = false;
   bool _callCoordinatorStarted = false;
-  final Map<String, Timer> _callIconTimers = <String, Timer>{};
 
   static const messageChannelId = 'sehatak_messages_v2';
   static const appointmentChannelId = 'sehatak_appointments_v1';
@@ -249,34 +248,21 @@ class NotificationService {
     await _notifications.show(_notificationId(), title, body, details, payload: payload);
   }
 
-  /// Incoming calls deliberately start with the app's normal Sehatak small icon.
-  /// After 500ms the same Android notification is updated in-place to the
-  /// Material-style received-call icon. The notification id stays identical,
-  /// so Android does not create a second notification or replay the ringtone.
+  /// Incoming calls stay visible outside the app until the call reaches a
+  /// terminal state (answered, rejected, cancelled, missed or ended).
+  /// No artificial 500ms icon swap and no timeoutAfter are used.
   Future<void> showIncomingCallNotification({required String callerName, required String callId, required bool isVideo, bool silent = false}) async {
     await initialize(startCallCoordinator: false);
     if (silent) unawaited(CallSoundCoordinator.instance.presentIncomingCallById(callId));
     final id = _callNotificationId(callId);
-    _callIconTimers.remove(callId)?.cancel();
     await _showCallNotification(
       id: id,
       callerName: callerName,
       callId: callId,
       isVideo: isVideo,
       silent: silent,
-      smallIcon: 'ic_notification',
+      smallIcon: 'ic_call_received',
     );
-    _callIconTimers[callId] = Timer(const Duration(milliseconds: 500), () {
-      _callIconTimers.remove(callId);
-      unawaited(_showCallNotification(
-        id: id,
-        callerName: callerName,
-        callId: callId,
-        isVideo: isVideo,
-        silent: true,
-        smallIcon: 'ic_call_received',
-      ));
-    });
   }
 
   Future<void> _showCallNotification({required int id, required String callerName, required String callId, required bool isVideo, required bool silent, required String smallIcon}) async {
@@ -287,7 +273,7 @@ class NotificationService {
         sound: silent ? null : const RawResourceAndroidNotificationSound('call_ringtone'),
         category: AndroidNotificationCategory.call, visibility: NotificationVisibility.public,
         fullScreenIntent: true, ongoing: true, autoCancel: false, onlyAlertOnce: true,
-        showWhen: true, timeoutAfter: 60000, ticker: 'مكالمة واردة من $callerName',
+        showWhen: false, ticker: 'مكالمة واردة من $callerName',
         color: const Color(0xFF2A8F83), colorized: false, icon: smallIcon,
         actions: <AndroidNotificationAction>[
           AndroidNotificationAction('call_reject', 'إلغاء', titleColor: const Color(0xFFE53935), showsUserInterface: true, cancelNotification: true),
@@ -301,15 +287,10 @@ class NotificationService {
   }
 
   Future<void> cancelIncomingCallNotification(String callId) {
-    _callIconTimers.remove(callId)?.cancel();
     return _notifications.cancel(_callNotificationId(callId));
   }
 
   Future<void> cancelAllNotifications() async {
-    for (final timer in _callIconTimers.values) {
-      timer.cancel();
-    }
-    _callIconTimers.clear();
     await _notifications.cancelAll();
   }
 
