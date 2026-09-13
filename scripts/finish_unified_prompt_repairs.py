@@ -49,3 +49,17 @@ def shared_chat(t):
     t = t.replace(old_call, new_call)
     return t
 patch('lib/presentation/screens/shared/chat_navigation.dart', shared_chat)
+
+def chat_service_indexes(t):
+    t = t.replace(".where('senderId',isNotEqualTo:id).where('isDelivered',isEqualTo:false).limit(100).get()", ".where('senderId',isNotEqualTo:id).limit(100).get()")
+    t = t.replace("final b=_firestore.batch();for(final d in s.docs)b.update(d.reference,{'isDelivered':true,'deliveredAt':FieldValue.serverTimestamp()});await b.commit();", "final b=_firestore.batch();for(final d in s.docs){if(d.data()['isDelivered']==true)continue;b.update(d.reference,{'isDelivered':true,'deliveredAt':FieldValue.serverTimestamp()});}await b.commit();")
+    t = t.replace(".where('senderId',isNotEqualTo:id).where('isRead',isEqualTo:false).limit(100).get()", ".where('senderId',isNotEqualTo:id).limit(100).get()")
+    t = t.replace("final b=_firestore.batch();for(final d in s.docs)b.update(d.reference,{'isDelivered':true,'deliveredAt':d.data()['deliveredAt']??FieldValue.serverTimestamp(),'isRead':true,'readAt':FieldValue.serverTimestamp()});b.update(_chatRef(chatId),{'unreadCount.$id':0});await b.commit();", "final b=_firestore.batch();for(final d in s.docs){if(d.data()['isRead']==true)continue;b.update(d.reference,{'isDelivered':true,'deliveredAt':d.data()['deliveredAt']??FieldValue.serverTimestamp(),'isRead':true,'readAt':FieldValue.serverTimestamp()});}b.update(_chatRef(chatId),{'unreadCount.$id':0});await b.commit();")
+    return t
+patch('lib/core/services/chat_service.dart', chat_service_indexes)
+
+def health_dashboard(t):
+    t = re.sub(r"\n  // ✅ المؤشرات الصحية - أيقونات مكبرة بدون حاويات\n  final List<Map<String, dynamic>> _healthMetrics = \[.*?\n  \];\n", "\n", t, count=1, flags=re.S)
+    t = t.replace("_healthScore = 78.5;", "_healthScore = 0.0;")
+    return t
+patch('lib/presentation/screens/health/health_dashboard.dart', health_dashboard)
