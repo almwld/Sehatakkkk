@@ -49,10 +49,15 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final files = event.files ?? const <PlatformFile>[];
       final mediaUrls = <String>[];
       final mediaNames = <String>[];
+
+      if (files.isNotEmpty) {
+        await _nextcloud.loadConfig();
+      }
+
       for (var i = 0; i < files.length; i++) {
         final file = files[i];
         if (file.path == null) continue;
-        final upload = await _nextcloud.uploadFile(file: File(file.path!), path: 'sehatak/community/${user.uid}', fileName: '${DateTime.now().millisecondsSinceEpoch}_${file.name}', onProgress: (sent, total) {
+        final upload = await _nextcloud.uploadFile(file: File(file.path!), path: 'community/${user.uid}', fileName: '${DateTime.now().millisecondsSinceEpoch}_${file.name}', onProgress: (sent, total) {
           if (total > 0) emit(state.copyWith(uploadProgress: ((i + sent / total) / files.length).clamp(0.0, 1.0)));
         });
         if (!upload.success || upload.url == null) throw Exception(upload.error ?? 'فشل رفع الوسائط إلى Nextcloud');
