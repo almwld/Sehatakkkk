@@ -11,7 +11,7 @@ import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
+import 'package:sehatak/presentation/screens/dashboard/account_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/presentation/widgets/community/doctor_community_fab.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       2: const PharmacyScreen(key: ScreenKeys.pharmacy),
       3: const ChatScreen(key: ScreenKeys.chat),
       4: const LabsListScreen(key: ScreenKeys.labs),
-      5: const RoleBasedDashboardScreen(key: ScreenKeys.patient),
+      5: const AccountDashboardScreen(key: ScreenKeys.patient),
       6: const MoreScreen(key: ScreenKeys.more),
     };
     _checkAuth();
@@ -107,8 +107,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _back() {
-    // All primary sections are tabs inside HomeScreen. Back from any section
-    // must return to the home tab instead of exiting the application.
     if (_currentIndex != 0) {
       setState(() => _currentIndex = 0);
       _scrollManager.show();
@@ -116,15 +114,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _backExitTimer?.cancel();
       return;
     }
-
-    // Only the actual home tab uses the double-back-to-exit behavior.
     if (_backPressedOnce) {
       _backPressedOnce = false;
       _backExitTimer?.cancel();
       SystemNavigator.pop();
       return;
     }
-
     _backPressedOnce = true;
     ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');
     _backExitTimer?.cancel();
@@ -167,8 +162,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       },
       child: Scaffold(
         extendBody: true,
-        backgroundColor:
-            dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
         body: Stack(
           children: [
             NotificationListener<ScrollNotification>(
@@ -212,10 +206,7 @@ class _AnimatedBottomNavigationBar extends StatelessWidget {
   final bool visible;
   final Widget child;
 
-  const _AnimatedBottomNavigationBar({
-    required this.visible,
-    required this.child,
-  });
+  const _AnimatedBottomNavigationBar({required this.visible, required this.child});
 
   @override
   Widget build(BuildContext context) {
