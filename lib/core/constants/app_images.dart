@@ -4,7 +4,7 @@ class AppImages {
   static const String serviceEmergency='assets/images/icons/fast_services/Emergency.png';
   static const String serviceBloodDonation='assets/images/icons/fast_services/Donate blood.png';
   static const String serviceHomeMedical='assets/images/icons/fast_services/Home medical services.png';
-  static const String doctorMale='assets/images/icons/doctors/doctor_male.png';
+  static const String doctorMale='assets/images/icons/doctors/Male%20doctor.png';
   static const String doctorFemale='assets/images/icons/doctors/doctor_female.png';
   static const String searchButton='assets/images/icons/search/Search button.png';
   static const String shoppingCart='assets/images/icons/top_bar/Shopping cart.png';
