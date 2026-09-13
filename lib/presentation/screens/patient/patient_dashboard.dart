@@ -48,6 +48,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String _patientNumber = 'SH-2024-0012';
   String _userAvatar = '';
   String _subscriptionType = 'مجانية';
+  String _bloodType = 'O+';
   bool _isLoading = true;
   bool _isSharing = false;
   bool _isOffline = false;
@@ -143,6 +144,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       final cachedSubscriptionType = prefs.getString('cached_subscription_type');
       final cachedUserAvatar = prefs.getString('cached_user_avatar');
       final cachedUserPhone = prefs.getString('cached_user_phone');
+      final cachedBloodType = prefs.getString('cached_blood_type');
       
       if (cachedUserName != null) {
         setState(() {
@@ -153,6 +155,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _subscriptionType = cachedSubscriptionType ?? 'مجانية';
           _userAvatar = cachedUserAvatar ?? '';
           _userPhone = cachedUserPhone ?? '';
+          final cached = (cachedBloodType ?? 'O+').trim();
+          _bloodType = cached.isEmpty ? 'O+' : cached;
           _dataLoaded = true;
         });
       }
@@ -171,6 +175,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       await prefs.setString('cached_subscription_type', _subscriptionType);
       await prefs.setString('cached_user_avatar', _userAvatar);
       await prefs.setString('cached_user_phone', _userPhone);
+      await prefs.setString('cached_blood_type', _bloodType);
       print('✅ Data saved to cache');
     } catch (e) {
       print('⚠️ Error saving to cache: $e');
@@ -210,6 +215,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _userAvatar = data?['avatar'] ?? '';
           _patientNumber = data?['patientNumber'] ?? _generatePatientNumber();
           _subscriptionType = data?['subscriptionType'] ?? data?['subscription'] ?? 'مجانية';
+          final savedBloodType = (data?['bloodType'] ?? '').toString().trim();
+          _bloodType = savedBloodType.isEmpty ? 'O+' : savedBloodType;
           _isOffline = false;
           _isLoading = false;
         });
@@ -225,6 +232,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _userEmail = user.email ?? '';
           _userRole = 'مريض';
           _subscriptionType = 'مجانية';
+          _bloodType = 'O+';
           _isLoading = false;
         });
         await _savePatientNumber();
@@ -572,11 +580,14 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   Widget _buildPatientCard(bool isDark) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const PatientProfile()),
         );
+        if (mounted) {
+          _loadUserDataInBackground();
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(18),
@@ -637,15 +648,15 @@ class _PatientDashboardState extends State<PatientDashboard> {
               'رقم المريض: $_patientNumber',
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
-            const Text(
-              'العمر: 29 سنة • فصيلة الدم: O+',
-              style: TextStyle(color: Colors.white70, fontSize: 11),
+            Text(
+              'العمر: 29 سنة • فصيلة الدم: $_bloodType',
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الدم', 'O+'),
+                _buildVitalStat('assets/images/services/blood_donation.png', 'الدم', _bloodType),
                 _buildVitalStat('assets/images/tracking/weight_tracking.png', 'الوزن', '72 كجم'),
                 _buildVitalStat('assets/images/tracking/fitness.png', 'الطول', '175 سم'),
                 _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الضغط', 'طبيعي'),
