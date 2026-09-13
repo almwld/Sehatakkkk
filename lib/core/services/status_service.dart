@@ -29,6 +29,19 @@ class StatusService {
     });
   }
 
+  /// Active status for a single user, used by the avatar in ChatRoomScreen.
+  /// It reads the same Firestore status document used by the global status row,
+  /// so the conversation never has a second/duplicate story source.
+  Stream<UserStatusModel?> streamUserStatus(String userId) {
+    if (userId.trim().isEmpty) return Stream.value(null);
+    return _statuses.doc(userId).snapshots().map((document) {
+      if (!document.exists) return null;
+      final status = UserStatusModel.fromDocument(document);
+      if (!status.isValid || status.stories.isEmpty) return null;
+      return status;
+    });
+  }
+
   Future<List<UserStatusModel>> _withViewState(QuerySnapshot<Map<String, dynamic>> snapshot) async {
     final uid = _auth.currentUser?.uid;
     final items = <UserStatusModel>[];
@@ -48,8 +61,9 @@ class StatusService {
     if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
     if (stories.isEmpty) throw StateError('أضف محتوى واحداً على الأقل.');
 
-    // One active document per user keeps the status row clean and lets a user
-    // publish multiple story items without creating duplicate profile circles.
+    // A status is published only after all media stories have already been
+    // uploaded and verified by uploadMediaStory. Firestore is the source of
+    // truth that makes the completed status visible to other users.
     final ref = _statuses.doc(user.uid);
     final existing = await ref.get();
     final existingModel = existing.exists ? UserStatusModel.fromDocument(existing) : null;
@@ -64,6 +78,7 @@ class StatusService {
       'stories': allStories.map((story) => story.toMap()).toList(),
       'createdAt': Timestamp.fromDate(now),
       'expiresAt': Timestamp.fromDate(now.add(const Duration(hours: 24))),
+      'ready': true,
       'createdBy': user.uid,
     }, SetOptions(merge: true));
     return ref.id;
@@ -74,18 +89,29 @@ class StatusService {
     required String type,
     Duration duration = const Duration(seconds: 5),
   }) async {
+    final user = _auth.currentUser;
+    if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
+
     await _nextcloud.loadConfig();
     final extension = file.path.contains('.') ? file.path.split('.').last : 'bin';
     final name = 'story_${DateTime.now().millisecondsSinceEpoch}.$extension';
     final result = await _nextcloud.uploadFile(
       file: file,
-      path: 'stories/${_auth.currentUser?.uid ?? 'anonymous'}',
+      path: 'stories/${user.uid}',
       fileName: name,
       createShare: true,
     );
     if (!result.success || result.url == null || result.url!.isEmpty) {
-      throw StateError(result.error ?? 'تعذر رفع الحالة.');
+      throw StateError(result.error ?? 'تعذر رفع الحالة إلى Nextcloud.');
     }
+
+    // Do not publish the Firestore status until the Nextcloud public URL is
+    // reachable. This prevents broken media stories from becoming visible.
+    final verified = await _nextcloud.verifyPublicUrl(result.url!);
+    if (!verified) {
+      throw StateError('تم رفع الوسائط إلى Nextcloud لكن تعذر التحقق من رابطها.');
+    }
+
     return StoryItem(type: type, url: result.url!, duration: duration);
   }
 
