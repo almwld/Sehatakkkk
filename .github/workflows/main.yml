@@ -36,6 +36,9 @@ jobs:
     - name: 💬 Normalize chat delivery/read synchronization
       run: python3 scripts/normalize_chat_delivery.py
 
+    - name: 🧭 Finish AppRouter navigation normalization
+      run: python3 scripts/finish_app_router_navigation.py
+
     - name: 🧑‍⚕️ Apply independent role dashboard specifications
       run: python3 scripts/apply_independent_role_dashboards.py
 
@@ -117,5 +120,4 @@ jobs:
         path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
 
-    # إصلاح نوع DashboardActionSpec قبل بوابة البناء النهائية.
-    # هذا البناء هو بوابة الاعتماد النهائية؛ لا نعتمد الإصدار قبل نجاحه.
+    # بوابة الاعتماد النهائية: لا نعتمد الإصدار قبل نجاح Code Check والبناء ورفع APK.
