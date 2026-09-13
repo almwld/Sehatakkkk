@@ -12,6 +12,13 @@ text = text.replace(
 )
 HOME.write_text(text, encoding='utf-8')
 
+# Print the exact analyzer area so any remaining syntax blocker is visible in CI logs.
+lines = text.splitlines()
+print('--- HomeTab syntax context (lines 225-240) ---')
+for number in range(225, min(241, len(lines) + 1)):
+    print(f'{number}: {lines[number - 1]}')
+print('--- End HomeTab syntax context ---')
+
 # PatientDashboard: restore State.build without deleting existing fields or helpers.
 text = PATIENT.read_text(encoding='utf-8')
 if 'Widget build(BuildContext context)' not in text:
