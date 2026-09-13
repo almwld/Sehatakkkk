@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - '.github/workflows/fix-startup-firebase.yml'
+      - '.github/firebase-startup-repair-trigger.txt'
 
 permissions:
   contents: write
@@ -22,13 +23,11 @@ jobs:
           from pathlib import Path
           p = Path('lib/main.dart')
           s = p.read_text(encoding='utf-8')
-
           old = """  try {\n    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);\n    debugPrint('✅ Firebase initialized successfully');\n  } catch (e) {\n    debugPrint('❌ Firebase initialization error: $e');\n    runApp(const _StartupErrorApp());\n    return;\n  }\n"""
           new = """  try {\n    if (Firebase.apps.isEmpty) {\n      await Firebase.initializeApp();\n    }\n    debugPrint('✅ Firebase initialized successfully: ${Firebase.app().options.projectId}');\n  } catch (nativeError) {\n    debugPrint('⚠️ Native Firebase initialization failed: $nativeError');\n    try {\n      if (Firebase.apps.isEmpty) {\n        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);\n      }\n      debugPrint('✅ Firebase initialized using generated options: ${Firebase.app().options.projectId}');\n    } catch (explicitError) {\n      debugPrint('❌ Firebase initialization failed: $explicitError');\n      debugPrint('❌ Native Firebase error was: $nativeError');\n    }\n  }\n"""
           if old not in s:
               raise SystemExit('Expected Firebase startup block was not found; refusing to modify main.dart')
           s = s.replace(old, new, 1)
-
           diagnostic = """class _StartupErrorApp extends StatelessWidget {\n  const _StartupErrorApp();\n  @override Widget build(BuildContext context) => const MaterialApp(debugShowCheckedModeBanner: false, home: Scaffold(body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'))));\n}\n\n"""
           if diagnostic not in s:
               raise SystemExit('Expected diagnostic screen was not found; refusing to modify main.dart')
@@ -39,7 +38,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/fix-startup-firebase.yml .github/firebase-startup-repair-trigger.txt
           git add lib/main.dart
-          git rm .github/workflows/fix-startup-firebase.yml
           git commit -m "fix: remove startup diagnostic screen and harden Firebase initialization"
           git push origin HEAD:master
