@@ -12,6 +12,7 @@ import 'package:sehatak/presentation/screens/consultation/consultation_screen.da
 import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
@@ -30,6 +31,7 @@ import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/splash_screen.dart';
 import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
+import 'package:sehatak/presentation/widgets/home/guided_tour/screen_tours.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -49,17 +51,17 @@ class AppRouter {
       GoRoute(path: splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: home, builder: (_, __) => const HomeScreen()),
       GoRoute(path: auth, redirect: (_, __) => FirebaseAuth.instance.currentUser != null ? home : null, builder: (_, __) => const AuthScreen()),
-      GoRoute(path: doctors, builder: (_, __) => const DoctorsListScreen()),
+      GoRoute(path: doctors, builder: (_, __) => ScreenTours.wrapDoctors(const DoctorsListScreen())),
       GoRoute(path: doctorDetails, builder: (_, s) => DoctorDetailsScreen(doctorId: s.pathParameters['id'] ?? '')),
-      GoRoute(path: pharmacy, builder: (_, __) => const PharmacyScreen()),
+      GoRoute(path: pharmacy, builder: (_, __) => ScreenTours.wrapPharmacy(const PharmacyScreen())),
       GoRoute(path: pharmacyDashboard, builder: (_, __) => const PharmacyDashboard()),
       GoRoute(path: marketplaceAdmin, builder: (_, __) => const MarketplaceAdminDashboard()),
-      GoRoute(path: labs, builder: (_, __) => const LabsListScreen()),
+      GoRoute(path: labs, builder: (_, __) => ScreenTours.wrapLabs(const LabsListScreen())),
       GoRoute(path: hospitals, builder: (_, __) => const HospitalScreen()),
       GoRoute(path: chat, builder: (_, __) => const ChatScreen()),
-      GoRoute(path: more, builder: (_, __) => const MoreScreen()),
+      GoRoute(path: more, builder: (_, __) => ScreenTours.wrapMore(const MoreScreen())),
       GoRoute(path: dashboard, builder: (_, __) => const RoleBasedDashboardScreen()),
-      GoRoute(path: profile, builder: (_, __) => const PatientProfile()),
+      GoRoute(path: profile, builder: (_, __) => ScreenTours.wrapProfile(const PatientProfile())),
       GoRoute(path: appointments, builder: (_, __) => const PatientAppointments()),
       GoRoute(path: notifications, builder: (_, __) => const NotificationsScreen()),
       GoRoute(path: cart, builder: (_, __) => const CartScreen()),
@@ -83,14 +85,14 @@ class AppRouter {
       case splash: return MaterialPageRoute(builder: (_) => const SplashScreen(), settings: routeSettings);
       case home: return MaterialPageRoute(builder: (_) => const HomeScreen(), settings: routeSettings);
       case auth: return MaterialPageRoute(builder: (_) => const AuthScreen(), settings: routeSettings);
-      case doctors: return MaterialPageRoute(builder: (_) => const DoctorsListScreen(), settings: routeSettings);
-      case pharmacy: return MaterialPageRoute(builder: (_) => const PharmacyScreen(), settings: routeSettings);
-      case labs: return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);
+      case doctors: return MaterialPageRoute(builder: (_) => ScreenTours.wrapDoctors(const DoctorsListScreen()), settings: routeSettings);
+      case pharmacy: return MaterialPageRoute(builder: (_) => ScreenTours.wrapPharmacy(const PharmacyScreen()), settings: routeSettings);
+      case labs: return MaterialPageRoute(builder: (_) => ScreenTours.wrapLabs(const LabsListScreen()), settings: routeSettings);
       case hospitals: return MaterialPageRoute(builder: (_) => const HospitalScreen(), settings: routeSettings);
       case chat: return MaterialPageRoute(builder: (_) => const ChatScreen(), settings: routeSettings);
-      case more: return MaterialPageRoute(builder: (_) => const MoreScreen(), settings: routeSettings);
+      case more: return MaterialPageRoute(builder: (_) => ScreenTours.wrapMore(const MoreScreen()), settings: routeSettings);
       case dashboard: return MaterialPageRoute(builder: (_) => const RoleBasedDashboardScreen(), settings: routeSettings);
-      case profile: return MaterialPageRoute(builder: (_) => const PatientProfile(), settings: routeSettings);
+      case profile: return MaterialPageRoute(builder: (_) => ScreenTours.wrapProfile(const PatientProfile()), settings: routeSettings);
       case appointments: return MaterialPageRoute(builder: (_) => const PatientAppointments(), settings: routeSettings);
       case notifications: return MaterialPageRoute(builder: (_) => const NotificationsScreen(), settings: routeSettings);
       case cart: return MaterialPageRoute(builder: (_) => const CartScreen(), settings: routeSettings);
