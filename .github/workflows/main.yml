@@ -33,6 +33,9 @@ jobs:
     - name: 🐛 Fix remaining Dart build errors
       run: python3 scripts/fix_remaining_build_errors.py
 
+    - name: 💬 Normalize chat delivery/read synchronization
+      run: python3 scripts/normalize_chat_delivery.py
+
     - name: 🛡️ Validate chat service declarations
       run: |
         python3 - <<'PY'
