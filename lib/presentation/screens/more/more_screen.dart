@@ -2,6 +2,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/live_vitals_grid.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
@@ -351,52 +352,7 @@ class _MoreScreenState extends State<MoreScreen>
   }
 
   Widget _buildVitalsGrid(bool isDark) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.90,
-      ),
-      itemCount: _vitals.length,
-      itemBuilder: (context, index) {
-        final vital = _vitals[index];
-        return GestureDetector(
-          onTap: () => _navigateTo(vital['screen'] as Widget),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-              border: Border.all(
-                color: (vital['color'] as Color).withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildIcon(vital['icon'] as String, size: 48),
-                const SizedBox(height: 6),
-                Text(vital['value'] as String, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: vital['color'] as Color)),
-                Text(vital['unit'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
-                const SizedBox(height: 2),
-                Text(vital['label'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: isDark ? Colors.grey[300] : Colors.grey[700]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    return LiveVitalsGrid(keys: const ['bloodPressure', 'glucose', 'heartRate', 'weight', 'bloodOxygen', 'temperature'], compact: true);
   }
 
   Widget _buildCategoriesBar(bool isDark) {

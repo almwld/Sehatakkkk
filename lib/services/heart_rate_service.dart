@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sehatak/core/services/vitals_service.dart';
 
 /// قياس معدل النبض بصرياً من تغيرات الإضاءة في إصبع موضوع على الكاميرا.
 ///
@@ -348,6 +349,7 @@ class HeartRateService {
         'duration': duration,
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
+      await VitalsService.instance.record('heartRate', _currentBPM);
     } catch (e) {
       debugPrint('HeartRate save error: $e');
     }

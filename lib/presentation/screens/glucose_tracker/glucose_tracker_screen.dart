@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/vitals_service.dart';
 
 class GlucoseTrackerScreen extends StatefulWidget {
   const GlucoseTrackerScreen({super.key});
@@ -33,6 +34,7 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
 
   void _saveReading() {
     if (_glucoseCtrl.text.isEmpty) return;
+    final glucose = int.parse(_glucoseCtrl.text);
 
     setState(() {
       _readings.insert(0, {
@@ -44,6 +46,7 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
       _isAdding = false;
       _glucoseCtrl.clear();
     });
+    VitalsService.instance.record('glucose', glucose, extra: {'meal': _selectedMeal});
   }
 
   String _getStatus(int value) {

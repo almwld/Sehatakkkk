@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/vitals_service.dart';
 
 class BloodPressureScreen extends StatefulWidget {
   const BloodPressureScreen({super.key});
@@ -20,6 +21,8 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
 
   void _saveReading() {
     if (_systolicCtrl.text.isEmpty || _diastolicCtrl.text.isEmpty) return;
+    final systolic = int.parse(_systolicCtrl.text);
+    final diastolic = int.parse(_diastolicCtrl.text);
 
     setState(() {
       _readings.insert(0, {
@@ -34,6 +37,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
       _diastolicCtrl.clear();
       _pulseCtrl.clear();
     });
+    VitalsService.instance.record('bloodPressure', '$systolic/$diastolic');
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/vitals_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 class WeightTrackerScreen extends StatefulWidget {
@@ -83,6 +84,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
     _weightController.clear();
     _noteController.clear();
     _saveWeightData();
+    VitalsService.instance.record('weight', weight);
     ToastService.showSuccess('✅ تم تسجيل الوزن: $weight كجم');
   }
 

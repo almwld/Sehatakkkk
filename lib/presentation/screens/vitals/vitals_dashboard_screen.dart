@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/live_vitals_grid.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
@@ -180,43 +181,7 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
                   _buildSummary(),
                   const SizedBox(height: 20),
                   // ✅ بطاقات المؤشرات
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.9,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemCount: _vitalCards.length,
-                    itemBuilder: (context, index) {
-                      final card = _vitalCards[index];
-                      final key = card['key'] as String;
-                      final value = _vitals[key];
-                      final status = _getVitalStatus(key, value);
-                      final color = _getVitalColor(key, value);
-                      final displayValue = _getVitalValue(key);
-                      final unit = _getVitalUnit(key);
-
-                      return _buildVitalCard(
-                        icon: card['icon'] as IconData,
-                        label: card['label'] as String,
-                        value: displayValue,
-                        unit: unit,
-                        status: status,
-                        color: color,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => card['screen'] as Widget,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                  LiveVitalsGrid(keys: const ['bloodPressure', 'glucose', 'heartRate', 'weight', 'bloodOxygen', 'temperature']),
                   const SizedBox(height: 20),
                   // ✅ آخر القراءات
                   _buildRecentReadings(),
