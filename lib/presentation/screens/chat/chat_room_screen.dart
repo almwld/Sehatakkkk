@@ -7,12 +7,15 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/message_model.dart';
+import 'package:sehatak/core/models/status_model.dart';
 import 'package:sehatak/core/services/chat_media_transfer_service.dart';
 import 'package:sehatak/core/services/chat_reply_context.dart';
 import 'package:sehatak/core/services/chat_service.dart';
+import 'package:sehatak/core/services/status_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/message_search_screen.dart';
+import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_input_bar.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/media_upload_status_widget.dart';
@@ -34,6 +37,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   final _chat = ChatService();
+  final _statusService = StatusService();
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _messagesSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _chatSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
@@ -113,7 +117,51 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   DateTime _messageTime(dynamic value) { if (value is Timestamp) return value.toDate(); if (value is DateTime) return value; if (value is num) { final n = value.toInt(); return DateTime.fromMillisecondsSinceEpoch(n > 100000000000 ? n : n * 1000); } if (value is String) return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0); return DateTime.fromMillisecondsSinceEpoch(0); }
   Future<void> _markRead() async { try { await _chat.markAsRead(widget.chatId); } catch (error) { debugPrint('mark read: $error'); } }
   void _call(bool video) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => CallScreen(chatId: widget.chatId, doctorName: widget.otherUserName, doctorId: widget.otherUserId, doctorImage: widget.otherUserImage ?? widget.groupImage, isVideo: video, isOutgoing: true))); }
-  void _profile() { Navigator.of(context).push(MaterialPageRoute(builder: (_) => _ChatContactProfile(userId: widget.otherUserId, name: widget.otherUserName, imageUrl: widget.otherUserImage ?? widget.groupImage))); }
+
+  Future<void> _profile() async {
+    if (!widget.isGroup) {
+      try {
+        final status = await _firestore.collection('statuses').doc(widget.otherUserId).get();
+        if (status.exists) {
+          final model = UserStatusModel.fromDocument(status);
+          if (model.isValid && model.stories.isNotEmpty) {
+            if (!mounted) return;
+            await _statusService.markViewed(model);
+            await Navigator.of(context).push(MaterialPageRoute(builder: (_) => StoryViewerScreen(status: model)));
+            return;
+          }
+        }
+      } catch (e) { debugPrint('chat room status open: $e'); }
+    }
+    if (!mounted) return;
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => _ChatContactProfile(userId: widget.otherUserId, name: widget.otherUserName, imageUrl: widget.otherUserImage ?? widget.groupImage)));
+  }
+
+  Widget _chatHeaderAvatar(String? image) {
+    if (widget.isGroup) return _plainAvatar(image);
+    return StreamBuilder<UserStatusModel?>(
+      stream: _statusService.streamUserStatus(widget.otherUserId),
+      builder: (context, snapshot) {
+        final status = snapshot.data;
+        final hasStory = status != null && status.stories.isNotEmpty;
+        final viewed = status?.isViewed ?? false;
+        final ring = viewed ? Colors.grey : AppColors.primary;
+        return GestureDetector(
+          onTap: _profile,
+          child: Container(
+            padding: const EdgeInsets.all(2.2),
+            decoration: hasStory ? BoxDecoration(shape: BoxShape.circle, border: Border.all(color: ring, width: 2.2)) : null,
+            child: _plainAvatar(image, radius: 19),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _plainAvatar(String? image, {double radius = 21}) {
+    return CircleAvatar(radius: radius, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: image != null ? CachedNetworkImageProvider(image) : null, child: image == null ? Text(widget.otherUserName.isEmpty ? 'م' : widget.otherUserName.substring(0, 1)) : null);
+  }
+
   void _searchMessages() { Navigator.of(context).push(MaterialPageRoute(builder: (_) => MessageSearchScreen(chatId: widget.chatId))); }
   Future<void> _toggleMute() async { try { await _chat.muteChat(widget.chatId, !_muted); } catch (e) { debugPrint('mute chat: $e'); } }
   Future<void> _togglePin() async { try { await _chat.pinChat(widget.chatId, !_pinned); } catch (e) { debugPrint('pin chat: $e'); } }
@@ -163,7 +211,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF2F5F6),
       appBar: AppBar(elevation: 0, backgroundColor: dark ? const Color(0xFF101827) : Colors.white, leading: const BackButton(), titleSpacing: 0,
-        title: InkWell(onTap: _profile, child: Row(children: [CircleAvatar(radius: 21, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: image != null ? CachedNetworkImageProvider(image) : null, child: image == null ? Text(widget.otherUserName.isEmpty ? 'م' : widget.otherUserName.substring(0, 1)) : null), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.isGroup ? 'المجموعة' : widget.otherUserName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)), Text(_online ? 'متصل الآن' : 'غير متصل', style: TextStyle(fontSize: 11, color: _online ? Colors.green : Colors.grey))]))])),
+        title: Row(children: [
+          _chatHeaderAvatar(image), const SizedBox(width: 8),
+          Expanded(child: InkWell(onTap: _profile, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.isGroup ? 'المجموعة' : widget.otherUserName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)), Text(_online ? 'متصل الآن' : 'غير متصل', style: TextStyle(fontSize: 11, color: _online ? Colors.green : Colors.grey))]))),
+        ]),
         actions: [IconButton(onPressed: _searchMessages, tooltip: 'البحث داخل الرسائل', icon: const Icon(Icons.search_rounded)), if (!widget.isGroup) IconButton(onPressed: () => _call(false), icon: const Icon(Icons.call_rounded)), if (!widget.isGroup) IconButton(onPressed: () => _call(true), icon: const Icon(Icons.videocam_rounded)), PopupMenuButton<String>(onSelected: (value) { if (value == 'mute') _toggleMute(); if (value == 'pin') _togglePin(); }, itemBuilder: (_) => [PopupMenuItem(value: 'mute', child: Text(_muted ? 'إلغاء كتم الإشعارات' : 'كتم الإشعارات')), PopupMenuItem(value: 'pin', child: Text(_pinned ? 'إلغاء تثبيت المحادثة' : 'تثبيت المحادثة'))])],
       ),
       body: Column(children: [
