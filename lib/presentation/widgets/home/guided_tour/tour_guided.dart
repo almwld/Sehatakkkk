@@ -14,7 +14,7 @@ class GuidedTour extends StatefulWidget {
     super.key,
     required this.child,
     required this.steps,
-    required this.tourKey,
+    this.tourKey = TourManager.homeKey,
     this.onComplete,
     this.startDelay = const Duration(milliseconds: 800),
   });
@@ -37,7 +37,6 @@ class _GuidedTourState extends State<GuidedTour>
 
   OverlayEntry? _overlay;
   Timer? _startTimer;
-  Timer? _targetRetryTimer;
   late final AnimationController _pulseController;
   int _index = 0;
   bool _showing = false;
@@ -70,10 +69,6 @@ class _GuidedTourState extends State<GuidedTour>
   }
 
   Future<void> _prepareTarget() async {
-    _targetRetryTimer?.cancel();
-
-    // بعض الشاشات تحمل بياناتها بشكل غير متزامن. ننتظر ظهور المفتاح بدلاً من
-    // إظهار Spotlight في مكان خاطئ أو إنهاء الجولة مبكراً.
     for (var attempt = 0; attempt < 30; attempt++) {
       if (_disposed || !mounted) return;
       final targetContext = widget.steps[_index].key.currentContext;
@@ -131,11 +126,9 @@ class _GuidedTourState extends State<GuidedTour>
   }
 
   Future<void> _skip() => _persistAndClose(callComplete: false);
-
   Future<void> _finish() => _persistAndClose(callComplete: true);
 
   Future<void> _persistAndClose({required bool callComplete}) async {
-    if (_busy && !_showing) return;
     await TourManager.markAsSeen(widget.tourKey);
     if (_disposed) return;
     _overlay?.remove();
@@ -149,7 +142,6 @@ class _GuidedTourState extends State<GuidedTour>
   void dispose() {
     _disposed = true;
     _startTimer?.cancel();
-    _targetRetryTimer?.cancel();
     _overlay?.remove();
     _overlay = null;
     _pulseController.dispose();
@@ -163,9 +155,11 @@ class _GuidedTourState extends State<GuidedTour>
     final screen = MediaQuery.sizeOf(context);
     final step = widget.steps[_index];
     final rawTarget = _targetRect();
-    final target = (rawTarget ??
-            Rect.fromCenter(center: screen.center(Offset.zero), width: 1, height: 1))
-        .inflate(_targetPadding);
+    final target = (rawTarget ?? Rect.fromCenter(
+      center: screen.center(Offset.zero),
+      width: 1,
+      height: 1,
+    )).inflate(_targetPadding);
     final bubble = _bubbleRect(step.position, target, screen);
 
     return Directionality(
@@ -217,7 +211,7 @@ class _GuidedTourState extends State<GuidedTour>
 
   Rect _bubbleRect(TooltipPosition position, Rect target, Size screen) {
     final width = screen.width < 352 ? screen.width - 32 : 320.0;
-    final height = _bubbleHeight;
+    const height = _bubbleHeight;
     final maxLeft = screen.width - width - 16;
     final maxTop = screen.height - height - 16;
     double left = (screen.width - width) / 2;
@@ -269,17 +263,12 @@ class _TooltipBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surface = Colors.white;
-    final titleColor = Colors.black87;
-    final bodyColor = Colors.grey[700]!;
-
     return Material(
       color: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
         decoration: BoxDecoration(
-          color: surface,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: step.accentColor.withOpacity(.30)),
           boxShadow: [
@@ -309,8 +298,8 @@ class _TooltipBubble extends StatelessWidget {
                 Expanded(
                   child: Text(
                     step.title,
-                    style: TextStyle(
-                      color: titleColor,
+                    style: const TextStyle(
+                      color: Colors.black87,
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
                     ),
@@ -322,7 +311,7 @@ class _TooltipBubble extends StatelessWidget {
             Text(
               step.description,
               textAlign: TextAlign.right,
-              style: TextStyle(color: bodyColor, fontSize: 14, height: 1.6),
+              style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6),
             ),
             if (step.actionHint != null) ...[
               const SizedBox(height: 10),
@@ -355,15 +344,12 @@ class _TooltipBubble extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[100] : Colors.grey[100],
+                    color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '${index + 1}/$total',
-                    style: const TextStyle(
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w800),
                   ),
                 ),
               ],
@@ -391,9 +377,7 @@ class _TooltipBubble extends StatelessWidget {
                       foregroundColor: Colors.white,
                     ),
                     icon: Icon(
-                      index == total - 1
-                          ? Icons.check_rounded
-                          : Icons.arrow_back_rounded,
+                      index == total - 1 ? Icons.check_rounded : Icons.arrow_back_rounded,
                       size: 18,
                     ),
                     label: Text(index == total - 1 ? 'تم' : 'التالي'),
