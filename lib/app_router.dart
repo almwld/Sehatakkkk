@@ -20,6 +20,9 @@ import 'package:sehatak/presentation/screens/dashboard/account_settings_screen.d
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
+import 'package:sehatak/presentation/screens/health/pulse_camera_screen.dart';
+import 'package:sehatak/presentation/screens/health/sleep_tracking_screen.dart';
+import 'package:sehatak/presentation/screens/health/steps_tracking_screen.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
@@ -43,12 +46,9 @@ import 'package:sehatak/core/models/call_model.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class AppRouter {
-  static const String splash = '/splash', home = '/', auth = '/auth', doctors = '/doctors', doctorDetails = '/doctor/:id', pharmacy = '/pharmacy', labs = '/labs', hospitals = '/hospitals', chat = '/chat', more = '/more', dashboard = '/dashboard', accountSettings = '/account-settings', profile = '/profile', appointments = '/appointments', notifications = '/notifications', cart = '/cart', wallet = '/wallet', map = '/map', consultation = '/consultation', services = '/services', emergency = '/emergency', bloodDonation = '/blood-donation', settings = '/settings', search = '/search', articles = '/articles', community = '/community', pharmacyDashboard = '/pharmacy-dashboard', marketplaceAdmin = '/marketplace-admin', chatRoom = '/chat-room', chatDetail = '/chat-detail', addStatus = '/chat/add-status', storyViewer = '/chat/story', aiChatbot = '/ai-chatbot', call = '/call';
+  static const String splash = '/splash', home = '/', auth = '/auth', doctors = '/doctors', doctorDetails = '/doctor/:id', pharmacy = '/pharmacy', labs = '/labs', hospitals = '/hospitals', chat = '/chat', more = '/more', dashboard = '/dashboard', accountSettings = '/account-settings', profile = '/profile', appointments = '/appointments', notifications = '/notifications', cart = '/cart', wallet = '/wallet', map = '/map', consultation = '/consultation', services = '/services', emergency = '/emergency', bloodDonation = '/blood-donation', settings = '/settings', search = '/search', articles = '/articles', community = '/community', pharmacyDashboard = '/pharmacy-dashboard', marketplaceAdmin = '/marketplace-admin', chatRoom = '/chat-room', chatDetail = '/chat-detail', addStatus = '/chat/add-status', storyViewer = '/chat/story', aiChatbot = '/ai-chatbot', call = '/call', stepsTracking = '/health/steps', sleepTracking = '/health/sleep', pulseCamera = '/health/pulse-camera';
 
-  // بوابة توافقية مركزية للمسارات القديمة؛ الشاشات النشطة لا تستدعي Navigator مباشرة.
-  static Future<T?> pushRoute<T>(BuildContext context, Route<T> route) {
-    return Navigator.of(context).push<T>(route);
-  }
+  static Future<T?> pushRoute<T>(BuildContext context, Route<T> route) => Navigator.of(context).push<T>(route);
 
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
@@ -90,21 +90,15 @@ class AppRouter {
       GoRoute(path: search, builder: (_, s) => AdvancedSearchScreen(initialQuery: s.uri.queryParameters['q'])),
       GoRoute(path: articles, builder: (_, __) => const ArticlesScreen()),
       GoRoute(path: community, builder: (_, __) => const CommunityScreen()),
+      GoRoute(path: stepsTracking, builder: (_, __) => const StepsTrackingScreen()),
+      GoRoute(path: sleepTracking, builder: (_, __) => const SleepTrackingScreen()),
+      GoRoute(path: pulseCamera, builder: (_, __) => const PulseCameraScreen()),
       GoRoute(path: aiChatbot, builder: (_, __) => const AiChatbotScreen()),
       GoRoute(path: addStatus, builder: (_, __) => const AddStatusScreen()),
       GoRoute(path: storyViewer, builder: (_, s) => StoryViewerScreen(status: s.extra as dynamic)),
-      GoRoute(path: chatRoom, builder: (_, s) {
-        final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
-        return ChatRoomScreen(chatId: '${e['chatId'] ?? ''}', otherUserId: '${e['otherUserId'] ?? ''}', otherUserName: '${e['otherUserName'] ?? 'مستخدم'}', otherUserImage: e['otherUserImage'] as String?, groupImage: e['groupImage'] as String?, isGroup: e['isGroup'] == true);
-      }),
-      GoRoute(path: chatDetail, builder: (_, s) {
-        final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
-        return ChatDetailScreen(chatId: '${e['chatId'] ?? ''}', userName: '${e['userName'] ?? 'الطبيب'}', userId: '${e['userId'] ?? ''}', isDoctor: e['isDoctor'] == true, userImage: e['userImage'] as String?);
-      }),
-      GoRoute(path: call, builder: (_, s) {
-        final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
-        return CallScreen(chatId: '${e['chatId'] ?? ''}', doctorName: '${e['doctorName'] ?? 'الطبيب'}', doctorId: '${e['doctorId'] ?? ''}', callId: '${e['callId'] ?? ''}', isVideo: e['isVideo'] == true, isOutgoing: e['isOutgoing'] == true);
-      }),
+      GoRoute(path: chatRoom, builder: (_, s) { final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{}; return ChatRoomScreen(chatId: '${e['chatId'] ?? ''}', otherUserId: '${e['otherUserId'] ?? ''}', otherUserName: '${e['otherUserName'] ?? 'مستخدم'}', otherUserImage: e['otherUserImage'] as String?, groupImage: e['groupImage'] as String?, isGroup: e['isGroup'] == true); }),
+      GoRoute(path: chatDetail, builder: (_, s) { final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{}; return ChatDetailScreen(chatId: '${e['chatId'] ?? ''}', userName: '${e['userName'] ?? 'الطبيب'}', userId: '${e['userId'] ?? ''}', isDoctor: e['isDoctor'] == true, userImage: e['userImage'] as String?); }),
+      GoRoute(path: call, builder: (_, s) { final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{}; return CallScreen(chatId: '${e['chatId'] ?? ''}', doctorName: '${e['doctorName'] ?? 'الطبيب'}', doctorId: '${e['doctorId'] ?? ''}', callId: '${e['callId'] ?? ''}', isVideo: e['isVideo'] == true, isOutgoing: e['isOutgoing'] == true); }),
     ],
   );
 
@@ -136,6 +130,9 @@ class AppRouter {
       case search: return MaterialPageRoute(builder: (_) => AdvancedSearchScreen(initialQuery: routeSettings.arguments is String ? routeSettings.arguments as String : null), settings: routeSettings);
       case articles: return MaterialPageRoute(builder: (_) => const ArticlesScreen(), settings: routeSettings);
       case community: return MaterialPageRoute(builder: (_) => const CommunityScreen(), settings: routeSettings);
+      case stepsTracking: return MaterialPageRoute(builder: (_) => const StepsTrackingScreen(), settings: routeSettings);
+      case sleepTracking: return MaterialPageRoute(builder: (_) => const SleepTrackingScreen(), settings: routeSettings);
+      case pulseCamera: return MaterialPageRoute(builder: (_) => const PulseCameraScreen(), settings: routeSettings);
       case pharmacyDashboard: return MaterialPageRoute(builder: (_) => const PharmacyDashboard(), settings: routeSettings);
       case marketplaceAdmin: return MaterialPageRoute(builder: (_) => const MarketplaceAdminDashboard(), settings: routeSettings);
       default:
