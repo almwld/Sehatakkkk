@@ -117,4 +117,5 @@ jobs:
         path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
 
+    # إصلاح نوع DashboardActionSpec قبل بوابة البناء النهائية.
     # هذا البناء هو بوابة الاعتماد النهائية؛ لا نعتمد الإصدار قبل نجاحه.
