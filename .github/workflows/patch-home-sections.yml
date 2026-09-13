@@ -1,0 +1,259 @@
+name: Patch Home Sections
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-home-sections.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch HomeTab
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('lib/presentation/screens/home/tabs/home_tab.dart')
+          text = path.read_text(encoding='utf-8')
+
+          text = text.replace("assets/icons/services/calendar_booking.png", "assets/images/services/calendar_booking.png")
+          text = text.replace("assets/icons/services/emergency.png", "assets/images/services/emergency.png")
+          text = text.replace("assets/icons/services/map_location.png", "assets/images/services/map_location.png")
+          text = text.replace("assets/icons/services/packages.png", "assets/images/services/packages.png")
+
+          old = """  Widget _places(String title, List<dynamic> items, IconData icon, bool dark, {VoidCallback? more}) => _section(title: title, dark: dark, more: more, child: const SizedBox(height: 10));\n  Widget _articles(List<dynamic> items, bool dark) => _section(title: 'مقالات طبية', dark: dark, child: const SizedBox(height: 10));\n  Widget _tips(List<dynamic> items, bool dark) => _section(title: 'نصائح يومية', dark: dark, child: const SizedBox(height: 10));\n  Widget _weather(bool dark) => _section(title: 'الطقس', dark: dark, child: const SizedBox(height: 10));\n  Widget _community(List<dynamic> items, bool dark) => _section(title: 'المجتمع', dark: dark, child: const SizedBox(height: 10));"""
+
+          new = r'''  Widget _places(String title, List<dynamic> items, IconData icon, bool dark, {VoidCallback? more}) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    final visible = items.take(6).toList();
+    return _section(
+      title: title,
+      dark: dark,
+      more: more,
+      child: SizedBox(
+        height: 190,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          itemCount: visible.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (_, index) {
+            final item = Map<String, dynamic>.from(visible[index] as Map);
+            final id = (item['id'] ?? item['uid'] ?? '').toString();
+            final name = (item['name'] ?? item['title'] ?? 'صيدلية').toString();
+            final location = (item['location'] ?? item['city'] ?? item['address'] ?? '').toString();
+            final image = (item['imageUrl'] ?? item['image'] ?? item['photoUrl'] ?? '').toString();
+            return InkWell(
+              onTap: id.isEmpty ? () => _go(AppRouter.pharmacy) : () => _go('${AppRouter.pharmacy}?id=$id'),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: 168,
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      height: 92,
+                      width: double.infinity,
+                      child: image.isEmpty
+                          ? Container(color: AppColors.primary.withOpacity(.08), alignment: Alignment.center, child: Icon(icon, color: AppColors.primary, size: 38))
+                          : AppImage(imageUrl: image, height: 92, width: double.infinity, fit: BoxFit.cover),
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                  if (location.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(location, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9.5, color: dark ? Colors.white60 : _muted)),
+                  ],
+                  const Spacer(),
+                  const Text('عرض الصيدلية', style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w800)),
+                ]),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _articles(List<dynamic> items, bool dark) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    final visible = items.take(6).toList();
+    return _section(
+      title: 'مقالات طبية',
+      dark: dark,
+      more: () => _go(AppRouter.articles),
+      child: SizedBox(
+        height: 185,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          itemCount: visible.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (_, index) {
+            final item = Map<String, dynamic>.from(visible[index] as Map);
+            final title = (item['title'] ?? item['name'] ?? 'مقال طبي').toString();
+            final image = (item['imageUrl'] ?? item['image'] ?? item['coverUrl'] ?? '').toString();
+            return InkWell(
+              onTap: () => _go(AppRouter.articles),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: 190,
+                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                clipBehavior: Clip.antiAlias,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(
+                    height: 100,
+                    width: double.infinity,
+                    child: image.isEmpty
+                        ? Container(color: AppColors.primary.withOpacity(.08), alignment: Alignment.center, child: const Icon(Icons.article_outlined, color: AppColors.primary, size: 38))
+                        : AppImage(imageUrl: image, height: 100, width: double.infinity, fit: BoxFit.cover),
+                  ),
+                  Padding(padding: const EdgeInsets.fromLTRB(10, 8, 10, 8), child: Text(title, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, height: 1.3, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text))),
+                ]),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _tips(List<dynamic> items, bool dark) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    final visible = items.take(6).toList();
+    return _section(
+      title: 'نصائح اليوم',
+      dark: dark,
+      child: SizedBox(
+        height: 142,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          itemCount: visible.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (_, index) {
+            final item = Map<String, dynamic>.from(visible[index] as Map);
+            final title = (item['title'] ?? item['text'] ?? item['content'] ?? 'نصيحة صحية').toString();
+            final category = (item['category'] ?? 'صحتك').toString();
+            return Container(
+              width: 230,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primary.withOpacity(.12))),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [const Icon(Icons.lightbulb_outline_rounded, color: AppColors.primary, size: 22), const SizedBox(width: 7), Expanded(child: Text(category, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w900)))]),
+                const SizedBox(height: 9),
+                Expanded(child: Text(title, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, height: 1.35, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text))),
+              ]),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _weather(bool dark) => FutureBuilder<Map<String, dynamic>>(
+        future: _weatherFuture,
+        builder: (_, snapshot) {
+          final data = snapshot.data ?? const <String, dynamic>{};
+          final temp = data['temp']?.toString();
+          final condition = data['condition']?.toString() ?? 'جاري تحديث الطقس';
+          return _section(
+            title: 'الطقس',
+            dark: dark,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(18)),
+                child: Row(children: [
+                  const Icon(Icons.wb_sunny_outlined, color: AppColors.primary, size: 36),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('صنعاء', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 3),
+                    Text(condition, style: TextStyle(fontSize: 11, color: dark ? Colors.white70 : _muted)),
+                  ])),
+                  if (temp != null) Text('$temp°', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                ]),
+              ),
+            ),
+          );
+        },
+      );
+
+  Widget _community(List<dynamic> items, bool dark) {
+    if (items.isEmpty) {
+      return KeyedSubtree(key: _communityTourKey, child: _section(title: 'مجتمع صحتك', dark: dark, more: () => _go(AppRouter.community), child: _empty('لا توجد منشورات منشورة حالياً', dark)));
+    }
+    final visible = items.take(6).toList();
+    return KeyedSubtree(
+      key: _communityTourKey,
+      child: _section(
+        title: 'مجتمع صحتك',
+        dark: dark,
+        more: () => _go(AppRouter.community),
+        child: SizedBox(
+          height: 150,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: visible.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, index) {
+              final item = Map<String, dynamic>.from(visible[index] as Map);
+              final text = (item['content'] ?? item['text'] ?? item['body'] ?? 'منشور من مجتمع صحتك').toString();
+              final author = (item['authorName'] ?? item['userName'] ?? item['author'] ?? 'مستخدم').toString();
+              return InkWell(
+                onTap: () => _go(AppRouter.community),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 235,
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [const CircleAvatar(radius: 16, backgroundColor: Color(0x180A8F83), child: Icon(Icons.person_outline, color: AppColors.primary, size: 18)), const SizedBox(width: 8), Expanded(child: Text(author, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)))]),
+                    const SizedBox(height: 9),
+                    Expanded(child: Text(text, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, height: 1.35, color: dark ? Colors.white70 : _text))),
+                  ]),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }'''
+
+          if old not in text:
+              raise SystemExit('Expected placeholder home section block was not found')
+          text = text.replace(old, new)
+          path.write_text(text, encoding='utf-8')
+          print('HomeTab patched successfully')
+
+      - name: Verify
+        run: |
+          grep -n "مختبرات مميزة\|صيدليات مميزة\|نصائح اليوم\|مجتمع صحتك" lib/presentation/screens/home/tabs/home_tab.dart
+          grep -n "assets/images/services/calendar_booking.png" lib/presentation/screens/home/tabs/home_tab.dart
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/presentation/screens/home/tabs/home_tab.dart
+          if git diff --cached --quiet; then
+            echo "No HomeTab changes required"
+            exit 0
+          fi
+          git commit -m "fix(home): render real home sections and service assets"
+          git push
