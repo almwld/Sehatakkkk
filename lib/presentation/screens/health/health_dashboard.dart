@@ -22,57 +22,6 @@ class _HealthDashboardState extends State<HealthDashboard>
   int _selectedTab = 0;
   late TabController _tabController;
 
-  // ✅ المؤشرات الصحية - أيقونات مكبرة بدون حاويات
-  final List<Map<String, dynamic>> _healthMetrics = [
-    {
-      'icon': 'assets/images/tracking/heart_rate.png',
-      'label': 'نبض القلب',
-      'value': '72',
-      'unit': 'نبضة/دقيقة',
-      'color': Colors.red,
-      'status': 'طبيعي',
-      'statusColor': Colors.green,
-      'data': [70, 75, 72, 78, 74, 72, 71],
-      'trend': '+2%',
-      'trendUp': true,
-    },
-    {
-      'icon': 'assets/images/tracking/blood_pressure.png',
-      'label': 'ضغط الدم',
-      'value': '120/80',
-      'unit': 'مم زئبق',
-      'color': Colors.blue,
-      'status': 'طبيعي',
-      'statusColor': Colors.green,
-      'data': [118, 120, 122, 119, 121, 120, 120],
-      'trend': '0%',
-      'trendUp': false,
-    },
-    {
-      'icon': 'assets/images/tracking/blood_sugar.png',
-      'label': 'سكر الدم',
-      'value': '95',
-      'unit': 'مجم/دل',
-      'color': Colors.orange,
-      'status': 'طبيعي',
-      'statusColor': Colors.green,
-      'data': [90, 95, 100, 88, 92, 95, 97],
-      'trend': '-3%',
-      'trendUp': false,
-    },
-    {
-      'icon': 'assets/images/tracking/weight_tracking.png',
-      'label': 'الوزن',
-      'value': '72',
-      'unit': 'كجم',
-      'color': Colors.green,
-      'status': 'مثالي',
-      'statusColor': Colors.green,
-      'data': [73, 72.5, 72, 71.8, 72, 72.2, 72],
-      'trend': '-0.5%',
-      'trendUp': false,
-    },
-  ];
 
   // ✅ النصائح الصحية - أيقونات جديدة
   final List<Map<String, dynamic>> _healthTips = [
@@ -232,19 +181,19 @@ class _HealthDashboardState extends State<HealthDashboard>
           });
         } else {
           setState(() {
-            _healthScore = 78.5;
+            _healthScore = 0.0;
             _isLoading = false;
           });
         }
       } else {
         setState(() {
-          _healthScore = 78.5;
+          _healthScore = 0.0;
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _healthScore = 78.5;
+        _healthScore = 0.0;
         _isLoading = false;
       });
     }
