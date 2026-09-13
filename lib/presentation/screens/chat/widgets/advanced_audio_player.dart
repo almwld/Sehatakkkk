@@ -4,16 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:sehatak/core/constants/app_colors.dart';
-
+/// Compact in-bubble voice-message player.
+/// Controls stay inside the message bubble; normal playback actions never open
+/// a modal sheet, keeping the interaction close to WhatsApp/Telegram voice notes.
 class AdvancedAudioPlayer extends StatefulWidget {
-  const AdvancedAudioPlayer({
-    super.key,
-    required this.audioUrl,
-    required this.isMe,
-    this.isLocal = false,
-    this.title,
-  });
+  const AdvancedAudioPlayer({super.key, required this.audioUrl, required this.isMe, this.isLocal = false, this.title});
 
   final String audioUrl;
   final bool isMe;
@@ -26,14 +21,13 @@ class AdvancedAudioPlayer extends StatefulWidget {
 
 class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
   late final AudioPlayer _player;
-  final List<double> _speeds = const [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+  static const _speeds = <double>[1.0, 1.5, 2.0, 0.75];
   double _speed = 1.0;
   double _volume = 1.0;
   bool _loading = true;
   bool _error = false;
-  bool _loop = false;
 
-  Color get _accent => widget.isMe ? Colors.white : AppColors.primary;
+  Color get _foreground => widget.isMe ? Colors.white : Colors.black87;
   Color get _muted => widget.isMe ? Colors.white70 : Colors.black54;
 
   @override
@@ -55,7 +49,6 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
       }
       await _player.setVolume(_volume);
       await _player.setSpeed(_speed);
-      await _player.setLoopMode(LoopMode.off);
       if (mounted) setState(() => _loading = false);
     } catch (e) {
       debugPrint('AdvancedAudioPlayer prepare error: $e');
@@ -69,129 +62,150 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
     super.dispose();
   }
 
+  Future<void> _togglePlay() async {
+    if (_loading) return;
+    if (_player.processingState == ProcessingState.completed) {
+      await _player.seek(Duration.zero);
+      await _player.play();
+    } else if (_player.playing) {
+      await _player.pause();
+    } else {
+      await _player.play();
+    }
+  }
+
   Future<void> _seekBy(int seconds) async {
-    final current = _player.position;
+    var target = _player.position + Duration(seconds: seconds);
     final duration = _player.duration ?? Duration.zero;
-    var target = current + Duration(seconds: seconds);
     if (target < Duration.zero) target = Duration.zero;
     if (duration > Duration.zero && target > duration) target = duration;
     await _player.seek(target);
   }
 
-  Future<void> _showSpeedPicker() async {
-    final selected = await showModalBottomSheet<double>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: _speeds.map((speed) => ListTile(
-            leading: Icon(speed == _speed ? Icons.check_circle : Icons.speed),
-            title: Text('${speed.toStringAsFixed(speed == speed.roundToDouble() ? 0 : 2)}x'),
-            selected: speed == _speed,
-            onTap: () => Navigator.pop(context, speed),
-          )).toList(),
-        ),
-      ),
-    );
-    if (selected == null) return;
-    await _player.setSpeed(selected);
-    if (mounted) setState(() => _speed = selected);
+  Future<void> _cycleSpeed() async {
+    final index = _speeds.indexOf(_speed);
+    final next = _speeds[(index + 1) % _speeds.length];
+    await _player.setSpeed(next);
+    if (mounted) setState(() => _speed = next);
   }
 
-  Future<void> _showVolumePicker() async {
-    var value = _volume;
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-            child: Row(children: [
-              const Icon(Icons.volume_down),
-              Expanded(child: Slider(value: value, min: 0, max: 1, onChanged: (v) { setSheetState(() => value = v); _player.setVolume(v); })),
-              const Icon(Icons.volume_up),
-            ]),
-          ),
-        ),
-      ),
-    );
-    if (mounted) setState(() => _volume = value);
+  Future<void> _toggleVolume() async {
+    final next = _volume == 0 ? 1.0 : 0.0;
+    await _player.setVolume(next);
+    if (mounted) setState(() => _volume = next);
   }
 
   Future<void> _download() async {
+    if (widget.isLocal) return;
     final uri = Uri.tryParse(widget.audioUrl);
-    if (uri == null || !uri.hasScheme) return;
-    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (uri != null && uri.hasScheme && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   String _format(Duration value) {
     final total = value.inSeconds;
-    final minutes = total ~/ 60;
-    final seconds = total % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+    return '${total ~/ 60}:${(total % 60).toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
     if (_error) {
       return Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.error_outline, color: _accent),
-          const SizedBox(width: 8),
-          Flexible(child: Text('تعذر تشغيل التسجيل', style: TextStyle(color: _accent))),
+          Icon(Icons.error_outline_rounded, color: _foreground, size: 18),
+          const SizedBox(width: 7),
+          Text('تعذر تشغيل التسجيل', style: TextStyle(color: _foreground, fontSize: 12)),
         ]),
       );
     }
 
-    return Container(
-      constraints: const BoxConstraints(minWidth: 250, maxWidth: 330),
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 7),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(7, 6, 7, 5),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        if (widget.title != null) Row(children: [Icon(Icons.audiotrack, size: 17, color: _accent), const SizedBox(width: 6), Expanded(child: Text(widget.title!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: _accent, fontWeight: FontWeight.w700, fontSize: 12)))]),
-        if (widget.title != null) const SizedBox(height: 5),
-        StreamBuilder<Duration>(
-          stream: _player.positionStream,
-          builder: (context, positionSnapshot) {
-            final position = positionSnapshot.data ?? Duration.zero;
-            return StreamBuilder<Duration?>(
-              stream: _player.durationStream,
-              builder: (context, durationSnapshot) {
-                final duration = durationSnapshot.data ?? Duration.zero;
-                final max = duration.inMilliseconds > 0 ? duration.inMilliseconds.toDouble() : 1.0;
-                final value = position.inMilliseconds.clamp(0, max.toInt()).toDouble();
-                return Column(children: [
-                  SliderTheme(
-                    data: SliderTheme.of(context).copyWith(activeTrackColor: _accent, inactiveTrackColor: _accent.withOpacity(.25), thumbColor: _accent, overlayColor: _accent.withOpacity(.12), trackHeight: 3),
-                    child: Slider(value: value, min: 0, max: max, onChanged: _loading ? null : (v) => _player.seek(Duration(milliseconds: v.round()))),
-                  ),
-                  Row(children: [Text(_format(position), style: TextStyle(color: _muted, fontSize: 10)), const Spacer(), Text(_format(duration), style: TextStyle(color: _muted, fontSize: 10))]),
-                ]);
-              },
-            );
-          },
-        ),
-        const SizedBox(height: 2),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          IconButton(tooltip: 'إرجاع 10 ثوان', onPressed: _loading ? null : () => _seekBy(-10), icon: Icon(Icons.replay_10, color: _accent)),
+        if (widget.title != null && widget.title!.trim().isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 3),
+            child: Row(children: [
+              Icon(Icons.mic_rounded, size: 14, color: _muted),
+              const SizedBox(width: 5),
+              Expanded(child: Text(widget.title!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: _muted, fontSize: 10, fontWeight: FontWeight.w600))),
+            ]),
+          ),
+        Row(children: [
           StreamBuilder<PlayerState>(
             stream: _player.playerStateStream,
             builder: (context, snapshot) {
               final state = snapshot.data;
-              final playing = state?.playing ?? false;
               final busy = _loading || state?.processingState == ProcessingState.loading || state?.processingState == ProcessingState.buffering;
-              return Container(width: 48, height: 48, decoration: BoxDecoration(color: _accent.withOpacity(.16), shape: BoxShape.circle), child: IconButton(onPressed: busy ? null : () => playing ? _player.pause() : _player.play(), icon: busy ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: _accent)) : Icon(playing ? Icons.pause : Icons.play_arrow, color: _accent, size: 28)));
+              final playing = state?.playing == true;
+              return Material(
+                color: _foreground.withOpacity(.12),
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: busy ? null : _togglePlay,
+                  child: SizedBox(width: 38, height: 38, child: Center(child: busy
+                      ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: _foreground))
+                      : Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, color: _foreground, size: 23))),
+                ),
+              );
             },
           ),
-          IconButton(tooltip: 'تقديم 10 ثوان', onPressed: _loading ? null : () => _seekBy(10), icon: Icon(Icons.forward_10, color: _accent)),
-          IconButton(tooltip: 'سرعة التشغيل', onPressed: _loading ? null : _showSpeedPicker, icon: Icon(Icons.speed, color: _accent)),
-          IconButton(tooltip: 'مستوى الصوت', onPressed: _loading ? null : _showVolumePicker, icon: Icon(_volume == 0 ? Icons.volume_off : Icons.volume_up, color: _accent)),
+          const SizedBox(width: 8),
+          Expanded(child: StreamBuilder<Duration?>(
+            stream: _player.durationStream,
+            builder: (context, durationSnapshot) {
+              final duration = durationSnapshot.data ?? Duration.zero;
+              return StreamBuilder<Duration>(
+                stream: _player.positionStream,
+                builder: (context, positionSnapshot) {
+                  final position = positionSnapshot.data ?? Duration.zero;
+                  final max = duration.inMilliseconds > 0 ? duration.inMilliseconds.toDouble() : 1.0;
+                  final value = position.inMilliseconds.clamp(0, max.toInt()).toDouble();
+                  return Column(children: [
+                    SizedBox(height: 20, child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(activeTrackColor: _foreground, inactiveTrackColor: _foreground.withOpacity(.22), thumbColor: _foreground, overlayColor: Colors.transparent, trackHeight: 2.5, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4)),
+                      child: Slider(value: value, min: 0, max: max, onChanged: _loading ? null : (v) => _player.seek(Duration(milliseconds: v.round()))),
+                    )),
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      Text(_format(position), style: TextStyle(color: _muted, fontSize: 9)),
+                      Text(_format(duration), style: TextStyle(color: _muted, fontSize: 9)),
+                    ]),
+                  ]);
+                },
+              );
+            },
+          )),
         ]),
+        const SizedBox(height: 1),
         Row(children: [
-          TextButton.icon(onPressed: _loading ? null : () async { final next = !_loop; await _player.setLoopMode(next ? LoopMode.one : LoopMode.off); if (mounted) setState(() => _loop = next); }, icon: Icon(_loop ? Icons.repeat_one : Icons.repeat, size: 17, color: _loop ? _accent : _muted), label: Text(_loop ? 'تكرار' : 'حلقة', style: TextStyle(fontSize: 10, color: _loop ? _accent : _muted))),
+          _miniButton(Icons.replay_10_rounded, () => _seekBy(-10), 'رجوع 10 ثوان'),
+          _miniButton(Icons.forward_10_rounded, () => _seekBy(10), 'تقديم 10 ثوان'),
+          _miniButton(Icons.speed_rounded, _cycleSpeed, 'سرعة ${_speed}x', label: '${_speed}x'),
+          _miniButton(_volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded, _toggleVolume, _volume == 0 ? 'تشغيل الصوت' : 'كتم الصوت'),
+          if (!widget.isLocal) _miniButton(Icons.download_outlined, _download, 'تحميل'),
           const Spacer(),
-          TextButton.icon(onPressed: widget.isLocal ? null : _download, icon: Icon(Icons.download_outlined, size: 17, color: _accent), label: Text('تحميل', style: TextStyle(fontSize: 10, color: _accent))),
         ]),
       ]),
+    );
+  }
+
+  Widget _miniButton(IconData icon, VoidCallback onPressed, String tooltip, {String? label}) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: _loading ? null : onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, size: 15, color: _muted),
+            if (label != null) ...[const SizedBox(width: 2), Text(label, style: TextStyle(color: _muted, fontSize: 9, fontWeight: FontWeight.w600))],
+          ]),
+        ),
+      ),
     );
   }
 }
