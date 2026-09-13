@@ -36,6 +36,9 @@ jobs:
     - name: 💬 Normalize chat delivery/read synchronization
       run: python3 scripts/normalize_chat_delivery.py
 
+    - name: 🧑‍⚕️ Apply independent role dashboard specifications
+      run: python3 scripts/apply_independent_role_dashboards.py
+
     - name: 🛡️ Validate chat service declarations
       run: |
         python3 - <<'PY'
