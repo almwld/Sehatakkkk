@@ -45,6 +45,11 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class AppRouter {
   static const String splash = '/splash', home = '/', auth = '/auth', doctors = '/doctors', doctorDetails = '/doctor/:id', pharmacy = '/pharmacy', labs = '/labs', hospitals = '/hospitals', chat = '/chat', more = '/more', dashboard = '/dashboard', accountSettings = '/account-settings', profile = '/profile', appointments = '/appointments', notifications = '/notifications', cart = '/cart', wallet = '/wallet', map = '/map', consultation = '/consultation', services = '/services', emergency = '/emergency', bloodDonation = '/blood-donation', settings = '/settings', search = '/search', articles = '/articles', community = '/community', pharmacyDashboard = '/pharmacy-dashboard', marketplaceAdmin = '/marketplace-admin', chatRoom = '/chat-room', chatDetail = '/chat-detail', addStatus = '/chat/add-status', storyViewer = '/chat/story', aiChatbot = '/ai-chatbot', call = '/call';
 
+  // بوابة توافقية مركزية للمسارات القديمة؛ الشاشات النشطة لا تستدعي Navigator مباشرة.
+  static Future<T?> pushRoute<T>(BuildContext context, Route<T> route) {
+    return Navigator.of(context).push<T>(route);
+  }
+
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: splash,
