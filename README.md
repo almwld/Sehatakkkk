@@ -60,3 +60,5 @@ CI trigger: verify the repaired master tree with the APK workflow.
 CI trigger: APK verification after restoring the truncated chat/patient sources and repairing HomeTab syntax.
 
 CI trigger: validate the complete Dart repair including PatientDashboard.build and HomeTab brackets.
+
+CI trigger: validate exact HomeTab doctor rating bracket fix.
