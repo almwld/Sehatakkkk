@@ -132,12 +132,46 @@ class _MessageBubbleState extends State<MessageBubble> {
   void _options() {
     showModalBottomSheet<void>(
       context: context,
-      builder: (_) => SafeArea(child: Wrap(children: [
-        if (widget.onReaction != null)
-          Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: ['👍', '❤️', '😂', '😮', '🙏'].map((emoji) => IconButton(onPressed: () { Navigator.pop(context); widget.onReaction?.call(emoji); }, icon: Text(emoji, style: const TextStyle(fontSize: 24))).toList())),
-        if (widget.onReply != null) ListTile(leading: const Icon(Icons.reply), title: const Text('رد'), onTap: () { Navigator.pop(context); widget.onReply?.call(); }),
-        if (widget.onDelete != null) ListTile(leading: const Icon(Icons.delete_outline), title: const Text('حذف'), onTap: () { Navigator.pop(context); widget.onDelete?.call(); }),
-      ])),
+      builder: (_) => SafeArea(
+        child: Wrap(
+          children: [
+            if (widget.onReaction != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: ['👍', '❤️', '😂', '😮', '🙏']
+                      .map((emoji) => IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              widget.onReaction?.call(emoji);
+                            },
+                            icon: Text(emoji, style: const TextStyle(fontSize: 24)),
+                          ))
+                      .toList(),
+                ),
+              ),
+            if (widget.onReply != null)
+              ListTile(
+                leading: const Icon(Icons.reply),
+                title: const Text('رد'),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onReply?.call();
+                },
+              ),
+            if (widget.onDelete != null)
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: const Text('حذف'),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onDelete?.call();
+                },
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
