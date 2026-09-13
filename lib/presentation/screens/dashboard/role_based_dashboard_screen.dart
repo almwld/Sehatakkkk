@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/presentation/screens/admin/dashboard/admin_dashboard.dart';
@@ -10,8 +12,7 @@ import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 
-/// The single dashboard dispatcher used after router authentication.
-/// PatientDashboard is preserved as the default patient experience.
+/// Single account-dashboard dispatcher. PatientDashboard remains the patient experience.
 class RoleBasedDashboardScreen extends StatelessWidget {
   const RoleBasedDashboardScreen({super.key});
 
@@ -33,16 +34,11 @@ class RoleBasedDashboardScreen extends StatelessWidget {
 
   Widget _dashboardForRole(String role) {
     switch (role) {
-      case 'doctor':
-        return const DoctorDashboardScreen();
-      case 'pharmacist':
-        return const PharmacyDashboard();
-      case 'hospital':
-        return const HospitalDashboard();
-      case 'admin':
-        return const AdminDashboard();
-      case 'superAdmin':
-        return const PlatformDashboard();
+      case 'doctor': return const DoctorDashboardScreen();
+      case 'pharmacist': return const PharmacyDashboard();
+      case 'hospital': return const HospitalDashboard();
+      case 'admin': return const AdminDashboard();
+      case 'superAdmin': return const PlatformDashboard();
       case 'user':
       case 'patient':
       case '':
@@ -62,45 +58,188 @@ class RoleBasedDashboardScreen extends StatelessWidget {
   }
 }
 
-class ProfessionalRoleDashboard extends StatelessWidget {
+class ProfessionalRoleDashboard extends StatefulWidget {
   const ProfessionalRoleDashboard({super.key, required this.role});
   final String role;
 
   @override
+  State<ProfessionalRoleDashboard> createState() => _ProfessionalRoleDashboardState();
+}
+
+class _ProfessionalRoleDashboardState extends State<ProfessionalRoleDashboard> {
+  bool _loading = true;
+  int _appointments = 0;
+  int _bookings = 0;
+  int _payments = 0;
+  String _name = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboard();
+  }
+
+  Future<void> _loadDashboard() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final db = FirebaseFirestore.instance;
+      final profileFuture = db.collection('users').doc(user.uid).get();
+      final appointmentsFuture = db.collection('appointments').where('providerId', isEqualTo: user.uid).get();
+      final bookingsFuture = db.collection('bookings').where('providerId', isEqualTo: user.uid).get();
+      final paymentsFuture = db.collection('payments').where('providerId', isEqualTo: user.uid).get();
+      final results = await Future.wait([profileFuture, appointmentsFuture, bookingsFuture, paymentsFuture]);
+      if (!mounted) return;
+      final profile = results[0] as DocumentSnapshot<Map<String, dynamic>>;
+      setState(() {
+        _name = (profile.data()?['name'] ?? user.displayName ?? '').toString();
+        _appointments = (results[1] as QuerySnapshot<Map<String, dynamic>>).docs.length;
+        _bookings = (results[2] as QuerySnapshot<Map<String, dynamic>>).docs.length;
+        _payments = (results[3] as QuerySnapshot<Map<String, dynamic>>).docs.length;
+        _loading = false;
+      });
+    } catch (e) {
+      debugPrint('Professional dashboard load failed: $e');
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final name = AppRoles.getRoleName(role);
-    final services = _services[role] ?? const <String>[];
+    final name = AppRoles.getRoleName(widget.role);
+    final actions = _actionsFor(widget.role);
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: Text('لوحة $name'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
-            child: Text('مرحباً بك في لوحة $name', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
-          ),
-          const SizedBox(height: 18),
-          const Text('خدمات الدور', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 8),
-          ...services.map((service) => Card(child: ListTile(
-                leading: const CircleAvatar(backgroundColor: Color(0x1A0A8F83), child: Icon(Icons.medical_services_outlined, color: AppColors.primary)),
-                title: Text(service, style: const TextStyle(fontWeight: FontWeight.w800)),
-                trailing: const Icon(Icons.chevron_left),
-              ))),
-        ],
+      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      appBar: AppBar(title: Text('لوحة $name'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _loadDashboard, icon: const Icon(Icons.refresh))]),
+      body: RefreshIndicator(
+        onRefresh: _loadDashboard,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          children: [
+            _header(name),
+            const SizedBox(height: 14),
+            if (_loading) const LinearProgressIndicator(minHeight: 3),
+            if (!_loading) _stats(dark),
+            const SizedBox(height: 18),
+            const Text('إدارة الحساب والخدمات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 10),
+            ...actions.map((item) => _actionCard(context, item, dark)),
+          ],
+        ),
       ),
     );
   }
 
-  static const Map<String, List<String>> _services = {
-    'nurse': ['إدارة خدمات التمريض', 'المواعيد', 'متابعة المرضى', 'التواصل الصحي'],
-    'midwife': ['إدارة خدمات القبالة', 'متابعة الحالات', 'المواعيد', 'التواصل الصحي'],
-    'physiotherapist': ['إدارة جلسات العلاج الطبيعي', 'المواعيد', 'متابعة الحالات', 'التواصل الصحي'],
-    'lab': ['إدارة خدمات المختبر', 'طلبات الفحوصات', 'النتائج', 'المواعيد'],
-    'paramedic': ['إدارة خدمات الإسعاف', 'الطلبات الطارئة', 'التواصل الصحي'],
-    'delivery': ['إدارة التوصيل', 'الطلبات', 'المهام الحالية', 'المحفظة'],
-    'service': ['إدارة الخدمات', 'الطلبات', 'المواعيد', 'المحفظة'],
-    'veterinarian': ['إدارة خدمات الطب البيطري', 'المواعيد', 'السجلات', 'التواصل الصحي'],
-  };
+  Widget _header(String roleName) => Container(
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('مرحباً${_name.isEmpty ? '' : ' $_name'}', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+      const SizedBox(height: 6),
+      Text('لوحة $roleName المهنية — بيانات الحساب الفعلية', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+    ]),
+  );
+
+  Widget _stats(bool dark) => Row(children: [
+    Expanded(child: _statCard('المواعيد', _appointments, Icons.calendar_month, dark)),
+    const SizedBox(width: 8),
+    Expanded(child: _statCard('الحجوزات', _bookings, Icons.event_available, dark)),
+    const SizedBox(width: 8),
+    Expanded(child: _statCard('المعاملات', _payments, Icons.account_balance_wallet, dark)),
+  ]);
+
+  Widget _statCard(String title, int value, IconData icon, bool dark) => Container(
+    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+    decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(15)),
+    child: Column(children: [Icon(icon, color: AppColors.primary, size: 24), const SizedBox(height: 5), Text('$value', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)), Text(title, style: const TextStyle(fontSize: 9, color: Colors.grey))]),
+  );
+
+  Widget _actionCard(BuildContext context, _DashboardAction item, bool dark) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: InkWell(
+      onTap: () => context.push(item.route),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16)),
+        child: Row(children: [
+          Container(width: 46, height: 46, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), borderRadius: BorderRadius.circular(13)), child: Icon(item.icon, color: AppColors.primary)),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(item.title, style: const TextStyle(fontWeight: FontWeight.w900)), const SizedBox(height: 3), Text(item.subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey))])),
+          const Icon(Icons.chevron_left),
+        ]),
+      ),
+    ),
+  );
+
+  List<_DashboardAction> _actionsFor(String role) {
+    switch (role) {
+      case 'lab':
+        return [
+          _DashboardAction('طلبات الفحوصات', 'متابعة الحجوزات والطلبات', AppRouter.appointments, Icons.science),
+          _DashboardAction('الخدمات', 'إدارة الخدمات المتاحة للمستخدمين', AppRouter.services, Icons.medical_services),
+          _DashboardAction('التواصل الصحي', 'التواصل مع المرضى ومقدمي الرعاية', AppRouter.chat, Icons.chat),
+          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
+        ];
+      case 'paramedic':
+        return [
+          _DashboardAction('الطلبات الطارئة', 'الوصول إلى خدمات الإسعاف والطوارئ', AppRouter.emergency, Icons.emergency),
+          _DashboardAction('المواعيد', 'متابعة المهام والمواعيد', AppRouter.appointments, Icons.calendar_month),
+          _DashboardAction('التواصل الصحي', 'التواصل مع الحالات', AppRouter.chat, Icons.chat),
+          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
+        ];
+      case 'delivery':
+        return [
+          _DashboardAction('المهام والطلبات', 'متابعة مهام التوصيل', AppRouter.services, Icons.local_shipping),
+          _DashboardAction('التواصل الصحي', 'التواصل مع العملاء', AppRouter.chat, Icons.chat),
+          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
+        ];
+      case 'service':
+        return [
+          _DashboardAction('الخدمات', 'إدارة الخدمات المتاحة', AppRouter.services, Icons.medical_services),
+          _DashboardAction('الطلبات والمواعيد', 'متابعة الأعمال الحالية', AppRouter.appointments, Icons.calendar_month),
+          _DashboardAction('التواصل الصحي', 'التواصل مع العملاء', AppRouter.chat, Icons.chat),
+          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
+        ];
+      case 'veterinarian':
+        return [
+          _DashboardAction('المواعيد', 'متابعة مواعيد الحالات البيطرية', AppRouter.appointments, Icons.calendar_month),
+          _DashboardAction('الخدمات', 'إدارة خدمات الطب البيطري', AppRouter.services, Icons.pets),
+          _DashboardAction('التواصل الصحي', 'التواصل مع أصحاب الحالات', AppRouter.chat, Icons.chat),
+          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
+        ];
+      case 'midwife':
+        return [
+          _DashboardAction('متابعة الحالات', 'المواعيد والحجوزات', AppRouter.appointments, Icons.pregnant_woman),
+          _DashboardAction('الخدمات', 'خدمات القبالة والرعاية', AppRouter.services, Icons.health_and_safety),
+          _DashboardAction('التواصل الصحي', 'التواصل مع الحالات', AppRouter.chat, Icons.chat),
+          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
+        ];
+      case 'physiotherapist':
+        return [
+          _DashboardAction('الجلسات والمواعيد', 'متابعة الجلسات والحجوزات', AppRouter.appointments, Icons.accessibility_new),
+          _DashboardAction('الخدمات', 'خدمات العلاج الطبيعي', AppRouter.services, Icons.fitness_center),
+          _DashboardAction('التواصل الصحي', 'التواصل مع الحالات', AppRouter.chat, Icons.chat),
+          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
+        ];
+      case 'nurse':
+      default:
+        return [
+          _DashboardAction('المواعيد', 'متابعة مواعيد وحجوزات المرضى', AppRouter.appointments, Icons.calendar_month),
+          _DashboardAction('الخدمات', 'إدارة خدمات الرعاية والتمريض', AppRouter.services, Icons.health_and_safety),
+          _DashboardAction('التواصل الصحي', 'التواصل مع المرضى', AppRouter.chat, Icons.chat),
+          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
+        ];
+    }
+  }
+}
+
+class _DashboardAction {
+  const _DashboardAction(this.title, this.subtitle, this.route, this.icon);
+  final String title;
+  final String subtitle;
+  final String route;
+  final IconData icon;
 }
