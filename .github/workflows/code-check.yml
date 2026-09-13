@@ -34,6 +34,8 @@ jobs:
             git add lib/presentation/screens/home/tabs/home_tab.dart lib/presentation/screens/patient/patient_dashboard.dart
             git diff --cached --check
             git commit -m 'fix: repair Dart dashboard and HomeTab blockers'
+            git fetch origin master
+            git rebase origin/master
             git push origin HEAD:master
           fi
 
