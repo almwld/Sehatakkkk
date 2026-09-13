@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -196,6 +197,7 @@ class _GuidedTourState extends State<GuidedTour> with SingleTickerProviderStateM
   }
 }
 
+/// فقاعة الجولة بتصميم زجاجي شفاف مع ضبابية حقيقية للخلفية.
 class _TooltipBubble extends StatelessWidget {
   const _TooltipBubble({required this.step, required this.index, required this.total, required this.onSkip, required this.onPrevious, required this.onNext});
   final TourStep step;
@@ -207,34 +209,53 @@ class _TooltipBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: step.accentColor.withOpacity(.30)), boxShadow: [BoxShadow(blurRadius: 24, offset: const Offset(0, 8), color: Colors.black.withOpacity(.25))]),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: step.accentColor.withOpacity(.15), shape: BoxShape.circle), child: Text(step.emoji, style: const TextStyle(fontSize: 22))),
-            const SizedBox(width: 10),
-            Expanded(child: Text(step.title, style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900))),
-          ]),
-          const SizedBox(height: 12),
-          Text(step.description, textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6)),
-          if (step.actionHint != null) ...[
-            const SizedBox(height: 10),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.09), borderRadius: BorderRadius.circular(10)), child: Text(step.actionHint!, textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
-          ],
-          const Spacer(),
-          Row(children: [TextButton(onPressed: onSkip, style: TextButton.styleFrom(foregroundColor: Colors.grey[600]), child: const Text('تخطي')), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(10)), child: Text('${index + 1}/$total', style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w800)))]),
-          const SizedBox(height: 6),
-          Row(children: [
-            if (index > 0) ...[
-              OutlinedButton.icon(onPressed: onPrevious, icon: const Icon(Icons.arrow_forward_rounded, size: 18), label: const Text('السابق'), style: OutlinedButton.styleFrom(foregroundColor: step.accentColor, side: BorderSide(color: step.accentColor.withOpacity(.35)))),
-              const SizedBox(width: 8),
-            ],
-            Expanded(child: FilledButton.icon(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor, foregroundColor: Colors.white), icon: Icon(index == total - 1 ? Icons.check_rounded : Icons.arrow_back_rounded, size: 18), label: Text(index == total - 1 ? 'تم' : 'التالي'))),
-          ]),
-        ]),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? const Color(0xFF15242A) : const Color(0xFFF7FCFB);
+    final foreground = isDark ? Colors.white : const Color(0xFF172126);
+    final secondary = isDark ? Colors.white.withOpacity(.78) : const Color(0xFF45565C);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+            decoration: BoxDecoration(
+              color: baseColor.withOpacity(isDark ? .72 : .68),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(isDark ? .20 : .58), width: 1),
+              boxShadow: [
+                BoxShadow(blurRadius: 24, spreadRadius: 1, offset: const Offset(0, 8), color: Colors.black.withOpacity(isDark ? .38 : .18)),
+                BoxShadow(blurRadius: 8, spreadRadius: -2, color: step.accentColor.withOpacity(.10)),
+              ],
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: step.accentColor.withOpacity(.18), shape: BoxShape.circle, border: Border.all(color: step.accentColor.withOpacity(.28))), child: Text(step.emoji, style: const TextStyle(fontSize: 22))),
+                const SizedBox(width: 10),
+                Expanded(child: Text(step.title, style: TextStyle(color: foreground, fontSize: 18, fontWeight: FontWeight.w900))),
+              ]),
+              const SizedBox(height: 12),
+              Text(step.description, textAlign: TextAlign.right, style: TextStyle(color: secondary, fontSize: 14, height: 1.6)),
+              if (step.actionHint != null) ...[
+                const SizedBox(height: 10),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.10), borderRadius: BorderRadius.circular(10), border: Border.all(color: step.accentColor.withOpacity(.16))), child: Text(step.actionHint!, textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
+              ],
+              const Spacer(),
+              Row(children: [TextButton(onPressed: onSkip, style: TextButton.styleFrom(foregroundColor: secondary), child: const Text('تخطي')), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.white.withOpacity(isDark ? .08 : .48), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white.withOpacity(.14))), child: Text('${index + 1}/$total', style: TextStyle(color: foreground.withOpacity(.82), fontWeight: FontWeight.w800)))]),
+              const SizedBox(height: 6),
+              Row(children: [
+                if (index > 0) ...[
+                  OutlinedButton.icon(onPressed: onPrevious, icon: const Icon(Icons.arrow_forward_rounded, size: 18), label: const Text('السابق'), style: OutlinedButton.styleFrom(foregroundColor: step.accentColor, side: BorderSide(color: step.accentColor.withOpacity(.38))),),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(child: FilledButton.icon(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor.withOpacity(.92), foregroundColor: Colors.white), icon: Icon(index == total - 1 ? Icons.check_rounded : Icons.arrow_back_rounded, size: 18), label: Text(index == total - 1 ? 'تم' : 'التالي'))),
+              ]),
+            ]),
+          ),
+        ),
       ),
     );
   }
