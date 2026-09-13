@@ -21,7 +21,7 @@ text = text.replace(
     "            Text('إدارة ${RoleDashboardSpecs.forRole(widget.role).title} وخدماتها', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),",
 )
 
-# استبدال دالة الإجراءات القديمة بدالة تحويل الإعدادات إلى بطاقات العرض.
+# استبدال دالة الإجراءات القديمة مع الحفاظ على DashboardActionSpec كمصدر وحيد للنوع.
 start = text.find('  List<_DashboardAction> _actionsFor(String role) {')
 if start != -1:
     depth = 0
@@ -50,8 +50,17 @@ if start != -1:
                 break
     if end is None:
         raise SystemExit('Could not locate _actionsFor body')
-    replacement = '''  List<_DashboardAction> _actionsFor(String role) {\n    return RoleDashboardSpecs.forRole(role).actions\n        .map((item) => _DashboardAction(item.title, item.subtitle, item.route, item.icon))\n        .toList(growable: false);\n  }'''
+    replacement = '''  List<DashboardActionSpec> _actionsFor(String role) {\n    return RoleDashboardSpecs.forRole(role).actions;\n  }'''
     text = text[:start] + replacement + text[end:]
 
+# أي إصدار قديم من _actionCard يجب أن يقبل النوع المركزي مباشرة.
+text = text.replace(
+    'Widget _actionCard(BuildContext context, _DashboardAction item, bool dark)',
+    'Widget _actionCard(BuildContext context, DashboardActionSpec item, bool dark)',
+)
+# إذا بقيت فئة _DashboardAction القديمة، احذفها فقط عندما لم يعد هناك أي مرجع لها.
+if '_DashboardAction' not in text:
+    pass
+
 path.write_text(text, encoding='utf-8')
-print('Applied independent role dashboard specifications.')
+print('Applied independent role dashboard specifications with a single DashboardActionSpec type.')
