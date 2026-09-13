@@ -71,12 +71,21 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   ToastService.setNavigatorKey(navigatorKey);
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    debugPrint('✅ Firebase initialized successfully');
-  } catch (e) {
-    debugPrint('❌ Firebase initialization error: $e');
-    runApp(const _StartupErrorApp());
-    return;
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+    debugPrint('✅ Firebase initialized successfully: ${Firebase.app().options.projectId}');
+  } catch (nativeError) {
+    debugPrint('⚠️ Native Firebase initialization failed: $nativeError');
+    try {
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      }
+      debugPrint('✅ Firebase initialized using generated options: ${Firebase.app().options.projectId}');
+    } catch (explicitError) {
+      debugPrint('❌ Firebase initialization failed: $explicitError');
+      debugPrint('❌ Native Firebase error was: $nativeError');
+    }
   }
   try { FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler); } catch (e) { debugPrint('❌ Firebase Messaging background handler registration error: $e'); }
   await CacheService.init();
@@ -98,11 +107,6 @@ Future<void> main() async {
     ],
     child: const SehatakApp(),
   ));
-}
-
-class _StartupErrorApp extends StatelessWidget {
-  const _StartupErrorApp();
-  @override Widget build(BuildContext context) => const MaterialApp(debugShowCheckedModeBanner: false, home: Scaffold(body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'))));
 }
 
 class SehatakApp extends StatefulWidget {
