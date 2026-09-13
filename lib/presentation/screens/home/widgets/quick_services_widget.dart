@@ -27,7 +27,7 @@ class QuickServicesWidget extends StatelessWidget {
 
   static const List<Map<String, dynamic>> _services = [
     {
-      'icon': 'assets/images/services/pharmacy.png',
+      'icon': 'assets/images/services/medications.png',
       'label': 'صيدلية',
       'screen': PharmacyScreen.new,
     },
