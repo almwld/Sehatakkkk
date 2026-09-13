@@ -8,10 +8,11 @@ import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/chat/add_status_screen.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
-import 'package:sehatak/presentation/screens/chat/calls_screen.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/community/community_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/screens/dashboard/account_dashboard_screen.dart';
@@ -37,11 +38,12 @@ import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/splash_screen.dart';
 import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
 import 'package:sehatak/presentation/widgets/home/guided_tour/screen_tours.dart';
+import 'package:sehatak/core/models/call_model.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class AppRouter {
-  static const String splash = '/splash', home = '/', auth = '/auth', doctors = '/doctors', doctorDetails = '/doctor/:id', pharmacy = '/pharmacy', labs = '/labs', hospitals = '/hospitals', chat = '/chat', more = '/more', dashboard = '/dashboard', accountSettings = '/account-settings', profile = '/profile', appointments = '/appointments', notifications = '/notifications', cart = '/cart', wallet = '/wallet', map = '/map', consultation = '/consultation', services = '/services', emergency = '/emergency', bloodDonation = '/blood-donation', settings = '/settings', search = '/search', articles = '/articles', community = '/community', pharmacyDashboard = '/pharmacy-dashboard', marketplaceAdmin = '/marketplace-admin', chatRoom = '/chat-room', chatDetail = '/chat-detail', addStatus = '/chat/add-status', storyViewer = '/chat/story', aiChatbot = '/ai-chatbot';
+  static const String splash = '/splash', home = '/', auth = '/auth', doctors = '/doctors', doctorDetails = '/doctor/:id', pharmacy = '/pharmacy', labs = '/labs', hospitals = '/hospitals', chat = '/chat', more = '/more', dashboard = '/dashboard', accountSettings = '/account-settings', profile = '/profile', appointments = '/appointments', notifications = '/notifications', cart = '/cart', wallet = '/wallet', map = '/map', consultation = '/consultation', services = '/services', emergency = '/emergency', bloodDonation = '/blood-donation', settings = '/settings', search = '/search', articles = '/articles', community = '/community', pharmacyDashboard = '/pharmacy-dashboard', marketplaceAdmin = '/marketplace-admin', chatRoom = '/chat-room', chatDetail = '/chat-detail', addStatus = '/chat/add-status', storyViewer = '/chat/story', aiChatbot = '/ai-chatbot', call = '/call';
 
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
@@ -49,7 +51,7 @@ class AppRouter {
     refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
     redirect: (_, state) {
       final loggedIn = FirebaseAuth.instance.currentUser != null;
-      const protected = <String>{dashboard, accountSettings, profile, appointments, notifications, cart, wallet};
+      const protected = <String>{dashboard, accountSettings, profile, appointments, notifications, cart, wallet, chatRoom, chatDetail, addStatus, storyViewer, aiChatbot, call};
       if (state.matchedLocation == auth && loggedIn) return home;
       if (protected.contains(state.matchedLocation) && !loggedIn) return auth;
       return null;
@@ -89,6 +91,14 @@ class AppRouter {
       GoRoute(path: chatRoom, builder: (_, s) {
         final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
         return ChatRoomScreen(chatId: '${e['chatId'] ?? ''}', otherUserId: '${e['otherUserId'] ?? ''}', otherUserName: '${e['otherUserName'] ?? 'مستخدم'}', otherUserImage: e['otherUserImage'] as String?, groupImage: e['groupImage'] as String?, isGroup: e['isGroup'] == true);
+      }),
+      GoRoute(path: chatDetail, builder: (_, s) {
+        final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+        return ChatDetailScreen(chatId: '${e['chatId'] ?? ''}', userName: '${e['userName'] ?? 'الطبيب'}', userId: '${e['userId'] ?? ''}', isDoctor: e['isDoctor'] == true, userImage: e['userImage'] as String?);
+      }),
+      GoRoute(path: call, builder: (_, s) {
+        final e = (s.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+        return CallScreen(chatId: '${e['chatId'] ?? ''}', doctorName: '${e['doctorName'] ?? 'الطبيب'}', doctorId: '${e['doctorId'] ?? ''}', callId: '${e['callId'] ?? ''}', isVideo: e['isVideo'] == true, isOutgoing: e['isOutgoing'] == true);
       }),
     ],
   );
