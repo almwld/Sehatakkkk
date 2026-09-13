@@ -152,7 +152,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = widget.callerImage?.trim().isNotEmpty == true ? widget.callerImage!.trim() : ImageKit.doctor1;
     return Scaffold(
       backgroundColor: const Color(0xFF0A0F1C),
       body: SafeArea(
@@ -164,7 +163,21 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
               const SizedBox(height: 18),
               const Text('مكالمة واردة', style: TextStyle(color: Colors.white70, fontSize: 14)),
               const Spacer(),
-              AnimatedBuilder(animation: _pulseAnimation, builder: (_, child) => Transform.scale(scale: _pulseAnimation.value, child: child), child: Container(width: 160, height: 160, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white.withOpacity(.3), width: 4), boxShadow: [BoxShadow(color: teal.withOpacity(.5), blurRadius: 50, spreadRadius: 15)], image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)))),
+              AnimatedBuilder(
+                animation: _pulseAnimation,
+                builder: (_, child) => Transform.scale(scale: _pulseAnimation.value, child: child),
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white.withOpacity(.3), width: 4), boxShadow: [BoxShadow(color: teal.withOpacity(.5), blurRadius: 50, spreadRadius: 15)]),
+                  clipBehavior: Clip.antiAlias,
+                  child: Image.asset(
+                    AppImages.doctorMale,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Image.network(ImageKit.doctor1, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, color: Colors.white70, size: 72)),
+                  ),
+                ),
+              ),
               const SizedBox(height: 30),
               Text(widget.callerName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: .5)),
               const SizedBox(height: 14),
