@@ -5,9 +5,9 @@ import 'package:sehatak/core/constants/app_assets.dart';
 /// Search field with the same geometry as the Home search bar.
 /// Colors remain configurable so each screen keeps its existing visual theme.
 class UnifiedSearchBar extends StatelessWidget {
-  static const double height = 48;
+  static const double height = 52;
   static const double horizontalMargin = 16;
-  static const double borderRadius = 24;
+  static const double borderRadius = 18;
   static const double iconSize = 22;
 
   final String hint;
