@@ -54,7 +54,11 @@ class HomeRepository {
       final firestore = _firestore;
       if (firestore == null) return [];
       final snapshot = await firestore.collection(collection).where('cityNormalized', isEqualTo: 'صنعاء').limit(limit).get();
-      return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+      return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).where((item) {
+        final isOpen = item['isOpen'];
+        final isAvailable = item['isAvailable'];
+        return isOpen != false && isAvailable != false;
+      }).toList();
     } catch (_) {
       return [];
     }
@@ -67,14 +71,7 @@ class HomeRepository {
       final snapshot = await firestore.collection('articles').where('isPublished', isEqualTo: true).limit(limit).get();
       return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
     } catch (_) {
-      try {
-        final firestore = _firestore;
-        if (firestore == null) return [];
-        final snapshot = await firestore.collection('articles').limit(limit).get();
-        return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
-      } catch (_) {
-        return [];
-      }
+      return [];
     }
   }
 
