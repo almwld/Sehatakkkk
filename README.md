@@ -54,3 +54,5 @@ MIT License
 📱 آخر تحديث: Sun Jul 19 23:36:13 +03 2026
 
 CI verification: repaired Dart syntax is now committed on master before APK verification.
+
+CI trigger: verify the repaired master tree with the APK workflow.
