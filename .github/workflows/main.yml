@@ -22,7 +22,7 @@ jobs:
       run: python3 scripts/apply_health_contact_directory.py
 
     - name: 📊 Apply dynamic vitals integration
-      run: python3 scripts/apply_dynamic_vitals.py
+      run: python3 scripts/apply_dynamic_vitals_v2.py
 
     - name: 📝 Commit generated source changes
       run: |
@@ -80,7 +80,7 @@ jobs:
               "oauth_client": [],
               "api_key": [
                 {
-                  "current_key": "AIzaSyD_frsfhn0jde9cWVUW3hXjGcnMIQmY51k"
+                  "current_key": "AIzaSyD_frsfhn0jde9cWVUW3H3xGcnMIQmY51k"
                 }
               ],
               "services": {
