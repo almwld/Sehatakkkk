@@ -56,13 +56,6 @@ def main() -> None:
 
     auth_path = Path('lib/presentation/screens/auth/auth_screen.dart')
     auth_text = auth_path.read_text(encoding='utf-8')
-    if "package:go_router/go_router.dart" not in auth_text:
-        auth_text = auth_text.replace(
-            "import 'package:flutter/material.dart';",
-            "import 'package:flutter/material.dart';\nimport 'package:go_router/go_router.dart';",
-            1,
-        )
-
     auth_text, changed = replace_function(auth_text, '  Future<void> _login() async', """  Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
