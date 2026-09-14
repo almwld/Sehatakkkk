@@ -579,30 +579,30 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _login() async {
-    if (_emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
-      _showMessage(
-        'يرجى إدخال البريد الإلكتروني وكلمة المرور',
-        true,
-      );
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
       return;
     }
 
     _showLoading();
-
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      ).timeout(const Duration(seconds: 20));
+      final credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      final user = credential.user;
+      if (user == null) {
+        throw FirebaseAuthException(code: 'user-null');
+      }
 
       final prefs = await SharedPreferences.getInstance();
-
       await prefs.setBool('remember_me', _rememberMe);
-
       if (_rememberMe) {
         await prefs.setBool('is_logged_in', true);
-        await prefs.setString('user_uid', FirebaseAuth.instance.currentUser?.uid ?? '');
+        await prefs.setString('user_uid', user.uid);
         await prefs.setString('remember_email', _emailController.text.trim());
       } else {
         await prefs.setBool('is_logged_in', false);
@@ -610,55 +610,28 @@ class _AuthScreenState extends State<AuthScreen>
         await prefs.remove('remember_email');
       }
 
+      // لا نقرأ users/{uid} هنا ولا نستخدم Navigator/context.go.
+      // authStateChanges() سيجعل GoRouter ينتقل إلى Home تلقائياً.
       _hideLoading();
-      await _showSuccessAnimation();
-
-      final user = FirebaseAuth.instance.currentUser;
-
-      if (user != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (doc.exists) {
-          final role = doc.data()?['role'] ?? 'user';
-
-          if (role == 'admin' || role == 'superAdmin') {
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const PlatformDashboard(),
-                ),
-              );
-            }
-
-            return;
-          }
-        }
-      }
-
-      if (mounted) {
-        _navigateToHome();
-      }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
-
       String message = 'حدث خطأ في تسجيل الدخول';
-
       if (e.code == 'user-not-found') {
         message = 'المستخدم غير موجود';
-      } else if (e.code == 'wrong-password') {
-        message = 'كلمة المرور غير صحيحة';
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        message = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
       } else if (e.code == 'invalid-email') {
         message = 'البريد الإلكتروني غير صحيح';
+      } else if (e.code == 'network-request-failed') {
+        message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
       }
-
       _showMessage(message, true);
-    } catch (e) {
+    } on TimeoutException {
       _hideLoading();
-      _showMessage('حدث خطأ غير متوقع', true);
+      _showMessage('انتهت مهلة تسجيل الدخول. تحقق من اتصال الإنترنت وحاول مرة أخرى.', true);
+    } catch (_) {
+      _hideLoading();
+      _showMessage('حدث خطأ غير متوقع أثناء تسجيل الدخول', true);
     }
   }
 

@@ -181,23 +181,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     } catch (e) { debugPrint('launch notification payload: $e'); }
   }
 
-  Future<void> _navigateAfterSignInFast(User user) async {
-    if (!mounted || _fastNavigationInProgress) return;
-    _fastNavigationInProgress = true;
-    try {
-      final nav = navigatorKey.currentState;
-      if (nav == null) return;
-      nav.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const HomeScreen()), (route) => false);
-      try {
-        final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get().timeout(const Duration(seconds: 2));
-        final role = doc.data()?['role']?.toString();
-        if (mounted && (role == 'admin' || role == 'superAdmin')) {
-          final current = navigatorKey.currentState;
-          if (current != null) current.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const PlatformDashboard()), (route) => false);
-        }
-      } catch (e) { debugPrint('⚡ Deferred role lookup skipped: $e'); }
-    } finally { _fastNavigationInProgress = false; }
-  }
+
 
   @override
   void dispose() {
