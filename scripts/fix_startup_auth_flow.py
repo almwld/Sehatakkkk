@@ -72,14 +72,16 @@ def main() -> None:
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
           )
-          .timeout(const Duration(seconds: 20));
+          .timeout(const Duration(seconds: 15));
 
       final user = credential.user;
       if (user == null) {
         throw FirebaseAuthException(code: 'user-null');
       }
 
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance().timeout(
+        const Duration(seconds: 5),
+      );
       await prefs.setBool('remember_me', _rememberMe);
       if (_rememberMe) {
         await prefs.setBool('is_logged_in', true);
@@ -91,9 +93,11 @@ def main() -> None:
         await prefs.remove('remember_email');
       }
 
-      // لا نقرأ users/{uid} هنا ولا نستخدم Navigator/context.go.
-      // authStateChanges() سيجعل GoRouter ينتقل إلى Home تلقائياً.
+      // Firebase Auth أصبح ناجحاً. ننتقل مباشرةً بدلاً من الاعتماد على
+      // إعادة بناء GoRouter وحدها؛ هذا يمنع بقاء شاشة الدخول عالقة.
       _hideLoading();
+      if (!mounted) return;
+      context.go('/');
     } on FirebaseAuthException catch (e) {
       _hideLoading();
       String message = 'حدث خطأ في تسجيل الدخول';
