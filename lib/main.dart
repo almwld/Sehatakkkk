@@ -149,8 +149,8 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
         return;
       }
       if (user != null) {
+        // مزامنة FCM فقط؛ لا نُنشئ مسار تنقل ثانياً أثناء تسجيل الدخول.
         unawaited(_fcmTokenService.syncCurrentToken());
-        unawaited(_navigateAfterSignInFast(user));
       }
     });
   }
