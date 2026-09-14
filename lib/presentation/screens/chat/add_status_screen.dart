@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -70,7 +71,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
 
       await _statusService.createStatus(stories: [story]);
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      context.pop(true);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -90,12 +91,12 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
         actions: [
           TextButton(
             onPressed: _publishing ? null : _publish,
-            child: const Text('نشر', style: TextStyle(fontWeight: FontWeight.w800)),
+            child: const Text('حفظ', style: TextStyle(fontWeight: FontWeight.w800)),
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
           Container(
             height: 360,
@@ -151,6 +152,29 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
             const LinearProgressIndicator(color: AppColors.primary),
           ],
         ],
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: SizedBox(
+          height: 52,
+          child: FilledButton.icon(
+            onPressed: _publishing ? null : _publish,
+            icon: _publishing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.check_circle_outline),
+            label: Text(_publishing ? 'جارٍ حفظ الحالة...' : 'حفظ الحالة'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          ),
+        ),
       ),
     );
   }
