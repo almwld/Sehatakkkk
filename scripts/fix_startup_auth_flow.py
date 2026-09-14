@@ -56,6 +56,9 @@ def main() -> None:
 
     auth_path = Path('lib/presentation/screens/auth/auth_screen.dart')
     auth_text = auth_path.read_text(encoding='utf-8')
+    if not auth_text.startswith("import 'dart:async';"):
+        auth_text = "import 'dart:async';\n" + auth_text
+
     auth_text, changed = replace_function(auth_text, '  Future<void> _login() async', """  Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
