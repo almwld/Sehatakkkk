@@ -50,10 +50,12 @@ class AppRouter {
 
   static Future<T?> pushRoute<T>(BuildContext context, Route<T> route) => Navigator.of(context).push<T>(route);
 
+  // لا نربط GoRouter مباشرةً بـ authStateChanges أثناء الإقلاع أو تسجيل الدخول.
+  // Firebase Auth هو مصدر الهوية، بينما Splash/Auth يقرران الانتقال صراحةً.
+  // هذا يمنع إعادة التوجيه المتنافسة التي كانت تفصل شاشة الدخول عن Home.
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: splash,
-    refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
     redirect: (_, state) {
       final loggedIn = FirebaseAuth.instance.currentUser != null;
       const protected = <String>{dashboard, accountSettings, profile, appointments, notifications, cart, wallet, chatRoom, chatDetail, addStatus, storyViewer, aiChatbot, call};
