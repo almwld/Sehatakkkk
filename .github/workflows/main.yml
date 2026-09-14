@@ -5,25 +5,22 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
-    
+        fetch-depth: 1
+
     - name: ☕ Setup Java
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-    
+
     - name: 💙 Setup Flutter
       uses: subosito/flutter-action@v2
       with:
@@ -31,21 +28,6 @@ jobs:
         channel: 'stable'
         cache: true
 
-    - name: 🛠️ Apply startup/auth flow repair
-      run: python3 scripts/fix_startup_auth_flow.py
-
-    - name: 💾 Persist startup/auth repair
-      run: |
-        if git diff --quiet -- lib/main.dart lib/presentation/screens/auth/auth_screen.dart; then
-          echo "Startup/auth repair already persisted."
-        else
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add lib/main.dart lib/presentation/screens/auth/auth_screen.dart
-          git commit -m "fix: repair startup login and guest navigation"
-          git push origin HEAD:${GITHUB_REF_NAME}
-        fi
-    
     - name: 🔑 Add google-services.json
       run: |
         cat > android/app/google-services.json << 'JSONEOF'
@@ -79,31 +61,30 @@ jobs:
           "configuration_version": "1"
         }
         JSONEOF
-    
+
     - name: 📦 Install dependencies
       run: flutter pub get
-    
+
     - name: 🔨 Build APK
       run: flutter build apk --release --split-per-abi --no-shrink
-    
+
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
       with:
         name: app-arm64-v8a
         path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
         retention-days: 30
-    
+
     - name: 📤 Upload armeabi-v7a
       uses: actions/upload-artifact@v4
       with:
         name: app-armeabi-v7a
         path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
         retention-days: 30
-    
+
     - name: 📤 Upload x86_64
       uses: actions/upload-artifact@v4
       with:
         name: app-x86_64
         path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
-
