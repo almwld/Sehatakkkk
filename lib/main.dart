@@ -71,21 +71,12 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   ToastService.setNavigatorKey(navigatorKey);
   try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp();
-    }
-    debugPrint('✅ Firebase initialized successfully: ${Firebase.app().options.projectId}');
-  } catch (nativeError) {
-    debugPrint('⚠️ Native Firebase initialization failed: $nativeError');
-    try {
-      if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-      }
-      debugPrint('✅ Firebase initialized using generated options: ${Firebase.app().options.projectId}');
-    } catch (explicitError) {
-      debugPrint('❌ Firebase initialization failed: $explicitError');
-      debugPrint('❌ Native Firebase error was: $nativeError');
-    }
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization error: $e');
+    runApp(const _StartupErrorApp());
+    return;
   }
   try { FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler); } catch (e) { debugPrint('❌ Firebase Messaging background handler registration error: $e'); }
   await CacheService.init();
@@ -107,6 +98,11 @@ Future<void> main() async {
     ],
     child: const SehatakApp(),
   ));
+}
+
+class _StartupErrorApp extends StatelessWidget {
+  const _StartupErrorApp();
+  @override Widget build(BuildContext context) => const MaterialApp(debugShowCheckedModeBanner: false, home: Scaffold(body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'))));
 }
 
 class SehatakApp extends StatefulWidget {
@@ -149,8 +145,8 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
         return;
       }
       if (user != null) {
-        // مزامنة FCM فقط؛ لا نُنشئ مسار تنقل ثانياً أثناء تسجيل الدخول.
         unawaited(_fcmTokenService.syncCurrentToken());
+        unawaited(_navigateAfterSignInFast(user));
       }
     });
   }
@@ -181,7 +177,23 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     } catch (e) { debugPrint('launch notification payload: $e'); }
   }
 
-
+  Future<void> _navigateAfterSignInFast(User user) async {
+    if (!mounted || _fastNavigationInProgress) return;
+    _fastNavigationInProgress = true;
+    try {
+      final nav = navigatorKey.currentState;
+      if (nav == null) return;
+      nav.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const HomeScreen()), (route) => false);
+      try {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get().timeout(const Duration(seconds: 2));
+        final role = doc.data()?['role']?.toString();
+        if (mounted && (role == 'admin' || role == 'superAdmin')) {
+          final current = navigatorKey.currentState;
+          if (current != null) current.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const PlatformDashboard()), (route) => false);
+        }
+      } catch (e) { debugPrint('⚡ Deferred role lookup skipped: $e'); }
+    } finally { _fastNavigationInProgress = false; }
+  }
 
   @override
   void dispose() {
@@ -202,7 +214,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
         unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
         unawaited(_fcmTokenService.syncCurrentToken());
       }
-      // معالجة وسائط الدردشة مؤجلة إلى تهيئة الخدمة الخلفية بعد استقرار الواجهة.
+      unawaited(ChatMediaTransferService.instance.processPending());
     }
   }
 

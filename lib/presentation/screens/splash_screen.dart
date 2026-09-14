@@ -24,20 +24,17 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 700),
     )..forward();
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-
-    // شاشة البداية لا تنتظر الشبكة أو Firestore أو reload.
-    // FirebaseAuth يحتفظ بالجلسة محلياً، لذلك نستخدمها فوراً للتنقل.
-    _navigateImmediately();
+    _check();
   }
 
-  void _navigateImmediately() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _navigated) return;
-      _navigated = true;
-
-      final hasLocalSession = FirebaseAuth.instance.currentUser != null;
-      context.go(hasLocalSession ? '/' : '/auth');
-    });
+  Future<void> _check() async {
+    try {
+      await FirebaseAuth.instance.currentUser?.reload();
+    } catch (_) {}
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    if (!mounted || _navigated) return;
+    _navigated = true;
+    context.go(FirebaseAuth.instance.currentUser != null ? '/' : '/auth');
   }
 
   @override

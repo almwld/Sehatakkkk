@@ -1,7 +1,5 @@
-import 'dart:async';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -419,36 +417,59 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _showLoading() {
-    if (!mounted) return;
-    setState(() => _isLoading = true);
-  }
-
-  void _hideLoading() {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-  }
-
-  Future<void> _showSuccessAnimation() async {
-    if (!mounted) return;
-    showDialog<void>(
+    showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Icon(Icons.check_circle, color: Colors.green, size: 80),
+      barrierColor: Colors.black54,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 4,
+          ),
         ),
       ),
     );
-    await Future<void>.delayed(const Duration(milliseconds: 650));
-    if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
-      Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  void _hideLoading() {
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> _showSuccessAnimation() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black54,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: const Center(
+          child: Icon(
+            Icons.check_circle,
+            color: Colors.green,
+            size: 80,
+          ),
+        ),
+      ),
+    );
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.pop(context);
     }
   }
 
   void _navigateToHome() {
-    if (!mounted) return;
-    context.go('/');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const HomeScreen(),
+      ),
+    );
   }
 
   Future<void> _loginWithGoogle() async {
@@ -580,32 +601,30 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _login() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
+    if (_emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      _showMessage(
+        'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+        true,
+      );
       return;
     }
 
     _showLoading();
+
     try {
-      final credential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          )
-          .timeout(const Duration(seconds: 15));
-
-      final user = credential.user;
-      if (user == null) {
-        throw FirebaseAuthException(code: 'user-null');
-      }
-
-      final prefs = await SharedPreferences.getInstance().timeout(
-        const Duration(seconds: 5),
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
+
+      final prefs = await SharedPreferences.getInstance();
+
       await prefs.setBool('remember_me', _rememberMe);
+
       if (_rememberMe) {
         await prefs.setBool('is_logged_in', true);
-        await prefs.setString('user_uid', user.uid);
+        await prefs.setString('user_uid', FirebaseAuth.instance.currentUser?.uid ?? '');
         await prefs.setString('remember_email', _emailController.text.trim());
       } else {
         await prefs.setBool('is_logged_in', false);
@@ -613,30 +632,55 @@ class _AuthScreenState extends State<AuthScreen>
         await prefs.remove('remember_email');
       }
 
-      // Firebase Auth أصبح ناجحاً. ننتقل مباشرةً بدلاً من الاعتماد على
-      // إعادة بناء GoRouter وحدها؛ هذا يمنع بقاء شاشة الدخول عالقة.
       _hideLoading();
-      if (!mounted) return;
-      context.go('/');
+      await _showSuccessAnimation();
+
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (doc.exists) {
+          final role = doc.data()?['role'] ?? 'user';
+
+          if (role == 'admin' || role == 'superAdmin') {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PlatformDashboard(),
+                ),
+              );
+            }
+
+            return;
+          }
+        }
+      }
+
+      if (mounted) {
+        _navigateToHome();
+      }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
+
       String message = 'حدث خطأ في تسجيل الدخول';
+
       if (e.code == 'user-not-found') {
         message = 'المستخدم غير موجود';
-      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
-        message = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+      } else if (e.code == 'wrong-password') {
+        message = 'كلمة المرور غير صحيحة';
       } else if (e.code == 'invalid-email') {
         message = 'البريد الإلكتروني غير صحيح';
-      } else if (e.code == 'network-request-failed') {
-        message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
       }
+
       _showMessage(message, true);
-    } on TimeoutException {
+    } catch (e) {
       _hideLoading();
-      _showMessage('انتهت مهلة تسجيل الدخول. تحقق من اتصال الإنترنت وحاول مرة أخرى.', true);
-    } catch (_) {
-      _hideLoading();
-      _showMessage('حدث خطأ غير متوقع أثناء تسجيل الدخول', true);
+      _showMessage('حدث خطأ غير متوقع', true);
     }
   }
 
@@ -896,8 +940,12 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _guestLogin() {
-    if (!mounted) return;
-    context.go('/');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const HomeScreen(),
+      ),
+    );
   }
 
   void _showMessage(String message, bool isError) {
