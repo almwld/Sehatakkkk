@@ -218,7 +218,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
         unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
         unawaited(_fcmTokenService.syncCurrentToken());
       }
-      unawaited(ChatMediaTransferService.instance.processPending());
+      // معالجة وسائط الدردشة مؤجلة إلى تهيئة الخدمة الخلفية بعد استقرار الواجهة.
     }
   }
 

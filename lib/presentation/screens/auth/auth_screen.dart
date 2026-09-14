@@ -418,49 +418,30 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _showLoading() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black54,
-      builder: (_) => PopScope(
-        canPop: false,
-        child: const Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
-            strokeWidth: 4,
-          ),
-        ),
-      ),
-    );
+    if (!mounted) return;
+    setState(() => _isLoading = true);
   }
 
   void _hideLoading() {
-    if (mounted && Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
+    if (!mounted) return;
+    setState(() => _isLoading = false);
   }
 
   Future<void> _showSuccessAnimation() async {
-    showDialog(
+    if (!mounted) return;
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black54,
-      builder: (_) => PopScope(
-        canPop: false,
-        child: const Center(
-          child: Icon(
-            Icons.check_circle,
-            color: Colors.green,
-            size: 80,
-          ),
+      builder: (_) => const Center(
+        child: Material(
+          color: Colors.transparent,
+          child: Icon(Icons.check_circle, color: Colors.green, size: 80),
         ),
       ),
     );
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (mounted && Navigator.canPop(context)) {
-      Navigator.pop(context);
+    await Future<void>.delayed(const Duration(milliseconds: 650));
+    if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 
@@ -613,7 +594,7 @@ class _AuthScreenState extends State<AuthScreen>
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
-      );
+      ).timeout(const Duration(seconds: 20));
 
       final prefs = await SharedPreferences.getInstance();
 
