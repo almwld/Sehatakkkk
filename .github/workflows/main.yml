@@ -5,6 +5,9 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,6 +15,8 @@ jobs:
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     
     - name: ☕ Setup Java
       uses: actions/setup-java@v4
@@ -25,6 +30,21 @@ jobs:
         flutter-version: '3.16.0'
         channel: 'stable'
         cache: true
+
+    - name: 🛠️ Apply startup/auth flow repair
+      run: python3 scripts/fix_startup_auth_flow.py
+
+    - name: 💾 Persist startup/auth repair
+      run: |
+        if git diff --quiet -- lib/main.dart lib/presentation/screens/auth/auth_screen.dart; then
+          echo "Startup/auth repair already persisted."
+        else
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/main.dart lib/presentation/screens/auth/auth_screen.dart
+          git commit -m "fix: repair startup login and guest navigation"
+          git push origin HEAD:${GITHUB_REF_NAME}
+        fi
     
     - name: 🔑 Add google-services.json
       run: |
