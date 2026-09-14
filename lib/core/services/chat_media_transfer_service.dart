@@ -43,6 +43,7 @@ class ChatMediaTransferService {
   StreamSubscription<dynamic>? _connectivitySub;
   bool _processing = false;
   bool _workerInitialized = false;
+  bool _initializationScheduled = false;
 
   Future<Database> get _database async {
     if (_db != null) return _db!;
@@ -80,15 +81,32 @@ class ChatMediaTransferService {
     return _db!;
   }
 
+  /// لا يحجب بدء التطبيق بفتح SQLite أو WorkManager أو مستمع الشبكة.
+  /// في التطبيق الأمامي ننتظر 10 ثوانٍ بعد عرض الواجهة، أما WorkManager
+  /// فيبدأ مباشرة داخل isolate الخلفية حتى لا تتأثر مهام النظام.
   Future<void> initialize({bool startBackgroundWorker = true}) async {
-    await _database;
-    await _connectivitySub?.cancel();
-    _connectivitySub = Connectivity().onConnectivityChanged.listen((_) {
+    if (_initializationScheduled) return;
+    _initializationScheduled = true;
+    final delay = startBackgroundWorker ? const Duration(seconds: 10) : Duration.zero;
+    unawaited(_initializeInternal(startBackgroundWorker: startBackgroundWorker, delay: delay));
+  }
+
+  Future<void> _initializeInternal({required bool startBackgroundWorker, required Duration delay}) async {
+    try {
+      if (delay > Duration.zero) await Future<void>.delayed(delay);
+      await _database;
+      await _connectivitySub?.cancel();
+      _connectivitySub = Connectivity().onConnectivityChanged.listen((_) {
+        unawaited(processPending());
+        unawaited(_scheduleOneOffWorker());
+      });
+      if (startBackgroundWorker) await _initializeBackgroundWorker();
       unawaited(processPending());
-      unawaited(_scheduleOneOffWorker());
-    });
-    if (startBackgroundWorker) await _initializeBackgroundWorker();
-    unawaited(processPending());
+    } catch (e) {
+      // فشل الخدمات الخلفية لا يمنع الواجهة أو تسجيل الدخول من العمل.
+      debugPrint('⚠️ Chat media background initialization failed: $e');
+      _initializationScheduled = false;
+    }
   }
 
   Future<void> _initializeBackgroundWorker() async {
