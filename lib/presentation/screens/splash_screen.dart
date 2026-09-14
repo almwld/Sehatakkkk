@@ -24,33 +24,20 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 700),
     )..forward();
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _check();
-    });
+
+    // شاشة البداية لا تنتظر الشبكة أو Firestore أو reload.
+    // FirebaseAuth يحتفظ بالجلسة محلياً، لذلك نستخدمها فوراً للتنقل.
+    _navigateImmediately();
   }
 
-  Future<void> _check() async {
-    if (_navigated || !mounted) return;
+  void _navigateImmediately() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _navigated) return;
+      _navigated = true;
 
-    // لا نجعل الإقلاع يعتمد على شبكة Firebase؛ الجلسة المحلية تكفي لتحديد المسار.
-    final auth = FirebaseAuth.instance;
-    try {
-      await auth.currentUser?.reload().timeout(const Duration(seconds: 2));
-    } catch (_) {
-      // عند انقطاع الشبكة نستخدم حالة الجلسة المحلية بدلاً من تعليق Splash.
-    }
-
-    if (!mounted || _navigated) return;
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    if (!mounted || _navigated) return;
-
-    _navigated = true;
-    final user = auth.currentUser;
-    if (user != null) {
-      context.go('/');
-    } else {
-      context.go('/auth');
-    }
+      final hasLocalSession = FirebaseAuth.instance.currentUser != null;
+      context.go(hasLocalSession ? '/' : '/auth');
+    });
   }
 
   @override
