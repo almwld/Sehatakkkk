@@ -1,15 +1,6 @@
 from pathlib import Path
 
 
-def replace_once(path: str, old: str, new: str) -> bool:
-    p = Path(path)
-    text = p.read_text(encoding='utf-8')
-    if old not in text:
-        return False
-    p.write_text(text.replace(old, new, 1), encoding='utf-8')
-    return True
-
-
 def replace_function(text: str, signature: str, replacement: str) -> tuple[str, bool]:
     start = text.find(signature)
     if start < 0:
@@ -46,126 +37,92 @@ def replace_function(text: str, signature: str, replacement: str) -> tuple[str, 
     return text, False
 
 
-# لا نُنشئ مسار تنقل ثانياً من authStateChanges؛ GoRouter/Splash/Auth مسؤول عن التنقل.
-main = Path('lib/main.dart')
-text = main.read_text(encoding='utf-8')
-old_listener = """      if (user != null) {
+def main() -> None:
+    main_path = Path('lib/main.dart')
+    main_text = main_path.read_text(encoding='utf-8')
+    old_listener = """      if (user != null) {
         unawaited(_fcmTokenService.syncCurrentToken());
         unawaited(_navigateAfterSignInFast(user));
       }
 """
-new_listener = """      if (user != null) {
-        // مزامنة FCM فقط؛ لا نُنشئ مسار تنقل ثانياً أثناء تسجيل الدخول.
+    new_listener = """      if (user != null) {
+        // مزامنة FCM فقط؛ GoRouter هو المسؤول الوحيد عن التنقل.
         unawaited(_fcmTokenService.syncCurrentToken());
       }
 """
-if old_listener in text:
-    text = text.replace(old_listener, new_listener, 1)
+    main_text = main_text.replace(old_listener, new_listener, 1)
+    main_text, _ = replace_function(main_text, '  Future<void> _navigateAfterSignInFast(User user) async', '')
+    main_path.write_text(main_text, encoding='utf-8')
 
-# لا نفتح SQLite مباشرة عند كل Resume؛ خدمة الوسائط تبدأ نفسها بعد أن تصبح الواجهة جاهزة.
-text = text.replace(
-    "      unawaited(ChatMediaTransferService.instance.processPending());\n",
-    "      // معالجة وسائط الدردشة مؤجلة إلى تهيئة الخدمة الخلفية بعد استقرار الواجهة.\n",
-    1,
-)
-main.write_text(text, encoding='utf-8')
+    auth_path = Path('lib/presentation/screens/auth/auth_screen.dart')
+    auth_text = auth_path.read_text(encoding='utf-8')
+    if "package:go_router/go_router.dart" not in auth_text:
+        auth_text = auth_text.replace(
+            "import 'package:flutter/material.dart';",
+            "import 'package:flutter/material.dart';\nimport 'package:go_router/go_router.dart';",
+            1,
+        )
 
-# توحيد انتقال تسجيل الدخول وتصفح الضيف مع GoRouter.
-auth = Path('lib/presentation/screens/auth/auth_screen.dart')
-text = auth.read_text(encoding='utf-8')
-if "package:go_router/go_router.dart" not in text:
-    marker = "import 'package:flutter/material.dart';"
-    if marker in text:
-        text = text.replace(marker, marker + "\nimport 'package:go_router/go_router.dart';", 1)
-
-old_home = """  void _navigateToHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-    );
-  }
-"""
-new_home = """  void _navigateToHome() {
-    if (!mounted) return;
-    context.go('/');
-  }
-"""
-if old_home in text:
-    text = text.replace(old_home, new_home, 1)
-
-old_guest = """  void _guestLogin() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-    );
-  }
-"""
-new_guest = """  void _guestLogin() {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    context.go('/');
-  }
-"""
-if old_guest in text:
-    text = text.replace(old_guest, new_guest, 1)
-
-# إصلاح شاشة التحميل: لا نستخدم Dialog مودال يمكن أن يبقى فوق GoRouter ويمنع الضغط والتنقل.
-text, _ = replace_function(
-    text,
-    '  void _showLoading()',
-    """  void _showLoading() {
-    if (!mounted) return;
-    setState(() => _isLoading = true);
-  }""",
-)
-text, _ = replace_function(
-    text,
-    '  void _hideLoading()',
-    """  void _hideLoading() {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-  }""",
-)
-
-# نجاح الدخول يبقى مرئياً لفترة قصيرة فقط ثم يغلق تلقائياً، فلا يمكن أن يحتجز التنقل.
-text, _ = replace_function(
-    text,
-    '  Future<void> _showSuccessAnimation() async',
-    """  Future<void> _showSuccessAnimation() async {
-    if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Icon(Icons.check_circle, color: Colors.green, size: 80),
-        ),
-      ),
-    );
-    await Future<void>.delayed(const Duration(milliseconds: 650));
-    if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
-      Navigator.of(context, rootNavigator: true).pop();
+    auth_text, changed = replace_function(auth_text, '  Future<void> _login() async', """  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
+      return;
     }
-  }""",
-)
 
-# Firebase Auth لا يجوز أن يترك زر الدخول في حالة انتظار لا نهائية عند انقطاع الشبكة.
-old_sign_in = """      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );"""
-new_sign_in = """      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      ).timeout(const Duration(seconds: 20));"""
-if old_sign_in in text:
-    text = text.replace(old_sign_in, new_sign_in, 1)
+    _showLoading();
+    try {
+      final credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          )
+          .timeout(const Duration(seconds: 20));
 
-auth.write_text(text, encoding='utf-8')
+      final user = credential.user;
+      if (user == null) {
+        throw FirebaseAuthException(code: 'user-null');
+      }
 
-print('Startup/auth flow repair applied.')
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('remember_me', _rememberMe);
+      if (_rememberMe) {
+        await prefs.setBool('is_logged_in', true);
+        await prefs.setString('user_uid', user.uid);
+        await prefs.setString('remember_email', _emailController.text.trim());
+      } else {
+        await prefs.setBool('is_logged_in', false);
+        await prefs.remove('user_uid');
+        await prefs.remove('remember_email');
+      }
+
+      // لا نقرأ users/{uid} هنا ولا نستخدم Navigator/context.go.
+      // authStateChanges() سيجعل GoRouter ينتقل إلى Home تلقائياً.
+      _hideLoading();
+    } on FirebaseAuthException catch (e) {
+      _hideLoading();
+      String message = 'حدث خطأ في تسجيل الدخول';
+      if (e.code == 'user-not-found') {
+        message = 'المستخدم غير موجود';
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        message = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+      } else if (e.code == 'invalid-email') {
+        message = 'البريد الإلكتروني غير صحيح';
+      } else if (e.code == 'network-request-failed') {
+        message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
+      }
+      _showMessage(message, true);
+    } on TimeoutException {
+      _hideLoading();
+      _showMessage('انتهت مهلة تسجيل الدخول. تحقق من اتصال الإنترنت وحاول مرة أخرى.', true);
+    } catch (_) {
+      _hideLoading();
+      _showMessage('حدث خطأ غير متوقع أثناء تسجيل الدخول', true);
+    }
+  }""")
+    if not changed:
+        raise SystemExit('auth _login function not found; refusing to write partial repair')
+    auth_path.write_text(auth_text, encoding='utf-8')
+
+
+if __name__ == '__main__':
+    main()
