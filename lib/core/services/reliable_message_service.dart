@@ -24,13 +24,7 @@ class ReliableMessageService {
     if (!chatSnapshot.exists) throw Exception('المحادثة غير موجودة');
     final chat = chatSnapshot.data() ?? <String, dynamic>{};
     final participants = List<String>.from(chat['participants'] ?? const <String>[]);
-    if (!participants.contains(user.uid)) throw Exception('ليس لديك صلاحية لهذه المححادثة');
-    final recipientId = participants.firstWhere((id) => id != user.uid, orElse: () => '');
-    bool recipientOnline = false;
-    if (recipientId.isNotEmpty) {
-      final recipient = await _db.collection('users').doc(recipientId).get();
-      recipientOnline = recipient.data()?['isOnline'] == true;
-    }
+    if (!participants.contains(user.uid)) throw Exception('ليس لديك صلاحية لهذه المحادثة');
 
     final reply = replyToId == null || replyToId.isEmpty
         ? ChatReplyContext.instance.forChat(chatId)
@@ -53,7 +47,6 @@ class ReliableMessageService {
     }
 
     final messageRef = chatRef.collection('messages').doc();
-    final nowDelivered = recipientOnline;
     final batch = _db.batch();
     batch.set(messageRef, {
       'chatId': chatId,
@@ -64,8 +57,8 @@ class ReliableMessageService {
       'type': 'text',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
-      'isDelivered': nowDelivered,
-      'deliveredAt': nowDelivered ? FieldValue.serverTimestamp() : null,
+      'isDelivered': false,
+      'deliveredAt': null,
       'isDeleted': false,
       'isEdited': false,
       'replyToId': effectiveReplyId,

@@ -1,6 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// مدير مركزي لحالة ظهور الجولات التعريفية.
+/// جولة الرئيسية لا تبدأ تلقائياً أثناء الانتقال من المصادقة؛
+/// حتى لا تضيف Overlay فوق أول إطار للرئيسية أو تسبب شاشة سوداء.
 abstract final class TourManager {
   static const String homeKey = 'has_seen_home_tour';
   static const String doctorsKey = 'has_seen_doctors_tour';
@@ -19,6 +21,8 @@ abstract final class TourManager {
   ];
 
   static Future<bool> hasSeen(String tourKey) async {
+    // الرئيسية يجب أن تظهر مباشرة وبلا أي Overlay تلقائي.
+    if (tourKey == homeKey) return true;
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(tourKey) ?? false;
   }

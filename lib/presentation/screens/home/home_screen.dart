@@ -107,24 +107,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _back() {
-    // All primary sections are tabs inside HomeScreen. Back from any section
-    // must return to the home tab instead of exiting the application.
     if (_currentIndex != 0) {
       setState(() => _currentIndex = 0);
       _scrollManager.show();
-      _backPressedOnce = false;
-      _backExitTimer?.cancel();
       return;
     }
-
-    // Only the actual home tab uses the double-back-to-exit behavior.
     if (_backPressedOnce) {
       _backPressedOnce = false;
       _backExitTimer?.cancel();
       SystemNavigator.pop();
       return;
     }
-
     _backPressedOnce = true;
     ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');
     _backExitTimer?.cancel();
@@ -219,15 +212,23 @@ class _AnimatedBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSlide(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      offset: visible ? Offset.zero : const Offset(0, 1.05),
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-        opacity: visible ? 1 : 0,
-        child: child,
+    // Animate the complete navigation widget as one unit. Do not animate its
+    // height: the chat button intentionally overflows above the bar, and an
+    // AnimatedSize/Align height animation can clip that overflow for a frame.
+    // A slide keeps the button, icon, label, shadow and bar together and
+    // preserves their original geometry throughout the animation.
+    return ClipRect(
+      clipBehavior: Clip.none,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        offset: visible ? Offset.zero : const Offset(0, 1.05),
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          opacity: visible ? 1 : 0,
+          child: child,
+        ),
       ),
     );
   }

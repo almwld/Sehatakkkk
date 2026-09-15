@@ -30,20 +30,6 @@ async function sendToUser(uid,payload){
   }
 }
 
-async function persistNotification({id,userId,type,title,body,data={}}){
-  if(!userId)return;
-  const ref=id?db.collection('notifications').doc(String(id)):db.collection('notifications').doc();
-  await ref.set({
-    userId:String(userId),
-    type:String(type||'system'),
-    title:String(title||'صحتك'),
-    body:String(body||''),
-    data,
-    isRead:false,
-    createdAt:admin.firestore.FieldValue.serverTimestamp(),
-  },{merge:false});
-}
-
 exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{messageId}',async event=>{
   const s=event.data;if(!s)return;
   const m=s.data()||{},chatId=event.params.chatId,senderId=String(m.senderId||'');
@@ -69,23 +55,7 @@ exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{message
     deliveredAt:delivered?admin.firestore.FieldValue.serverTimestamp():null,
   });
 
-  await Promise.all(receivers.map(async uid=>{
-    const data={type:'new_message',chatId,messageId:event.params.messageId,senderId,senderName,body};
-    // The Firestore notification record is the durable source for the in-app
-    // Notification Center. The deterministic ID prevents duplicate records
-    // if the Cloud Function is retried.
-    await persistNotification({
-      id:`chat_${chatId}_${event.params.messageId}_${uid}`,
-      userId:uid,
-      type:'new_message',
-      title:senderName,
-      body,
-      data,
-    });
-    // FCM remains the device-delivery channel. It is not replaced by the
-    // Notification Center record above.
-    await sendToUser(uid,{channelId:'sehatak_messages_v2',sound:'notification',notification:{title:senderName,body},data});
-  }));
+  await Promise.all(receivers.map(uid=>sendToUser(uid,{channelId:'sehatak_messages_v2',sound:'notification',notification:{title:senderName,body},data:{type:'chat_message',chatId,messageId:event.params.messageId,senderId,senderName,body}})));
 });
 
 exports.notifyIncomingCall=onDocumentCreated('calls/{callId}',async event=>{

@@ -70,14 +70,8 @@ class _MessageBubbleState extends State<MessageBubble> {
     _reactions(m, dark),
   ])), dark);
 
-  /// Delivery/read state belongs to the message sender, not to the local
-  /// viewer. Therefore both sides of the same conversation render the same
-  /// check state for the same message.
-  ///
-  /// ✓   = sent
-  /// ✓✓  = delivered to the other participant
-  /// ✓✓ teal = read by the other participant
   Widget _status(Map<String, dynamic> m) {
+    if (!widget.isMe) return const SizedBox.shrink();
     if (m['isSending'] == true) return const Icon(Icons.schedule, size: 14, color: Colors.white70);
     if (m['isRead'] == true) return Icon(Icons.done_all, size: 15, color: AppColors.primary);
     if (m['isDelivered'] == true) return const Icon(Icons.done_all, size: 15, color: Colors.white70);
