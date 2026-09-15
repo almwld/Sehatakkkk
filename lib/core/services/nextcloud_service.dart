@@ -22,12 +22,18 @@ class NextcloudService {
   String password = '';
 
   Future<void> loadConfig() async {
-    baseUrl = (await _storage.read(key: 'sehatak.nextcloud.base_url') ?? '').trim().replaceFirst(RegExp(r'/$'), '');
+    baseUrl = (await _storage.read(key: 'sehatak.nextcloud.base_url') ?? '')
+        .trim()
+        .replaceFirst(RegExp(r'/$'), '');
     username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
     password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
   }
 
-  Future<void> updateConfig({required String baseUrl, required String username, required String password}) async {
+  Future<void> updateConfig({
+    required String baseUrl,
+    required String username,
+    required String password,
+  }) async {
     this.baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), '');
     this.username = username.trim();
     this.password = password;
@@ -49,7 +55,7 @@ class NextcloudService {
 
   void _ensureConfigured() {
     if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
-      throw StateError('Nextcloud غير مهيأ؛ اضبط بياناته من إعدادات Nextcloud.');
+      throw StateError('خادم الوسائط غير مهيأ في هذا الجهاز.');
     }
   }
 
@@ -61,6 +67,60 @@ class NextcloudService {
         'Authorization': 'Basic ${_authToken()}',
         'Content-Type': 'application/x-www-form-urlencoded',
       };
+
+  String _cleanPart(String value) => value
+      .trim()
+      .replaceAll('\\', '')
+      .replaceAll('/', '')
+      .replaceAll('..', '');
+
+  String _cleanLogicalPath(String path) => path
+      .split('/')
+      .map(_cleanPart)
+      .where((part) => part.isNotEmpty && part != '.')
+      .join('/');
+
+  /// Keep media in the same platform namespace as the server-side Nextcloud
+  /// service. Its configured/default root is `Sehatak`.
+  String _platformPath(String path) {
+    final clean = _cleanLogicalPath(path);
+    if (clean.isEmpty) return 'Sehatak';
+    return clean == 'Sehatak' || clean.startsWith('Sehatak/')
+        ? clean
+        : 'Sehatak/$clean';
+  }
+
+  String _davUrl(String remotePath) {
+    final cleanPath = remotePath
+        .replaceFirst(RegExp(r'^/+'), '')
+        .split('/')
+        .where((part) => part.isNotEmpty)
+        .map(Uri.encodeComponent)
+        .join('/');
+    return '${_normalizedBase()}/remote.php/dav/files/${Uri.encodeComponent(username)}/$cleanPath';
+  }
+
+  /// WebDAV PUT does not create parent folders. Create them first so the
+  /// Flutter path behaves like the verified server-side upload implementation.
+  Future<void> _ensureDirectories(String directory) async {
+    var current = '';
+    for (final part in _cleanLogicalPath(directory).split('/')) {
+      if (part.isEmpty) continue;
+      current = current.isEmpty ? part : '$current/$part';
+      final response = await _dio.request<void>(
+        _davUrl(current),
+        options: Options(
+          method: 'MKCOL',
+          headers: {'Authorization': 'Basic ${_authToken()}'},
+          validateStatus: (status) => status != null,
+        ),
+      );
+      final status = response.statusCode ?? 0;
+      if (status != 201 && status != 405) {
+        throw StateError('فشل إنشاء مجلد الوسائط في Nextcloud: HTTP $status');
+      }
+    }
+  }
 
   Future<NextcloudUploadResult> uploadFile({
     required File file,
@@ -75,37 +135,35 @@ class NextcloudService {
         return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
       }
 
-      final name = fileName ?? file.path.split(Platform.pathSeparator).last;
-      final logicalDirectory = path
-          .split('/')
-          .where((p) => p.isNotEmpty && p != '..')
-          .join('/');
-      final remotePath = '/$logicalDirectory/${name.replaceAll('\\', '')}';
-      final encodedDirectory = logicalDirectory
-          .split('/')
-          .where((p) => p.isNotEmpty)
-          .map(Uri.encodeComponent)
-          .join('/');
-      final encodedName = Uri.encodeComponent(name.replaceAll('\\', ''));
-      final davPath = '/$encodedDirectory/$encodedName';
+      final name = _cleanPart(fileName ?? file.path.split(Platform.pathSeparator).last);
+      if (name.isEmpty) {
+        return const NextcloudUploadResult(success: false, error: 'اسم الملف غير صالح');
+      }
+
+      final logicalDirectory = _platformPath(path);
+      final remotePath = '$logicalDirectory/$name';
+      final davUrl = _davUrl(remotePath);
+      final fileLength = await file.length();
+
+      await _ensureDirectories(logicalDirectory);
 
       final response = await _dio.put<void>(
-        '${_normalizedBase()}/remote.php/dav/files/${Uri.encodeComponent(username)}$davPath',
+        davUrl,
         data: file.openRead(),
         options: Options(
           headers: {
             'Authorization': 'Basic ${_authToken()}',
             'Content-Type': 'application/octet-stream',
+            'Content-Length': fileLength.toString(),
           },
           contentType: 'application/octet-stream',
-          validateStatus: (status) => status != null && status >= 200 && status < 300,
+          validateStatus: (status) => status != null,
         ),
         onSendProgress: onProgress,
       );
 
-      final status = response.statusCode;
-      final uploaded = status != null && status >= 200 && status < 300;
-      if (!uploaded) {
+      final status = response.statusCode ?? 0;
+      if (status != 201 && status != 204) {
         return NextcloudUploadResult(
           success: false,
           path: remotePath,
@@ -123,10 +181,10 @@ class NextcloudService {
       try {
         publicUrl = await createPublicShare(remotePath);
         if (publicUrl == null || publicUrl.isEmpty) {
-          shareError = 'تم رفع الملف بنجاح، لكن رابط المشاركة لم يجهز بعد';
+          shareError = 'تم رفع الملف بنجاح، لكن رابط الوصول لم يجهز بعد';
         }
       } catch (e) {
-        shareError = 'تم رفع الملف بنجاح، وتعذر تجهيز رابط المشاركة: $e';
+        shareError = 'تم رفع الملف بنجاح، وتعذر تجهيز رابط الوصول: $e';
       }
 
       return NextcloudUploadResult(
@@ -148,7 +206,7 @@ class NextcloudService {
       final response = await http.post(
         Uri.parse('${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
         headers: _headers(),
-        body: {'path': remotePath, 'shareType': '3'},
+        body: {'path': '/${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
       );
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -162,31 +220,22 @@ class NextcloudService {
     }
   }
 
-  /// Verifies the exact public download path that the receiver will use.
-  /// HEAD is cheap; a one-byte ranged GET confirms that the download endpoint
-  /// actually serves the object and is not merely returning a landing page.
+  /// Verifies the real public download endpoint with a one-byte range request.
+  /// This avoids relying on HEAD, which is frequently disabled by proxies.
   Future<bool> verifyPublicUrl(String url) async {
+    final client = http.Client();
     try {
-      final uri = Uri.parse(url);
-      final head = await http.head(uri).timeout(const Duration(seconds: 15));
-      final headOk = head.statusCode != null && head.statusCode! >= 200 && head.statusCode! < 400;
-      if (!headOk) return false;
-
-      final probe = await http.get(
-        uri,
-        headers: const {'Range': 'bytes=0-0'},
-      ).timeout(const Duration(seconds: 20));
-      final probeOk = probe.statusCode == 200 || probe.statusCode == 206;
-      if (!probeOk) return false;
-      return probe.bodyBytes.isNotEmpty;
+      final request = http.Request('GET', Uri.parse(url));
+      request.headers['Range'] = 'bytes=0-0';
+      final streamed = await client.send(request).timeout(const Duration(seconds: 20));
+      final status = streamed.statusCode;
+      final contentLength = streamed.contentLength;
+      await streamed.stream.drain<void>();
+      return (status == 200 || status == 206) && (contentLength == null || contentLength > 0);
     } catch (_) {
-      // Some proxies reject HEAD or Range. A bounded GET is the final fallback.
-      try {
-        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
-        return response.statusCode >= 200 && response.statusCode < 400 && response.bodyBytes.isNotEmpty;
-      } catch (_) {
-        return false;
-      }
+      return false;
+    } finally {
+      client.close();
     }
   }
 
@@ -203,7 +252,10 @@ class NextcloudService {
   Future<bool> testAuth() async {
     try {
       _ensureConfigured();
-      final response = await http.get(Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'), headers: _headers());
+      final response = await http.get(
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'),
+        headers: _headers(),
+      );
       return response.statusCode == 200;
     } catch (_) {
       return false;
