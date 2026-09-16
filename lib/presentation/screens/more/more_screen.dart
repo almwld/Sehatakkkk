@@ -30,7 +30,6 @@ import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
 import 'package:sehatak/presentation/screens/diet_plan/diet_plan_screen.dart';
-import 'package:sehatak/presentation/screens/family_planning/family_planning_screen.dart';
 import 'package:sehatak/presentation/screens/health/womens_health_screen.dart';
 import 'package:sehatak/presentation/screens/health/pregnancy_follow_up_screen.dart';
 import 'package:sehatak/presentation/screens/health/child_health_screen.dart';
@@ -55,479 +54,57 @@ import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart
 import 'package:sehatak/presentation/screens/patient/patient_medical_history.dart';
 import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
-import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/screens/dental/dental_health_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_health_screen.dart';
 
-class MoreScreen extends StatefulWidget {
-  final ScrollController? scrollController;
-  const MoreScreen({super.key, this.scrollController});
-
-  @override
-  State<MoreScreen> createState() => _MoreScreenState();
-}
-
-class _MoreScreenState extends State<MoreScreen>
-    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
-  @override
-  bool get wantKeepAlive => true;
-
-  late ScrollController _scrollController;
-  bool _isScrolled = false;
-  String _selectedCategory = 'الكل';
-
-  final List<String> _categories = [
-    'الكل',
-    'رعاية عائلية',
-    'أدوات تشخيصية',
-    'لوجستيات وتأمين',
-    'إعدادات',
-    'خدمات طبية',
-  ];
-
-  final List<Map<String, dynamic>> _vitals = [
-    {
-      'icon': 'assets/images/tracking/blood_pressure.png',
-      'label': 'ضغط الدم',
-      'value': '120/80',
-      'unit': 'مم زئبق',
-      'color': Colors.blue,
-      'screen': const BloodPressureScreen()
-    },
-    {
-      'icon': 'assets/images/tracking/blood_sugar.png',
-      'label': 'سكر الدم',
-      'value': '98',
-      'unit': 'مجم/دل',
-      'color': Colors.orange,
-      'screen': const GlucoseTrackerScreen()
-    },
-    {
-      'icon': 'assets/icons/health/step_tracking.png',
-      'label': 'اللياقة',
-      'value': '85',
-      'unit': '%',
-      'color': Colors.green,
-      'screen': const StepTrackerScreen(),
-    },
-    {
-      'icon': 'assets/images/tracking/weight_tracking.png',
-      'label': 'الوزن',
-      'value': '72',
-      'unit': 'كجم',
-      'color': Colors.purple,
-      'screen': const WeightTrackerScreen()
-    },
-    {
-      'icon': 'assets/images/tracking/age.png',
-      'label': 'العمر',
-      'value': '32',
-      'unit': 'سنة',
-      'color': Colors.indigo,
-      'screen': const ConsultationScreen()
-    },
-    {
-      'icon': 'assets/images/tracking/fruits.png',
-      'label': 'التغذية',
-      'value': '4.5',
-      'unit': 'حصص',
-      'color': Colors.green,
-      'screen': const DietPlanScreen()
-    },
-    {
-      'icon': 'assets/icons/health/sleep/sleep_tracking.png',
-      'label': 'النوم',
-      'value': '7.5',
-      'unit': 'ساعات',
-      'color': Colors.purple,
-      'screen': const SleepTrackerScreen(),
-    },
-    {
-      'icon': 'assets/icons/health/heart_rate.png',
-      'label': 'النبض',
-      'value': '--',
-      'unit': 'BPM',
-      'color': const Color(0xFF0A8F83),
-      'screen': const HeartRateScreen(),
-    },
-    {
-      'icon': 'assets/images/tracking/water_drinking.png',
-      'label': 'الماء',
-      'value': '6',
-      'unit': 'أكواب',
-      'color': Colors.cyan,
-      'screen': const HealthDashboard()
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredServices {
-    switch (_selectedCategory) {
-      case 'رعاية عائلية':
-        return [
-          {'icon': 'assets/images/services/womens_health.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const WomensHealthScreen()},
-          {'icon': 'assets/images/childhealth.png', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const ChildHealthScreen()},
-          {'icon': 'assets/images/services/hospital.png', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const PregnancyFollowUpScreen()},
-          {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
-          {'icon': 'assets/images/tracking/fruits.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
-          {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},
-        ];
-      case 'أدوات تشخيصية':
-        return [
-          {'icon': 'assets/images/tracking/blood_pressure.png', 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
-          {'icon': 'assets/images/tracking/blood_sugar.png', 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
-          {'icon': 'assets/images/tracking/weight_tracking.png', 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
-          {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': 'assets/images/services/medical_articles.png', 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
-          {'icon': 'assets/images/services/first_aid.png', 'title': 'الإسعافات الأولية', 'subtitle': 'دليل الإسعافات الأولية', 'screen': const FirstAidScreen()},
-          {'icon': 'assets/images/services/laboratory.png', 'title': 'التقارير الطبية', 'subtitle': 'عرض التقارير', 'screen': const MedicalReportsScreen()},
-        ];
-      case 'لوجستيات وتأمين':
-        return [
-          {'icon': 'assets/images/services/medications.png', 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
-          {'icon': 'assets/images/services/laboratory.png', 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': 'assets/images/services/health_insurance.png', 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
-          {'icon': 'assets/images/services/nearby_clinics.png', 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
-          {'icon': 'assets/images/services/hospital.png', 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
-          {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
-          {'icon': 'assets/images/services/packages.png', 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
-          {'icon': 'assets/images/services/delivery.png', 'title': 'خدمات التوصيل', 'subtitle': 'توصيل الأدوية للمنزل', 'screen': const PharmacyScreen()},
-        ];
-      case 'إعدادات':
-        return [
-          {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': 'assets/images/services/notifications.png', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
-          {'icon': 'assets/images/ui/privacy.png', 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
-          {'icon': 'assets/images/ui/terms_conditions.png', 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
-          {'icon': 'assets/images/ui/about_app.png', 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
-          {'icon': 'assets/images/ui/help_center.png', 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
-          {'icon': 'assets/images/ui/contact_us.png', 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
-          {'icon': 'assets/images/ui/share_app.png', 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
-          {'icon': 'assets/images/ui/rate_app.png', 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
-          {'icon': 'assets/images/ui/report_problem.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
-          {'icon': 'assets/images/ui/download_data.png', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
-          {'icon': 'assets/images/ui/edit_button.png', 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
-          {'icon': 'assets/images/ui/favorites.png', 'title': 'المفضلة', 'subtitle': 'إدارة المفضلة', 'screen': const FavoritesScreen()},
-        ];
-      case 'خدمات طبية':
-        return [
-          {'icon': 'assets/images/services/consultation.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
-          {'icon': 'assets/images/services/laboratory.png', 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': 'assets/images/services/emergency.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
-          {'icon': 'assets/images/services/consultation.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
-          {'icon': 'assets/images/services/video_consultation.png', 'title': 'استشارة فيديو', 'subtitle': 'استشارة طبية عبر الفيديو', 'screen': const VideoConsultationScreen()},
-          {'icon': 'assets/images/services/health_tips.png', 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
-          {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
-          {'icon': 'assets/images/services/calendar_booking.png', 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const AppointmentsScreen()},
-          {'icon': 'assets/images/services/nearby_clinics.png', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
-          {'icon': 'assets/images/services/health_insurance.png', 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
-          {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': 'assets/images/ui/all_services.png', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const AllServicesScreen()},
-          {'icon': 'assets/images/services/ai_assistant.png', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
-          {'icon': 'assets/images/services/medical_community.png', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
-          {'icon': 'assets/images/services/packages.png', 'title': 'الباقات الصحية', 'subtitle': 'عرض الباقات والاشتراكات', 'screen': const PackagesScreen()},
-        ];
-      default:
-        return [
-          {'icon': 'assets/images/services/consultation.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
-          {'icon': 'assets/images/services/laboratory.png', 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': 'assets/images/services/emergency.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
-          {'icon': 'assets/images/services/consultation.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
-          {'icon': 'assets/images/services/video_consultation.png', 'title': 'استشارة فيديو', 'subtitle': 'استشارة طبية عبر الفيديو', 'screen': const VideoConsultationScreen()},
-          {'icon': 'assets/images/services/health_tips.png', 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
-          {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
-          {'icon': 'assets/images/services/calendar_booking.png', 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const AppointmentsScreen()},
-          {'icon': 'assets/images/services/nearby_clinics.png', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
-          {'icon': 'assets/images/services/health_insurance.png', 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
-          {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': 'assets/images/ui/all_services.png', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const AllServicesScreen()},
-          {'icon': 'assets/images/services/ai_assistant.png', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
-          {'icon': 'assets/images/services/medical_community.png', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
-          {'icon': 'assets/images/services/packages.png', 'title': 'الباقات الصحية', 'subtitle': 'عرض الباقات والاشتراكات', 'screen': const PackagesScreen()},
-          {'icon': 'assets/images/ui/favorites.png', 'title': 'المفضلة', 'subtitle': 'إدارة المفضلة', 'screen': const FavoritesScreen()},
-          {'icon': 'assets/images/services/medical_records.png', 'title': 'السجلات الطبية', 'subtitle': 'إدارة السجلات الطبية', 'screen': const PatientMedicalHistory()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'الوصفات الطبية', 'subtitle': 'عرض الوصفات الطبية', 'screen': const PatientPrescriptions()},
-          {'icon': 'assets/images/services/calendar_booking.png', 'title': 'مواعيدي', 'subtitle': 'إدارة مواعيدي', 'screen': const PatientAppointments()},
-        ];
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _scrollController = widget.scrollController ?? ScrollController();
-    _scrollController.addListener(() {
-      if (mounted) {
-        setState(() {
-          _isScrolled = _scrollController.position.pixels > 20;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    if (widget.scrollController == null) {
-      _scrollController.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      if (mounted) {
-        setState(() {});
-      }
-    }
-  }
-
-  void _navigateTo(Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-  }
-
-  Widget _buildIcon(String path, {double size = 44}) {
-    return Image.asset(
-      path,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(Icons.circle, color: AppColors.primary, size: size);
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user = FirebaseAuth.instance.currentUser;
-
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: 'المزيد',
-        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
-        elevation: _isScrolled ? 1 : 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.red),
-            onPressed: _showLogoutDialog,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildUserCard(user, isDark),
-            const SizedBox(height: 20),
-            Text(
-              'المؤشرات الحيوية',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildVitalsGrid(isDark),
-            const SizedBox(height: 32),
-            Text(
-              'الخدمات',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildCategoriesBar(isDark),
-            const SizedBox(height: 20),
-            _buildFilteredServicesGrid(isDark),
-            const SizedBox(height: 24),
-            _buildLogoutButton(isDark),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVitalsGrid(bool isDark) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.90,
-      ),
-      itemCount: _vitals.length,
-      itemBuilder: (context, index) {
-        final vital = _vitals[index];
-        return GestureDetector(
-          onTap: () => _navigateTo(vital['screen'] as Widget),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-              border: Border.all(
-                color: (vital['color'] as Color).withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildIcon(vital['icon'] as String, size: 48),
-                const SizedBox(height: 6),
-                Text(vital['value'] as String, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: vital['color'] as Color)),
-                Text(vital['unit'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
-                const SizedBox(height: 2),
-                Text(vital['label'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: isDark ? Colors.grey[300] : Colors.grey[700]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCategoriesBar(bool isDark) {
-    return SizedBox(
-      height: 40,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = _selectedCategory == category;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = category),
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))] : [],
-              ),
-              child: Center(
-                child: Text(category, style: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 12)),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildFilteredServicesGrid(bool isDark) {
-    final services = _filteredServices;
-    if (services.isEmpty) {
-      return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Text('لا توجد خدمات في هذا القسم', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]))));
-    }
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.80),
-      itemCount: services.length,
-      itemBuilder: (context, index) {
-        final service = services[index];
-        return GestureDetector(
-          onTap: () => _navigateTo(service['screen'] as Widget),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))]),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildIcon(service['icon'] as String, size: 44),
-                const SizedBox(height: 8),
-                Text(service['title'] as String, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
-                Text(service['subtitle'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600]), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildUserCard(User? user, bool isDark) {
-    final displayName = user?.displayName ?? 'مستخدم';
-    final email = user?.email ?? 'user@email.com';
-    final initial = displayName.isNotEmpty ? displayName.substring(0, 1) : 'م';
-    return GestureDetector(
-      onTap: () => _navigateTo(const PatientProfile()),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]),
-        child: Row(
-          children: [
-            CircleAvatar(radius: 28, backgroundColor: AppColors.primary.withOpacity(0.1), child: Text(initial, style: TextStyle(fontSize: 20, color: AppColors.primary, fontWeight: FontWeight.bold))),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(displayName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), Text(email, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]))])),
-            IconButton(icon: Icon(Icons.edit, color: AppColors.primary, size: 22), onPressed: () => _navigateTo(const PatientProfile())),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton(bool isDark) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: _showLogoutDialog,
-        icon: const Icon(Icons.logout, color: Colors.white, size: 20),
-        label: const Text('تسجيل الخروج', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-      ),
-    );
-  }
-
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تسجيل الخروج'),
-        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          TextButton(onPressed: () { Navigator.pop(context); _logout(); }, style: TextButton.styleFrom(foregroundColor: Colors.red), child: const Text('تسجيل الخروج')),
-        ],
-      ),
-    );
-  }
-
-  void _logout() async {
-    await FirebaseAuth.instance.signOut();
-    if (mounted) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
-    }
-  }
+class MoreScreen extends StatefulWidget { final ScrollController? scrollController; const MoreScreen({super.key,this.scrollController}); @override State<MoreScreen> createState()=>_MoreScreenState(); }
+class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMixin,WidgetsBindingObserver{
+ @override bool get wantKeepAlive=>true;
+ late ScrollController _scrollController; bool _isScrolled=false; String _selectedCategory='الكل';
+ final List<String> _categories=['الكل','رعاية عائلية','أدوات تشخيصية','لوجستيات وتأمين','إعدادات','خدمات طبية'];
+ final List<Map<String,dynamic>> _vitals=[
+  {'icon':'assets/images/tracking/blood_pressure.png','label':'ضغط الدم','value':'120/80','unit':'مم زئبق','color':Colors.blue,'screen':const BloodPressureScreen()},
+  {'icon':'assets/images/tracking/blood_sugar.png','label':'سكر الدم','value':'98','unit':'مجم/دل','color':Colors.orange,'screen':const GlucoseTrackerScreen()},
+  {'icon':'assets/icons/health/step_tracking.png','label':'اللياقة','value':'85','unit':'%','color':Colors.green,'screen':const StepTrackerScreen()},
+  {'icon':'assets/images/tracking/weight_tracking.png','label':'الوزن','value':'72','unit':'كجم','color':Colors.purple,'screen':const WeightTrackerScreen()},
+  {'icon':'assets/images/tracking/age.png','label':'العمر','value':'32','unit':'سنة','color':Colors.indigo,'screen':const ConsultationScreen()},
+  {'icon':'assets/images/tracking/fruits.png','label':'التغذية','value':'4.5','unit':'حصص','color':Colors.green,'screen':const DietPlanScreen()},
+  {'icon':'assets/icons/health/sleep/sleep_tracking.png','label':'النوم','value':'7.5','unit':'ساعات','color':Colors.purple,'screen':const SleepTrackerScreen()},
+  {'icon':'assets/icons/health/heart_rate.png','label':'النبض','value':'--','unit':'BPM','color':const Color(0xFF0A8F83),'screen':const HeartRateScreen()},
+  {'icon':'assets/images/tracking/water_drinking.png','label':'الماء','value':'6','unit':'أكواب','color':Colors.cyan,'screen':const HealthDashboard()},
+ ];
+ List<Map<String,dynamic>> get _filteredServices{switch(_selectedCategory){case 'رعاية عائلية':return[
+  {'icon':'assets/images/services/womens_health.png','title':'صحة المرأة','subtitle':'متابعة الدورة والحمل','screen':const WomensHealthScreen()},
+  {'icon':'assets/images/childhealth.png','title':'نمو الطفل','subtitle':'مراحل التطور','screen':const ChildHealthScreen()},
+  {'icon':'assets/images/services/hospital.png','title':'طبيب العائلة','subtitle':'رعاية منزلية متكاملة','screen':const DoctorsListScreen()},
+  {'icon':'assets/images/pregnancy_follow_up.png','title':'متابعة الحمل','subtitle':'أسابيع الحمل بدقة','screen':const PregnancyFollowUpScreen()},
+  {'icon':'assets/images/tracking/mental_health.png','title':'الصحة النفسية','subtitle':'دعم الصحة النفسية','screen':const MentalHealthScreen()},
+  {'icon':'assets/images/tracking/fruits.png','title':'نظام غذائي','subtitle':'خطط غذائية صحية','screen':const DietPlanScreen()},
+  {'icon':'assets/images/tracking/vaccination.png','title':'التطعيمات','subtitle':'جدول التطعيمات','screen':const VaccinationScreen()},
+  {'icon':'assets/icons/services/dentistry.png','title':'صحة الأسنان','subtitle':'أطباء، عيادات، نصائح','screen':const DentalHealthScreen()},
+  {'icon':'assets/icons/services/ophthalmology.png','title':'صحة العين','subtitle':'أطباء، عيادات، نصائح','screen':const EyeHealthScreen()},
+ ];case 'أدوات تشخيصية':return[
+  {'icon':'assets/images/tracking/blood_pressure.png','title':'ضغط الدم','subtitle':'متابعة ضغط الدم','screen':const BloodPressureScreen()}, {'icon':'assets/images/tracking/blood_sugar.png','title':'تتبع السكر','subtitle':'مراقبة مستوى السكر','screen':const GlucoseTrackerScreen()}, {'icon':'assets/images/tracking/weight_tracking.png','title':'الوزن','subtitle':'تتبع الوزن واللياقة','screen':const WeightTrackerScreen()}, {'icon':'assets/images/services/medications.png','title':'تذكير الأدوية','subtitle':'تذكير بمواعيد الأدوية','screen':const MedicationReminderScreen()}, {'icon':'assets/images/services/blood_donation.png','title':'التبرع بالدم','subtitle':'مراكز التبرع بالدم','screen':const BloodDonationScreen()}, {'icon':'assets/images/services/medical_articles.png','title':'المقالات الطبية','subtitle':'أحدث المقالات الطبية','screen':const ArticlesScreen()}, {'icon':'assets/images/services/first_aid.png','title':'الإسعافات الأولية','subtitle':'دليل الإسعافات الأولية','screen':const FirstAidScreen()}, {'icon':'assets/images/services/laboratory.png','title':'التقارير الطبية','subtitle':'عرض التقارير','screen':const MedicalReportsScreen()},
+ ];case 'لوجستيات وتأمين':return[
+  {'icon':'assets/images/services/medications.png','title':'صيدلية','subtitle':'طلب الأدوية وتوصيلها','screen':const PharmacyScreen()}, {'icon':'assets/images/services/laboratory.png','title':'مختبرات','subtitle':'حجز التحاليل والفحوصات','screen':const LabsListScreen()}, {'icon':'assets/images/services/health_insurance.png','title':'تأمين صحي','subtitle':'خطط التأمين والاشتراك','screen':const InsuranceCompanies()}, {'icon':'assets/images/services/nearby_clinics.png','title':'خرائط المرافق','subtitle':'أقرب المستشفيات والصيدليات','screen':const InteractiveMapScreen()}, {'icon':'assets/images/services/hospital.png','title':'المستشفيات','subtitle':'أقرب المستشفيات','screen':const InteractiveMapScreen()}, {'icon':'assets/images/services/wallet.png','title':'المحفظة','subtitle':'إدارة محفظتك','screen':const WalletScreen()}, {'icon':'assets/images/services/packages.png','title':'الباقات','subtitle':'عرض الباقات المتاحة','screen':const SubscriptionsScreen()}, {'icon':'assets/images/services/delivery.png','title':'خدمات التوصيل','subtitle':'توصيل الأدوية للمنزل','screen':const PharmacyScreen()},
+ ];case 'إعدادات':return[
+  {'icon':'assets/images/ui/user_profile.png','title':'الملف الشخصي','subtitle':'إدارة ملفك الشخصي','screen':const PatientProfile()}, {'icon':'assets/images/ui/settings_gear.png','title':'الإعدادات','subtitle':'إعدادات التطبيق','screen':const SettingsScreen()}, {'icon':'assets/images/services/notifications.png','title':'الإشعارات','subtitle':'إدارة الإشعارات','screen':const NotificationsScreen()}, {'icon':'assets/images/ui/privacy.png','title':'الخصوصية','subtitle':'إعدادات الخصوصية','screen':const PrivacyScreen()}, {'icon':'assets/images/ui/terms_conditions.png','title':'الشروط والأحكام','subtitle':'عرض الشروط والأحكام','screen':const TermsScreen()}, {'icon':'assets/images/ui/about_app.png','title':'عن التطبيق','subtitle':'معلومات عن التطبيق','screen':const AboutScreen()}, {'icon':'assets/images/ui/help_center.png','title':'مركز المساعدة','subtitle':'الأسئلة الشائعة والدعم','screen':const HelpCenterScreen()}, {'icon':'assets/images/ui/contact_us.png','title':'اتصل بنا','subtitle':'تواصل مع فريق الدعم','screen':const ContactUsScreen()}, {'icon':'assets/images/ui/share_app.png','title':'مشاركة التطبيق','subtitle':'شارك التطبيق مع أصدقائك','screen':const ShareAppScreen()}, {'icon':'assets/images/ui/rate_app.png','title':'تقييم التطبيق','subtitle':'قيم التطبيق','screen':const RateAppScreen()}, {'icon':'assets/images/ui/report_problem.png','title':'الإبلاغ عن مشكلة','subtitle':'أبلغ عن مشكلة','screen':const ReportIssueScreen()}, {'icon':'assets/images/ui/download_data.png','title':'تحميل البيانات','subtitle':'تحميل بياناتك الصحية','screen':const DownloadDataScreen()}, {'icon':'assets/images/ui/edit_button.png','title':'حجم الخط','subtitle':'تغيير حجم الخط','screen':const FontSizeScreen()}, {'icon':'assets/images/ui/favorites.png','title':'المفضلة','subtitle':'إدارة المفضلة','screen':const FavoritesScreen()},
+ ];case 'خدمات طبية':return[
+  {'icon':'assets/images/services/consultation.png','title':'الأطباء','subtitle':'استشر أفضل الأطباء','screen':const DoctorsListScreen()}, {'icon':'assets/images/services/medications.png','title':'الصيدلية','subtitle':'طلب الأدوية وتوصيلها','screen':const PharmacyScreen()}, {'icon':'assets/images/services/laboratory.png','title':'المختبرات','subtitle':'حجز التحاليل والفحوصات','screen':const LabsListScreen()}, {'icon':'assets/images/services/emergency.png','title':'الطوارئ','subtitle':'أرقام الطوارئ والمساعدة','screen':const EmergencyNumbers()}, {'icon':'assets/images/services/consultation.png','title':'استشارة فورية','subtitle':'تحدث مع طبيبك الآن','screen':const ConsultationScreen()}, {'icon':'assets/images/services/video_consultation.png','title':'استشارة فيديو','subtitle':'استشارة طبية عبر الفيديو','screen':const VideoConsultationScreen()}, {'icon':'assets/images/services/health_tips.png','title':'صحتك','subtitle':'متابعة حالتك الصحية','screen':const HealthDashboard()}, {'icon':'assets/images/services/wallet.png','title':'المحفظة','subtitle':'إدارة محفظتك','screen':const WalletScreen()}, {'icon':'assets/images/services/calendar_booking.png','title':'المواعيد','subtitle':'إدارة مواعيدك','screen':const AppointmentsScreen()}, {'icon':'assets/images/services/nearby_clinics.png','title':'الخريطة','subtitle':'المنشآت الصحية القريبة','screen':const InteractiveMapScreen()}, {'icon':'assets/images/services/health_insurance.png','title':'التأمين الصحي','subtitle':'خطط التأمين والاشتراكات','screen':const InsuranceCompanies()}, {'icon':'assets/images/services/blood_donation.png','title':'التبرع بالدم','subtitle':'مراكز التبرع بالدم','screen':const BloodDonationScreen()}, {'icon':'assets/images/ui/user_profile.png','title':'الملف الشخصي','subtitle':'إدارة ملفك الشخصي','screen':const PatientProfile()}, {'icon':'assets/images/ui/settings_gear.png','title':'الإعدادات','subtitle':'إعدادات التطبيق','screen':const SettingsScreen()}, {'icon':'assets/images/ui/all_services.png','title':'جميع الخدمات','subtitle':'استعراض جميع الخدمات','screen':const AllServicesScreen()}, {'icon':'assets/images/services/ai_assistant.png','title':'المساعد الذكي','subtitle':'اسأل المساعد الطبي','screen':const AiChatbotScreen()}, {'icon':'assets/images/services/medical_community.png','title':'المجتمع الطبي','subtitle':'تواصل مع المجتمع','screen':const HealthCommunityScreen()}, {'icon':'assets/images/services/packages.png','title':'الباقات الصحية','subtitle':'عرض الباقات والاشتراكات','screen':const PackagesScreen()},
+ ];default:return[
+  {'icon':'assets/images/services/consultation.png','title':'الأطباء','subtitle':'استشر أفضل الأطباء','screen':const DoctorsListScreen()}, {'icon':'assets/images/services/medications.png','title':'الصيدلية','subtitle':'طلب الأدوية وتوصيلها','screen':const PharmacyScreen()}, {'icon':'assets/images/services/laboratory.png','title':'المختبرات','subtitle':'حجز التحاليل والفحوصات','screen':const LabsListScreen()}, {'icon':'assets/images/services/emergency.png','title':'الطوارئ','subtitle':'أرقام الطوارئ والمساعدة','screen':const EmergencyNumbers()}, {'icon':'assets/images/services/consultation.png','title':'استشارة فورية','subtitle':'تحدث مع طبيبك الآن','screen':const ConsultationScreen()}, {'icon':'assets/images/services/video_consultation.png','title':'استشارة فيديو','subtitle':'استشارة طبية عبر الفيديو','screen':const VideoConsultationScreen()}, {'icon':'assets/images/services/health_tips.png','title':'صحتك','subtitle':'متابعة حالتك الصحية','screen':const HealthDashboard()}, {'icon':'assets/images/services/wallet.png','title':'المحفظة','subtitle':'إدارة محفظتك','screen':const WalletScreen()}, {'icon':'assets/images/services/calendar_booking.png','title':'المواعيد','subtitle':'إدارة مواعيدك','screen':const AppointmentsScreen()}, {'icon':'assets/images/services/nearby_clinics.png','title':'الخريطة','subtitle':'المنشآت الصحية القريبة','screen':const InteractiveMapScreen()}, {'icon':'assets/images/services/health_insurance.png','title':'التأمين الصحي','subtitle':'خطط التأمين والاشتراكات','screen':const InsuranceCompanies()}, {'icon':'assets/images/services/blood_donation.png','title':'التبرع بالدم','subtitle':'مراكز التبرع بالدم','screen':const BloodDonationScreen()}, {'icon':'assets/images/ui/user_profile.png','title':'الملف الشخصي','subtitle':'إدارة ملفك الشخصي','screen':const PatientProfile()}, {'icon':'assets/images/ui/settings_gear.png','title':'الإعدادات','subtitle':'إعدادات التطبيق','screen':const SettingsScreen()}, {'icon':'assets/images/ui/all_services.png','title':'جميع الخدمات','subtitle':'استعراض جميع الخدمات','screen':const AllServicesScreen()}, {'icon':'assets/images/services/ai_assistant.png','title':'المساعد الذكي','subtitle':'اسأل المساعد الطبي','screen':const AiChatbotScreen()}, {'icon':'assets/images/services/medical_community.png','title':'المجتمع الطبي','subtitle':'تواصل مع المجتمع','screen':const HealthCommunityScreen()}, {'icon':'assets/images/services/packages.png','title':'الباقات الصحية','subtitle':'عرض الباقات والاشتراكات','screen':const PackagesScreen()}, {'icon':'assets/images/ui/favorites.png','title':'المفضلة','subtitle':'إدارة المفضلة','screen':const FavoritesScreen()}, {'icon':'assets/images/services/medical_records.png','title':'السجلات الطبية','subtitle':'إدارة السجلات الطبية','screen':const PatientMedicalHistory()}, {'icon':'assets/images/services/medications.png','title':'الوصفات الطبية','subtitle':'عرض الوصفات الطبية','screen':const PatientPrescriptions()}, {'icon':'assets/images/services/calendar_booking.png','title':'مواعيدي','subtitle':'إدارة مواعيدي','screen':const PatientAppointments()},
+ ];}}
+ @override void initState(){super.initState();WidgetsBinding.instance.addObserver(this);_scrollController=widget.scrollController??ScrollController();_scrollController.addListener((){if(mounted)setState(()=>_isScrolled=_scrollController.position.pixels>20);});}
+ @override void dispose(){WidgetsBinding.instance.removeObserver(this);if(widget.scrollController==null)_scrollController.dispose();super.dispose();}
+ @override void didChangeAppLifecycleState(AppLifecycleState state){super.didChangeAppLifecycleState(state);if(state==AppLifecycleState.resumed&&mounted)setState((){});}
+ void _navigateTo(Widget screen)=>Navigator.push(context,MaterialPageRoute(builder:(_)=>screen));
+ Widget _buildIcon(String path,{double size=44})=>Image.asset(path,width:size,height:size,fit:BoxFit.contain,errorBuilder:(context,error,stackTrace)=>Icon(Icons.circle,color:AppColors.primary,size:size));
+ @override Widget build(BuildContext context){super.build(context);final isDark=Theme.of(context).brightness==Brightness.dark;final user=FirebaseAuth.instance.currentUser;return Scaffold(backgroundColor:isDark?const Color(0xFF0B1121):const Color(0xFFF8FAFC),appBar:CustomAppBar(title:'المزيد',backgroundColor:isDark?const Color(0xFF0B1121):Colors.white,foregroundColor:isDark?Colors.white:Colors.black87,elevation:_isScrolled?1:0,actions:[IconButton(icon:const Icon(Icons.logout,color:Colors.red),onPressed:_showLogoutDialog)]),body:SingleChildScrollView(controller:_scrollController,padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_buildUserCard(user,isDark),const SizedBox(height:20),Text('المؤشرات الحيوية',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87)),const SizedBox(height:12),_buildVitalsGrid(isDark),const SizedBox(height:32),Text('الخدمات',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87)),const SizedBox(height:16),_buildCategoriesBar(isDark),const SizedBox(height:20),_buildFilteredServicesGrid(isDark),const SizedBox(height:24),_buildLogoutButton(isDark)]));}
+ Widget _buildVitalsGrid(bool isDark)=>GridView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:4,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:.90),itemCount:_vitals.length,itemBuilder:(context,index){final vital=_vitals[index];return GestureDetector(onTap:()=>_navigateTo(vital['screen'] as Widget),child:Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14),boxShadow:[BoxShadow(color:Colors.black.withOpacity(.04),blurRadius:6,offset:const Offset(0,2))],border:Border.all(color:(vital['color'] as Color).withOpacity(.2))),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[_buildIcon(vital['icon'] as String,size:48),const SizedBox(height:6),Text(vital['value'] as String,style:TextStyle(fontSize:16,fontWeight:FontWeight.bold,color:vital['color'] as Color)),Text(vital['unit'] as String,style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[600])),const SizedBox(height:2),Text(vital['label'] as String,style:TextStyle(fontSize:11,fontWeight:FontWeight.w500,color:isDark?Colors.grey[300]:Colors.grey[700]),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis)])));});
+ Widget _buildCategoriesBar(bool isDark)=>SizedBox(height:40,child:ListView.builder(scrollDirection:Axis.horizontal,itemCount:_categories.length,itemBuilder:(context,index){final category=_categories[index];final selected=_selectedCategory==category;return GestureDetector(onTap:()=>setState(()=>_selectedCategory=category),child:Container(margin:const EdgeInsets.only(right:8),padding:const EdgeInsets.symmetric(horizontal:16,vertical:6),decoration:BoxDecoration(color:selected?AppColors.primary:(isDark?const Color(0xFF1A2540):Colors.grey[100]),borderRadius:BorderRadius.circular(20),boxShadow:selected?[BoxShadow(color:AppColors.primary.withOpacity(.3),blurRadius:6,offset:const Offset(0,2))]:[]),child:Center(child:Text(category,style:TextStyle(color:selected?Colors.white:(isDark?Colors.grey[400]:Colors.grey[700]),fontWeight:selected?FontWeight.bold:FontWeight.normal,fontSize:12)))));}));
+ Widget _buildFilteredServicesGrid(bool isDark){final services=_filteredServices;if(services.isEmpty)return Center(child:Padding(padding:const EdgeInsets.symmetric(vertical:20),child:Text('لا توجد خدمات في هذا القسم',style:TextStyle(color:isDark?Colors.grey[400]:Colors.grey[600]))));return GridView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:3,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:.80),itemCount:services.length,itemBuilder:(context,index){final service=services[index];return GestureDetector(onTap:()=>_navigateTo(service['screen'] as Widget),child:Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14),boxShadow:[BoxShadow(color:Colors.black.withOpacity(.04),blurRadius:6,offset:const Offset(0,2))]),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[_buildIcon(service['icon'] as String,size:44),const SizedBox(height:8),Text(service['title'] as String,style:TextStyle(fontSize:12,fontWeight:FontWeight.w600,color:isDark?Colors.white:Colors.black87),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis),const SizedBox(height:4),Text(service['subtitle'] as String,style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[600]),textAlign:TextAlign.center,maxLines:1,overflow:TextOverflow.ellipsis)])));});}
+ Widget _buildUserCard(User? user,bool isDark){final displayName=user?.displayName??'مستخدم';final email=user?.email??'user@email.com';final initial=displayName.isNotEmpty?displayName.substring(0,1):'م';return GestureDetector(onTap:()=>_navigateTo(const PatientProfile()),child:Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16),boxShadow:[BoxShadow(color:Colors.black.withOpacity(.04),blurRadius:8,offset:const Offset(0,2))]),child:Row(children:[CircleAvatar(radius:28,backgroundColor:AppColors.primary.withOpacity(.1),child:Text(initial,style:TextStyle(fontSize:20,color:AppColors.primary,fontWeight:FontWeight.bold))),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(displayName,style:TextStyle(fontSize:16,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87)),Text(email,style:TextStyle(fontSize:12,color:isDark?Colors.grey[400]:Colors.grey[600]))])),IconButton(icon:Icon(Icons.edit,color:AppColors.primary,size:22),onPressed:()=>_navigateTo(const PatientProfile()))])));}
+ Widget _buildLogoutButton(bool isDark)=>SizedBox(width:double.infinity,child:ElevatedButton.icon(onPressed:_showLogoutDialog,icon:const Icon(Icons.logout,color:Colors.white,size:20),label:const Text('تسجيل الخروج',style:TextStyle(fontSize:15,fontWeight:FontWeight.bold)),style:ElevatedButton.styleFrom(backgroundColor:Colors.red,foregroundColor:Colors.white,padding:const EdgeInsets.symmetric(vertical:12),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)))));
+ void _showLogoutDialog(){showDialog(context:context,builder:(context)=>AlertDialog(title:const Text('تسجيل الخروج'),content:const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('إلغاء')),TextButton(onPressed:(){Navigator.pop(context);_logout();},style:TextButton.styleFrom(foregroundColor:Colors.red),child:const Text('تسجيل الخروج'))]));}
+ void _logout()async{await FirebaseAuth.instance.signOut();if(mounted)Navigator.pushReplacement(context,MaterialPageRoute(builder:(_)=>const AuthScreen()));}
 }

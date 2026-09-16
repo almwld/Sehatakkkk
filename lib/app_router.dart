@@ -42,342 +42,37 @@ import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/splash_screen.dart';
 import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
 import 'package:sehatak/presentation/widgets/home/guided_tour/screen_tours.dart';
+import 'package:sehatak/presentation/screens/dental/dental_health_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_doctors_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_doctor_detail_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_clinics_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_clinic_detail_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_tips_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_hospitals_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_consultation_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_health_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_doctors_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_doctor_detail_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_clinics_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_clinic_detail_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_tips_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_hospitals_screen.dart';
+import 'package:sehatak/presentation/screens/eye/eye_consultation_screen.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-class AppRouter {
-  static const String splash = '/splash',
-      home = '/',
-      auth = '/auth',
-      doctors = '/doctors',
-      doctorDetails = '/doctor/:id',
-      pharmacy = '/pharmacy',
-      labs = '/labs',
-      hospitals = '/hospitals',
-      chat = '/chat',
-      more = '/more',
-      dashboard = '/dashboard',
-      profile = '/profile',
-      appointments = '/appointments',
-      notifications = '/notifications',
-      cart = '/cart',
-      wallet = '/wallet',
-      map = '/map',
-      consultation = '/consultation',
-      services = '/services',
-      emergency = '/emergency',
-      bloodDonation = '/blood-donation',
-      settings = '/settings',
-      search = '/search',
-      articles = '/articles',
-      community = '/community',
-      pharmacyDashboard = '/pharmacy-dashboard',
-      marketplaceAdmin = '/marketplace-admin',
-      chatRoom = '/chat-room',
-      addStatus = '/chat/add-status',
-      storyViewer = '/chat/story',
-      sleepTracker = '/sleep-tracker',
-      stepTracker = '/step-tracker',
-      heartRate = '/heart-rate',
-      delivery = '/delivery',
-      deliveryCompanies = '/delivery/companies',
-      deliveryTracking = '/delivery/tracking';
-
-  static bool _backPressedOnce = false;
-  static Timer? _backExitTimer;
-
-  static Future<bool> _handleBack(BuildContext context) async {
-    final router = GoRouter.of(context);
-
-    // HomeScreen owns its tab-level back behavior and double-press handling.
-    if (router.routerDelegate.currentConfiguration.uri.toString() == home)
-      return false;
-
-    // First close any imperatively pushed page/dialog on the root navigator.
-    final nav = navigatorKey.currentState;
-    if (nav?.canPop() == true) {
-      nav!.pop();
-      return true;
-    }
-
-    // Then pop the GoRouter page stack when a previous route exists.
-    if (router.canPop()) {
-      router.pop();
-      return true;
-    }
-
-    // We are at an application root: require two presses to exit.
-    if (_backPressedOnce) {
-      _backPressedOnce = false;
-      _backExitTimer?.cancel();
-      await SystemNavigator.pop();
-      return true;
-    }
-
-    _backPressedOnce = true;
-    ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');
-    _backExitTimer?.cancel();
-    _backExitTimer = Timer(const Duration(seconds: 2), () {
-      _backPressedOnce = false;
-    });
-    return true;
-  }
-
-  static final GoRouter router = GoRouter(
-    navigatorKey: navigatorKey,
-    initialLocation: splash,
-    refreshListenable:
-        GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
-    redirect: (_, state) {
-      final loggedIn = FirebaseAuth.instance.currentUser != null;
-      if (state.matchedLocation == auth && loggedIn) return home;
-      return null;
-    },
-    routes: [
-      GoRoute(path: splash, builder: (_, __) => const SplashScreen()),
-      GoRoute(path: home, builder: (_, __) => const HomeScreen()),
-      GoRoute(
-          path: auth,
-          redirect: (_, __) =>
-              FirebaseAuth.instance.currentUser != null ? home : null,
-          builder: (_, __) => const AuthScreen()),
-      GoRoute(
-          path: doctors,
-          builder: (_, __) =>
-              ScreenTours.wrapDoctors(const DoctorsListScreen())),
-      GoRoute(
-          path: doctorDetails,
-          builder: (_, s) =>
-              DoctorDetailsScreen(doctorId: s.pathParameters['id'] ?? '')),
-      GoRoute(
-          path: pharmacy,
-          builder: (_, __) => ScreenTours.wrapPharmacy(const PharmacyScreen())),
-      GoRoute(
-          path: pharmacyDashboard,
-          builder: (_, __) => const PharmacyDashboard()),
-      GoRoute(
-          path: marketplaceAdmin,
-          builder: (_, __) => const MarketplaceAdminDashboard()),
-      GoRoute(
-          path: labs,
-          builder: (_, __) => ScreenTours.wrapLabs(const LabsListScreen())),
-      GoRoute(path: hospitals, builder: (_, __) => const HospitalScreen()),
-      GoRoute(path: chat, builder: (_, __) => const ChatScreen()),
-      GoRoute(
-          path: chatRoom,
-          builder: (_, s) {
-            final e = (s.extra as Map?)?.cast<String, dynamic>() ??
-                const <String, dynamic>{};
-            return ChatRoomScreen(
-                chatId: '${e['chatId'] ?? ''}',
-                otherUserId: '${e['otherUserId'] ?? ''}',
-                otherUserName: '${e['otherUserName'] ?? 'مستخدم'}',
-                otherUserImage: e['otherUserImage'] as String?,
-                groupImage: e['groupImage'] as String?,
-                isGroup: e['isGroup'] == true);
-          }),
-      GoRoute(path: addStatus, builder: (_, __) => const AddStatusScreen()),
-      GoRoute(
-          path: storyViewer,
-          builder: (_, s) => StoryViewerScreen(status: s.extra as dynamic)),
-      GoRoute(
-          path: more,
-          builder: (_, __) => ScreenTours.wrapMore(const MoreScreen())),
-      GoRoute(
-          path: dashboard,
-          builder: (_, __) => const RoleBasedDashboardScreen()),
-      GoRoute(
-          path: profile,
-          builder: (_, __) => ScreenTours.wrapProfile(const PatientProfile())),
-      GoRoute(
-          path: appointments, builder: (_, __) => const PatientAppointments()),
-      GoRoute(
-          path: notifications, builder: (_, __) => const NotificationsScreen()),
-      GoRoute(path: cart, builder: (_, __) => const CartScreen()),
-      GoRoute(path: wallet, builder: (_, __) => const WalletScreen()),
-      GoRoute(path: map, builder: (_, __) => const InteractiveMapScreen()),
-      GoRoute(
-          path: consultation, builder: (_, __) => const ConsultationScreen()),
-      GoRoute(path: services, builder: (_, __) => const ServicesScreen()),
-      GoRoute(path: emergency, builder: (_, __) => const EmergencyNumbers()),
-      GoRoute(
-          path: bloodDonation, builder: (_, __) => const BloodDonationScreen()),
-      GoRoute(path: settings, builder: (_, __) => const SettingsScreen()),
-      GoRoute(
-          path: search,
-          builder: (_, s) =>
-              AdvancedSearchScreen(initialQuery: s.uri.queryParameters['q'])),
-      GoRoute(path: articles, builder: (_, __) => const ArticlesScreen()),
-      GoRoute(path: community, builder: (_, __) => const CommunityScreen()),
-      GoRoute(
-          path: sleepTracker, builder: (_, __) => const SleepTrackerScreen()),
-      GoRoute(path: stepTracker, builder: (_, __) => const StepTrackerScreen()),
-      GoRoute(path: heartRate, builder: (_, __) => const HeartRateScreen()),
-      GoRoute(path: delivery, builder: (_, __) => const DeliveryScreen()),
-      GoRoute(
-          path: deliveryCompanies,
-          builder: (context, state) {
-            final extra = (state.extra as Map?)?.cast<String, dynamic>() ??
-                const <String, dynamic>{};
-            return DeliveryCompanyScreen(
-                selectedCompanyId: extra['selectedCompanyId'] as String?,
-                distance: (extra['distance'] as num?)?.toDouble() ?? 5.0,
-                area: '${extra['area'] ?? ''}',
-                onSelect: (company) => context.pop(company));
-          }),
-      GoRoute(
-          path: deliveryTracking,
-          builder: (_, state) {
-            final orderId = state.uri.queryParameters['orderId'] ??
-                (state.extra is String ? state.extra as String : '');
-            return DeliveryTrackingScreen(orderId: orderId);
-          }),
-    ],
-  );
-
-  static Route<dynamic>? onGenerateRoute(RouteSettings routeSettings) {
-    final name = routeSettings.name ?? home;
-    if (name == auth && FirebaseAuth.instance.currentUser != null)
-      return MaterialPageRoute(
-          builder: (_) => const HomeScreen(), settings: routeSettings);
-    switch (name) {
-      case splash:
-        return MaterialPageRoute(
-            builder: (_) => const SplashScreen(), settings: routeSettings);
-      case home:
-        return MaterialPageRoute(
-            builder: (_) => const HomeScreen(), settings: routeSettings);
-      case auth:
-        return MaterialPageRoute(
-            builder: (_) => const AuthScreen(), settings: routeSettings);
-      case doctors:
-        return MaterialPageRoute(
-            builder: (_) => ScreenTours.wrapDoctors(const DoctorsListScreen()),
-            settings: routeSettings);
-      case pharmacy:
-        return MaterialPageRoute(
-            builder: (_) => ScreenTours.wrapPharmacy(const PharmacyScreen()),
-            settings: routeSettings);
-      case labs:
-        return MaterialPageRoute(
-            builder: (_) => ScreenTours.wrapLabs(const LabsListScreen()),
-            settings: routeSettings);
-      case hospitals:
-        return MaterialPageRoute(
-            builder: (_) => const HospitalScreen(), settings: routeSettings);
-      case chat:
-        return MaterialPageRoute(
-            builder: (_) => const ChatScreen(), settings: routeSettings);
-      case chatRoom:
-        return MaterialPageRoute(
-            builder: (_) => const ChatRoomScreen(
-                chatId: '',
-                otherUserId: '',
-                otherUserName: 'مستخدم',
-                isGroup: false),
-            settings: routeSettings);
-      case addStatus:
-        return MaterialPageRoute(
-            builder: (_) => const AddStatusScreen(), settings: routeSettings);
-      case more:
-        return MaterialPageRoute(
-            builder: (_) => ScreenTours.wrapMore(const MoreScreen()),
-            settings: routeSettings);
-      case dashboard:
-        return MaterialPageRoute(
-            builder: (_) => const RoleBasedDashboardScreen(),
-            settings: routeSettings);
-      case profile:
-        return MaterialPageRoute(
-            builder: (_) => ScreenTours.wrapProfile(const PatientProfile()),
-            settings: routeSettings);
-      case appointments:
-        return MaterialPageRoute(
-            builder: (_) => const PatientAppointments(),
-            settings: routeSettings);
-      case notifications:
-        return MaterialPageRoute(
-            builder: (_) => const NotificationsScreen(),
-            settings: routeSettings);
-      case cart:
-        return MaterialPageRoute(
-            builder: (_) => const CartScreen(), settings: routeSettings);
-      case wallet:
-        return MaterialPageRoute(
-            builder: (_) => const WalletScreen(), settings: routeSettings);
-      case map:
-        return MaterialPageRoute(
-            builder: (_) => const InteractiveMapScreen(),
-            settings: routeSettings);
-      case consultation:
-        return MaterialPageRoute(
-            builder: (_) => const ConsultationScreen(),
-            settings: routeSettings);
-      case services:
-        return MaterialPageRoute(
-            builder: (_) => const ServicesScreen(), settings: routeSettings);
-      case emergency:
-        return MaterialPageRoute(
-            builder: (_) => const EmergencyNumbers(), settings: routeSettings);
-      case bloodDonation:
-        return MaterialPageRoute(
-            builder: (_) => const BloodDonationScreen(),
-            settings: routeSettings);
-      case settings:
-        return MaterialPageRoute(
-            builder: (_) => const SettingsScreen(), settings: routeSettings);
-      case search:
-        return MaterialPageRoute(
-            builder: (_) => AdvancedSearchScreen(
-                initialQuery: routeSettings.arguments is String
-                    ? routeSettings.arguments as String
-                    : null),
-            settings: routeSettings);
-      case articles:
-        return MaterialPageRoute(
-            builder: (_) => const ArticlesScreen(), settings: routeSettings);
-      case community:
-        return MaterialPageRoute(
-            builder: (_) => const CommunityScreen(), settings: routeSettings);
-      case sleepTracker:
-        return MaterialPageRoute(
-            builder: (_) => const SleepTrackerScreen(),
-            settings: routeSettings);
-      case stepTracker:
-        return MaterialPageRoute(
-            builder: (_) => const StepTrackerScreen(), settings: routeSettings);
-      case heartRate:
-        return MaterialPageRoute(
-            builder: (_) => const HeartRateScreen(), settings: routeSettings);
-      case delivery:
-        return MaterialPageRoute(
-            builder: (_) => const DeliveryScreen(), settings: routeSettings);
-      case deliveryTracking:
-        return MaterialPageRoute(
-            builder: (_) => DeliveryTrackingScreen(
-                orderId: routeSettings.arguments is String
-                    ? routeSettings.arguments as String
-                    : ''),
-            settings: routeSettings);
-      default:
-        if (name.startsWith('/doctor/'))
-          return MaterialPageRoute(
-              builder: (_) => DoctorDetailsScreen(
-                  doctorId: name.substring('/doctor/'.length)),
-              settings: routeSettings);
-        return PaymentRoutes.onGenerateRoute(routeSettings);
-    }
-  }
+final GlobalKey<NavigatorState> navigatorKey=GlobalKey<NavigatorState>();
+class AppRouter{
+ static const String splash=' /splash'.trim(),home='/',auth='/auth',doctors='/doctors',doctorDetails='/doctor/:id',pharmacy='/pharmacy',labs='/labs',hospitals='/hospitals',chat='/chat',more='/more',dashboard='/dashboard',profile='/profile',appointments='/appointments',notifications='/notifications',cart='/cart',wallet='/wallet',map='/map',consultation='/consultation',services='/services',emergency='/emergency',bloodDonation='/blood-donation',settings='/settings',search='/search',articles='/articles',community='/community',pharmacyDashboard='/pharmacy-dashboard',marketplaceAdmin='/marketplace-admin',chatRoom='/chat-room',addStatus='/chat/add-status',storyViewer='/chat/story',sleepTracker='/sleep-tracker',stepTracker='/step-tracker',heartRate='/heart-rate',delivery='/delivery',deliveryCompanies='/delivery/companies',deliveryTracking='/delivery/tracking',dentalHealth='/dental-health',dentalDoctors='/dental-health/doctors',dentalDoctorDetail='/dental-health/doctor/:id',dentalClinics='/dental-health/clinics',dentalClinicDetail='/dental-health/clinic/:id',dentalTips='/dental-health/tips',dentalHospitals='/dental-health/hospitals',dentalConsultation='/dental-health/consultation',eyeHealth='/eye-health',eyeDoctors='/eye-health/doctors',eyeDoctorDetail='/eye-health/doctor/:id',eyeClinics='/eye-health/clinics',eyeClinicDetail='/eye-health/clinic/:id',eyeTips='/eye-health/tips',eyeHospitals='/eye-health/hospitals',eyeConsultation='/eye-health/consultation';
+ static bool _backPressedOnce=false;static Timer? _backExitTimer;
+ static Future<bool> _handleBack(BuildContext context)async{final router=GoRouter.of(context);if(router.routerDelegate.currentConfiguration.uri.toString()==home)return false;final nav=navigatorKey.currentState;if(nav?.canPop()==true){nav!.pop();return true;}if(router.canPop()){router.pop();return true;}if(_backPressedOnce){_backPressedOnce=false;_backExitTimer?.cancel();await SystemNavigator.pop();return true;}_backPressedOnce=true;ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');_backExitTimer?.cancel();_backExitTimer=Timer(const Duration(seconds:2),(){_backPressedOnce=false;});return true;}
+ static final GoRouter router=GoRouter(navigatorKey:navigatorKey,initialLocation:splash,refreshListenable:GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),redirect:(_,state){final loggedIn=FirebaseAuth.instance.currentUser!=null;if(state.matchedLocation==auth&&loggedIn)return home;return null;},routes:[
+  GoRoute(path:splash,builder:(_,__)=>const SplashScreen()),GoRoute(path:home,builder:(_,__)=>const HomeScreen()),GoRoute(path:auth,redirect:(_,__)=>FirebaseAuth.instance.currentUser!=null?home:null,builder:(_,__)=>const AuthScreen()),
+  GoRoute(path:doctors,builder:(_,__)=>ScreenTours.wrapDoctors(const DoctorsListScreen())),GoRoute(path:doctorDetails,builder:(_,s)=>DoctorDetailsScreen(doctorId:s.pathParameters['id']??'')),GoRoute(path:pharmacy,builder:(_,__)=>ScreenTours.wrapPharmacy(const PharmacyScreen())),GoRoute(path:pharmacyDashboard,builder:(_,__)=>const PharmacyDashboard()),GoRoute(path:marketplaceAdmin,builder:(_,__)=>const MarketplaceAdminDashboard()),GoRoute(path:labs,builder:(_,__)=>ScreenTours.wrapLabs(const LabsListScreen())),GoRoute(path:hospitals,builder:(_,__)=>const HospitalScreen()),GoRoute(path:chat,builder:(_,__)=>const ChatScreen()),
+  GoRoute(path:chatRoom,builder:(_,s){final e=(s.extra as Map?)?.cast<String,dynamic>()??const <String,dynamic>{};return ChatRoomScreen(chatId:'${e['chatId']??''}',otherUserId:'${e['otherUserId']??''}',otherUserName:'${e['otherUserName']??'مستخدم'}',otherUserImage:e['otherUserImage'] as String?,groupImage:e['groupImage'] as String?,isGroup:e['isGroup']==true);}),GoRoute(path:addStatus,builder:(_,__)=>const AddStatusScreen()),GoRoute(path:storyViewer,builder:(_,s)=>StoryViewerScreen(status:s.extra as dynamic)),GoRoute(path:more,builder:(_,__)=>ScreenTours.wrapMore(const MoreScreen())),GoRoute(path:dashboard,builder:(_,__)=>const RoleBasedDashboardScreen()),GoRoute(path:profile,builder:(_,__)=>ScreenTours.wrapProfile(const PatientProfile())),GoRoute(path:appointments,builder:(_,__)=>const PatientAppointments()),GoRoute(path:notifications,builder:(_,__)=>const NotificationsScreen()),GoRoute(path:cart,builder:(_,__)=>const CartScreen()),GoRoute(path:wallet,builder:(_,__)=>const WalletScreen()),GoRoute(path:map,builder:(_,__)=>const InteractiveMapScreen()),GoRoute(path:consultation,builder:(_,__)=>const ConsultationScreen()),GoRoute(path:services,builder:(_,__)=>const ServicesScreen()),GoRoute(path:emergency,builder:(_,__)=>const EmergencyNumbers()),GoRoute(path:bloodDonation,builder:(_,__)=>const BloodDonationScreen()),GoRoute(path:settings,builder:(_,__)=>const SettingsScreen()),GoRoute(path:search,builder:(_,s)=>AdvancedSearchScreen(initialQuery:s.uri.queryParameters['q'])),GoRoute(path:articles,builder:(_,__)=>const ArticlesScreen()),GoRoute(path:community,builder:(_,__)=>const CommunityScreen()),
+  GoRoute(path:sleepTracker,builder:(_,__)=>const SleepTrackerScreen()),GoRoute(path:stepTracker,builder:(_,__)=>const StepTrackerScreen()),GoRoute(path:heartRate,builder:(_,__)=>const HeartRateScreen()),GoRoute(path:delivery,builder:(_,__)=>const DeliveryScreen()),
+  GoRoute(path:deliveryCompanies,builder:(context,state){final extra=(state.extra as Map?)?.cast<String,dynamic>()??const <String,dynamic>{};return DeliveryCompanyScreen(selectedCompanyId:extra['selectedCompanyId'] as String?,distance:(extra['distance'] as num?)?.toDouble()??5.0,area:'${extra['area']??''}',onSelect:(company)=>context.pop(company));}),GoRoute(path:deliveryTracking,builder:(_,state){final orderId=state.uri.queryParameters['orderId']??(state.extra is String?state.extra as String:'');return DeliveryTrackingScreen(orderId:orderId);}),
+  GoRoute(path:dentalHealth,builder:(_,__)=>const DentalHealthScreen()),GoRoute(path:dentalDoctors,builder:(_,__)=>const DentalDoctorsScreen()),GoRoute(path:dentalDoctorDetail,builder:(_,s)=>DentalDoctorDetailScreen(doctorId:s.pathParameters['id']??'')),GoRoute(path:dentalClinics,builder:(_,__)=>const DentalClinicsScreen()),GoRoute(path:dentalClinicDetail,builder:(_,s)=>DentalClinicDetailScreen(clinicId:s.pathParameters['id']??'')),GoRoute(path:dentalTips,builder:(_,__)=>const DentalTipsScreen()),GoRoute(path:dentalHospitals,builder:(_,__)=>const DentalHospitalsScreen()),GoRoute(path:dentalConsultation,builder:(_,__)=>const DentalConsultationScreen()),
+  GoRoute(path:eyeHealth,builder:(_,__)=>const EyeHealthScreen()),GoRoute(path:eyeDoctors,builder:(_,__)=>const EyeDoctorsScreen()),GoRoute(path:eyeDoctorDetail,builder:(_,s)=>EyeDoctorDetailScreen(doctorId:s.pathParameters['id']??'')),GoRoute(path:eyeClinics,builder:(_,__)=>const EyeClinicsScreen()),GoRoute(path:eyeClinicDetail,builder:(_,s)=>EyeClinicDetailScreen(clinicId:s.pathParameters['id']??'')),GoRoute(path:eyeTips,builder:(_,__)=>const EyeTipsScreen()),GoRoute(path:eyeHospitals,builder:(_,__)=>const EyeHospitalsScreen()),GoRoute(path:eyeConsultation,builder:(_,__)=>const EyeConsultationScreen()),
+ ];
+ static Route<dynamic>? onGenerateRoute(RouteSettings routeSettings){final name=routeSettings.name??home;if(name==auth&&FirebaseAuth.instance.currentUser!=null)return MaterialPageRoute(builder:(_)=>const HomeScreen(),settings:routeSettings);switch(name){case splash:return MaterialPageRoute(builder:(_)=>const SplashScreen(),settings:routeSettings);case home:return MaterialPageRoute(builder:(_)=>const HomeScreen(),settings:routeSettings);case auth:return MaterialPageRoute(builder:(_)=>const AuthScreen(),settings:routeSettings);case doctors:return MaterialPageRoute(builder:(_)=>ScreenTours.wrapDoctors(const DoctorsListScreen()),settings:routeSettings);case pharmacy:return MaterialPageRoute(builder:(_)=>ScreenTours.wrapPharmacy(const PharmacyScreen()),settings:routeSettings);case labs:return MaterialPageRoute(builder:(_)=>ScreenTours.wrapLabs(const LabsListScreen()),settings:routeSettings);case hospitals:return MaterialPageRoute(builder:(_)=>const HospitalScreen(),settings:routeSettings);case chat:return MaterialPageRoute(builder:(_)=>const ChatScreen(),settings:routeSettings);case chatRoom:return MaterialPageRoute(builder:(_)=>const ChatRoomScreen(chatId:'',otherUserId:'',otherUserName:'مستخدم',isGroup:false),settings:routeSettings);case addStatus:return MaterialPageRoute(builder:(_)=>const AddStatusScreen(),settings:routeSettings);case more:return MaterialPageRoute(builder:(_)=>ScreenTours.wrapMore(const MoreScreen()),settings:routeSettings);case dashboard:return MaterialPageRoute(builder:(_)=>const RoleBasedDashboardScreen(),settings:routeSettings);case profile:return MaterialPageRoute(builder:(_)=>ScreenTours.wrapProfile(const PatientProfile()),settings:routeSettings);case appointments:return MaterialPageRoute(builder:(_)=>const PatientAppointments(),settings:routeSettings);case notifications:return MaterialPageRoute(builder:(_)=>const NotificationsScreen(),settings:routeSettings);case cart:return MaterialPageRoute(builder:(_)=>const CartScreen(),settings:routeSettings);case wallet:return MaterialPageRoute(builder:(_)=>const WalletScreen(),settings:routeSettings);case map:return MaterialPageRoute(builder:(_)=>const InteractiveMapScreen(),settings:routeSettings);case consultation:return MaterialPageRoute(builder:(_)=>const ConsultationScreen(),settings:routeSettings);case services:return MaterialPageRoute(builder:(_)=>const ServicesScreen(),settings:routeSettings);case emergency:return MaterialPageRoute(builder:(_)=>const EmergencyNumbers(),settings:routeSettings);case bloodDonation:return MaterialPageRoute(builder:(_)=>const BloodDonationScreen(),settings:routeSettings);case settings:return MaterialPageRoute(builder:(_)=>const SettingsScreen(),settings:routeSettings);case search:return MaterialPageRoute(builder:(_)=>AdvancedSearchScreen(initialQuery:routeSettings.arguments is String?routeSettings.arguments as String:null),settings:routeSettings);case articles:return MaterialPageRoute(builder:(_)=>const ArticlesScreen(),settings:routeSettings);case community:return MaterialPageRoute(builder:(_)=>const CommunityScreen(),settings:routeSettings);case sleepTracker:return MaterialPageRoute(builder:(_)=>const SleepTrackerScreen(),settings:routeSettings);case stepTracker:return MaterialPageRoute(builder:(_)=>const StepTrackerScreen(),settings:routeSettings);case heartRate:return MaterialPageRoute(builder:(_)=>const HeartRateScreen(),settings:routeSettings);case delivery:return MaterialPageRoute(builder:(_)=>const DeliveryScreen(),settings:routeSettings);case deliveryTracking:return MaterialPageRoute(builder:(_)=>DeliveryTrackingScreen(orderId:routeSettings.arguments is String?routeSettings.arguments as String:''),settings:routeSettings);case dentalHealth:return MaterialPageRoute(builder:(_)=>const DentalHealthScreen(),settings:routeSettings);case dentalDoctors:return MaterialPageRoute(builder:(_)=>const DentalDoctorsScreen(),settings:routeSettings);case dentalClinics:return MaterialPageRoute(builder:(_)=>const DentalClinicsScreen(),settings:routeSettings);case dentalTips:return MaterialPageRoute(builder:(_)=>const DentalTipsScreen(),settings:routeSettings);case dentalHospitals:return MaterialPageRoute(builder:(_)=>const DentalHospitalsScreen(),settings:routeSettings);case dentalConsultation:return MaterialPageRoute(builder:(_)=>const DentalConsultationScreen(),settings:routeSettings);case eyeHealth:return MaterialPageRoute(builder:(_)=>const EyeHealthScreen(),settings:routeSettings);case eyeDoctors:return MaterialPageRoute(builder:(_)=>const EyeDoctorsScreen(),settings:routeSettings);case eyeClinics:return MaterialPageRoute(builder:(_)=>const EyeClinicsScreen(),settings:routeSettings);case eyeTips:return MaterialPageRoute(builder:(_)=>const EyeTipsScreen(),settings:routeSettings);case eyeHospitals:return MaterialPageRoute(builder:(_)=>const EyeHospitalsScreen(),settings:routeSettings);case eyeConsultation:return MaterialPageRoute(builder:(_)=>const EyeConsultationScreen(),settings:routeSettings);default:if(name.startsWith('/doctor/'))return MaterialPageRoute(builder:(_)=>DoctorDetailsScreen(doctorId:name.substring('/doctor/'.length)),settings:routeSettings);return PaymentRoutes.onGenerateRoute(routeSettings);}}
 }
-
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
-  }
-  late final StreamSubscription<dynamic> _subscription;
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
-  }
-}
+class GoRouterRefreshStream extends ChangeNotifier{GoRouterRefreshStream(Stream<dynamic> stream){_subscription=stream.asBroadcastStream().listen((_)=>notifyListeners());}late final StreamSubscription<dynamic> _subscription;@override void dispose(){_subscription.cancel();super.dispose();}}
