@@ -1,0 +1,334 @@
+name: Repair current build
+on:
+  push:
+    branches: [master]
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Repair Dart blockers
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          root = Path('.')
+
+          # app_router.dart: go_router 13 removed GoRouter.location and the old navigatorBuilder API.
+          p = root / 'lib/app_router.dart'
+          s = p.read_text()
+          s = s.replace("if (router.location == home) return false;", "if (GoRouterState.of(context).matchedLocation == home) return false;")
+          s = re.sub(r"\n    navigatorBuilder: \(context, state, child\) => BackButtonListener\(\n      onBackButtonPressed: \(\) => _handleBack\(context\),\n      child: child,\n    \),", "", s)
+          p.write_text(s)
+
+          # chat_room_screen.dart: a previous automated edit duplicated the same method many times.
+          p = root / 'lib/presentation/screens/chat/chat_room_screen.dart'
+          s = p.read_text()
+          block = """  Future<void> _setTyping(bool typing) async {\n    final uid = _auth.currentUser?.uid;\n    if (uid == null) return;\n    _typingClearTimer?.cancel();\n    if (typing) {\n      _typingClearTimer = Timer(const Duration(seconds: 2), () => _setTyping(false));\n    }\n    try { await _firestore.collection('chats').doc(widget.chatId).set({'typing.$uid': typing}, SetOptions(merge: true)); } catch (e) { debugPrint('typing update: $e'); }\n  }\n\n"""
+          count = s.count(block)
+          if count > 1:
+              s = s.replace(block, '', count - 1)
+          p.write_text(s)
+
+          # consultation_screen.dart: CallModel exposes callType, not type.
+          p = root / 'lib/presentation/screens/consultation/consultation_screen.dart'
+          s = p.read_text().replace("c.type.name", "c.callType.name")
+          p.write_text(s)
+
+          # home_tab.dart: replace the recently edited weather/community block with balanced Dart.
+          p = root / 'lib/presentation/screens/home/tabs/home_tab.dart'
+          s = p.read_text()
+          start = s.find('  Widget _weather(bool dark)')
+          end = s.find('  Widget _error(String text, bool dark)', start)
+          if start >= 0 and end > start:
+              replacement = r'''  Widget _weather(bool dark) {
+    return _section(
+      title: 'الطقس',
+      dark: dark,
+      child: FutureBuilder<Map<String, dynamic>>(
+        future: _weatherFuture,
+        builder: (_, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SizedBox(
+              height: 96,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            );
+          }
+          final data = snapshot.data ?? const <String, dynamic>{};
+          final temp = data['temp']?.toString();
+          final condition = data['condition']?.toString();
+          if (temp == null || temp.isEmpty || condition == null || condition.isEmpty) {
+            return _empty('تعذر الحصول على بيانات الطقس حالياً', dark);
+          }
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              height: 96,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              decoration: BoxDecoration(
+                color: dark ? _darkCard : Colors.white,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.wb_sunny_outlined, color: AppColors.primary, size: 38),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('صنعاء', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                        const SizedBox(height: 4),
+                        Text(condition, style: TextStyle(fontSize: 11, color: dark ? Colors.white70 : _muted)),
+                      ],
+                    ),
+                  ),
+                  Text('$temp°', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _community(List<dynamic> items, bool dark) {
+    if (items.isEmpty) {
+      return _section(title: 'المجتمع', dark: dark, child: _empty('لا توجد منشورات منشورة حالياً', dark));
+    }
+    final posts = items.take(5).toList();
+    return _section(
+      title: 'المجتمع',
+      dark: dark,
+      child: Column(
+        children: posts.map<Widget>((raw) {
+          final item = Map<String, dynamic>.from(raw as Map);
+          final author = (item['authorName'] ?? item['userName'] ?? item['displayName'] ?? 'مستخدم').toString();
+          final text = (item['content'] ?? item['text'] ?? item['body'] ?? '').toString();
+          final image = (item['imageUrl'] ?? item['image'] ?? '').toString();
+          return Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: dark ? _darkCard : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.primary.withOpacity(.1),
+                  child: const Icon(Icons.person_outline, color: AppColors.primary),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(author, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                      if (text.isNotEmpty) ...[
+                        const SizedBox(height: 5),
+                        Text(text, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: dark ? Colors.white70 : _muted)),
+                      ],
+                      if (image.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: AppImage(imageUrl: image, height: 110, width: double.infinity, fit: BoxFit.cover),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+'''
+              s = s[:start] + replacement + s[end:]
+          p.write_text(s)
+
+          # medical_records_screen.dart: restore a syntactically complete implementation while preserving Firestore behavior.
+          p = root / 'lib/presentation/screens/records/medical_records_screen.dart'
+          p.write_text(r'''import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/presentation/widgets/unified_search_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+
+class MedicalRecordsScreen extends StatefulWidget {
+  const MedicalRecordsScreen({super.key});
+  @override State<MedicalRecordsScreen> createState() => _MedicalRecordsScreenState();
+}
+
+class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  final _searchCtrl = TextEditingController();
+  String _filterType = 'الكل';
+  final _types = ['الكل', 'تقارير', 'تحاليل', 'أشعة', 'وصفات', 'ملاحظات'];
+
+  @override void dispose() { _searchCtrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return Scaffold(
+        appBar: CustomAppBar(title: 'الملفات الطبية', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        body: const Center(child: Text('يرجى تسجيل الدخول')),
+      );
+    }
+    final q = _firestore.collection('medical_records').where('patientId', isEqualTo: user.uid).orderBy('date', descending: true);
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: const Text('الملفات الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        actions: [IconButton(icon: const Icon(Icons.add), onPressed: () => _showAddRecordDialog(context))],
+      ),
+      body: Column(
+        children: [
+          _buildSearchBar(),
+          _buildFilterChips(),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: q.snapshots(),
+              builder: (context, s) {
+                if (s.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+                if (s.hasError) return Center(child: Text('حدث خطأ: ${s.error}'));
+                var records = s.data?.docs ?? <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                final query = _searchCtrl.text.trim().toLowerCase();
+                if (query.isNotEmpty) {
+                  records = records.where((d) {
+                    final x = d.data();
+                    return '${x['title'] ?? ''} ${x['doctorName'] ?? ''}'.toLowerCase().contains(query);
+                  }).toList();
+                }
+                if (_filterType != 'الكل') records = records.where((d) => d.data()['type'] == _filterType).toList();
+                if (records.isEmpty) return const Center(child: Text('لا توجد ملفات طبية'));
+                return ListView.builder(padding: const EdgeInsets.all(12), itemCount: records.length, itemBuilder: (context, index) => _buildRecordCard(records[index]));
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() => UnifiedSearchBar(controller: _searchCtrl, hint: 'ابحث عن ملف طبي...', onChanged: (_) => setState(() {}));
+
+  Widget _buildFilterChips() => SizedBox(
+    height: 40,
+    child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      itemCount: _types.length,
+      separatorBuilder: (_, __) => const SizedBox(width: 6),
+      itemBuilder: (_, i) {
+        final type = _types[i];
+        return ChoiceChip(label: Text(type), selected: _filterType == type, onSelected: (_) => setState(() => _filterType = type));
+      },
+    ),
+  );
+
+  Widget _buildRecordCard(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data();
+    final rawDate = data['date'];
+    final date = rawDate is Timestamp ? rawDate.toDate() : DateTime.now();
+    final type = '${data['type'] ?? 'تقارير'}';
+    final color = type == 'تحاليل' ? AppColors.info : type == 'أشعة' ? AppColors.purple : type == 'وصفات' ? AppColors.success : type == 'ملاحظات' ? AppColors.warning : AppColors.primary;
+    final attachments = (data['attachments'] as List?)?.cast<dynamic>() ?? const <dynamic>[];
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(.1), borderRadius: BorderRadius.circular(8)), child: Text(type, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600))),
+              const Spacer(),
+              Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+            ]),
+            const SizedBox(height: 8),
+            Text('${data['title'] ?? 'ملف طبي'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text('${data['doctorName'] ?? 'طبيب'}', style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+            if (data['description'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text('${data['description']}', maxLines: 2, overflow: TextOverflow.ellipsis)),
+            const SizedBox(height: 8),
+            Row(children: [
+              const Icon(Icons.attachment, size: 14, color: AppColors.grey), const SizedBox(width: 4), Text('${attachments.length} مرفق', style: const TextStyle(fontSize: 10, color: AppColors.grey)), const Spacer(),
+              IconButton(icon: const Icon(Icons.share, size: 18, color: AppColors.primary), onPressed: () => _shareRecord(data)),
+              IconButton(icon: const Icon(Icons.download, size: 18, color: AppColors.primary), onPressed: () => _openFirstAttachment(attachments)),
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _shareRecord(Map<String, dynamic> data) async => Share.share('${data['title'] ?? 'ملف طبي'}\n${data['doctorName'] ?? ''}\n${data['description'] ?? ''}', subject: 'ملف طبي من صحتك');
+
+  Future<void> _openFirstAttachment(List<dynamic> attachments) async {
+    if (attachments.isEmpty) { ToastService.showInfo('لا يوجد مرفق لهذا الملف'); return; }
+    final uri = Uri.tryParse('${attachments.first}');
+    if (uri == null || !(uri.scheme == 'http' || uri.scheme == 'https')) { ToastService.showWarning('المرفق لا يحتوي على رابط صالح'); return; }
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) ToastService.showError('تعذر فتح المرفق');
+  }
+
+  Future<void> _showAddRecordDialog(BuildContext context) async {
+    final title = TextEditingController(), doctor = TextEditingController(), type = TextEditingController(text: 'تقارير'), desc = TextEditingController();
+    try {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('إضافة ملف طبي'),
+          content: SingleChildScrollView(child: Column(children: [
+            TextField(controller: title, decoration: const InputDecoration(labelText: 'العنوان')),
+            TextField(controller: doctor, decoration: const InputDecoration(labelText: 'اسم الطبيب')),
+            TextField(controller: type, decoration: const InputDecoration(labelText: 'النوع')),
+            TextField(controller: desc, maxLines: 3, decoration: const InputDecoration(labelText: 'الوصف')),
+          ])),
+          actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')), ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ'))],
+        ),
+      );
+      if (ok != true) return;
+      final user = _auth.currentUser;
+      if (user == null || title.text.trim().isEmpty) { ToastService.showWarning('يرجى إدخال عنوان الملف'); return; }
+      try {
+        await _firestore.collection('medical_records').add({'patientId': user.uid, 'patientName': user.displayName ?? 'مريض', 'title': title.text.trim(), 'doctorName': doctor.text.trim(), 'type': type.text.trim(), 'description': desc.text.trim(), 'attachments': [], 'date': FieldValue.serverTimestamp(), 'createdAt': FieldValue.serverTimestamp()});
+        if (mounted) ToastService.showSuccess('تمت إضافة الملف الطبي');
+      } catch (e) { if (mounted) ToastService.showError('تعذر حفظ الملف الطبي'); }
+    } finally { title.dispose(); doctor.dispose(); type.dispose(); desc.dispose(); }
+  }
+}
+''')
+
+          # Remove this one-shot repair workflow after committing the repaired source files.
+          wf = root / '.github/workflows/repair-current-build.yml'
+          import subprocess
+          subprocess.run(['git','config','user.name','github-actions[bot]'], check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'], check=True)
+          subprocess.run(['git','add','lib/app_router.dart','lib/presentation/screens/chat/chat_room_screen.dart','lib/presentation/screens/consultation/consultation_screen.dart','lib/presentation/screens/home/tabs/home_tab.dart','lib/presentation/screens/records/medical_records_screen.dart'], check=True)
+          subprocess.run(['git','commit','-m','fix(build): repair Dart compilation blockers'], check=True)
+          subprocess.run(['git','rm','.github/workflows/repair-current-build.yml'], check=True)
+          subprocess.run(['git','commit','-m','chore(ci): remove one-time repair workflow'], check=True)
+          subprocess.run(['git','push','origin','HEAD:master'], check=True)
