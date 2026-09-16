@@ -1,5 +1,7 @@
 name: 🔎 Sehatak Code Check
 
+# Keep CI on the final health-tracker integration commit.
+
 on:
   push:
     branches: [ master, main ]
