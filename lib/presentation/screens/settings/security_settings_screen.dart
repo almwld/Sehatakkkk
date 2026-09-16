@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -86,8 +85,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   }
 
   Future<void> _deleteAccount() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || _busy) return;
+    if (FirebaseAuth.instance.currentUser == null || _busy) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -110,19 +108,15 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
     setState(() => _busy = true);
     try {
-      await user.delete();
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+      await FirebaseFunctions.instance.httpsCallable('deleteMyAccount').call();
+      await FirebaseAuth.instance.signOut();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AuthScreen()),
         (_) => false,
       );
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      final message = e.code == 'requires-recent-login'
-          ? 'لأسباب أمنية، أعد تسجيل الدخول ثم حاول حذف الحساب مرة أخرى.'
-          : 'تعذر حذف الحساب: ${e.message ?? e.code}';
-      ToastService.showError(message);
+    } on FirebaseFunctionsException catch (e) {
+      if (mounted) ToastService.showError('تعذر حذف الحساب: ${e.message ?? e.code}');
     } catch (e) {
       if (mounted) ToastService.showError('تعذر حذف الحساب: $e');
     } finally {
