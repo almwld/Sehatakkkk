@@ -764,9 +764,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
         mainAxisSpacing: 10,
         childAspectRatio: 0.9,
       ),
-      itemCount: _vitals.length,
+      itemCount: _vitals.length + _trackingVitals.length,
       itemBuilder: (context, index) {
-        final vital = _vitals[index];
+        final vital = index < _vitals.length ? _vitals[index] : _trackingVitals[index - _vitals.length];
         final color = vital['color'] as Color;
 
         return GestureDetector(
