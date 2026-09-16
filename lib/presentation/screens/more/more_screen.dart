@@ -101,7 +101,7 @@ class _MoreScreenState extends State<MoreScreen>
       'screen': const GlucoseTrackerScreen()
     },
     {
-      'icon': 'assets/images/tracking/walking.png',
+      'icon': 'assets/icons/health/step_tracking.png',
       'label': 'اللياقة',
       'value': '85',
       'unit': '%',
@@ -133,7 +133,7 @@ class _MoreScreenState extends State<MoreScreen>
       'screen': const DietPlanScreen()
     },
     {
-      'icon': 'assets/images/tracking/sleep_tracking.png',
+      'icon': 'assets/icons/health/sleep/sleep_tracking.png',
       'label': 'النوم',
       'value': '7.5',
       'unit': 'ساعات',
@@ -141,7 +141,7 @@ class _MoreScreenState extends State<MoreScreen>
       'screen': const SleepTrackerScreen(),
     },
     {
-      'icon': 'assets/images/tracking/heart_rate.png',
+      'icon': 'assets/icons/health/heart_rate.png',
       'label': 'النبض',
       'value': '--',
       'unit': 'BPM',
