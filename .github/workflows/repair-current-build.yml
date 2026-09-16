@@ -322,8 +322,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 }
 ''')
 
-          # Remove this one-shot repair workflow after committing the repaired source files.
-          wf = root / '.github/workflows/repair-current-build.yml'
+          # Keep this workflow active only for this repair; source changes are committed below.
           import subprocess
           subprocess.run(['git','config','user.name','github-actions[bot]'], check=True)
           subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'], check=True)
