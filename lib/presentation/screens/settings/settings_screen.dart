@@ -42,6 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   static const String _changePasswordIcon = 'assets/icons/settings/change_password.png';
   static const String _fontSizeIcon = 'assets/icons/settings/font_size.png';
   static const String _locationIcon = 'assets/icons/settings/select_location.png';
+  static const String _fingerprintIcon = 'assets/icons/fingerprint_lines_transparent.png';
 
   @override
   void initState() {
@@ -174,12 +175,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _card(isDark, Column(children: [
             if (_isBiometricSupported) ...[
               _switchTile(
-                AppImages.uiUserProfile,
+                _fingerprintIcon,
                 'تسجيل الدخول بالبصمة',
                 _isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع',
                 isDark,
                 _isBiometricEnabled,
                 _toggleBiometric,
+                tint: false,
               ),
               _divider(isDark),
             ],
