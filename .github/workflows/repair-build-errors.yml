@@ -1,0 +1,183 @@
+name: Repair Blocking Dart Errors
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'lib/presentation/screens/chat/chat_room_screen.dart'
+      - 'lib/presentation/screens/consultation/consultation_screen.dart'
+      - 'lib/presentation/screens/records/medical_records_screen.dart'
+      - '.github/workflows/repair-build-errors.yml'
+  workflow_dispatch:
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repair blocking analyzer errors
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          # 1) Keep exactly one _setTyping implementation in ChatRoomScreen.
+          p = Path('lib/presentation/screens/chat/chat_room_screen.dart')
+          s = p.read_text(encoding='utf-8')
+          pattern = re.compile(r"\n  Future<void> _setTyping\(bool typing\) async \{.*?\n  \}\n", re.S)
+          matches = list(pattern.finditer(s))
+          if len(matches) > 1:
+              first = matches[0].group(0)
+              s = s[:matches[0].start()] + first + s[matches[0].end():]
+              # Remove all remaining duplicate copies.
+              s = pattern.sub(lambda m: '' if m.group(0) != first else m.group(0), s)
+              # The previous pass can be ambiguous because equal strings compare equal;
+              # normalize by removing consecutive duplicate method blocks after the first.
+              first_pos = s.find(first)
+              tail = s[first_pos + len(first):] if first_pos >= 0 else s
+              tail = pattern.sub('', tail)
+              s = s[:first_pos + len(first)] + tail if first_pos >= 0 else s
+          p.write_text(s, encoding='utf-8')
+
+          # 2) CallModel exposes callType, not type.
+          p = Path('lib/presentation/screens/consultation/consultation_screen.dart')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace("final isVideo = c.type.name == 'video';", "final isVideo = c.callType == CallType.video;")
+          if "package:sehatak/core/models/call_model.dart" not in s:
+              s = s.replace("import 'package:sehatak/core/services/call_service.dart';", "import 'package:sehatak/core/services/call_service.dart';\nimport 'package:sehatak/core/models/call_model.dart';")
+          p.write_text(s, encoding='utf-8')
+
+          # 3) Rebuild the malformed compact medical-record screen with the same existing
+          # functionality and the unified search bar, avoiding the broken bracket structure.
+          p = Path('lib/presentation/screens/records/medical_records_screen.dart')
+          content = r'''import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/presentation/widgets/unified_search_bar.dart';
+
+class MedicalRecordsScreen extends StatefulWidget {
+  const MedicalRecordsScreen({super.key});
+  @override State<MedicalRecordsScreen> createState() => _MedicalRecordsScreenState();
+}
+
+class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  final _searchCtrl = TextEditingController();
+  String _filterType = 'الكل';
+  final _types = const ['الكل', 'تقارير', 'تحاليل', 'أشعة', 'وصفات', 'ملاحظات'];
+
+  @override
+  void dispose() { _searchCtrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return Scaffold(appBar: const CustomAppBar(title: 'الملفات الطبية'), body: const Center(child: Text('يرجى تسجيل الدخول')));
+    }
+    final query = _firestore.collection('medical_records').where('patientId', isEqualTo: user.uid).orderBy('date', descending: true);
+    return Scaffold(
+      appBar: CustomAppBar(title: const Text('الملفات الطبية', style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(icon: const Icon(Icons.add), onPressed: () => _showAddRecordDialog(context))]),
+      body: Column(children: [
+        _buildSearchBar(),
+        _buildFilterChips(),
+        Expanded(child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: query.snapshots(),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+            if (snap.hasError) return Center(child: Text('حدث خطأ: ${snap.error}'));
+            var records = snap.data?.docs ?? const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+            final text = _searchCtrl.text.trim().toLowerCase();
+            if (text.isNotEmpty) {
+              records = records.where((doc) {
+                final data = doc.data();
+                return '${data['title'] ?? ''} ${data['doctorName'] ?? ''}'.toLowerCase().contains(text);
+              }).toList();
+            }
+            if (_filterType != 'الكل') records = records.where((doc) => doc.data()['type'] == _filterType).toList();
+            if (records.isEmpty) return const Center(child: Text('لا توجد ملفات طبية'));
+            return ListView.builder(padding: const EdgeInsets.all(12), itemCount: records.length, itemBuilder: (_, i) => _buildRecordCard(records[i]));
+          },
+        )),
+      ]),
+    );
+  }
+
+  Widget _buildSearchBar() => UnifiedSearchBar(controller: _searchCtrl, hint: 'ابحث عن ملف طبي...', onChanged: (_) => setState(() {}));
+
+  Widget _buildFilterChips() => SizedBox(
+    height: 40,
+    child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      itemCount: _types.length,
+      separatorBuilder: (_, __) => const SizedBox(width: 6),
+      itemBuilder: (_, i) { final type = _types[i]; return ChoiceChip(label: Text(type), selected: _filterType == type, onSelected: (_) => setState(() => _filterType = type)); },
+    ),
+  );
+
+  Widget _buildRecordCard(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data();
+    final rawDate = data['date'];
+    final date = rawDate is Timestamp ? rawDate.toDate() : DateTime.now();
+    final type = '${data['type'] ?? 'تقارير'}';
+    final color = type == 'تحاليل' ? AppColors.info : type == 'أشعة' ? AppColors.purple : type == 'وصفات' ? AppColors.success : type == 'ملاحظات' ? AppColors.warning : AppColors.primary;
+    final attachments = (data['attachments'] as List?)?.toList() ?? const <dynamic>[];
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(.1), borderRadius: BorderRadius.circular(8)), child: Text(type, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600))), const Spacer(), Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 10, color: AppColors.grey))]),
+        const SizedBox(height: 8),
+        Text('${data['title'] ?? 'ملف طبي'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4), Text('${data['doctorName'] ?? 'طبيب'}', style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+        if (data['description'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text('${data['description']}', maxLines: 2, overflow: TextOverflow.ellipsis)),
+        const SizedBox(height: 8),
+        Row(children: [const Icon(Icons.attachment, size: 14, color: AppColors.grey), const SizedBox(width: 4), Text('${attachments.length} مرفق', style: const TextStyle(fontSize: 10, color: AppColors.grey)), const Spacer(), IconButton(icon: const Icon(Icons.share, size: 18, color: AppColors.primary), onPressed: () => _shareRecord(data)), IconButton(icon: const Icon(Icons.download, size: 18, color: AppColors.primary), onPressed: () => _openFirstAttachment(attachments))]),
+      ])),
+    );
+  }
+
+  Future<void> _shareRecord(Map<String, dynamic> data) async => Share.share('${data['title'] ?? 'ملف طبي'}\n${data['doctorName'] ?? ''}\n${data['description'] ?? ''}', subject: 'ملف طبي من صحتك');
+
+  Future<void> _openFirstAttachment(List<dynamic> attachments) async {
+    if (attachments.isEmpty) { ToastService.showInfo('لا يوجد مرفق لهذا الملف'); return; }
+    final uri = Uri.tryParse('${attachments.first}');
+    if (uri == null || !(uri.scheme == 'http' || uri.scheme == 'https')) { ToastService.showWarning('المرفق لا يحتوي على رابط صالح'); return; }
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) ToastService.showError('تعذر فتح المرفق');
+  }
+
+  Future<void> _showAddRecordDialog(BuildContext context) async {
+    final title = TextEditingController(), doctor = TextEditingController(), type = TextEditingController(text: 'تقارير'), desc = TextEditingController();
+    try {
+      final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(title: const Text('إضافة ملف طبي'), content: SingleChildScrollView(child: Column(children: [TextField(controller: title, decoration: const InputDecoration(labelText: 'العنوان')), TextField(controller: doctor, decoration: const InputDecoration(labelText: 'اسم الطبيب')), TextField(controller: type, decoration: const InputDecoration(labelText: 'النوع')), TextField(controller: desc, maxLines: 3, decoration: const InputDecoration(labelText: 'الوصف'))])), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')), ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ'))]));
+      if (ok != true) return;
+      final user = _auth.currentUser;
+      if (user == null || title.text.trim().isEmpty) { ToastService.showWarning('يرجى إدخال عنوان الملف'); return; }
+      await _firestore.collection('medical_records').add({'patientId': user.uid, 'patientName': user.displayName ?? 'مريض', 'title': title.text.trim(), 'doctorName': doctor.text.trim(), 'type': type.text.trim(), 'description': desc.text.trim(), 'attachments': [], 'date': FieldValue.serverTimestamp(), 'createdAt': FieldValue.serverTimestamp()});
+      if (mounted) ToastService.showSuccess('تمت إضافة الملف الطبي');
+    } catch (e) {
+      if (mounted) ToastService.showError('تعذر حفظ الملف الطبي');
+    } finally { title.dispose(); doctor.dispose(); type.dispose(); desc.dispose(); }
+  }
+}
+'''
+  p.write_text(content, encoding='utf-8')
+      - name: Commit repairs
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/consultation/consultation_screen.dart lib/presentation/screens/records/medical_records_screen.dart
+          git diff --cached --quiet && exit 0
+          git commit -m "fix(ci): repair blocking Dart analyzer errors"
+          git push
