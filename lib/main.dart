@@ -264,7 +264,12 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     final type = message.data['type']?.toString();
     if (type == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-      if (callId != null && callId.isNotEmpty) await _notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video', silent: true);
+      if (callId != null && callId.isNotEmpty) {
+        await _notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video', silent: true);
+        if (mounted) {
+          await _callService.handleIncomingCall(context, message);
+        }
+      }
       return;
     }
     await _notificationService.showTypedNotification(
