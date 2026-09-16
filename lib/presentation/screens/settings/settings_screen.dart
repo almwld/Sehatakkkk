@@ -37,6 +37,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _deliveryArea;
 
   static const String _logoutIcon = 'assets/images/ui/logout.png';
+  static const String _languageIcon = 'assets/icons/settings/app_language.png';
+  static const String _autoModeIcon = 'assets/icons/settings/auto_mode.png';
+  static const String _changePasswordIcon = 'assets/icons/settings/change_password.png';
+  static const String _fontSizeIcon = 'assets/icons/settings/font_size.png';
+  static const String _locationIcon = 'assets/icons/settings/select_location.png';
 
   @override
   void initState() {
@@ -144,16 +149,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() => _isSystemMode = false);
             }),
             _divider(isDark),
-            _switchTile(AppImages.uiSettingsGear, 'الوضع التلقائي', 'متابعة إعدادات النظام', isDark, _isSystemMode, (v) {
+            _switchTile(_autoModeIcon, 'الوضع التلقائي', 'متابعة إعدادات النظام', isDark, _isSystemMode, (v) {
               context.read<ThemeBloc>().setThemeMode(v ? ThemeMode.system : ThemeMode.light);
               setState(() => _isSystemMode = v);
-            }),
+            }, tint: false),
           ])),
           const SizedBox(height: 16),
           _section('الموقع والتوصيل', isDark),
           _card(isDark, Column(children: [
             _listTileAsset(
-              AppImages.uiSettingsGear,
+              _locationIcon,
               'تحديد منطقتك',
               _deliveryArea == null ? 'اختر منطقتك لعرض شركات التوصيل المتاحة' : 'المنطقة المحددة: $_deliveryArea',
               isDark,
@@ -161,6 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await Navigator.push(context, MaterialPageRoute(builder: (_) => const LocationSelectionScreen()));
                 _loadDeliveryArea();
               },
+              tint: false,
             ),
           ])),
           const SizedBox(height: 16),
@@ -191,7 +197,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.all(16),
             child: Column(children: [
               Row(children: [
-                _localTileIcon(AppImages.uiSettingsGear),
+                _localTileIcon(_fontSizeIcon, tint: false),
                 const SizedBox(width: 12),
                 Expanded(child: Text('حجم الخط الحالي', style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87))),
                 Text('${(scale * 100).round()}%', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
@@ -214,14 +220,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _card(isDark, Column(children: [
             _listTileAsset(AppImages.uiUserProfile, 'الملف الشخصي', 'تعديل بياناتك الشخصية', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
             _divider(isDark),
-            _listTileAsset(AppImages.uiSettingsGear, 'تغيير كلمة المرور', 'تحديث كلمة المرور الخاصة بك', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()))),
+            _listTileAsset(_changePasswordIcon, 'تغيير كلمة المرور', 'تحديث كلمة المرور الخاصة بك', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())), tint: false),
             _divider(isDark),
             _listTileAsset(AppImages.notificationsIcon, 'الإشعارات', 'إدارة الإشعارات الفورية والأنواع والتفضيلات', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()))),
           ])),
           const SizedBox(height: 16),
           _section('التطبيق', isDark),
           _card(isDark, Column(children: [
-            _listTileAsset(AppImages.uiSettingsGear, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen()))),
+            _listTileAsset(_languageIcon, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen())), tint: false),
             _divider(isDark),
             _listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())), tint: false),
             _divider(isDark),
@@ -259,9 +265,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _divider(bool dark) => Divider(height: 1, color: dark ? Colors.grey[800] : Colors.grey[200], indent: 16, endIndent: 16);
 
-  Widget _switchTile(String iconPath, String title, String subtitle, bool dark, bool value, ValueChanged<bool> onChanged) => SwitchListTile(
+  Widget _switchTile(String iconPath, String title, String subtitle, bool dark, bool value, ValueChanged<bool> onChanged, {bool tint = true}) => SwitchListTile(
     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    secondary: _localTileIcon(iconPath),
+    secondary: _localTileIcon(iconPath, tint: tint),
     title: Text(title, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
     subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])),
     value: value,
