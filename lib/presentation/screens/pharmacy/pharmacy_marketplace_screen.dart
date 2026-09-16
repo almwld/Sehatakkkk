@@ -10,17 +10,14 @@ import 'pharmacy_detail_screen.dart';
 
 class PharmacyMarketplaceScreen extends StatefulWidget {
   const PharmacyMarketplaceScreen({super.key});
-
   @override
   State<PharmacyMarketplaceScreen> createState() => _PharmacyMarketplaceScreenState();
 }
 
-class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
-    with SingleTickerProviderStateMixin {
+class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> with SingleTickerProviderStateMixin {
   final _search = TextEditingController();
   final _cart = UnifiedCartService.instance;
-  late final TabController _tabs;
-
+  late final TabController _tabController;
   bool _loading = true;
   String? _error;
   int _tab = 0;
@@ -29,33 +26,29 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
   List<Map<String, dynamic>> _pharmacies = [];
   List<Map<String, dynamic>> _orders = [];
 
-  static const _tabs = ['متاجر مميزة', 'المنتجات', 'العروض', 'الطلبات'];
+  static const _tabLabels = ['متاجر مميزة', 'المنتجات', 'العروض', 'الطلبات'];
 
   @override
   void initState() {
     super.initState();
-    _tabsControllerInit();
-    _search.addListener(_refresh);
-    _loadAll();
-  }
-
-  void _tabsControllerInit() {
-    _tabs = TabController(length: _tabs.length, vsync: this);
-    _tabs.addListener(() {
-      if (_tabs.indexIsChanging) return;
+    _tabController = TabController(length: _tabLabels.length, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
       setState(() {
-        _tab = _tabs.index;
+        _tab = _tabController.index;
         _category = 'الكل';
       });
       if (_tab == 3) _loadOrders();
     });
+    _search.addListener(_refresh);
+    _loadAll();
   }
 
   @override
   void dispose() {
     _search.removeListener(_refresh);
     _search.dispose();
-    _tabs.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -66,16 +59,12 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         FirebaseFirestore.instance.collection('products').where('approvalStatus', isEqualTo: 'approved').where('isPublished', isEqualTo: true).where('isActive', isEqualTo: true).limit(300).get(),
         FirebaseFirestore.instance.collection('pharmacies').limit(100).get(),
       ]);
-      _products = (results[0] as QuerySnapshot<Map<String, dynamic>>).docs
-          .map((d) => {...d.data(), 'id': d.id})
-          .toList();
-      _pharmacies = (results[1] as QuerySnapshot<Map<String, dynamic>>).docs
-          .map((d) => {...d.data(), 'id': d.id})
-          .toList();
+      _products = (results[0] as QuerySnapshot<Map<String, dynamic>>).docs.map((d) => {...d.data(), 'id': d.id}).toList();
+      _pharmacies = (results[1] as QuerySnapshot<Map<String, dynamic>>).docs.map((d) => {...d.data(), 'id': d.id}).toList();
       _pharmacies.sort((a, b) => ((b['rating'] as num?)?.toDouble() ?? 0).compareTo((a['rating'] as num?)?.toDouble() ?? 0));
       if (mounted) setState(() => _error = null);
       if (_tab == 3) await _loadOrders();
-    } catch (e) {
+    } catch (_) {
       if (mounted) setState(() => _error = 'تعذر تحميل بيانات الصيدلية حالياً');
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -91,9 +80,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     try {
       final orders = await OrderService.getUserOrders(user.uid);
       if (!mounted) return;
-      setState(() {
-        _orders = orders.map((o) => o.toJson()).toList();
-      });
+      setState(() => _orders = orders.map((o) => o.toJson()).toList());
     } catch (_) {
       if (mounted) setState(() => _orders = []);
     }
@@ -114,20 +101,15 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   List<Map<String, dynamic>> get _visibleProducts {
     final q = _search.text.trim().toLowerCase();
-    return _products.where((p) {
-      final categoryOk = _category == 'الكل' || '${p['category'] ?? ''}' == _category;
-      return categoryOk && (q.isEmpty || _searchText(p).contains(q));
-    }).toList();
+    return _products.where((p) => (_category == 'الكل' || '${p['category'] ?? ''}' == _category) && (q.isEmpty || _searchText(p).contains(q))).toList();
   }
 
-  List<Map<String, dynamic>> get _offers {
-    return _products.where((p) {
-      final hasDiscount = p['isOffer'] == true || p['discountPrice'] != null || p['offerPrice'] != null || p['discount'] != null || p['discountPercent'] != null;
-      final categoryOk = _category == 'الكل' || '${p['category'] ?? ''}' == _category;
-      final q = _search.text.trim().toLowerCase();
-      return hasDiscount && categoryOk && (q.isEmpty || _searchText(p).contains(q));
-    }).toList();
-  }
+  List<Map<String, dynamic>> get _offers => _products.where((p) {
+    final hasDiscount = p['isOffer'] == true || p['discountPrice'] != null || p['offerPrice'] != null || p['discount'] != null || p['discountPercent'] != null;
+    final categoryOk = _category == 'الكل' || '${p['category'] ?? ''}' == _category;
+    final q = _search.text.trim().toLowerCase();
+    return hasDiscount && categoryOk && (q.isEmpty || _searchText(p).contains(q));
+  }).toList();
 
   List<Map<String, dynamic>> get _visiblePharmacies {
     final q = _search.text.trim().toLowerCase();
@@ -143,8 +125,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
   List<Map<String, dynamic>> get _visibleOrders {
     final q = _search.text.trim().toLowerCase();
     return _orders.where((o) {
-      final status = '${o['status'] ?? ''}';
-      final statusText = _statusLabel(status);
+      final statusText = _statusLabel('${o['status'] ?? ''}');
       final categoryOk = _category == 'الكل' || statusText == _category;
       final text = '${o['id'] ?? ''} ${o['orderId'] ?? ''} ${o['providerName'] ?? ''} ${o['pharmacyName'] ?? ''}'.toLowerCase();
       return categoryOk && (q.isEmpty || text.contains(q));
@@ -154,20 +135,15 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
   String _statusLabel(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-      case 'new':
-        return 'جديد';
+      case 'new': return 'جديد';
       case 'processing':
-      case 'preparing':
-        return 'قيد التجهيز';
+      case 'preparing': return 'قيد التجهيز';
       case 'shipped':
       case 'out_for_delivery':
-      case 'delivering':
-        return 'قيد التوصيل';
+      case 'delivering': return 'قيد التوصيل';
       case 'completed':
-      case 'delivered':
-        return 'مكتمل';
-      default:
-        return status.isEmpty ? 'غير محدد' : status;
+      case 'delivered': return 'مكتمل';
+      default: return status.isEmpty ? 'غير محدد' : status;
     }
   }
 
@@ -183,8 +159,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   String _image(Map<String, dynamic> p) {
     final stored = '${p['imageUrl'] ?? p['image'] ?? ''}'.trim();
-    if (stored.startsWith('http')) return stored;
-    return ImageKitConfig.medicine1;
+    return stored.startsWith('http') ? stored : ImageKitConfig.medicine1;
   }
 
   double? _oldPrice(Map<String, dynamic> p) {
@@ -207,32 +182,16 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         actions: [
           IconButton(icon: const Icon(Icons.notifications_none_rounded), onPressed: () => Navigator.pushNamed(context, '/notifications')),
           Stack(children: [
-            IconButton(icon: const Icon(Icons.shopping_cart_outlined), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())).then((_) => setState(() {}))),
+            IconButton(icon: const Icon(Icons.shopping_cart_outlined), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())).then((_) { if (mounted) setState(() {}); })),
             if (_cart.itemCount > 0) Positioned(top: 6, right: 6, child: CircleAvatar(radius: 9, backgroundColor: Colors.red, child: Text('${_cart.itemCount}', style: const TextStyle(color: Colors.white, fontSize: 9)))),
           ]),
         ],
       ),
       body: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-          child: TextField(
-            controller: _search,
-            textDirection: TextDirection.rtl,
-            decoration: InputDecoration(
-              hintText: 'ابحث عن دواء، منتج، أو صيدلية',
-              prefixIcon: const Icon(Icons.search_rounded),
-              filled: true,
-              fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : const Color(0xFFF4F6F7),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-            ),
-          ),
-        ),
-        TabBar(controller: _tabs, isScrollable: true, tabAlignment: TabAlignment.start, labelColor: AppColors.primary, unselectedLabelColor: Colors.grey, indicatorColor: AppColors.primary, tabs: _tabs.map((t) => Tab(text: t)).toList()),
-        SizedBox(height: 48, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), itemCount: _categories.length, separatorBuilder: (_, __) => const SizedBox(width: 7), itemBuilder: (_, i) {
-          final c = _categories[i];
-          return ChoiceChip(label: Text(c), selected: _category == c, onSelected: (_) => setState(() => _category = c));
-        })),
-        Expanded(child: _loading ? const Center(child: CircularProgressIndicator()) : _error != null ? _errorView() : TabBarView(controller: _tabs, children: [_storesTab(), _productsTab(), _offersTab(), _ordersTab()])),
+        Padding(padding: const EdgeInsets.fromLTRB(12, 12, 12, 8), child: TextField(controller: _search, textDirection: TextDirection.rtl, decoration: InputDecoration(hintText: 'ابحث عن دواء، منتج، أو صيدلية', prefixIcon: const Icon(Icons.search_rounded), filled: true, fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : const Color(0xFFF4F6F7), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)))),
+        TabBar(controller: _tabController, isScrollable: true, tabAlignment: TabAlignment.start, labelColor: AppColors.primary, unselectedLabelColor: Colors.grey, indicatorColor: AppColors.primary, tabs: _tabLabels.map((t) => Tab(text: t)).toList()),
+        SizedBox(height: 48, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), itemCount: _categories.length, separatorBuilder: (_, __) => const SizedBox(width: 7), itemBuilder: (_, i) { final c = _categories[i]; return ChoiceChip(label: Text(c), selected: _category == c, onSelected: (_) => setState(() => _category = c)); })),
+        Expanded(child: _loading ? const Center(child: CircularProgressIndicator()) : _error != null ? _errorView() : TabBarView(controller: _tabController, children: [_storesTab(), _productsTab(), _offersTab(), _ordersTab()])),
       ]),
     );
   }
@@ -251,7 +210,6 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
   }
 
   Widget _productsTab() => _productList(_visibleProducts, 'لا توجد منتجات منشورة تطابق البحث حالياً');
-
   Widget _offersTab() => _productList(_offers, 'لا توجد عروض منشورة حالياً');
 
   Widget _productList(List<Map<String, dynamic>> products, String empty) {
@@ -263,7 +221,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     final stock = (p['stock'] as num?)?.toInt() ?? 0;
     final offer = _offerPrice(p);
     final old = _oldPrice(p);
-    final price = (offer ?? (p['price'] as num?)?.toDouble() ?? 0);
+    final price = offer ?? (p['price'] as num?)?.toDouble() ?? 0;
     final available = stock > 0;
     final prescription = p['requiresPrescription'] == true;
     return Card(margin: const EdgeInsets.only(bottom: 10), child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
