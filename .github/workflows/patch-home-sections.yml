@@ -1,6 +1,6 @@
 name: Patch Home Sections
 
-# Final local-icon patch is intentionally idempotent and CI-visible.
+# Idempotent UI patch workflow for local assets and health dashboard fixes.
 on:
   push:
     paths:
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Patch local icons
+      - name: Patch local icons and health dashboard
         shell: bash
         run: |
           python3 <<'PY'
@@ -49,17 +49,32 @@ jobs:
           text = text.replace("_listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false)),", "_listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false),")
           text = text.replace("leading: _localImage(_logoutIcon, color: Colors.red),", "leading: _localImage(_logoutIcon),")
           p.write_text(text, encoding='utf-8')
+
+          health = Path('lib/presentation/screens/health/health_dashboard.dart')
+          text = health.read_text(encoding='utf-8')
+          text = text.replace("'icon': 'assets/images/tracking/heart_rate.png',", "'icon': 'assets/images/ui/doctor_avatar.png',", 1)
+          text = text.replace("TextButton(\n          onPressed: () {},", "TextButton(\n          onPressed: () => _showAllSection(context, title, isDark),", 1)
+          old_circle = """                    Text(\n                      'من 100',\n                      style: TextStyle(\n                        fontSize: 11,\n                        color: isDark ? Colors.grey[400] : Colors.grey[600],\n                      ),\n                    ),\n"""
+          text = text.replace(old_circle, "")
+          old_status = """                Text(\n                  _getScoreStatus(_healthScore),\n                  style: TextStyle(\n                    fontSize: 18,\n                    fontWeight: FontWeight.bold,\n                    color: _getScoreColor(_healthScore),\n                  ),\n                ),\n"""
+          new_status = """                Row(\n                  children: [\n                    Text(\n                      _getScoreStatus(_healthScore),\n                      style: TextStyle(\n                        fontSize: 18,\n                        fontWeight: FontWeight.bold,\n                        color: _getScoreColor(_healthScore),\n                      ),\n                    ),\n                    const SizedBox(width: 8),\n                    Text(\n                      '${_healthScore.toStringAsFixed(0)}%',\n                      style: TextStyle(\n                        fontSize: 16,\n                        fontWeight: FontWeight.bold,\n                        color: _getScoreColor(_healthScore),\n                      ),\n                    ),\n                    const SizedBox(width: 4),\n                    Text(\n                      'من 100',\n                      style: TextStyle(\n                        fontSize: 12,\n                        color: isDark ? Colors.grey[400] : Colors.grey[600],\n                      ),\n                    ),\n                  ],\n                ),\n"""
+          text = text.replace(old_status, new_status, 1)
+          marker = "  // ✅ المؤشرات الحيوية - أيقونات مكبرة 3x بدون حاويات\n"
+          helper = """  void _showAllSection(BuildContext context, String title, bool isDark) {\n    final isMetrics = title == 'المؤشرات الحيوية';\n    final items = isMetrics ? _healthMetrics : _healthTips;\n    showModalBottomSheet<void>(\n      context: context,\n      isScrollControlled: true,\n      backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,\n      shape: const RoundedRectangleBorder(\n        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),\n      ),\n      builder: (sheetContext) {\n        return SafeArea(\n          child: Padding(\n            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),\n            child: Column(\n              mainAxisSize: MainAxisSize.min,\n              children: [\n                Container(\n                  width: 42,\n                  height: 4,\n                  decoration: BoxDecoration(\n                    color: isDark ? Colors.grey[600] : Colors.grey[300],\n                    borderRadius: BorderRadius.circular(4),\n                  ),\n                ),\n                const SizedBox(height: 14),\n                Row(\n                  children: [\n                    Expanded(\n                      child: Text(\n                        title,\n                        style: TextStyle(\n                          fontSize: 20,\n                          fontWeight: FontWeight.bold,\n                          color: isDark ? Colors.white : Colors.black87,\n                        ),\n                      ),\n                    ),\n                    IconButton(\n                      onPressed: () => Navigator.pop(sheetContext),\n                      icon: const Icon(Icons.close),\n                    ),\n                  ],\n                ),\n                const SizedBox(height: 8),\n                Flexible(\n                  child: ListView.separated(\n                    shrinkWrap: true,\n                    itemCount: items.length,\n                    separatorBuilder: (_, __) => const SizedBox(height: 8),\n                    itemBuilder: (_, index) {\n                      final item = items[index];\n                      final color = item['color'] as Color;\n                      return ListTile(\n                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),\n                        tileColor: color.withOpacity(0.06),\n                        leading: _buildIcon(item['icon'] as String, size: 42, color: color),\n                        title: Text(\n                          (item['label'] ?? item['title']) as String,\n                          style: TextStyle(\n                            fontWeight: FontWeight.bold,\n                            color: isDark ? Colors.white : Colors.black87,\n                          ),\n                        ),\n                        subtitle: Text(\n                          isMetrics\n                              ? '${item['value']} ${item['unit']} • ${item['status']}'\n                              : '${item['subtitle']} • ${item['target']}',\n                          style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),\n                        ),\n                      );\n                    },\n                  ),\n                ),\n              ],\n            ),\n          ),\n        );\n      },\n    );\n  }\n\n"""
+          if marker in text and "void _showAllSection(BuildContext context" not in text:
+              text = text.replace(marker, helper + marker, 1)
+          health.write_text(text, encoding='utf-8')
           PY
 
-      - name: Commit icon fixes
+      - name: Commit icon and health fixes
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add lib/presentation/screens/home/tabs/home_tab.dart lib/presentation/screens/chat/chat_screen.dart lib/presentation/screens/patient/patient_dashboard.dart lib/presentation/screens/more/more_screen.dart lib/presentation/screens/about/about_screen.dart lib/presentation/screens/settings/settings_screen.dart
+          git add lib/presentation/screens/home/tabs/home_tab.dart lib/presentation/screens/chat/chat_screen.dart lib/presentation/screens/patient/patient_dashboard.dart lib/presentation/screens/more/more_screen.dart lib/presentation/screens/about/about_screen.dart lib/presentation/screens/settings/settings_screen.dart lib/presentation/screens/health/health_dashboard.dart
           if git diff --cached --quiet; then
-            echo 'No icon changes to commit.'
+            echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'fix(icons): use local artwork without tinting'
+          git commit -m 'fix(health): update dashboard icons and actions'
           git push
