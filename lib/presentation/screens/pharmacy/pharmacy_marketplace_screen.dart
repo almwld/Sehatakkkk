@@ -205,8 +205,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> w
       final p = stores[i];
       final open = p['isOpen'] == true || p['openNow'] == true;
       final delivery = p['deliveryAvailable'] == true || p['hasDelivery'] == true || p['delivery'] == true;
-      return Card(margin: const EdgeInsets.only(bottom: 10), child: ListTile(isThreeLine: true, leading: CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.1), child: const Icon(Icons.local_pharmacy_outlined, color: AppColors.primary)), title: Text('${p['name'] ?? 'صيدلية'}', style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}\n${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}'), trailing: const Icon(Icons.chevron_left), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PharmacyDetailScreen(pharmacy: p))));
-    }));
+      return Card(margin: const EdgeInsets.only(bottom: 10), child: ListTile(isThreeLine: true, leading: CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.1), child: const Icon(Icons.local_pharmacy_outlined, color: AppColors.primary)), title: Text('${p['name'] ?? 'صيدلية'}', style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}\n${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}'), trailing: const Icon(Icons.chevron_left), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PharmacyDetailScreen(pharmacy: p))));)    }));
   }
 
   Widget _productsTab() => _productList(_visibleProducts, 'لا توجد منتجات منشورة تطابق البحث حالياً');

@@ -270,8 +270,7 @@ class _HomeTabState extends State<HomeTab>
     final temp = data['temp']?.toString();
     final condition = data['condition']?.toString();
     if (temp == null || condition == null || temp.isEmpty) return _empty('تعذر الحصول على بيانات الطقس حالياً', dark);
-    return Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Container(height: 96, padding: const EdgeInsets.symmetric(horizontal: 18), decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [const Icon(Icons.wb_sunny_outlined, color: AppColors.primary, size: 38), const SizedBox(width: 14), Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [Text('صنعاء', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), const SizedBox(height: 4), Text(condition, style: TextStyle(fontSize: 11, color: dark ? Colors.white70 : _muted))])), Text('$temp°', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text))]));
-  }));
+    return Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Container(height: 96, padding: const EdgeInsets.symmetric(horizontal: 18), decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [const Icon(Icons.wb_sunny_outlined, color: AppColors.primary, size: 38), const SizedBox(width: 14), Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [Text('صنعاء', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), const SizedBox(height: 4), Text(condition, style: TextStyle(fontSize: 11, color: dark ? Colors.white70 : _muted))])), Text('$temp°', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text))]));)  }));
 
   Widget _community(List<dynamic> items, bool dark) {
     if (items.isEmpty) return _section(title: 'المجتمع', dark: dark, child: _empty('لا توجد منشورات منشورة حالياً', dark));
@@ -283,7 +282,6 @@ class _HomeTabState extends State<HomeTab>
       final image = (item['imageUrl'] ?? item['image'] ?? '').toString();
       return Container(margin: const EdgeInsets.fromLTRB(16, 0, 16, 10), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [CircleAvatar(radius: 20, backgroundColor: AppColors.primary.withOpacity(.1), child: const Icon(Icons.person_outline, color: AppColors.primary)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(author, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), if (text.isNotEmpty) ...[const SizedBox(height: 5), Text(text, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: dark ? Colors.white70 : _muted))], if (image.isNotEmpty) ...[const SizedBox(height: 8), ClipRRect(borderRadius: BorderRadius.circular(10), child: AppImage(imageUrl: image, height: 110, width: double.infinity, fit: BoxFit.cover))]]))]));
     }).toList());
-  }
-
+  })
   Widget _error(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Text(text, style: TextStyle(color: dark ? Colors.white : _text)));
 }
