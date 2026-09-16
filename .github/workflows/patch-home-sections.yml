@@ -29,62 +29,35 @@ jobs:
               updated = text.replace(old, new)
               if updated != text:
                   p.write_text(updated, encoding='utf-8')
-                  print(f'patched {path}: {old} -> {new}')
-              else:
-                  print(f'unchanged/not found {path}: {old}')
+                  print(f'patched {path}')
 
-          # Home: the discover cards must use the real image asset root.
+          # Home Discover More: use the actual assets/images/services directory.
           for name in ('calendar_booking', 'emergency', 'map_location', 'packages'):
               replace('lib/presentation/screens/home/tabs/home_tab.dart', f'assets/icons/services/{name}.png', f'assets/images/services/{name}.png')
 
-          # Chat: replace Material AI icon with the existing local service image.
+          # Chat AI assistant.
           replace('lib/presentation/screens/chat/chat_screen.dart', "leading: const CircleAvatar(backgroundColor: AppColors.primary, child: Icon(Icons.smart_toy_outlined, color: Colors.white)),", "leading: Padding(padding: const EdgeInsetsDirectional.only(start: 4), child: Image.asset('assets/images/services/ai_assistant.png', width: 42, height: 42, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_outlined, color: AppColors.primary, size: 30))),")
 
-          # Patient dashboard: pharmacy card uses the local medications artwork.
+          # Patient dashboard pharmacy.
           replace('lib/presentation/screens/patient/patient_dashboard.dart', "'icon': 'assets/images/services/pharmacy.png', 'label': 'الصيدلية'", "'icon': 'assets/images/services/medications.png', 'label': 'الصيدلية'")
 
-          # More > Family Care: pregnancy follow-up uses the dedicated local artwork.
+          # More > Family Care > Pregnancy follow-up.
           replace('lib/presentation/screens/more/more_screen.dart', "'icon': 'assets/images/services/womens_health.png', 'title': 'متابعة الحمل'", "'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'متابعة الحمل'")
 
-          # About: use the real app icon asset and preserve its original artwork.
+          # About: real app icon + social artwork without color filters.
           replace('lib/presentation/screens/about/about_screen.dart', "'android/app/src/main/res/drawable/ic_launcher.xml'", "'assets/icons/app_icon.png'")
           replace('lib/presentation/screens/about/about_screen.dart', "                  color: Colors.white,\n", "")
           replace('lib/presentation/screens/about/about_screen.dart', "                          color: isDark ? Colors.white : AppColors.primary,\n", "")
 
-          # Settings: requested icons keep their original artwork with no tint.
-          settings = Path('lib/presentation/screens/settings/settings_screen.dart')
-          text = settings.read_text(encoding='utf-8')
+          # Settings: requested icons must display their original artwork.
+          p = Path('lib/presentation/screens/settings/settings_screen.dart')
+          text = p.read_text(encoding='utf-8')
           text = text.replace("Widget _localTileIcon(String path, {double size = 24}) => _localImage(path, size: size, color: AppColors.primary);", "Widget _localTileIcon(String path, {double size = 24, bool tint = true}) => _localImage(path, size: size, color: tint ? AppColors.primary : null);")
-          for title in ('المساعدة والدعم', 'الخصوصية', 'عن التطبيق'):
-              marker = f"_listTileAsset(AppImages."
-              idx = text.find(marker)
-              while idx != -1:
-                  end = text.find("\n", idx)
-                  line = text[idx:end]
-                  if f"'{title}'" in line and 'isDark' in line:
-                      line = line.replace("isDark, ()", "isDark, ()")
-                      # Add no-tint parameter through the helper call by switching helper API below.
-                  idx = text.find(marker, idx + len(marker))
-          # Target the four requested tiles explicitly.
-          text = text.replace("_listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, ()", "_listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, ()")
-          text = text.replace("_listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, ()", "_listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, ()")
-          text = text.replace("_listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, ()", "_listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, ()")
+          text = text.replace("_listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())), tint: false)),", "_listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())), tint: false),")
+          text = text.replace("_listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen())), tint: false)),", "_listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen())), tint: false),")
+          text = text.replace("_listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false)),", "_listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false),")
           text = text.replace("leading: _localImage(_logoutIcon, color: Colors.red),", "leading: _localImage(_logoutIcon),")
-          text = text.replace("Widget _listTileAsset(String path, String title, String subtitle, bool dark, VoidCallback onTap) => ListTile(\n    contentPadding: const EdgeInsets.symmetric(horizontal: 16),\n    leading: _localTileIcon(path),", "Widget _listTileAsset(String path, String title, String subtitle, bool dark, VoidCallback onTap, {bool tint = true}) => ListTile(\n    contentPadding: const EdgeInsets.symmetric(horizontal: 16),\n    leading: _localTileIcon(path, tint: tint),")
-          for title in ('المساعدة والدعم', 'الخصوصية', 'عن التطبيق'):
-              # Insert tint:false at the end of each matching helper invocation before the callback closes.
-              text = text.replace(f"'{title}', '", f"'{title}', '")
-          # Exact line-level replacements are safer for these three one-line tiles.
-          lines = text.splitlines()
-          for i, line in enumerate(lines):
-              if any(f"'{t}'" in line for t in ('المساعدة والدعم', 'الخصوصية', 'عن التطبيق')) and '_listTileAsset(' in line:
-                  if line.rstrip().endswith(')),'):
-                      lines[i] = line[:-2] + ", tint: false)),"
-          text = '\n'.join(lines) + ('\n' if text.endswith('\n') else '')
-          settings.write_text(text, encoding='utf-8')
-
-          # Ensure the four requested Settings icons use their source artwork, not a color filter.
-          print('settings icon patch complete')
+          p.write_text(text, encoding='utf-8')
           PY
 
       - name: Commit icon fixes
