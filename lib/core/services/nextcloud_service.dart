@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -27,6 +28,7 @@ class NextcloudService {
         .replaceFirst(RegExp(r'/$'), '');
     username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
     password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
+    debugPrint('📡 NC config: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
   }
 
   Future<void> updateConfig({
@@ -55,7 +57,7 @@ class NextcloudService {
 
   void _ensureConfigured() {
     if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
-      throw StateError('خادم الوسائط غير مهيأ في هذا الجهاز.');
+      throw StateError('خادم الوسائط غير مهيأ: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
     }
   }
 
@@ -80,14 +82,10 @@ class NextcloudService {
       .where((part) => part.isNotEmpty && part != '.')
       .join('/');
 
-  /// Keep media in the same platform namespace as the server-side Nextcloud
-  /// service. Its configured/default root is `Sehatak`.
   String _platformPath(String path) {
     final clean = _cleanLogicalPath(path);
     if (clean.isEmpty) return 'Sehatak';
-    return clean == 'Sehatak' || clean.startsWith('Sehatak/')
-        ? clean
-        : 'Sehatak/$clean';
+    return clean == 'Sehatak' || clean.startsWith('Sehatak/') ? clean : 'Sehatak/$clean';
   }
 
   String _davUrl(String remotePath) {
@@ -100,13 +98,12 @@ class NextcloudService {
     return '${_normalizedBase()}/remote.php/dav/files/${Uri.encodeComponent(username)}/$cleanPath';
   }
 
-  /// WebDAV PUT does not create parent folders. Create them first so the
-  /// Flutter path behaves like the verified server-side upload implementation.
   Future<void> _ensureDirectories(String directory) async {
     var current = '';
     for (final part in _cleanLogicalPath(directory).split('/')) {
       if (part.isEmpty) continue;
       current = current.isEmpty ? part : '$current/$part';
+      debugPrint('📁 MKCOL: $current');
       final response = await _dio.request<void>(
         _davUrl(current),
         options: Options(
@@ -116,6 +113,7 @@ class NextcloudService {
         ),
       );
       final status = response.statusCode ?? 0;
+      debugPrint('📁 MKCOL response: $status');
       if (status != 201 && status != 405) {
         throw StateError('فشل إنشاء مجلد الوسائط في Nextcloud: HTTP $status');
       }
@@ -134,16 +132,14 @@ class NextcloudService {
       if (!await file.exists()) {
         return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
       }
-
       final name = _cleanPart(fileName ?? file.path.split(Platform.pathSeparator).last);
-      if (name.isEmpty) {
-        return const NextcloudUploadResult(success: false, error: 'اسم الملف غير صالح');
-      }
-
+      if (name.isEmpty) return const NextcloudUploadResult(success: false, error: 'اسم الملف غير صالح');
       final logicalDirectory = _platformPath(path);
       final remotePath = '$logicalDirectory/$name';
       final davUrl = _davUrl(remotePath);
       final fileLength = await file.length();
+      debugPrint('📤 PUT: $davUrl');
+      debugPrint('📤 file size: $fileLength');
 
       await _ensureDirectories(logicalDirectory);
 
@@ -161,41 +157,27 @@ class NextcloudService {
         ),
         onSendProgress: onProgress,
       );
-
       final status = response.statusCode ?? 0;
+      debugPrint('📤 PUT status: $status');
       if (status != 201 && status != 204) {
-        return NextcloudUploadResult(
-          success: false,
-          path: remotePath,
-          fileName: name,
-          error: 'فشل رفع الملف إلى Nextcloud: HTTP $status',
-        );
+        return NextcloudUploadResult(success: false, path: remotePath, fileName: name, error: 'فشل رفع الملف إلى Nextcloud: HTTP $status');
       }
-
-      if (!createShare) {
-        return NextcloudUploadResult(success: true, path: remotePath, fileName: name);
-      }
+      if (!createShare) return NextcloudUploadResult(success: true, path: remotePath, fileName: name);
 
       String? publicUrl;
       String? shareError;
       try {
         publicUrl = await createPublicShare(remotePath);
-        if (publicUrl == null || publicUrl.isEmpty) {
-          shareError = 'تم رفع الملف بنجاح، لكن رابط الوصول لم يجهز بعد';
-        }
-      } catch (e) {
+        if (publicUrl == null || publicUrl.isEmpty) shareError = 'تم رفع الملف بنجاح، لكن رابط الوصول لم يجهز بعد';
+      } catch (e, st) {
+        debugPrint('❌ createPublicShare failed: $e');
+        debugPrint('❌ stack: $st');
         shareError = 'تم رفع الملف بنجاح، وتعذر تجهيز رابط الوصول: $e';
       }
-
-      return NextcloudUploadResult(
-        success: true,
-        url: publicUrl,
-        path: remotePath,
-        fileName: name,
-        error: shareError,
-        shareReady: publicUrl != null && publicUrl.isNotEmpty,
-      );
-    } catch (e) {
+      return NextcloudUploadResult(success: true, url: publicUrl, path: remotePath, fileName: name, error: shareError, shareReady: publicUrl != null && publicUrl.isNotEmpty);
+    } catch (e, st) {
+      debugPrint('❌ uploadFile failed: $e');
+      debugPrint('❌ stack: $st');
       return NextcloudUploadResult(success: false, error: e.toString());
     }
   }
@@ -208,6 +190,9 @@ class NextcloudService {
         headers: _headers(),
         body: {'path': '/${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
       );
+      debugPrint('🔗 Share status: ${response.statusCode}');
+      final bodyPreview = response.body.substring(0, response.body.length > 200 ? 200 : response.body.length);
+      debugPrint('🔗 Share body: $bodyPreview');
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final ocs = body['ocs'] as Map<String, dynamic>?;
@@ -215,13 +200,13 @@ class NextcloudService {
       final shareUrl = data?['url']?.toString();
       if (shareUrl == null || shareUrl.isEmpty) return null;
       return '${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('❌ createPublicShare failed: $e');
+      debugPrint('❌ stack: $st');
       return null;
     }
   }
 
-  /// Verifies the real public download endpoint with a one-byte range request.
-  /// This avoids relying on HEAD, which is frequently disabled by proxies.
   Future<bool> verifyPublicUrl(String url) async {
     final client = http.Client();
     try {
@@ -230,9 +215,12 @@ class NextcloudService {
       final streamed = await client.send(request).timeout(const Duration(seconds: 20));
       final status = streamed.statusCode;
       final contentLength = streamed.contentLength;
+      debugPrint('🔗 verify status: $status url=$url');
       await streamed.stream.drain<void>();
       return (status == 200 || status == 206) && (contentLength == null || contentLength > 0);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('❌ verifyPublicUrl failed for $url: $e');
+      debugPrint('❌ stack: $st');
       return false;
     } finally {
       client.close();
@@ -252,10 +240,7 @@ class NextcloudService {
   Future<bool> testAuth() async {
     try {
       _ensureConfigured();
-      final response = await http.get(
-        Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'),
-        headers: _headers(),
-      );
+      final response = await http.get(Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'), headers: _headers());
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -271,12 +256,5 @@ class NextcloudUploadResult {
   final String? error;
   final bool shareReady;
 
-  const NextcloudUploadResult({
-    required this.success,
-    this.url,
-    this.path,
-    this.fileName,
-    this.error,
-    this.shareReady = false,
-  });
+  const NextcloudUploadResult({required this.success, this.url, this.path, this.fileName, this.error, this.shareReady = false});
 }
