@@ -223,11 +223,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _card(isDark, Column(children: [
             _listTileAsset(AppImages.uiSettingsGear, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen()))),
             _divider(isDark),
-            _listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())), tint: false)),
+            _listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())), tint: false),
             _divider(isDark),
-            _listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen())), tint: false)),
+            _listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen())), tint: false),
             _divider(isDark),
-            _listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false)),
+            _listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false),
           ])),
           const SizedBox(height: 16),
           _card(isDark, ListTile(
