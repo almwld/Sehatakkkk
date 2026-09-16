@@ -30,21 +30,21 @@ class HomeHealthWidgets extends StatelessWidget {
         'value': state.steps,
         'unit': 'خطوة',
         'color': Colors.green,
-        'icon': 'assets/images/tracking/steps.png'
+        'icon': 'assets/icons/health/step_tracking.png'
       },
       {
         'name': 'النوم',
         'value': state.sleep,
         'unit': 'ساعة',
         'color': Colors.purple,
-        'icon': 'assets/images/tracking/sleep.png'
+        'icon': 'assets/icons/health/sleep/sleep_tracking.png'
       },
       {
         'name': 'النبض',
         'value': state.heartRate,
         'unit': 'bpm',
         'color': Colors.red,
-        'icon': 'assets/images/tracking/heart_rate.png'
+        'icon': 'assets/icons/health/heart_rate.png'
       },
     ];
     final vitals = <Map<String, dynamic>>[
