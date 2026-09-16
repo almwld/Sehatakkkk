@@ -1,0 +1,103 @@
+name: Manual Repair All Blockers
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+          cache: true
+      - name: Repair source directly
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          # ChatRoomScreen: keep the first complete _setTyping(bool) implementation only.
+          p = Path('lib/presentation/screens/chat/chat_room_screen.dart')
+          s = p.read_text(encoding='utf-8-sig')
+          sig = '  Future<void> _setTyping(bool typing) async {'
+          positions = [m.start() for m in re.finditer(re.escape(sig), s)]
+          if len(positions) > 1:
+              def block_end(text, start):
+                  brace = text.find('{', start)
+                  depth = 0
+                  in_str = None
+                  esc = False
+                  for i in range(brace, len(text)):
+                      ch = text[i]
+                      if in_str:
+                          if esc: esc = False
+                          elif ch == '\\': esc = True
+                          elif ch == in_str: in_str = None
+                          continue
+                      if ch in "'\"": in_str = ch; continue
+                      if ch == '{': depth += 1
+                      elif ch == '}':
+                          depth -= 1
+                          if depth == 0: return i + 1
+                  return -1
+              first_end = block_end(s, positions[0])
+              if first_end > 0:
+                  kept = s[:first_end]
+                  tail = s[first_end:]
+                  # Remove every later method, preserving everything after each method.
+                  while True:
+                      m = re.search(re.escape(sig), tail)
+                      if not m: break
+                      e = block_end(tail, m.start())
+                      if e < 0: break
+                      tail = tail[:m.start()] + tail[e:]
+                  s = kept + tail
+          p.write_text(s, encoding='utf-8')
+
+          # Consultation: CallModel uses callType, not isVideo/type.
+          p = Path('lib/presentation/screens/consultation/consultation_screen.dart')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace("final isVideo = c.isVideo.name == 'video';", "final isVideo = c.callType == CallType.video;")
+          if 'CallType' in s and "import 'package:sehatak/core/models/call_model.dart';" not in s:
+              s = s.replace("import 'package:sehatak/core/models/chat_model.dart';", "import 'package:sehatak/core/models/chat_model.dart';\nimport 'package:sehatak/core/models/call_model.dart';")
+          p.write_text(s, encoding='utf-8')
+
+          # Pharmacy: repair the malformed store-card closing sequence without changing behavior.
+          p = Path('lib/presentation/screens/pharmacy/pharmacy_marketplace_screen.dart')
+          s = p.read_text(encoding='utf-8')
+          bad = "onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PharmacyDetailScreen(pharmacy: p))));)    }));)  }"
+          good = "onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PharmacyDetailScreen(pharmacy: p)))));    }));  }"
+          if bad in s:
+              s = s.replace(bad, good, 1)
+          p.write_text(s, encoding='utf-8')
+
+          # Remove stale generated repair workflows that can repeatedly overwrite source files.
+          for name in ['repair-build-errors.yml', 'repair-current-build.yml', 'auto-repair-current-errors.yml', 'auto-repair-pass2.yml', 'fix-chat-syntax.yml']:
+              wf = Path('.github/workflows') / name
+              if wf.exists():
+                  wf.unlink()
+
+      - name: Format touched Dart files
+        run: |
+          dart format lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/consultation/consultation_screen.dart lib/presentation/screens/pharmacy/pharmacy_marketplace_screen.dart
+
+      - name: Commit repairs
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib .github/workflows
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+          else
+            git commit -m 'fix: repair chat consultation and pharmacy syntax blockers'
+            git push origin HEAD:master
+          fi
