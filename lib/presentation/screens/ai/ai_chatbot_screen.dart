@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/local_ai/local_medical_ai.dart';
+import 'package:sehatak/core/services/local_ai/smart_health_knowledge.dart';
 
 class AiChatbotScreen extends StatefulWidget {
   const AiChatbotScreen({super.key});
@@ -10,150 +11,116 @@ class AiChatbotScreen extends StatefulWidget {
 }
 
 class _AiChatbotScreenState extends State<AiChatbotScreen> {
-  final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ChatBot _chatBot = ChatBot();
   final List<Map<String, dynamic>> _messages = [];
-  bool _isLoading = false;
-  bool _showQuickQuestions = true;
+  bool _loading = false;
 
-  // ✅ الأسئلة الافتراضية الجاهزة
-  final List<Map<String, dynamic>> _quickQuestions = [
-    {
-      'icon': '💊',
-      'title': 'معلومات عن الدواء',
-      'question': 'ما هي استخدامات الباراسيتامول؟',
-      'color': Colors.blue,
-    },
-    {
-      'icon': '🩺',
-      'title': 'تحليل الأعراض',
-      'question': 'ما هي أعراض الأنفلونزا؟',
-      'color': Colors.green,
-    },
-    {
-      'icon': '🚑',
-      'title': 'الإسعافات الأولية',
-      'question': 'كيف أتعامل مع الحروق؟',
-      'color': Colors.red,
-    },
-    {
-      'icon': '💡',
-      'title': 'نصائح صحية',
-      'question': 'كيف أحافظ على صحة قلبي؟',
-      'color': Colors.orange,
-    },
-    {
-      'icon': '😷',
-      'title': 'الوقاية من الأمراض',
-      'question': 'كيف أقوي مناعتي؟',
-      'color': Colors.purple,
-    },
-    {
-      'icon': '🧠',
-      'title': 'الصحة النفسية',
-      'question': 'كيف أتخلص من التوتر والقلق؟',
-      'color': Colors.indigo,
-    },
-    {
-      'icon': '🥗',
-      'title': 'التغذية الصحية',
-      'question': 'ما هي الأطعمة المفيدة للصحة؟',
-      'color': Colors.teal,
-    },
-    {
-      'icon': '💤',
-      'title': 'النوم الصحي',
-      'question': 'كم ساعة نوم يحتاجها الجسم؟',
-      'color': Colors.pink,
-    },
+  static const _quick = <Map<String, String>>[
+    {'title': 'أعراضي', 'prompt': 'أريد المساعدة في فهم أعراضي'},
+    {'title': 'دواء', 'prompt': 'أريد معلومات عن دواء'},
+    {'title': 'طبيب', 'prompt': 'أريد معرفة كيف أجد طبيباً مناسباً'},
+    {'title': 'تحاليل', 'prompt': 'أين أجد التحاليل ونتائج الفحوصات؟'},
+    {'title': 'طوارئ', 'prompt': 'ماذا أفعل إذا كانت حالتي طارئة؟'},
+    {'title': 'خدمات التطبيق', 'prompt': 'ما الخدمات التي يمكن أن توجهني إليها؟'},
   ];
 
   @override
   void initState() {
     super.initState();
-    _addWelcomeMessage();
-  }
-
-  void _addWelcomeMessage() {
     _messages.add({
-      'text': 'مرحباً! 👋\nأنا المساعد الصحي الذكي.\n\nيمكنني مساعدتك في:\n• 💊 معلومات عن الأدوية\n• 🩺 تحليل الأعراض\n• 🚑 الإسعافات الأولية\n• 💡 نصائح صحية\n\nكيف يمكنني مساعدتك اليوم؟',
-      'isUser': false,
-      'timestamp': DateTime.now(),
+      'text': 'مرحباً 👋\nأنا المساعد الصحي الذكي في صحتك.\n\nأستطيع شرح المعلومات الصحية العامة، مساعدتك في فهم الأعراض، إعطائك إرشادات أولية، والأهم: توجيهك إلى خدمة التطبيق المناسبة بدل أن تبحث عنها بنفسك.\n\nقل مثلاً: «أريد طبيب قلب» أو «أين نتائج تحاليلي؟» وسأخبرك بما يمكنك فعله داخل التطبيق.',
+      'user': false,
+      'time': DateTime.now(),
     });
   }
 
-  void _sendQuickQuestion(String question) {
-    _messageController.text = question;
-    _sendMessage();
-  }
-
-  void _sendMessage() async {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
-
+  Future<void> _send(String value) async {
+    final text = value.trim();
+    if (text.isEmpty || _loading) return;
     setState(() {
-      _messages.add({
-        'text': text,
-        'isUser': true,
-        'timestamp': DateTime.now(),
-      });
-      _messageController.clear();
-      _isLoading = true;
-      _showQuickQuestions = false;
+      _messages.add({'text': text, 'user': true, 'time': DateTime.now()});
+      _controller.clear();
+      _loading = true;
     });
-    _scrollToBottom();
+    _scroll();
 
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    final service = SmartHealthKnowledge.findService(text);
+    Map<String, dynamic> result;
+    try {
+      result = _chatBot.respond(text);
+    } catch (_) {
+      result = {'response': 'لم أتمكن من تحليل السؤال حالياً. جرّب صياغته بطريقة أخرى.', 'type': 'fallback'};
+    }
 
-    final response = _chatBot.respond(text);
-    final reply = response['response'] as String;
+    var reply = (result['response'] ?? 'لم أجد إجابة مناسبة.').toString();
+    if (service != null) {
+      reply = '$reply\n\n📍 داخل صحتك\n${service['help']}\n\nاضغط «فتح الخدمة» للانتقال إليها مباشرة.';
+    } else if (_contains(text, ['كيف استخدم', 'كيف أستخدم', 'كيف اصل', 'كيف اوصل', 'كيف أجد', 'خدمات التطبيق'])) {
+      reply = 'أستطيع توجيهك داخل التطبيق حسب طلبك. مثال:\n• «أريد طبيباً» ← الأطباء\n• «أريد دواء» ← الصيدلية\n• «أريد تحليل» ← المختبرات\n• «أريد متابعة صحتي» ← صحتي\n• «أريد استشارة» ← الاستشارات\n• «أحتاج طوارئ» ← الطوارئ\n• «أريد أقرب منشأة» ← الخريطة\n\nاكتب ما تحتاجه بلغتك الطبيعية وسأحدد لك المسار المناسب.';
+    }
 
     setState(() {
       _messages.add({
         'text': reply,
-        'isUser': false,
-        'timestamp': DateTime.now(),
-        'type': response['type'] as String?,
+        'user': false,
+        'time': DateTime.now(),
+        'service': service,
+        'type': result['type'],
       });
-      _isLoading = false;
+      _loading = false;
     });
-    _scrollToBottom();
+    _scroll();
   }
 
-  void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 200), () {
+  bool _contains(String text, List<String> values) {
+    final normalized = text.toLowerCase();
+    return values.any(normalized.contains);
+  }
+
+  void _scroll() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
       }
     });
   }
 
-  void _clearChat() {
-    showDialog(
+  Future<void> _openService(Map<String, dynamic> service) async {
+    final route = service['route']?.toString();
+    if (route == null || route.isEmpty) return;
+    try {
+      await Navigator.of(context).pushNamed(route);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('الخدمة «${service['title']}» موجودة في التطبيق، لكن مسارها غير متاح من هذه الشاشة حالياً.')),
+      );
+    }
+  }
+
+  void _clear() {
+    showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('مسح المحادثة'),
-        content: const Text('هل أنت متأكد من مسح جميع الرسائل؟'),
+        content: const Text('هل تريد مسح المحادثة الحالية؟'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
           TextButton(
             onPressed: () {
+              Navigator.pop(dialogContext);
               setState(() {
                 _messages.clear();
-                _addWelcomeMessage();
-                _showQuickQuestions = true;
+                _messages.add({'text': 'تم بدء محادثة جديدة. كيف أساعدك؟', 'user': false, 'time': DateTime.now()});
               });
-              Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('مسح'),
           ),
         ],
@@ -162,426 +129,159 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
       appBar: AppBar(
-        title: Row(
-          children: [
-            // ✅ أيقونة المساعد الصحي
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/images/services/ai_assistant.png',
-                width: 32,
-                height: 32,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.smart_toy,
-                      color: AppColors.primary,
-                      size: 20,
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'المساعد الصحي',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'متصل',
-                style: TextStyle(
-                  fontSize: 8,
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: _clearChat,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // ✅ الأسئلة الافتراضية السريعة
-          if (_showQuickQuestions && _messages.length <= 1)
-            _buildQuickQuestions(isDark),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length + (_isLoading ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isLoading) {
-                  return _buildTypingIndicator(isDark);
-                }
-                return _buildMessage(_messages[index], isDark);
-              },
-            ),
-          ),
-          _buildInputBar(isDark),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // 📝 الأسئلة الافتراضية السريعة
-  // ============================================================
-  Widget _buildQuickQuestions(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              '📌 اسألني عن:',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _quickQuestions.length,
-              itemBuilder: (context, index) {
-                final q = _quickQuestions[index];
-                return GestureDetector(
-                  onTap: () => _sendQuickQuestion(q['question'] as String),
-                  child: Container(
-                    width: 110,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          q['icon'] as String,
-                          style: const TextStyle(fontSize: 24),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          q['title'] as String,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // 💬 رسالة
-  // ============================================================
-  Widget _buildMessage(Map<String, dynamic> message, bool isDark) {
-    final isUser = message['isUser'] as bool;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        top: 8,
-        bottom: 8,
-        left: isUser ? 48 : 8,
-        right: isUser ? 8 : 48,
-      ),
-      child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isUser)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                'assets/images/services/ai_assistant.png',
-                width: 32,
-                height: 32,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppColors.primary.withOpacity(0.1),
-                    child: const Icon(
-                      Icons.smart_toy,
-                      color: AppColors.primary,
-                      size: 18,
-                    ),
-                  );
-                },
-              ),
-            ),
-          if (!isUser) const SizedBox(width: 8),
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isUser
-                    ? AppColors.primary
-                    : (isDark ? const Color(0xFF1A2540) : Colors.white),
-                borderRadius: BorderRadius.circular(16).copyWith(
-                  bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(16),
-                  bottomLeft: isUser ? const Radius.circular(16) : const Radius.circular(4),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    message['text'] as String,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isUser ? Colors.white : (isDark ? Colors.white : Colors.black87),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatTime(message['timestamp'] as DateTime),
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: isUser ? Colors.white70 : (isDark ? Colors.grey[500] : Colors.grey[400]),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (isUser) const SizedBox(width: 8),
-          if (isUser)
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              child: const Icon(
-                Icons.person,
-                color: AppColors.primary,
-                size: 18,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // ✏️ مؤشر الكتابة
-  // ============================================================
-  Widget _buildTypingIndicator(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.asset(
-              'assets/images/services/ai_assistant.png',
-              width: 32,
-              height: 32,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return CircleAvatar(
-                  radius: 16,
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
-                  child: const Icon(
-                    Icons.smart_toy,
-                    color: AppColors.primary,
-                    size: 18,
-                  ),
-                );
-              },
-            ),
-          ),
+        title: Row(children: [
+          Image.asset('assets/images/services/ai_assistant.png', width: 34, height: 34, fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_outlined)),
           const SizedBox(width: 8),
+          const Expanded(child: Text('المساعد الصحي الذكي', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold))),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildDot(isDark, 0),
-                const SizedBox(width: 4),
-                _buildDot(isDark, 300),
-                const SizedBox(width: 4),
-                _buildDot(isDark, 600),
-              ],
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(10)),
+            child: const Text('صحتك', style: TextStyle(fontSize: 9)),
           ),
-        ],
+        ]),
+        actions: [IconButton(onPressed: _clear, icon: const Icon(Icons.delete_outline))],
       ),
-    );
-  }
-
-  Widget _buildDot(bool isDark, int delay) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0.3, end: 1.0),
-      duration: Duration(milliseconds: 600 + delay),
-      curve: Curves.easeInOut,
-      builder: (context, value, child) {
-        return Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(value),
-            shape: BoxShape.circle,
+      body: Column(children: [
+        _buildServiceHub(dark),
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            itemCount: _messages.length + (_loading ? 1 : 0),
+            itemBuilder: (_, index) {
+              if (index == _messages.length) return _typing(dark);
+              return _message(_messages[index], dark);
+            },
           ),
-        );
-      },
+        ),
+        _input(dark),
+      ]),
     );
   }
 
-  // ============================================================
-  // 📥 شريط الإدخال
-  // ============================================================
-  Widget _buildInputBar(bool isDark) {
+  Widget _buildServiceHub(bool dark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0B1121) : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // ✅ أيقونة المساعد الصحي في شريط الإدخال
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              'assets/images/services/ai_assistant.png',
-              width: 28,
-              height: 28,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.smart_toy,
-                    color: AppColors.primary,
-                    size: 18,
-                  ),
-                );
-              },
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+      decoration: BoxDecoration(color: dark ? const Color(0xFF111A2D) : Colors.white, boxShadow: const [BoxShadow(blurRadius: 5, color: Color(0x11000000))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('كيف أساعدك اليوم؟', style: TextStyle(fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 38,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _quick.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 6),
+            itemBuilder: (_, i) => ActionChip(
+              avatar: const Icon(Icons.auto_awesome, size: 15),
+              label: Text(_quick[i]['title']!),
+              onPressed: () => _send(_quick[i]['prompt']!),
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: TextField(
-                controller: _messageController,
-                onSubmitted: (_) => _sendMessage(),
-                decoration: const InputDecoration(
-                  hintText: 'اكتب رسالتك...',
-                  border: InputBorder.none,
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 70,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: SmartHealthKnowledge.services.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 6),
+            itemBuilder: (_, i) {
+              final s = SmartHealthKnowledge.services[i];
+              return InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _openService(s),
+                child: Container(
+                  width: 92,
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : const Color(0xFFF3F8F7), borderRadius: BorderRadius.circular(12)),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(s['icon'] as IconData, color: AppColors.primary, size: 23),
+                    const SizedBox(height: 3),
+                    Text(s['title'] as String, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+                  ]),
                 ),
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-            ),
+              );
+            },
           ),
-          const SizedBox(width: 8),
-          Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.primaryDark],
+        ),
+      ]),
+    );
+  }
+
+  Widget _message(Map<String, dynamic> message, bool dark) {
+    final user = message['user'] == true;
+    final service = message['service'] as Map<String, dynamic>?;
+    return Align(
+      alignment: user ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 355),
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: user ? AppColors.primary : (dark ? const Color(0xFF1A2540) : Colors.white),
+          borderRadius: BorderRadius.circular(17).copyWith(bottomRight: user ? const Radius.circular(4) : null, bottomLeft: user ? null : const Radius.circular(4)),
+          boxShadow: user ? null : const [BoxShadow(blurRadius: 3, color: Color(0x10000000))],
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(message['text']?.toString() ?? '', style: TextStyle(color: user ? Colors.white : (dark ? Colors.white : Colors.black87), height: 1.5, fontSize: 14)),
+          if (!user && service != null) ...[
+            const SizedBox(height: 9),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => _openService(service),
+                icon: const Icon(Icons.open_in_new, size: 17),
+                label: Text('فتح ${service['title']}'),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(0, 40)),
               ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
-            child: IconButton(
-              icon: const Icon(
-                Icons.send,
-                color: Colors.white,
-              ),
-              onPressed: _sendMessage,
-              iconSize: 20,
-            ),
-          ),
-        ],
+          ],
+          const SizedBox(height: 3),
+          Text(_time(message['time'] as DateTime), style: TextStyle(fontSize: 9, color: user ? Colors.white70 : Colors.grey)),
+        ]),
       ),
     );
   }
 
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  Widget _typing(bool dark) => Align(alignment: AlignmentDirectional.centerStart, child: Container(margin: const EdgeInsets.all(8), padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10), decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16)), child: const Text('المساعد يكتب…')));
+
+  Widget _input(bool dark) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
+        decoration: BoxDecoration(color: dark ? const Color(0xFF111A2D) : Colors.white, boxShadow: const [BoxShadow(blurRadius: 6, color: Color(0x12000000))]),
+        child: Row(children: [
+          Expanded(child: TextField(
+            controller: _controller,
+            textDirection: TextDirection.rtl,
+            textInputAction: TextInputAction.send,
+            onSubmitted: _send,
+            decoration: InputDecoration(hintText: 'اكتب سؤالك أو الخدمة التي تريدها…', filled: true, fillColor: dark ? const Color(0xFF1A2540) : const Color(0xFFF3F5F6), border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11)),
+          )),
+          const SizedBox(width: 7),
+          IconButton.filled(onPressed: _loading ? null : () => _send(_controller.text), icon: const Icon(Icons.send_rounded)),
+        ]),
+      ),
+    );
   }
+
+  String _time(DateTime time) => '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 }
