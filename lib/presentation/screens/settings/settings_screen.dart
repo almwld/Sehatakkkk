@@ -11,11 +11,12 @@ import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/profile/profile_screen.dart';
-import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/settings/notification_settings_screen.dart';
 import 'package:sehatak/presentation/screens/settings/change_password_screen.dart';
 import 'package:sehatak/presentation/screens/settings/language_screen.dart';
 import 'package:sehatak/presentation/screens/settings/privacy_screen.dart';
 import 'package:sehatak/presentation/screens/settings/location_selection_screen.dart';
+import 'package:sehatak/presentation/screens/settings/security_settings_screen.dart';
 import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/settings/help_screen.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -109,7 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _arrow(bool dark, {Color? color}) => Padding(
     padding: const EdgeInsetsDirectional.only(start: 8),
-    child: Text('‹', style: TextStyle(fontSize: 28, height: 1, color: color ?? (dark ? Colors.grey.shade500 : Colors.grey.shade500))),
+    child: Text('‹', style: TextStyle(fontSize: 28, height: 1, color: color ?? Colors.grey.shade500)),
   );
 
   @override
@@ -163,15 +164,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ])),
           const SizedBox(height: 16),
-          if (_isBiometricSupported) ...[
-            _section('الأمان', isDark),
-            _card(isDark, Column(children: [
-              _switchTile(AppImages.uiUserProfile, 'تسجيل الدخول بالبصمة', _isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع', isDark, _isBiometricEnabled, _toggleBiometric),
+          _section('الأمان', isDark),
+          _card(isDark, Column(children: [
+            if (_isBiometricSupported) ...[
+              _switchTile(
+                AppImages.uiUserProfile,
+                'تسجيل الدخول بالبصمة',
+                _isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع',
+                isDark,
+                _isBiometricEnabled,
+                _toggleBiometric,
+              ),
               _divider(isDark),
-              _listTileAsset(AppImages.uiSettingsGear, 'المصادقة الثنائية', 'تفعيل المصادقة الثنائية لمزيد من الأمان', isDark, () => ToastService.showSuccess('سيتم تفعيل المصادقة الثنائية قريباً')),
-            ])),
-            const SizedBox(height: 16),
-          ],
+            ],
+            _listTileAsset(
+              AppImages.uiSettingsGear,
+              'الأمان والأجهزة',
+              'إدارة الجلسات وتسجيل الخروج وحذف الحساب',
+              isDark,
+              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SecuritySettingsScreen())),
+            ),
+          ])),
+          const SizedBox(height: 16),
           _section('حجم الخط', isDark),
           _card(isDark, Padding(
             padding: const EdgeInsets.all(16),
@@ -202,7 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _divider(isDark),
             _listTileAsset(AppImages.uiSettingsGear, 'تغيير كلمة المرور', 'تحديث كلمة المرور الخاصة بك', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()))),
             _divider(isDark),
-            _listTileAsset(AppImages.notificationsIcon, 'الإشعارات', 'إدارة إعدادات الإشعارات', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
+            _listTileAsset(AppImages.notificationsIcon, 'الإشعارات', 'إدارة الإشعارات الفورية والأنواع والتفضيلات', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()))),
           ])),
           const SizedBox(height: 16),
           _section('التطبيق', isDark),
