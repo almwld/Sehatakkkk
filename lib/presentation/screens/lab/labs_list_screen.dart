@@ -17,8 +17,7 @@ class LabsListScreen extends StatefulWidget {
   State<LabsListScreen> createState() => _LabsListScreenState();
 }
 
-class _LabsListScreenState extends State<LabsListScreen>
-    with SingleTickerProviderStateMixin {
+class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProviderStateMixin {
   final _firestore = FirebaseFirestore.instance;
   final _searchController = TextEditingController();
   final _labService = LabService();
@@ -37,11 +36,17 @@ class _LabsListScreenState extends State<LabsListScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_tabChanged);
     _loadLabs();
+  }
+
+  void _tabChanged() {
+    if (!_tabController.indexIsChanging && mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_tabChanged);
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -62,16 +67,10 @@ class _LabsListScreenState extends State<LabsListScreen>
           .toList();
       labs.sort((a, b) => _number(b['rating']).compareTo(_number(a['rating'])));
       if (!mounted) return;
-      setState(() {
-        _labs = labs;
-        _isLoading = false;
-      });
+      setState(() { _labs = labs; _isLoading = false; });
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _labs = [];
-        _isLoading = false;
-      });
+      setState(() { _labs = []; _isLoading = false; });
       _showMessage('تعذر تحميل المختبرات. تحقق من الاتصال وحاول مرة أخرى.');
     }
   }
@@ -107,6 +106,7 @@ class _LabsListScreenState extends State<LabsListScreen>
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final bookingsSelected = _tabController.index == 3;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -116,34 +116,24 @@ class _LabsListScreenState extends State<LabsListScreen>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: const [
-            Tab(text: 'المختبرات'),
-            Tab(text: 'الأفضل'),
-            Tab(text: 'سحب منزلي'),
-            Tab(text: 'حجوزاتي'),
-          ],
+          tabs: const [Tab(text: 'المختبرات'), Tab(text: 'الأفضل'), Tab(text: 'سحب منزلي'), Tab(text: 'حجوزاتي')],
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
         ),
       ),
-      body: _tabController.index == 3
+      body: bookingsSelected
           ? _bookingsView(dark)
           : Column(
               children: [
                 _searchBar(dark),
                 _categoriesBar(dark),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _labsView(_filtered(), dark),
-                      _labsView(_filtered(top: true), dark),
-                      _labsView(_filtered(home: true), dark),
-                      _bookingsView(dark),
-                    ],
-                  ),
-                ),
+                Expanded(child: TabBarView(controller: _tabController, children: [
+                  _labsView(_filtered(), dark),
+                  _labsView(_filtered(top: true), dark),
+                  _labsView(_filtered(home: true), dark),
+                  _bookingsView(dark),
+                ])),
               ],
             ),
     );
@@ -158,15 +148,7 @@ class _LabsListScreenState extends State<LabsListScreen>
           decoration: InputDecoration(
             hintText: 'ابحث عن مختبر، تخصص، أو فحص...',
             prefixIcon: const Icon(Icons.search),
-            suffixIcon: _searchQuery.isEmpty
-                ? null
-                : IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() => _searchQuery = '');
-                    },
-                  ),
+            suffixIcon: _searchQuery.isEmpty ? null : IconButton(icon: const Icon(Icons.clear), onPressed: () { _searchController.clear(); setState(() => _searchQuery = ''); }),
             filled: true,
             fillColor: dark ? const Color(0xFF1A2540) : Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none),
@@ -183,13 +165,7 @@ class _LabsListScreenState extends State<LabsListScreen>
           itemBuilder: (_, index) {
             final category = _categories[index];
             final selected = _selectedCategory == category;
-            return ChoiceChip(
-              label: Text(category),
-              selected: selected,
-              onSelected: (_) => setState(() => _selectedCategory = category),
-              selectedColor: AppColors.primary,
-              labelStyle: TextStyle(color: selected ? Colors.white : (dark ? Colors.white : Colors.black87)),
-            );
+            return ChoiceChip(label: Text(category), selected: selected, onSelected: (_) => setState(() => _selectedCategory = category), selectedColor: AppColors.primary, labelStyle: TextStyle(color: selected ? Colors.white : (dark ? Colors.white : Colors.black87)));
           },
           separatorBuilder: (_, __) => const SizedBox(width: 8),
         ),
@@ -198,20 +174,9 @@ class _LabsListScreenState extends State<LabsListScreen>
   Widget _labsView(List<Map<String, dynamic>> labs, bool dark) {
     if (_isLoading) return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     if (labs.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: _loadLabs,
-        child: ListView(children: [SizedBox(height: 220), Center(child: Text(_labs.isEmpty ? 'لا توجد مختبرات مسجلة حاليًا.' : 'لا توجد نتائج مطابقة للبحث.', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700])))],
-      );
+      return RefreshIndicator(onRefresh: _loadLabs, child: ListView(children: [const SizedBox(height: 220), Center(child: Text(_labs.isEmpty ? 'لا توجد مختبرات مسجلة حاليًا.' : 'لا توجد نتائج مطابقة للبحث.', style: TextStyle(color: Colors.grey)))]));
     }
-    return RefreshIndicator(
-      onRefresh: _loadLabs,
-      child: ListView.builder(
-        controller: widget.scrollController,
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
-        itemCount: labs.length,
-        itemBuilder: (_, index) => _labCard(labs[index], dark),
-      ),
-    );
+    return RefreshIndicator(onRefresh: _loadLabs, child: ListView.builder(controller: widget.scrollController, padding: const EdgeInsets.fromLTRB(12, 4, 12, 24), itemCount: labs.length, itemBuilder: (_, index) => _labCard(labs[index], dark)));
   }
 
   Widget _labCard(Map<String, dynamic> lab, bool dark) {
@@ -226,25 +191,17 @@ class _LabsListScreenState extends State<LabsListScreen>
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LabDetailScreen(labId: _string(lab['id'])))),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(children: [
-            SizedBox(width: 82, height: 82, child: ClipRRect(borderRadius: BorderRadius.circular(14), child: image.isNotEmpty ? AppImage(imageUrl: image, fit: BoxFit.cover) : Container(color: AppColors.primary.withOpacity(.1), child: const Icon(Icons.science, color: AppColors.primary, size: 36)))),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [Expanded(child: Text(_string(lab['name']), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87))), if (lab['isVerified'] == true) const Icon(Icons.verified, size: 19, color: AppColors.primary)]),
-              const SizedBox(height: 4),
-              Text(_string(lab['address'] ?? lab['location'] ?? 'العنوان غير متوفر'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])),
-              const SizedBox(height: 6),
-              Wrap(spacing: 6, runSpacing: 4, children: [
-                _badge('${_number(lab['rating']).toStringAsFixed(1)} ★', AppColors.primary),
-                _badge(open ? 'مفتوح' : 'مغلق', open ? Colors.green : Colors.grey),
-                if (home) _badge('سحب منزلي', AppColors.primary),
-                if (tests.isNotEmpty) _badge('${tests.length} فحص', AppColors.primary),
-              ]),
-            ])),
-          ]),
-        ),
+        child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
+          SizedBox(width: 82, height: 82, child: ClipRRect(borderRadius: BorderRadius.circular(14), child: image.isNotEmpty ? AppImage(imageUrl: image, fit: BoxFit.cover) : Container(color: AppColors.primary.withOpacity(.1), child: const Icon(Icons.science, color: AppColors.primary, size: 36)))),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [Expanded(child: Text(_string(lab['name']), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87))), if (lab['isVerified'] == true) const Icon(Icons.verified, size: 19, color: AppColors.primary)]),
+            const SizedBox(height: 4),
+            Text(_string(lab['address'] ?? lab['location'] ?? 'العنوان غير متوفر'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])),
+            const SizedBox(height: 6),
+            Wrap(spacing: 6, runSpacing: 4, children: [_badge('${_number(lab['rating']).toStringAsFixed(1)} ★', AppColors.primary), _badge(open ? 'مفتوح' : 'مغلق', open ? Colors.green : Colors.grey), if (home) _badge('سحب منزلي', AppColors.primary), if (tests.isNotEmpty) _badge('${tests.length} فحص', AppColors.primary)]),
+          ])),
+        ])),
       ),
     );
   }
@@ -253,9 +210,7 @@ class _LabsListScreenState extends State<LabsListScreen>
 
   Widget _bookingsView(bool dark) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.login, size: 52, color: AppColors.primary), const SizedBox(height: 12), const Text('سجّل الدخول لمتابعة حجوزاتك ونتائجك.') ]));
-    }
+    if (user == null) return const Center(child: Text('سجّل الدخول لمتابعة حجوزاتك ونتائجك.'));
     return StreamBuilder<List<LabBookingModel>>(
       stream: _labService.getPatientBookings(user.uid),
       builder: (context, snapshot) {
@@ -263,27 +218,21 @@ class _LabsListScreenState extends State<LabsListScreen>
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: AppColors.primary));
         final bookings = snapshot.data!;
         if (bookings.isEmpty) return Center(child: Text('لا توجد حجوزات مختبرات حتى الآن.', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700])));
-        return ListView.separated(
-          padding: const EdgeInsets.all(12),
-          itemCount: bookings.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (_, index) => _bookingCard(bookings[index], dark),
-        );
+        return ListView.separated(padding: const EdgeInsets.all(12), itemCount: bookings.length, separatorBuilder: (_, __) => const SizedBox(height: 10), itemBuilder: (_, index) => _bookingCard(bookings[index], dark));
       },
     );
   }
 
   Widget _bookingCard(LabBookingModel booking, bool dark) {
     final completed = booking.status == LabBookingStatus.completed;
-    final status = _statusLabel(booking.status);
     return Card(
       color: dark ? const Color(0xFF1A2540) : Colors.white,
       child: ListTile(
         contentPadding: const EdgeInsets.all(14),
         leading: CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.1), child: Icon(completed ? Icons.assignment_turned_in : Icons.science, color: AppColors.primary)),
         title: Text(booking.labName, style: TextStyle(fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
-        subtitle: Padding(padding: const EdgeInsets.only(top: 6), child: Text('$status • ${booking.tests.length} فحص • ${booking.totalPrice.toStringAsFixed(0)} ر.ي', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700]))),
-        trailing: completed && booking.results != null ? TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LabResultsScreen(labId: booking.labId))), child: const Text('النتائج')) : const Icon(Icons.chevron_left),
+        subtitle: Padding(padding: const EdgeInsets.only(top: 6), child: Text('${_statusLabel(booking.status)} • ${booking.tests.length} فحص • ${booking.totalPrice.toStringAsFixed(0)} ر.ي', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700]))),
+        trailing: completed && booking.results != null ? TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LabResultsScreen(bookingId: booking.id))), child: const Text('النتائج')) : const Icon(Icons.chevron_left),
       ),
     );
   }
