@@ -24,7 +24,7 @@ class _HealthDashboardState extends State<HealthDashboard>
   // ✅ المؤشرات الصحية - أيقونات مكبرة بدون حاويات
   final List<Map<String, dynamic>> _healthMetrics = [
     {
-      'icon': 'assets/images/tracking/heart_rate.png',
+      'icon': 'assets/images/ui/doctor_avatar.png',
       'label': 'نبض القلب',
       'value': '72',
       'unit': 'نبضة/دقيقة',
@@ -449,13 +449,6 @@ class _HealthDashboardState extends State<HealthDashboard>
                         color: _getScoreColor(_healthScore),
                       ),
                     ),
-                    Text(
-                      'من 100',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
                   ],
                 ),
               ],
@@ -466,13 +459,34 @@ class _HealthDashboardState extends State<HealthDashboard>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _getScoreStatus(_healthScore),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: _getScoreColor(_healthScore),
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      _getScoreStatus(_healthScore),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _getScoreColor(_healthScore),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${_healthScore.toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: _getScoreColor(_healthScore),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'من 100',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -531,7 +545,7 @@ class _HealthDashboardState extends State<HealthDashboard>
           ),
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: () => _showAllSection(context, title, isDark),
           child: const Text(
             'عرض الكل',
             style: TextStyle(
@@ -541,6 +555,88 @@ class _HealthDashboardState extends State<HealthDashboard>
           ),
         ),
       ],
+    );
+  }
+
+  void _showAllSection(BuildContext context, String title, bool isDark) {
+    final isMetrics = title == 'المؤشرات الحيوية';
+    final items = isMetrics ? _healthMetrics : _healthTips;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 42,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[600] : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, index) {
+                      final item = items[index];
+                      final color = item['color'] as Color;
+                      return ListTile(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        tileColor: color.withOpacity(0.06),
+                        leading: _buildIcon(item['icon'] as String, size: 42, color: color),
+                        title: Text(
+                          (item['label'] ?? item['title']) as String,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        subtitle: Text(
+                          isMetrics
+                              ? '${item['value']} ${item['unit']} • ${item['status']}'
+                              : '${item['subtitle']} • ${item['target']}',
+                          style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
