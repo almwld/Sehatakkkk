@@ -19,7 +19,6 @@ class SleepTrackerScreen extends StatefulWidget {
 class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
   final SleepTrackerService _service = SleepTrackerService();
 
-  // OK بيانات النوم
   double _lastNightSleep = 7.5;
   double _sleepQuality = 7.0;
   String _sleepQualityText = 'جيد';
@@ -30,7 +29,6 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
   double _bestQuality = 0.0;
   int _totalSessions = 0;
 
-  // OK حالة التتبع
   bool _isTracking = false;
   DateTime? _trackingStartTime;
   Timer? _trackingTimer;
@@ -137,7 +135,6 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
       setState(() {});
     });
 
-    // OK بدء التتبع في الخلفية
     await _service.startTracking();
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -156,7 +153,6 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
       _isTracking = false;
     });
 
-    // OK إيقاف التتبع وجلب النتائج
     final result = await _service.stopTracking();
 
     await _loadData();
@@ -276,9 +272,6 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ============================================================
-            // 💤 بطاقة النوم
-            // ============================================================
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -380,9 +373,6 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
 
             const SizedBox(height: 16),
 
-            // ============================================================
-            // 🔘 أزرار التحكم
-            // ============================================================
             Row(
               children: [
                 Expanded(
@@ -404,7 +394,13 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: _showStatsDialog,
-                    icon: const Icon(Icons.analytics),
+                    icon: Image.asset(
+                      'assets/icons/health/sleep/sleep_report.png',
+                      width: 24,
+                      height: 24,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.analytics),
+                    ),
                     label: const Text('الإحصائيات'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple,
@@ -421,14 +417,23 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
 
             const SizedBox(height: 16),
 
-            // ============================================================
-            // Stats الإحصائيات السريعة
-            // ============================================================
             Row(
               children: [
-                _statCard('المتوسط', '${_avg.toStringAsFixed(1)} س', Icons.bed, Colors.blue),
+                _statCard('المتوسط', '${_avg.toStringAsFixed(1)} س', Image.asset(
+                  'assets/icons/health/sleep/sleep_tracking.png',
+                  width: 20,
+                  height: 20,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.bed, color: Colors.blue, size: 20),
+                ), Colors.blue),
                 const SizedBox(width: 8),
-                _statCard('الجودة', '${_sleepQuality.toStringAsFixed(1)}/10', Icons.star, Colors.amber),
+                _statCard('الجودة', '${_sleepQuality.toStringAsFixed(1)}/10', Image.asset(
+                  'assets/icons/health/sleep/sleep_quality.png',
+                  width: 20,
+                  height: 20,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.star, color: Colors.amber, size: 20),
+                ), Colors.amber),
                 const SizedBox(width: 8),
                 _statCard('الجلسات', '$_totalSessions', Icons.history, Colors.green),
               ],
@@ -436,9 +441,6 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
 
             const SizedBox(height: 16),
 
-            // ============================================================
-            // 📈 الرسم البياني الأسبوعي
-            // ============================================================
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -513,9 +515,6 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
 
             const SizedBox(height: 16),
 
-            // ============================================================
-            // Tip نصائح
-            // ============================================================
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -553,7 +552,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
     );
   }
 
-  Widget _statCard(String label, String value, IconData icon, Color color) {
+  Widget _statCard(String label, String value, Widget icon, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -569,7 +568,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 20),
+            icon,
             const SizedBox(height: 4),
             Text(
               value,
