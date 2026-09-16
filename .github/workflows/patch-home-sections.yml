@@ -1,5 +1,6 @@
 name: Patch Home Sections
 
+# Final local-icon patch is intentionally idempotent and CI-visible.
 on:
   push:
     paths:
@@ -31,25 +32,15 @@ jobs:
                   p.write_text(updated, encoding='utf-8')
                   print(f'patched {path}')
 
-          # Home Discover More: use the actual assets/images/services directory.
           for name in ('calendar_booking', 'emergency', 'map_location', 'packages'):
               replace('lib/presentation/screens/home/tabs/home_tab.dart', f'assets/icons/services/{name}.png', f'assets/images/services/{name}.png')
-
-          # Chat AI assistant.
           replace('lib/presentation/screens/chat/chat_screen.dart', "leading: const CircleAvatar(backgroundColor: AppColors.primary, child: Icon(Icons.smart_toy_outlined, color: Colors.white)),", "leading: Padding(padding: const EdgeInsetsDirectional.only(start: 4), child: Image.asset('assets/images/services/ai_assistant.png', width: 42, height: 42, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_outlined, color: AppColors.primary, size: 30))),")
-
-          # Patient dashboard pharmacy.
           replace('lib/presentation/screens/patient/patient_dashboard.dart', "'icon': 'assets/images/services/pharmacy.png', 'label': 'الصيدلية'", "'icon': 'assets/images/services/medications.png', 'label': 'الصيدلية'")
-
-          # More > Family Care > Pregnancy follow-up.
           replace('lib/presentation/screens/more/more_screen.dart', "'icon': 'assets/images/services/womens_health.png', 'title': 'متابعة الحمل'", "'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'متابعة الحمل'")
-
-          # About: real app icon + social artwork without color filters.
           replace('lib/presentation/screens/about/about_screen.dart', "'android/app/src/main/res/drawable/ic_launcher.xml'", "'assets/icons/app_icon.png'")
           replace('lib/presentation/screens/about/about_screen.dart', "                  color: Colors.white,\n", "")
           replace('lib/presentation/screens/about/about_screen.dart', "                          color: isDark ? Colors.white : AppColors.primary,\n", "")
 
-          # Settings: requested icons must display their original artwork.
           p = Path('lib/presentation/screens/settings/settings_screen.dart')
           text = p.read_text(encoding='utf-8')
           text = text.replace("Widget _localTileIcon(String path, {double size = 24}) => _localImage(path, size: size, color: AppColors.primary);", "Widget _localTileIcon(String path, {double size = 24, bool tint = true}) => _localImage(path, size: size, color: tint ? AppColors.primary : null);")
