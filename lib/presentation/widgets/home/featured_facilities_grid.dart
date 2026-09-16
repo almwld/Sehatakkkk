@@ -26,7 +26,6 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 18),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -35,7 +34,26 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
           TextButton(onPressed: () => _seeAll(context), child: const Text('عرض الكل', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700))),
         ])),
         const SizedBox(height: 8),
-        SizedBox(height: 200, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 16), itemCount: items.length, separatorBuilder: (_, __) => const SizedBox(width: 12), itemBuilder: (_, index) => SizedBox(width: 170, child: _FacilityCard(item: items[index], isHospital: isHospital, isDark: isDark)))),
+        if (items.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              width: double.infinity,
+              height: 92,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(children: [
+                Container(width: 46, height: 46, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), shape: BoxShape.circle), child: Icon(isHospital ? Icons.local_hospital_outlined : Icons.biotech_outlined, color: AppColors.primary, size: 25)),
+                const SizedBox(width: 12),
+                Expanded(child: Text('لا توجد بيانات متاحة حالياً', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12, fontWeight: FontWeight.w600))),
+              ]),
+            ),
+          )
+        else
+          SizedBox(height: 200, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 16), itemCount: items.length, separatorBuilder: (_, __) => const SizedBox(width: 12), itemBuilder: (_, index) => SizedBox(width: 170, child: _FacilityCard(item: items[index], isHospital: isHospital, isDark: isDark)))),
       ]),
     );
   }
