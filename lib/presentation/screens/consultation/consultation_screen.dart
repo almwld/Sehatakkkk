@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/chat_model.dart';
+import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
@@ -133,7 +134,7 @@ class _ConsultationScreenState extends State<ConsultationScreen>
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (_, i) {
             final c = calls[i];
-            final isVideo = c.isVideo.name == 'video';
+            final isVideo = c.callType == CallType.video;
             final missed = c.status.name == 'missed' ||
                 c.status.name == 'rejected' ||
                 c.status.name == 'busy';
