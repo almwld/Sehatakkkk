@@ -68,23 +68,31 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   void _startPolling() {
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
-      await _service.loadToday();
-      await _reload();
+      try {
+        await _service.loadToday();
+        await _reload();
+      } catch (e) {
+        debugPrint('Step tracking refresh error: $e');
+      }
     });
   }
 
   Future<void> _reload() async {
-    final stats = await _service.getStatistics();
-    final weekly = await _service.getWeeklySteps();
-    if (!mounted) return;
-    setState(() {
-      _steps = (stats['today_steps'] as num?)?.toInt() ?? 0;
-      _distance = (stats['today_distance'] as num?)?.toDouble() ?? 0;
-      _calories = (stats['today_calories'] as num?)?.toDouble() ?? 0;
-      _stepGoal = (stats['step_goal'] as num?)?.toInt() ?? 10000;
-      _speed = _service.speed;
-      _weeklyData = weekly;
-    });
+    try {
+      final stats = await _service.getStatistics();
+      final weekly = await _service.getWeeklySteps();
+      if (!mounted) return;
+      setState(() {
+        _steps = (stats['today_steps'] as num?)?.toInt() ?? 0;
+        _distance = (stats['today_distance'] as num?)?.toDouble() ?? 0;
+        _calories = (stats['today_calories'] as num?)?.toDouble() ?? 0;
+        _stepGoal = (stats['step_goal'] as num?)?.toInt() ?? 10000;
+        _speed = _service.speed;
+        _weeklyData = weekly;
+      });
+    } catch (e) {
+      debugPrint('Step tracking statistics error: $e');
+    }
   }
 
   double get _progress => _stepGoal > 0 ? (_steps / _stepGoal).clamp(0.0, 1.0) : 0;
