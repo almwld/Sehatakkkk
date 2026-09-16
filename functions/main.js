@@ -7,6 +7,7 @@ const pharmacyFunctions = require('./pharmacy_marketplace_functions');
 const catalogFunctions = require('./catalog_import_v2');
 const chatFunctions = require('./chat_notifications');
 const livekitFunctions = require('./livekit_functions');
+const subscriptionFunctions = require('./subscription_functions');
 
 Object.assign(
   exports,
@@ -17,4 +18,5 @@ Object.assign(
   catalogFunctions,
   chatFunctions,
   livekitFunctions,
+  subscriptionFunctions,
 );
