@@ -1,0 +1,30 @@
+name: Finish patient vitals links
+on:
+  push:
+    branches: [master]
+permissions:
+  contents: write
+jobs:
+  finish:
+    if: github.actor == 'almwld' || github.actor == 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render tracking vitals in patient dashboard
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('lib/presentation/screens/patient/patient_dashboard.dart')
+          s=p.read_text()
+          s=s.replace("itemCount: _vitals.length,", "itemCount: _vitals.length + _trackingVitals.length,")
+          s=s.replace("final vital = _vitals[index];", "final vital = index < _vitals.length ? _vitals[index] : _trackingVitals[index - _vitals.length];")
+          p.write_text(s)
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/presentation/screens/patient/patient_dashboard.dart
+          git rm -f .github/workflows/finish-patient-vitals.yml
+          git commit -m "fix(patient): render step sleep and pulse tracker indicators"
+          git push
