@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/routes/payment_routes.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
@@ -45,6 +47,45 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class AppRouter {
   static const String splash = '/splash', home = '/', auth = '/auth', doctors = '/doctors', doctorDetails = '/doctor/:id', pharmacy = '/pharmacy', labs = '/labs', hospitals = '/hospitals', chat = '/chat', more = '/more', dashboard = '/dashboard', profile = '/profile', appointments = '/appointments', notifications = '/notifications', cart = '/cart', wallet = '/wallet', map = '/map', consultation = '/consultation', services = '/services', emergency = '/emergency', bloodDonation = '/blood-donation', settings = '/settings', search = '/search', articles = '/articles', community = '/community', pharmacyDashboard = '/pharmacy-dashboard', marketplaceAdmin = '/marketplace-admin', chatRoom = '/chat-room', addStatus = '/chat/add-status', storyViewer = '/chat/story', sleepTracker = '/sleep-tracker', stepTracker = '/step-tracker', delivery = '/delivery', deliveryCompanies = '/delivery/companies', deliveryTracking = '/delivery/tracking';
 
+  static bool _backPressedOnce = false;
+  static Timer? _backExitTimer;
+
+  static Future<bool> _handleBack(BuildContext context) async {
+    final router = GoRouter.of(context);
+
+    // HomeScreen owns its tab-level back behavior and double-press handling.
+    if (router.location == home) return false;
+
+    // First close any imperatively pushed page/dialog on the root navigator.
+    final nav = navigatorKey.currentState;
+    if (nav?.canPop() == true) {
+      nav!.pop();
+      return true;
+    }
+
+    // Then pop the GoRouter page stack when a previous route exists.
+    if (router.canPop()) {
+      router.pop();
+      return true;
+    }
+
+    // We are at an application root: require two presses to exit.
+    if (_backPressedOnce) {
+      _backPressedOnce = false;
+      _backExitTimer?.cancel();
+      await SystemNavigator.pop();
+      return true;
+    }
+
+    _backPressedOnce = true;
+    ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');
+    _backExitTimer?.cancel();
+    _backExitTimer = Timer(const Duration(seconds: 2), () {
+      _backPressedOnce = false;
+    });
+    return true;
+  }
+
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: splash,
@@ -54,6 +95,10 @@ class AppRouter {
       if (state.matchedLocation == auth && loggedIn) return home;
       return null;
     },
+    navigatorBuilder: (context, state, child) => BackButtonListener(
+      onBackButtonPressed: () => _handleBack(context),
+      child: child,
+    ),
     routes: [
       GoRoute(path: splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: home, builder: (_, __) => const HomeScreen()),
