@@ -13,6 +13,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'firebase_options.dart';
 import 'core/providers/font_size_provider.dart';
 import 'core/providers/user_provider.dart';
@@ -44,7 +45,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final notificationService = NotificationService();
   await notificationService.initialize(startCallCoordinator: false);
   final type = message.data['type']?.toString();
-  if (type == 'incoming_call' && message.notification == null) {
+  if (type == 'incoming_call') {
     final callId = (message.data['callId'] ?? message.data['id'])?.toString();
     if (callId != null && callId.isNotEmpty) {
       await notificationService.showIncomingCallNotification(
@@ -55,14 +56,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
     return;
   }
-  // Data-only ordinary notifications must also create a visible local
-  // notification while the app is backgrounded/terminated.
-  if (type != null && type.isNotEmpty && message.notification == null) {
+  if (type != null && type.isNotEmpty) {
     await notificationService.showTypedNotification(
       type: type,
-      title: message.data['title']?.toString() ?? 'صحتك',
+      title: message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? 'صحتك',
       body: message.data['body']?.toString() ?? 'لديك إشعار جديد',
       data: Map<String, dynamic>.from(message.data),
+      payload: jsonEncode(<String, dynamic>{'type': type, 'data': Map<String, dynamic>.from(message.data)}),
     );
   }
 }
@@ -163,7 +163,18 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     if (_fcmStarted) return;
     _fcmStarted = true;
     try {
-      final settings = await FirebaseMessaging.instance.requestPermission(alert: true, badge: true, sound: true);
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        criticalAlert: true,
+        provisional: false,
+      );
+      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
       debugPrint('🔔 FCM permission: ${settings.authorizationStatus}');
     } catch (e) { debugPrint('❌ FCM permission error: $e'); }
     await _fcmTokenService.start();
@@ -238,14 +249,11 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     if (decoded != null) {
       final type = decoded!['type']?.toString();
       final data = decoded!['data'] is Map ? Map<String, dynamic>.from(decoded!['data']) : <String, dynamic>{};
-      if (type == 'new_message' || data['chatId'] != null) {
+      if (type == 'new_message' || type == 'chat_message' || data['chatId'] != null) {
         await _openChatFromNotification(data['chatId']?.toString() ?? '', data['senderId']?.toString(), data['senderName']?.toString());
         return;
       }
-      // Other notification families are intentionally left on their owning
-      // feature route until that route is confirmed in AppRouter; never push
-      // a guessed path and risk a broken navigation stack.
-      debugPrint('🔔 notification tap type=$type awaiting feature route');
+      await _routeNotificationType(type, data);
       return;
     }
     final chatId = payload;
@@ -275,17 +283,88 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   }
 
   Future<void> _handleMessageOpened(RemoteMessage message) async {
-    if (message.data['type'] == 'incoming_call') {
-      final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-      if (callId != null && callId.isNotEmpty) {
-        await _notificationService.cancelIncomingCallNotification(callId);
-        if (mounted) await _callService.handleIncomingCall(context, message);
+    try {
+      final type = message.data['type']?.toString();
+      if (type == 'incoming_call') {
+        final callId = (message.data['callId'] ?? message.data['id'])?.toString();
+        if (callId != null && callId.isNotEmpty) {
+          await _notificationService.cancelIncomingCallNotification(callId);
+          if (mounted) await _callService.handleIncomingCall(context, message);
+        }
+        return;
       }
-      return;
+      final data = Map<String, dynamic>.from(message.data);
+      if (type == 'new_message' || type == 'chat_message' || data['chatId'] != null) {
+        final chatId = data['chatId']?.toString() ?? '';
+        await _openChatFromNotification(chatId, data['senderId']?.toString(), data['senderName']?.toString());
+        return;
+      }
+      await _routeNotificationType(type, data);
+    } catch (e) {
+      debugPrint('🔔 notification routing error: $e');
     }
-    final chatId = message.data['chatId']?.toString();
-    if (chatId == null || chatId.isEmpty) return;
-    await _openChatFromNotification(chatId, message.data['senderId']?.toString(), message.data['senderName']?.toString());
+  }
+
+  Future<void> _routeNotificationType(String? type, Map<String, dynamic> data) async {
+    final nav = navigatorKey.currentState;
+    if (nav == null) return;
+    String? route;
+    switch (type) {
+      case 'appointment':
+      case 'appointment_confirmed':
+      case 'appointment_reminder_24h':
+      case 'appointment_reminder_1h':
+      case 'appointment_rescheduled':
+      case 'appointment_cancelled':
+        route = AppRouter.appointments;
+        break;
+      case 'lab':
+      case 'lab_result':
+      case 'lab_result_ready':
+      case 'lab_reminder':
+        route = AppRouter.labs;
+        break;
+      case 'payment':
+      case 'wallet':
+      case 'payment_success':
+      case 'payment_failed':
+      case 'payment_refunded':
+      case 'balance_added':
+        route = AppRouter.wallet;
+        break;
+      case 'order':
+      case 'order_confirmed':
+      case 'order_preparing':
+      case 'order_on_way':
+      case 'order_delivered':
+      case 'order_cancelled':
+        route = AppRouter.cart;
+        break;
+      case 'notification':
+      case 'system':
+      case 'system_update':
+      case 'system_maintenance':
+      case 'system_feature':
+      case 'system_security':
+        route = AppRouter.notifications;
+        break;
+      default:
+        return;
+    }
+    try {
+      nav.pushNamed(route);
+    } catch (e) {
+      debugPrint('🔔 pushNamed($route) failed: $e');
+      try {
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          final router = GoRouter.maybeOf(context);
+          if (router != null) router.push(route);
+        }
+      } catch (fallbackError) {
+        debugPrint('🔔 notification route fallback failed: $fallbackError');
+      }
+    }
   }
 
   Future<void> _openChatFromNotification(String chatId, String? senderId, String? senderName) async {

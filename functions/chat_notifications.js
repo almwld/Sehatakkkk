@@ -8,19 +8,27 @@ async function sendToUser(uid,payload){
   const token=snap.data()?.fcmToken;
   if(!token)return;
   try{
+    const type=String(payload.data?.type||'');
+    const isCall=type==='incoming_call';
     const message={
       token:String(token).trim(),
       data:Object.fromEntries(Object.entries(payload.data||{}).map(([k,v])=>[k,String(v??'')])),
-      android:{priority:'high'},
-    };
-    if(payload.notification){
-      message.notification=payload.notification;
-      message.android.notification={
-        channelId:payload.channelId||'sehatak_messages_v2',
-        sound:payload.sound||'notification',
+      android:{
         priority:'high',
-      };
-    }
+        ttl:isCall?60*1000:60*60*1000,
+      },
+      apns:{
+        headers:isCall
+          ? {'apns-priority':'10','apns-push-type':'alert'}
+          : {'apns-priority':'5','apns-push-type':'background'},
+        payload:{
+          aps:{
+            'content-available':1,
+            ...(isCall?{sound:'call_ringtone.caf'}:{}),
+          },
+        },
+      },
+    };
     await admin.messaging().send(message);
   }catch(e){
     console.error(`FCM send failed for ${uid}:`,e.message);
@@ -55,7 +63,7 @@ exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{message
     deliveredAt:delivered?admin.firestore.FieldValue.serverTimestamp():null,
   });
 
-  await Promise.all(receivers.map(uid=>sendToUser(uid,{channelId:'sehatak_messages_v2',sound:'notification',notification:{title:senderName,body},data:{type:'chat_message',chatId,messageId:event.params.messageId,senderId,senderName,body}})));
+  await Promise.all(receivers.map(uid=>sendToUser(uid,{data:{type:'new_message',chatId,messageId:event.params.messageId,senderId,senderName,body}})));
 });
 
 exports.notifyIncomingCall=onDocumentCreated('calls/{callId}',async event=>{
@@ -65,9 +73,5 @@ exports.notifyIncomingCall=onDocumentCreated('calls/{callId}',async event=>{
   const isVideo=c.callType==='video'||c.isVideoCall===true;
   const callId=event.params.callId;
   const chatId=String(c.chatId||'');
-  await sendToUser(receiverId,{
-    channelId:'sehatak_calls_v2',
-    sound:'call_ringtone',
-    data:{type:'incoming_call',callId,chatId,callerId,callerName:String(c.callerName||'مستخدم'),callerPhotoUrl:String(c.callerPhotoUrl||''),isVideo:String(isVideo)},
-  });
+  await sendToUser(receiverId,{data:{type:'incoming_call',callId,chatId,callerId,callerName:String(c.callerName||'مستخدم'),callerPhotoUrl:String(c.callerPhotoUrl||''),isVideo:String(isVideo),callType:isVideo?'video':'audio'}});
 });
