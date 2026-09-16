@@ -15,6 +15,7 @@ import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/settings/change_password_screen.dart';
 import 'package:sehatak/presentation/screens/settings/language_screen.dart';
 import 'package:sehatak/presentation/screens/settings/privacy_screen.dart';
+import 'package:sehatak/presentation/screens/settings/location_selection_screen.dart';
 import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/settings/help_screen.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -32,6 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isBiometricSupported = false;
   bool _isBiometricEnabled = false;
   bool _isSystemMode = false;
+  String? _deliveryArea;
 
   static const String _logoutIcon = 'assets/images/ui/logout.png';
 
@@ -41,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _checkBiometricSupport();
     _loadBiometricPrefs();
     _loadThemeMode();
+    _loadDeliveryArea();
   }
 
   Future<void> _checkBiometricSupport() async {
@@ -57,6 +60,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (mounted) setState(() => _isBiometricEnabled = prefs.getBool('biometric_enabled') ?? false);
+    } catch (_) {}
+  }
+
+  Future<void> _loadDeliveryArea() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) setState(() => _deliveryArea = prefs.getString('delivery_area'));
     } catch (_) {}
   }
 
@@ -137,6 +147,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context.read<ThemeBloc>().setThemeMode(v ? ThemeMode.system : ThemeMode.light);
               setState(() => _isSystemMode = v);
             }),
+          ])),
+          const SizedBox(height: 16),
+          _section('الموقع والتوصيل', isDark),
+          _card(isDark, Column(children: [
+            _listTileAsset(
+              AppImages.uiSettingsGear,
+              'تحديد منطقتك',
+              _deliveryArea == null ? 'اختر منطقتك لعرض شركات التوصيل المتاحة' : 'المنطقة المحددة: $_deliveryArea',
+              isDark,
+              () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (_) => const LocationSelectionScreen()));
+                _loadDeliveryArea();
+              },
+            ),
           ])),
           const SizedBox(height: 16),
           if (_isBiometricSupported) ...[
