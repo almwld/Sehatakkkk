@@ -12,9 +12,11 @@
     {"collectionGroup":"pharmacy_products","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
     {"collectionGroup":"pharmacies","queryScope":"COLLECTION","fields":[{"fieldPath":"ownerId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"}]},
     {"collectionGroup":"pharmacies","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
-    {"collectionGroup":"products","queryScope":"COLLECTION","fields":[{"fieldPath":"approvalStatus","order":"ASCENDING"},{"fieldPath":"isPublished","order":"ASCENDING"},{"fieldPath":"isActive","order":"ASCENDING"}]}
+    {"collectionGroup":"products","queryScope":"COLLECTION","fields":[{"fieldPath":"approvalStatus","order":"ASCENDING"},{"fieldPath":"isPublished","order":"ASCENDING"},{"fieldPath":"isActive","order":"ASCENDING"}]},
+    {"collectionGroup":"dental_doctors","queryScope":"COLLECTION","fields":[{"fieldPath":"specialty","order":"ASCENDING"},{"fieldPath":"rating","order":"DESCENDING"}]},
+    {"collectionGroup":"dental_tips","queryScope":"COLLECTION","fields":[{"fieldPath":"isPublished","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"eye_doctors","queryScope":"COLLECTION","fields":[{"fieldPath":"specialty","order":"ASCENDING"},{"fieldPath":"rating","order":"DESCENDING"}]},
+    {"collectionGroup":"eye_tips","queryScope":"COLLECTION","fields":[{"fieldPath":"isPublished","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]}
   ],
-  "fieldOverrides": [
-    {"collectionGroup":"messages","fieldPath":"timestamp","indexes":[{"order":"ASCENDING"},{"order":"DESCENDING"}]}
-  ]
+  "fieldOverrides": [{"collectionGroup":"messages","fieldPath":"timestamp","indexes":[{"order":"ASCENDING"},{"order":"DESCENDING"}]}]
 }

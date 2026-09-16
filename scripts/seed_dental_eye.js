@@ -1,0 +1,14 @@
+const admin = require('firebase-admin');
+const serviceAccount = require('../serviceAccountKey.json');
+if (!admin.apps.length) admin.initializeApp({credential: admin.credential.cert(serviceAccount), projectId: 'sehatak-platform'});
+const db = admin.firestore();
+const now = admin.firestore.FieldValue.serverTimestamp();
+const dentalSpecialties=['تقويم','جراحة','أطفال','تجميل','لبية'];
+const eyeSpecialties=['شبكية','قرنية','ليزك','أطفال','جلوكوما'];
+const makeDoctors=(prefix,specialties)=>Array.from({length:6},(_,i)=>({id:`${prefix}_doctor_${i+1}`,name:`${prefix==='dental'?'د. طبيب أسنان':'د. طبيب عيون'} ${i+1}`,specialty:specialties[i%specialties.length],photoUrl:null,rating:4.5+(i%5)/10,reviewCount:12+i*7,experienceYears:5+i,clinicId:`${prefix}_clinic_${(i%4)+1}`,address:'صنعاء',phone:null,consultationFee:5000+i*500,isAvailable:i!==4,isVerified:true,createdAt:now}));
+const makeClinics=(prefix)=>Array.from({length:4},(_,i)=>({id:`${prefix}_clinic_${i+1}`,name:`${prefix==='dental'?'عيادة أسنان':'عيادة عيون'} ${i+1}`,address:`صنعاء - شارع ${i+1}`,phone:null,imageUrl:null,rating:4.2+(i/10),reviewCount:8+i*3,location:null,workingHours:{'السبت-الخميس':'09:00-21:00'},services:prefix==='dental'?['تنظيف','تقويم','علاج']:['فحص نظر','شبكية','ليزك'],isOpen:i!==3,createdAt:now}));
+const makeTips=(prefix)=>Array.from({length:10},(_,i)=>({id:`${prefix}_tip_${i+1}`,title:`${prefix==='dental'?'نصيحة للأسنان':'نصيحة للعين'} ${i+1}`,body:prefix==='dental'?'حافظ على التنظيف المنتظم وراجع الطبيب عند استمرار الألم أو الحساسية.':'خذ فترات راحة من الشاشات واحرص على فحص العين عند وجود تغير مستمر في الرؤية.',imageUrl:null,category:prefix==='dental'?['نظافة','تغذية','وقاية'][i%3]:['وقاية','شاشات','فحص'][i%3],isPublished:true,createdAt:now}));
+const makeHospitals=(prefix)=>Array.from({length:3},(_,i)=>({id:`${prefix}_hospital_${i+1}`,name:`${prefix==='dental'?'مركز أسنان تخصصي':'مستشفى عيون تخصصي'} ${i+1}`,address:`صنعاء - شارع ${i+1}`,phone:null,imageUrl:null,emergency:i===0,departments:prefix==='dental'?['تقويم','جراحة','أطفال']:['شبكية','قرنية','جلوكوما'],location:null,createdAt:now}));
+async function upsert(collection,records){const batch=db.batch();for(const {id,...data} of records)batch.set(db.collection(collection).doc(id),data,{merge:true});await batch.commit();console.log(`Upserted ${records.length} ${collection}`);}
+async function main(){const sets=[['dental_doctors',makeDoctors('dental',dentalSpecialties)],['eye_doctors',makeDoctors('eye',eyeSpecialties)],['dental_clinics',makeClinics('dental')],['eye_clinics',makeClinics('eye')],['dental_tips',makeTips('dental')],['eye_tips',makeTips('eye')],['dental_hospitals',makeHospitals('dental')],['eye_hospitals',makeHospitals('eye')]];for(const [collection,records] of sets)await upsert(collection,records);console.log('Dental/Eye seed complete.');}
+main().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});
