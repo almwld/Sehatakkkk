@@ -150,6 +150,11 @@ flutter:
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
     - assets/images/childhealth.png
+    - assets/icons/
+    - assets/icons/services/
+    - assets/icons/settings/
+    - assets/icons/health/
+    - assets/icons/health/sleep/
     - assets/images/pregnancy_follow_up.png
     - assets/images/sehatak_chat_wallpaper_auto.svg
     - assets/images/sehatak_chat_wallpaper_dark.svg
