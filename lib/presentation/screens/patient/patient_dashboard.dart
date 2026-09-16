@@ -113,9 +113,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
   ];
 
   final List<Map<String, dynamic>> _trackingVitals = [
-    {'icon': 'assets/images/tracking/steps.png', 'label': 'الخطوات', 'value': 'تتبع', 'unit': 'خطوة', 'color': const Color(0xFF0A8F83), 'screen': const StepTrackerScreen()},
-    {'icon': 'assets/images/tracking/sleep.png', 'label': 'النوم', 'value': 'تتبع', 'unit': 'ساعة', 'color': const Color(0xFF18A9A0), 'screen': const SleepTrackerScreen()},
-    {'icon': 'assets/images/tracking/heart_rate.png', 'label': 'النبض', 'value': 'قياس', 'unit': 'BPM', 'color': const Color(0xFF147D78), 'screen': const HeartRateScreen()},
+    {'icon': 'assets/icons/health/step_tracking.png', 'label': 'الخطوات', 'value': 'تتبع', 'unit': 'خطوة', 'color': const Color(0xFF0A8F83), 'screen': const StepTrackerScreen()},
+    {'icon': 'assets/icons/health/sleep/sleep_tracking.png', 'label': 'النوم', 'value': 'تتبع', 'unit': 'ساعة', 'color': const Color(0xFF18A9A0), 'screen': const SleepTrackerScreen()},
+    {'icon': 'assets/icons/health/heart_rate.png', 'label': 'النبض', 'value': 'قياس', 'unit': 'BPM', 'color': const Color(0xFF147D78), 'screen': const HeartRateScreen()},
   ];
 
   final List<Map<String, dynamic>> _services = [
@@ -342,152 +342,45 @@ class _PatientDashboardState extends State<PatientDashboard> {
 👤 الاسم: $_userName
 📧 البريد: $_userEmail
 📱 الهاتف: $_userPhone
-🆔 رقم المريض: $_patientNumber
-👤 الدور: $_userRole
-💳 الباقة: $_subscriptionType
-📅 تاريخ الانضمام: ${DateTime.now().toLocal().toString().split(' ')[0]}
-
-📊 إحصائيات سريعة:
-• ضغط الدم: 120/80 مم زئبق
-• سكر الدم: 98 مجم/دل
-• الوزن: 72 كجم
-• اللياقة: 85%
-
-🩺 الخدمات المتاحة:
-✓ المواعيد الطبية
-✓ الأدوية والوصفات
-✓ المختبرات والتحاليل
-✓ الاستشارات الطبية
-✓ الصيدلية والتوصيل
-✓ السجلات الطبية
-
-🔗 تم إنشاء هذا الملف بواسطة تطبيق صحتك - Sehatak
-📱 حمل التطبيق الآن!
+🩸 فصيلة الدم: $_bloodType
+🔢 رقم المريض: $_patientNumber
 ''';
-
       await Share.share(shareText, subject: 'ملفي الصحي - صحتك');
-      ToastService.showSuccess('✅ تم مشاركة الملف الصحي بنجاح');
     } catch (e) {
       ToastService.showError('❌ فشل مشاركة الملف: $e');
+    } finally {
+      setState(() => _isSharing = false);
     }
-    setState(() => _isSharing = false);
   }
 
   void _showQRCode() {
     showDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('📱 ملفي الصحي', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: _buildQRCode(),
-              ),
-              const SizedBox(height: 12),
-              Text('رقم المريض: $_patientNumber', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              const SizedBox(height: 4),
-              Text('$_userName • $_userRole', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => ToastService.showSuccess('✅ تم حفظ الباركود'),
-                      icon: const Icon(Icons.download),
-                      label: const Text('تحميل'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('إغلاق'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('رمز QR للملف الصحي'),
+        content: SizedBox(
+          width: 200,
+          height: 200,
+          child: CustomPaint(
+            painter: QRCodePainter(_patientNumber),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildQRCode() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.qr_code, size: 120, color: AppColors.primary),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              _patientNumber,
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إغلاق'),
           ),
         ],
       ),
     );
   }
 
-  String _getDashboardTitle() {
-    switch (_userRole.toLowerCase()) {
-      case 'طبيب': case 'doctor': return 'لوحة الطبيب';
-      case 'ممرض': case 'nurse': return 'لوحة الممرض';
-      case 'مشرف': case 'supervisor': case 'admin': return 'لوحة المشرف';
-      case 'صيدلي': case 'pharmacist': return 'لوحة الصيدلي';
-      case 'فني': case 'technician': return 'لوحة الفني';
-      default: return 'لوحة المريض';
-    }
-  }
-
-  Widget _buildIcon(String path, {double size = 40, Color? color}) {
-    return Image.asset(
-      path,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(Icons.circle, color: color ?? AppColors.primary, size: size);
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(_getDashboardTitle(), style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('ملفي الصحي'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -495,7 +388,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           if (_isOffline)
             Container(
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(12),
@@ -850,242 +743,159 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   Widget _buildServicesList(bool isDark) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _services.length,
-      itemBuilder: (context, index) {
-        final service = _services[index];
-        final color = service['color'] as Color;
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => service['screen'] as Widget));
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 6),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                _buildIcon(service['icon'] as String, size: 36, color: color),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        service['label'] as String,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        'اضغط للانتقال',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark ? Colors.grey[500] : Colors.grey[400],
-                        ),
-                      ),
-                    ],
+    return SizedBox(
+      height: 110,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _services.length,
+        itemBuilder: (context, index) {
+          final service = _services[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => service['screen'] as Widget));
+            },
+            child: Container(
+              width: 90,
+              margin: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
-                ),
-                Icon(
-                  Icons.chevron_left,
-                  color: isDark ? Colors.grey[600] : Colors.grey[400],
-                ),
-              ],
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildIcon(service['icon'] as String, size: 36, color: service['color'] as Color),
+                  const SizedBox(height: 6),
+                  Text(
+                    service['label'] as String,
+                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildChronicConditions(bool isDark) {
-    final conditions = [
-      {'name': 'ارتفاع ضغط الدم', 'diagnosed': '15 مارس 2023', 'status': 'تحت السيطرة', 'color': AppColors.error, 'icon': Icons.favorite_border},
-      {'name': 'الربو', 'diagnosed': '10 يناير 2021', 'status': 'خفيف', 'color': AppColors.warning, 'icon': Icons.air},
-      {'name': 'التهاب المعدة', 'diagnosed': '5 أغسطس 2019', 'status': 'تم الشفاء', 'color': AppColors.info, 'icon': Icons.restaurant},
-    ];
-
-    return Column(
-      children: conditions.map((condition) {
-        final color = condition['color'] as Color;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Icon(condition['icon'] as IconData, color: color, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      condition['name'] as String,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      'تم التشخيص: ${condition['diagnosed']}',
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  condition['status'] as String,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildVaccinations(bool isDark) {
-    final vaccines = [
-      {'name': 'كوفيد-19', 'info': 'فايزر • جرعتين', 'date': 'آخر: يناير 2025', 'done': true},
-      {'name': 'الإنفلونزا', 'info': 'سنوي', 'date': 'آخر: أكتوبر 2025', 'done': true},
-      {'name': 'التهاب الكبد ب', 'info': '3 جرعات', 'date': 'مكتمل: 2019', 'done': true},
-      {'name': 'الكزاز', 'info': 'كل 10 سنوات', 'date': 'القادم: 2028', 'done': false},
-    ];
-
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 6,
-          ),
-        ],
       ),
       child: Column(
-        children: vaccines.map((vaccine) {
-          final done = vaccine['done'] as bool;
-          return Column(
-            children: [
-              if (vaccines.indexOf(vaccine) > 0) const Divider(),
-              Row(
-                children: [
-                  _buildIcon(
-                    done ? 'assets/images/services/health_tips.png' : 'assets/images/services/emergency.png',
-                    size: 36,
-                    color: done ? Colors.green : Colors.orange,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          vaccine['name'] as String,
-                          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-                        ),
-                        Text(
-                          '${vaccine['info']} • ${vaccine['date']}',
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          );
-        }).toList(),
+        children: [
+          _buildConditionRow('السكري', 'لا يوجد', Icons.check_circle, Colors.green),
+          _buildConditionRow('ضغط الدم', 'طبيعي', Icons.check_circle, Colors.green),
+          _buildConditionRow('الكوليسترول', 'طبيعي', Icons.check_circle, Colors.green),
+          _buildConditionRow('الربو', 'لا يوجد', Icons.check_circle, Colors.green),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConditionRow(String title, String value, IconData icon, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+          ),
+          Text(value, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVaccinations(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          _buildIcon('assets/images/services/blood_donation.png', size: 40, color: AppColors.primary),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text('جميع التطعيمات محدثة', style: TextStyle(fontSize: 12)),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildAllergies(bool isDark) {
-    final allergies = [
-      {'icon': 'assets/images/services/emergency.png', 'name': 'فول سوداني', 'color': AppColors.error},
-      {'icon': 'assets/images/services/medications.png', 'name': 'بنسلين', 'color': AppColors.warning},
-      {'icon': 'assets/images/services/health_tips.png', 'name': 'حبوب لقاح', 'color': AppColors.info},
-      {'icon': 'assets/images/services/medical_records.png', 'name': 'وبر القطط', 'color': AppColors.purple},
-    ];
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: allergies.map((allergy) {
-        final color = allergy['color'] as Color;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withOpacity(0.15)),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          _buildIcon('assets/images/tracking/mental_health.png', size: 40, color: AppColors.primary),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text('لا توجد حساسية مسجلة', style: TextStyle(fontSize: 12)),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildIcon(allergy['icon'] as String, size: 24, color: color),
-              const SizedBox(width: 4),
-              Text(
-                allergy['name'] as String,
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+        ],
+      ),
     );
   }
+
+  Widget _buildIcon(String path, {double size = 40, Color? color}) {
+    return Image.asset(
+      path,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      color: color,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(Icons.health_and_safety, color: color, size: size);
+      },
+    );
+  }
+}
+
+class QRCodePainter extends CustomPainter {
+  final String data;
+
+  QRCodePainter(this.data);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Colors.black;
+    final moduleSize = size.width / 21;
+    for (int i = 0; i < 21; i++) {
+      for (int j = 0; j < 21; j++) {
+        if ((i + j + data.length) % 3 == 0 || (i * j) % 5 == 0) {
+          canvas.drawRect(
+            Rect.fromLTWH(i * moduleSize, j * moduleSize, moduleSize, moduleSize),
+            paint,
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant QRCodePainter oldDelegate) => oldDelegate.data != data;
 }
