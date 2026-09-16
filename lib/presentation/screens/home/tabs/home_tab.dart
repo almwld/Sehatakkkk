@@ -290,10 +290,10 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _discover(bool dark) {
     final items = [
-      {'name': 'حجز موعد', 'asset': 'assets/icons/services/calendar_booking.png', 'route': AppRouter.appointments},
-      {'name': 'طوارئ', 'asset': 'assets/icons/services/emergency.png', 'route': AppRouter.emergency},
-      {'name': 'خريطة', 'asset': 'assets/icons/services/map_location.png', 'route': AppRouter.map},
-      {'name': 'باقات', 'asset': 'assets/icons/services/packages.png', 'route': AppRouter.services},
+      {'name': 'حجز موعد', 'asset': 'assets/images/services/calendar_booking.png', 'route': AppRouter.appointments},
+      {'name': 'طوارئ', 'asset': 'assets/images/services/emergency.png', 'route': AppRouter.emergency},
+      {'name': 'خريطة', 'asset': 'assets/images/services/map_location.png', 'route': AppRouter.map},
+      {'name': 'باقات', 'asset': 'assets/images/services/packages.png', 'route': AppRouter.services},
     ];
     return _section(
       title: 'اكتشف المزيد',

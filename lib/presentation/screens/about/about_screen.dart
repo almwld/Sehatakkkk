@@ -74,11 +74,10 @@ class _AboutScreenState extends State<AboutScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Image.asset(
-                  'android/app/src/main/res/drawable/ic_launcher.xml',
+                  'assets/icons/app_icon.png',
                   width: 60,
                   height: 60,
                   fit: BoxFit.contain,
-                  color: Colors.white,
                 ),
               ),
             ),
@@ -325,7 +324,6 @@ class _AboutScreenState extends State<AboutScreen> {
                           width: 28,
                           height: 28,
                           fit: BoxFit.contain,
-                          color: isDark ? Colors.white : AppColors.primary,
                         ),
                       ),
                     ),

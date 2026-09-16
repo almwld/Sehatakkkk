@@ -106,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     errorBuilder: (_, __, ___) => const SizedBox.shrink(),
   );
 
-  Widget _localTileIcon(String path, {double size = 24}) => _localImage(path, size: size, color: AppColors.primary);
+  Widget _localTileIcon(String path, {double size = 24, bool tint = true}) => _localImage(path, size: size, color: tint ? AppColors.primary : null);
 
   Widget _arrow(bool dark, {Color? color}) => Padding(
     padding: const EdgeInsetsDirectional.only(start: 8),
@@ -223,16 +223,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _card(isDark, Column(children: [
             _listTileAsset(AppImages.uiSettingsGear, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen()))),
             _divider(isDark),
-            _listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen()))),
+            _listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())), tint: false)),
             _divider(isDark),
-            _listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen()))),
+            _listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen())), tint: false)),
             _divider(isDark),
-            _listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
+            _listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false)),
           ])),
           const SizedBox(height: 16),
           _card(isDark, ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            leading: _localImage(_logoutIcon, color: Colors.red),
+            leading: _localImage(_logoutIcon),
             title: const Text('تسجيل الخروج', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
             trailing: _arrow(isDark, color: Colors.red),
             onTap: () => _showLogoutDialog(context),
@@ -269,9 +269,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     onChanged: onChanged,
   );
 
-  Widget _listTileAsset(String path, String title, String subtitle, bool dark, VoidCallback onTap) => ListTile(
+  Widget _listTileAsset(String path, String title, String subtitle, bool dark, VoidCallback onTap, {bool tint = true}) => ListTile(
     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    leading: _localTileIcon(path),
+    leading: _localTileIcon(path, tint: tint),
     title: Text(title, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
     subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])),
     trailing: _arrow(dark),
