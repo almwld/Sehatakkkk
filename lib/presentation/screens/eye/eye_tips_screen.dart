@@ -1,0 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:sehatak/core/models/eye/eye_models.dart';
+import 'package:sehatak/core/services/eye_service.dart';
+const _c=Color(0xFF9C27B0);
+class EyeTipsScreen extends StatelessWidget{const EyeTipsScreen({super.key});@override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('نصائح صحة العين')),body:StreamBuilder<List<EyeTip>>(stream:EyeService().streamTips(),builder:(context,s){if(s.hasError)return Center(child:Text('تعذر تحميل النصائح: ${s.error}'));final data=s.data??[];if(data.isEmpty)return const Center(child:Text('لا توجد نصائح منشورة حالياً'));return ListView.builder(padding:const EdgeInsets.all(12),itemCount:data.length,itemBuilder:(_,i){final d=data[i];return Card(child:ExpansionTile(leading:const Icon(Icons.lightbulb_outline,color:_c),title:Text(d.title,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text(d.category),children:[Padding(padding:const EdgeInsets.fromLTRB(16,0,16,16),child:Text(d.body))]));});}));}

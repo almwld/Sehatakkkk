@@ -1,0 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:sehatak/core/models/eye/eye_models.dart';
+import 'package:sehatak/core/services/eye_service.dart';
+const _c=Color(0xFF9C27B0);
+class EyeHospitalsScreen extends StatelessWidget{const EyeHospitalsScreen({super.key});@override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('مستشفيات العيون')),body:StreamBuilder<List<EyeHospital>>(stream:EyeService().streamHospitals(),builder:(context,s){if(s.hasError)return Center(child:Text('تعذر تحميل المستشفيات: ${s.error}'));final data=s.data??[];if(data.isEmpty)return const Center(child:Text('لا توجد مستشفيات متاحة حالياً'));return ListView.builder(padding:const EdgeInsets.all(12),itemCount:data.length,itemBuilder:(_,i){final d=data[i];return Card(child:ListTile(leading:Icon(d.emergency?Icons.emergency:Icons.local_hospital,color:d.emergency?Colors.red:_c),title:Text(d.name,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text(d.address),trailing:d.emergency?const Text('طوارئ',style:TextStyle(color:Colors.red,fontWeight:FontWeight.w700)):null));});}));}

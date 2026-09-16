@@ -1,0 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
+import 'package:sehatak/core/models/eye/eye_models.dart';
+import 'package:sehatak/core/services/eye_service.dart';
+const _c=Color(0xFF9C27B0); const _icon='assets/icons/services/ophthalmology.png';
+class EyeClinicsScreen extends StatelessWidget{const EyeClinicsScreen({super.key});@override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('عيادات العيون')),body:StreamBuilder<List<EyeClinic>>(stream:EyeService().streamClinics(),builder:(context,s){if(s.hasError)return Center(child:Text('تعذر تحميل العيادات: ${s.error}'));final data=s.data??[];if(data.isEmpty)return const Center(child:Text('لا توجد عيادات متاحة حالياً'));return ListView.builder(padding:const EdgeInsets.all(12),itemCount:data.length,itemBuilder:(_,i){final d=data[i];return Card(child:ListTile(onTap:()=>context.push(AppRouter.eyeClinicDetail.replaceFirst(':id',d.id)),leading:Container(width:52,height:52,padding:const EdgeInsets.all(9),decoration:BoxDecoration(color:_c.withOpacity(.1),borderRadius:BorderRadius.circular(12)),child:Image.asset(_icon,errorBuilder:(_,__,___)=>const Icon(Icons.visibility,color:_c))),title:Text(d.name,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text(d.address),trailing:Icon(d.isOpen?Icons.check_circle:Icons.cancel,color:d.isOpen?Colors.green:Colors.red));});}));}
