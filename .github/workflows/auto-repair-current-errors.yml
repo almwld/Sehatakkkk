@@ -1,0 +1,161 @@
+name: Auto repair current analyzer errors
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ !contains(github.event.head_commit.message, '[auto-repair]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: stable
+      - name: Repair syntax and API errors
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          # app_router: GoRouter 13 has no .location getter and no navigatorBuilder.
+          p = Path('lib/app_router.dart')
+          s = p.read_text(encoding='utf-8-sig')
+          s = s.replace('router.location', 'router.routerDelegate.currentConfiguration.uri.toString()')
+
+          def remove_named_parameter(text, name):
+              marker = name + ':'
+              start = text.find(marker)
+              if start < 0:
+                  return text
+              line_start = text.rfind('\n', 0, start) + 1
+              # Scan until the comma ending this top-level constructor argument.
+              i = start + len(marker)
+              par = br = cu = 0
+              quote = None
+              esc = False
+              while i < len(text):
+                  ch = text[i]
+                  if quote:
+                      if esc:
+                          esc = False
+                      elif ch == '\\':
+                          esc = True
+                      elif ch == quote:
+                          quote = None
+                  else:
+                      if ch in "'\"":
+                          quote = ch
+                      elif ch == '(':
+                          par += 1
+                      elif ch == ')':
+                          if par == 0 and br == 0 and cu == 0:
+                              break
+                          par -= 1
+                      elif ch == '[':
+                          br += 1
+                      elif ch == ']':
+                          br -= 1
+                      elif ch == '{':
+                          cu += 1
+                      elif ch == '}':
+                          cu -= 1
+                      elif ch == ',' and par == 0 and br == 0 and cu == 0:
+                          return text[:line_start] + text[i+1:]
+                  i += 1
+              return text[:line_start] + text[i:]
+
+          s = remove_named_parameter(s, 'navigatorBuilder')
+          p.write_text(s, encoding='utf-8')
+
+          # chat_room_screen: a repeated insertion duplicated _setTyping 21 times.
+          p = Path('lib/presentation/screens/chat/chat_room_screen.dart')
+          s = p.read_text(encoding='utf-8-sig')
+          sig = '  Future<void> _setTyping(String chatId, bool typing) async {'
+          first = s.find(sig)
+          if first >= 0:
+              def method_end(text, pos):
+                  i = text.find('{', pos)
+                  depth = 0
+                  quote = None
+                  esc = False
+                  while i < len(text):
+                      ch = text[i]
+                      if quote:
+                          if esc: esc = False
+                          elif ch == '\\': esc = True
+                          elif ch == quote: quote = None
+                      else:
+                          if ch in "'\"": quote = ch
+                          elif ch == '{': depth += 1
+                          elif ch == '}':
+                              depth -= 1
+                              if depth == 0: return i + 1
+                      i += 1
+                  return len(text)
+              end_first = method_end(s, first)
+              prefix, rest = s[:first], s[end_first:]
+              # Remove every subsequent exact duplicate method; keep the first implementation.
+              while True:
+                  pos = rest.find(sig)
+                  if pos < 0: break
+                  e = method_end(rest, pos)
+                  rest = rest[:pos] + rest[e:]
+              s = prefix + s[first:end_first] + rest
+              p.write_text(s, encoding='utf-8')
+
+          # CallModel in this project exposes isVideo, not type.
+          p = Path('lib/presentation/screens/consultation/consultation_screen.dart')
+          s = p.read_text(encoding='utf-8-sig')
+          s = re.sub(r'([A-Za-z_][A-Za-z0-9_]*)\.type\b', r'\1.isVideo', s)
+          p.write_text(s, encoding='utf-8')
+
+          # The two generated one-line widgets lost one closing parenthesis.
+          for fn, line_no, count in [
+              ('lib/presentation/screens/home/tabs/home_tab.dart', 273, 1),
+              ('lib/presentation/screens/home/tabs/home_tab.dart', 285, 1),
+              ('lib/presentation/screens/pharmacy/pharmacy_marketplace_screen.dart', 208, 1),
+          ]:
+              p = Path(fn)
+              lines = p.read_text(encoding='utf-8-sig').splitlines(True)
+              if len(lines) >= line_no:
+                  line = lines[line_no-1].rstrip('\n')
+                  # Avoid accumulating repairs if the workflow is retried.
+                  if not line.rstrip().endswith(')'):
+                      line += ')'
+                  lines[line_no-1] = line + ('\n' if lines[line_no-1].endswith('\n') else '')
+                  p.write_text(''.join(lines), encoding='utf-8')
+
+          # medical_records_screen is currently a single generated line missing its final list/constructor closures.
+          p = Path('lib/presentation/screens/records/medical_records_screen.dart')
+          s = p.read_text(encoding='utf-8-sig')
+          if s.count('[') > s.count(']'):
+              s += ']'
+          if s.count('(') > s.count(')'):
+              s += ')'
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          dart format lib/app_router.dart lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/consultation/consultation_screen.dart lib/presentation/screens/home/tabs/home_tab.dart lib/presentation/screens/pharmacy/pharmacy_marketplace_screen.dart lib/presentation/screens/records/medical_records_screen.dart
+          flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Commit repaired files
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/app_router.dart lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/consultation/consultation_screen.dart lib/presentation/screens/home/tabs/home_tab.dart lib/presentation/screens/pharmacy/pharmacy_marketplace_screen.dart lib/presentation/screens/records/medical_records_screen.dart
+          if git diff --cached --quiet; then
+            echo 'No repair changes detected.'
+            exit 0
+          fi
+          git commit -m '[auto-repair] fix current analyzer errors'
+          git push origin HEAD:master
