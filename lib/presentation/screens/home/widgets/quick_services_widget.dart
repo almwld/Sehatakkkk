@@ -47,7 +47,7 @@ class QuickServicesWidget extends StatelessWidget {
       'screen': BloodDonationScreen.new,
     },
     {
-      'icon': 'assets/images/services/consultation.png',
+      'icon': 'assets/icons/services/doctors.png',
       'label': 'أطباء',
       'screen': DoctorsListScreen.new,
     },
