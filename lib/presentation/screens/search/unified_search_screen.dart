@@ -6,6 +6,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/search_service.dart';
 import 'package:sehatak/core/services/unified_search_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/widgets/unified_search_bar.dart';
 
 class AdvancedSearchScreen extends StatefulWidget {
   final String? initialQuery;
@@ -76,12 +77,23 @@ class _UnifiedSearchScreenState extends State<AdvancedSearchScreen> {
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(title: const Text('البحث الذكي'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: Column(children: [
-        Padding(padding: const EdgeInsets.fromLTRB(14, 14, 14, 8), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [
-          const Text('⌕', style: TextStyle(fontSize: 26, color: AppColors.primary)),
-          const SizedBox(width: 8),
-          Expanded(child: TextField(controller: _controller, textInputAction: TextInputAction.search, onSubmitted: (_) => _search(), onChanged: _suggest, decoration: const InputDecoration(hintText: 'طبيب، دواء، خدمة، مستشفى، مقال...', border: InputBorder.none))),
-          if (_loading) const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-        ]))),
+        UnifiedSearchBar(
+          controller: _controller,
+          onChanged: _suggest,
+          hint: 'طبيب، دواء، خدمة، مستشفى، مقال...',
+          margin: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+          suffixIcon: _loading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: Padding(
+                    padding: EdgeInsets.all(2),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : null,
+          onTap: () {},
+        ),
         if (_suggestions.isNotEmpty && _results.isEmpty) _suggestionsView(dark),
         SizedBox(height: 44, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 14), itemCount: _types.length, separatorBuilder: (_, __) => const SizedBox(width: 6), itemBuilder: (_, i) { final entry = _types.entries.elementAt(i); final selected = _type == entry.key; return ChoiceChip(label: Text(entry.key, style: TextStyle(fontSize: 10, color: selected ? Colors.white : (dark ? Colors.white70 : Colors.black87))), selected: selected, selectedColor: AppColors.primary, onSelected: (_) => setState(() => _type = entry.key)); })),
         Expanded(child: _loading ? const Center(child: CircularProgressIndicator()) : _filtered.isEmpty ? _empty(dark) : ListView.builder(padding: const EdgeInsets.fromLTRB(14, 8, 14, 24), itemCount: _filtered.length, itemBuilder: (_, i) => _resultCard(_filtered[i], dark))),
