@@ -275,7 +275,7 @@ class _AboutScreenState extends State<AboutScreen> {
       {'icon': 'assets/images/social/instagram.png', 'label': 'انستغرام', 'url': 'https://www.instagram.com/'},
       {'icon': 'assets/images/social/x_twitter.png', 'label': 'تويتر', 'url': 'https://x.com/'},
       {'icon': 'assets/images/social/youtube.png', 'label': 'يوتيوب', 'url': 'https://youtube.com/'},
-      {'icon': 'assets/images/social/linkedin.png', 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
+      {'icon': 'assets/icons/settings/linkedIn.png', 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
     ];
 
     return Container(
@@ -321,8 +321,8 @@ class _AboutScreenState extends State<AboutScreen> {
                       child: Center(
                         child: Image.asset(
                           social['icon'] as String,
-                          width: 28,
-                          height: 28,
+                          width: social['label'] == 'لينكد إن' ? 24 : 28,
+                          height: social['label'] == 'لينكد إن' ? 24 : 28,
                           fit: BoxFit.contain,
                         ),
                       ),
