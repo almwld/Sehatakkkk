@@ -34,12 +34,6 @@ void chatMediaTransferCallbackDispatcher() {
   });
 }
 
-/// Persistent media outbox for chat attachments.
-///
-/// The chat UI can display the persistent local file immediately. This queue
-/// survives widget rebuilds and app restarts, then uploads/verifies/sends when
-/// a network connection is available. Firestore remains the source of truth
-/// after send.
 class ChatMediaTransferService {
   ChatMediaTransferService._();
   static final ChatMediaTransferService instance = ChatMediaTransferService._();
@@ -101,12 +95,7 @@ class ChatMediaTransferService {
     try {
       await Workmanager().initialize(chatMediaTransferCallbackDispatcher, isInDebugMode: false);
       _workerInitialized = true;
-      await Workmanager().registerPeriodicTask(
-        'sehatak-chat-media-periodic',
-        chatMediaTransferTask,
-        frequency: const Duration(minutes: 15),
-        constraints: Constraints(networkType: NetworkType.connected),
-      );
+      await Workmanager().registerPeriodicTask('sehatak-chat-media-periodic', chatMediaTransferTask, frequency: const Duration(minutes: 15), constraints: Constraints(networkType: NetworkType.connected));
       await _scheduleOneOffWorker();
     } catch (_) {}
   }
@@ -114,11 +103,7 @@ class ChatMediaTransferService {
   Future<void> _scheduleOneOffWorker() async {
     if (!_workerInitialized) return;
     try {
-      await Workmanager().registerOneOffTask(
-        'sehatak-chat-media-${DateTime.now().microsecondsSinceEpoch}',
-        chatMediaTransferTask,
-        constraints: Constraints(networkType: NetworkType.connected),
-      );
+      await Workmanager().registerOneOffTask('sehatak-chat-media-${DateTime.now().microsecondsSinceEpoch}', chatMediaTransferTask, constraints: Constraints(networkType: NetworkType.connected));
     } catch (_) {}
   }
 
@@ -143,23 +128,7 @@ class ChatMediaTransferService {
     await sourceFile.copy(local.path);
     final now = DateTime.now().millisecondsSinceEpoch;
     final db = await _database;
-    await db.insert('media_outbox', {
-      'id': id,
-      'chat_id': chatId,
-      'local_path': local.path,
-      'type': type,
-      'folder': folder,
-      'preview': preview,
-      'file_name': fileName ?? safeName,
-      'file_size': fileSize,
-      'mime_type': mimeType,
-      'audio_duration': audioDuration,
-      'status': 'queued',
-      'progress': 0,
-      'attempts': 0,
-      'created_at': now,
-      'updated_at': now,
-    });
+    await db.insert('media_outbox', {'id': id, 'chat_id': chatId, 'local_path': local.path, 'type': type, 'folder': folder, 'preview': preview, 'file_name': fileName ?? safeName, 'file_size': fileSize, 'mime_type': mimeType, 'audio_duration': audioDuration, 'status': 'queued', 'progress': 0, 'attempts': 0, 'created_at': now, 'updated_at': now});
     unawaited(processPending());
     unawaited(_scheduleOneOffWorker());
     return id;
@@ -181,19 +150,20 @@ class ChatMediaTransferService {
     _processing = true;
     try {
       final connectivity = await Connectivity().checkConnectivity();
-      if (_isOffline(connectivity)) return;
+      if (_isOffline(connectivity)) {
+        debugPrint('⚙️ processPending: offline');
+        return;
+      }
       final db = await _database;
       final jobs = await db.query('media_outbox', where: 'status != ?', whereArgs: ['sent'], orderBy: 'created_at ASC', limit: 3);
+      debugPrint('⚙️ processPending: ${jobs.length} jobs');
       for (final job in jobs) {
         try {
           await _process(job);
-        } catch (e) {
-          await db.update('media_outbox', {
-            'status': 'retry',
-            'error': e.toString(),
-            'attempts': (job['attempts'] as int? ?? 0) + 1,
-            'updated_at': DateTime.now().millisecondsSinceEpoch,
-          }, where: 'id = ?', whereArgs: [job['id']]);
+        } catch (e, st) {
+          debugPrint('❌ Job failed: id=${job['id']} error=$e');
+          debugPrint('❌ stack: $st');
+          await db.update('media_outbox', {'status': 'retry', 'error': e.toString(), 'attempts': (job['attempts'] as int? ?? 0) + 1, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [job['id']]);
         }
       }
     } finally {
@@ -214,25 +184,16 @@ class ChatMediaTransferService {
     final existingStatus = job['status']?.toString() ?? 'queued';
     var remotePath = job['remote_path']?.toString();
     var url = job['remote_url']?.toString();
+    debugPrint('🔄 Processing job: id=$id type=${job['type']}');
 
-    // The local copy is the optimistic UI source. Never delete it until the
-    // Firestore message has been committed successfully.
-    if (!await file.exists()) {
-      throw StateError('النسخة المحلية للملف لم تعد موجودة');
-    }
+    if (!await file.exists()) throw StateError('النسخة المحلية للملف لم تعد موجودة');
 
     final nextcloud = NextcloudService();
     await nextcloud.loadConfig();
+    debugPrint('🔄 NC config: baseUrl=${nextcloud.baseUrl} user=${nextcloud.username}');
 
-    // Resume from the last durable checkpoint instead of uploading the same
-    // bytes again after a transient failure.
     if (remotePath == null || remotePath.isEmpty) {
-      await db.update('media_outbox', {
-        'status': 'uploading',
-        'error': null,
-        'updated_at': DateTime.now().millisecondsSinceEpoch,
-      }, where: 'id = ?', whereArgs: [id]);
-
+      await db.update('media_outbox', {'status': 'uploading', 'error': null, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
       final upload = await nextcloud.uploadFile(
         file: file,
         path: 'chats/${job['chat_id']}/${job['folder']}',
@@ -240,96 +201,31 @@ class ChatMediaTransferService {
         onProgress: (sent, total) {
           if (total <= 0) return;
           final progress = (sent / total).clamp(0.0, 1.0).toDouble();
-          unawaited(db.update('media_outbox', {
-            'status': 'uploading',
-            'progress': progress,
-            'updated_at': DateTime.now().millisecondsSinceEpoch,
-          }, where: 'id = ?', whereArgs: [id]));
+          unawaited(db.update('media_outbox', {'status': 'uploading', 'progress': progress, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]));
         },
         createShare: true,
       );
-
-      if (!upload.success || upload.path == null) {
-        throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى الخادم');
-      }
-
+      debugPrint('🔄 Upload result: success=${upload.success} path=${upload.path} url=${upload.url} error=${upload.error}');
+      if (!upload.success || upload.path == null) throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى الخادم');
       remotePath = upload.path;
       url = upload.url;
-      await db.update('media_outbox', {
-        'status': 'uploaded',
-        'progress': 1.0,
-        'remote_path': remotePath,
-        'remote_url': url,
-        'error': upload.error,
-        'updated_at': DateTime.now().millisecondsSinceEpoch,
-      }, where: 'id = ?', whereArgs: [id]);
+      await db.update('media_outbox', {'status': 'uploaded', 'progress': 1.0, 'remote_path': remotePath, 'remote_url': url, 'error': upload.error, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
     } else if (existingStatus != 'link_ready') {
-      await db.update('media_outbox', {
-        'status': 'uploaded',
-        'progress': 1.0,
-        'error': null,
-        'updated_at': DateTime.now().millisecondsSinceEpoch,
-      }, where: 'id = ?', whereArgs: [id]);
+      await db.update('media_outbox', {'status': 'uploaded', 'progress': 1.0, 'error': null, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
     }
 
-    if (remotePath == null || remotePath!.isEmpty) {
-      throw StateError('لم يتم حفظ مسار الوسائط على الخادم');
-    }
+    if (remotePath == null || remotePath!.isEmpty) throw StateError('لم يتم حفظ مسار الوسائط على الخادم');
+    if (url == null || url!.isEmpty || !await nextcloud.verifyPublicUrl(url!)) url = await _retryShare(nextcloud, remotePath!);
+    if (url == null || url!.isEmpty) throw StateError('تم رفع الملف، لكن رابط الوصول العام غير جاهز');
+    if (!await nextcloud.verifyPublicUrl(url!)) throw StateError('رابط الوسائط موجود لكنه غير قابل للوصول من جهاز المستلم');
 
-    // Reuse a durable share URL whenever possible. Only create a new share
-    // when there is no usable URL or the previous URL is no longer public.
-    if (url == null || url!.isEmpty || !await nextcloud.verifyPublicUrl(url!)) {
-      url = await _retryShare(nextcloud, remotePath!);
-    }
-    if (url == null || url!.isEmpty) {
-      throw StateError('تم رفع الملف، لكن رابط الوصول العام غير جاهز');
-    }
-    if (!await nextcloud.verifyPublicUrl(url!)) {
-      throw StateError('رابط الوسائط موجود لكنه غير قابل للوصول من جهاز المستلم');
-    }
-
-    await db.update('media_outbox', {
-      'status': 'link_ready',
-      'remote_path': remotePath,
-      'remote_url': url,
-      'progress': 1.0,
-      'error': null,
-      'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, where: 'id = ?', whereArgs: [id]);
-
+    await db.update('media_outbox', {'status': 'link_ready', 'remote_path': remotePath, 'remote_url': url, 'progress': 1.0, 'error': null, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('المستخدم غير مسجل الدخول');
-
     final type = job['type'].toString();
-    await ChatService().sendMessage(
-      chatId: job['chat_id'].toString(),
-      text: job['preview'].toString(),
-      imageUrl: type == 'image' ? url : null,
-      videoUrl: type == 'video' ? url : null,
-      audioUrl: type == 'audio' ? url : null,
-      fileUrl: type == 'file' ? url : null,
-      fileName: job['file_name']?.toString(),
-      fileSize: job['file_size']?.toString(),
-      fileMimeType: job['mime_type']?.toString(),
-      audioDuration: job['audio_duration']?.toString(),
-      idempotencyKey: 'media_$id',
-    );
-
-    // sendMessage is idempotent. If the database update below is interrupted,
-    // the next attempt will find the same Firestore message instead of
-    // creating a duplicate.
-    await db.update('media_outbox', {
-      'status': 'sent',
-      'remote_path': remotePath,
-      'remote_url': url,
-      'progress': 1.0,
-      'error': null,
-      'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, where: 'id = ?', whereArgs: [id]);
-
-    try {
-      await file.delete();
-    } catch (_) {}
+    await ChatService().sendMessage(chatId: job['chat_id'].toString(), text: job['preview'].toString(), imageUrl: type == 'image' ? url : null, videoUrl: type == 'video' ? url : null, audioUrl: type == 'audio' ? url : null, fileUrl: type == 'file' ? url : null, fileName: job['file_name']?.toString(), fileSize: job['file_size']?.toString(), fileMimeType: job['mime_type']?.toString(), audioDuration: job['audio_duration']?.toString(), idempotencyKey: 'media_$id');
+    await db.update('media_outbox', {'status': 'sent', 'remote_path': remotePath, 'remote_url': url, 'progress': 1.0, 'error': null, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
+    try { await file.delete(); } catch (_) {}
   }
 
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
