@@ -108,9 +108,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
     final inactiveColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
-    // زيادة زر الدردشة بنسبة 4%: 52 → 54.08 تقريبًا، مع زيادة الأيقونة بنفس النسبة.
-    const chatButtonSize = 54.08;
-    const chatIconSize = 27.04;
+    // زر الدردشة أكبر بنسبة 15% من المقاس الأساسي 52، مع زيادة الأيقونة بنفس النسبة.
+    const chatButtonSize = 59.8;
+    const chatIconSize = 31.05;
 
     return Expanded(
       child: GestureDetector(
