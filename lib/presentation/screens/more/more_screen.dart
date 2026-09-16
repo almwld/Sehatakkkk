@@ -20,6 +20,9 @@ import 'package:sehatak/presentation/screens/consultation/consultation_screen.da
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/step_tracker/step_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
 import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
@@ -103,6 +106,7 @@ class _MoreScreenState extends State<MoreScreen>
       'value': '85',
       'unit': '%',
       'color': Colors.green,
+      'screen': const StepTrackerScreen(),
     },
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
@@ -134,6 +138,15 @@ class _MoreScreenState extends State<MoreScreen>
       'value': '7.5',
       'unit': 'ساعات',
       'color': Colors.purple,
+      'screen': const SleepTrackerScreen(),
+    },
+    {
+      'icon': 'assets/images/tracking/heart_rate.png',
+      'label': 'النبض',
+      'value': '--',
+      'unit': 'BPM',
+      'color': const Color(0xFF0A8F83),
+      'screen': const HeartRateScreen(),
     },
     {
       'icon': 'assets/images/tracking/water_drinking.png',

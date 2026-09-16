@@ -27,6 +27,9 @@ import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/step_tracker/step_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -107,6 +110,12 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'color': Colors.indigo,
       'screen': const HealthDashboard(),
     },
+  ];
+
+  final List<Map<String, dynamic>> _trackingVitals = [
+    {'icon': 'assets/images/tracking/steps.png', 'label': 'الخطوات', 'value': 'تتبع', 'unit': 'خطوة', 'color': const Color(0xFF0A8F83), 'screen': const StepTrackerScreen()},
+    {'icon': 'assets/images/tracking/sleep.png', 'label': 'النوم', 'value': 'تتبع', 'unit': 'ساعة', 'color': const Color(0xFF18A9A0), 'screen': const SleepTrackerScreen()},
+    {'icon': 'assets/images/tracking/heart_rate.png', 'label': 'النبض', 'value': 'قياس', 'unit': 'BPM', 'color': const Color(0xFF147D78), 'screen': const HeartRateScreen()},
   ];
 
   final List<Map<String, dynamic>> _services = [

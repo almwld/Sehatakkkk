@@ -22,6 +22,7 @@ import 'package:sehatak/presentation/screens/delivery/delivery_company_screen.da
 import 'package:sehatak/presentation/screens/delivery/delivery_tracking_screen.dart';
 import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/step_tracker/step_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
@@ -45,7 +46,7 @@ import 'package:sehatak/presentation/widgets/home/guided_tour/screen_tours.dart'
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class AppRouter {
-  static const String splash = '/splash', home = '/', auth = '/auth', doctors = '/doctors', doctorDetails = '/doctor/:id', pharmacy = '/pharmacy', labs = '/labs', hospitals = '/hospitals', chat = '/chat', more = '/more', dashboard = '/dashboard', profile = '/profile', appointments = '/appointments', notifications = '/notifications', cart = '/cart', wallet = '/wallet', map = '/map', consultation = '/consultation', services = '/services', emergency = '/emergency', bloodDonation = '/blood-donation', settings = '/settings', search = '/search', articles = '/articles', community = '/community', pharmacyDashboard = '/pharmacy-dashboard', marketplaceAdmin = '/marketplace-admin', chatRoom = '/chat-room', addStatus = '/chat/add-status', storyViewer = '/chat/story', sleepTracker = '/sleep-tracker', stepTracker = '/step-tracker', delivery = '/delivery', deliveryCompanies = '/delivery/companies', deliveryTracking = '/delivery/tracking';
+  static const String splash = '/splash', home = '/', auth = '/auth', doctors = '/doctors', doctorDetails = '/doctor/:id', pharmacy = '/pharmacy', labs = '/labs', hospitals = '/hospitals', chat = '/chat', more = '/more', dashboard = '/dashboard', profile = '/profile', appointments = '/appointments', notifications = '/notifications', cart = '/cart', wallet = '/wallet', map = '/map', consultation = '/consultation', services = '/services', emergency = '/emergency', bloodDonation = '/blood-donation', settings = '/settings', search = '/search', articles = '/articles', community = '/community', pharmacyDashboard = '/pharmacy-dashboard', marketplaceAdmin = '/marketplace-admin', chatRoom = '/chat-room', addStatus = '/chat/add-status', storyViewer = '/chat/story', sleepTracker = '/sleep-tracker', stepTracker = '/step-tracker', heartRate = '/heart-rate', delivery = '/delivery', deliveryCompanies = '/delivery/companies', deliveryTracking = '/delivery/tracking';
 
   static bool _backPressedOnce = false;
   static Timer? _backExitTimer;
@@ -132,6 +133,7 @@ class AppRouter {
       GoRoute(path: community, builder: (_, __) => const CommunityScreen()),
       GoRoute(path: sleepTracker, builder: (_, __) => const SleepTrackerScreen()),
       GoRoute(path: stepTracker, builder: (_, __) => const StepTrackerScreen()),
+      GoRoute(path: heartRate, builder: (_, __) => const HeartRateScreen()),
       GoRoute(path: delivery, builder: (_, __) => const DeliveryScreen()),
       GoRoute(path: deliveryCompanies, builder: (context, state) { final extra = (state.extra as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{}; return DeliveryCompanyScreen(selectedCompanyId: extra['selectedCompanyId'] as String?, distance: (extra['distance'] as num?)?.toDouble() ?? 5.0, area: '${extra['area'] ?? ''}', onSelect: (company) => context.pop(company)); }),
       GoRoute(path: deliveryTracking, builder: (_, state) { final orderId = state.uri.queryParameters['orderId'] ?? (state.extra is String ? state.extra as String : ''); return DeliveryTrackingScreen(orderId: orderId); }),
@@ -170,6 +172,7 @@ class AppRouter {
       case community: return MaterialPageRoute(builder: (_) => const CommunityScreen(), settings: routeSettings);
       case sleepTracker: return MaterialPageRoute(builder: (_) => const SleepTrackerScreen(), settings: routeSettings);
       case stepTracker: return MaterialPageRoute(builder: (_) => const StepTrackerScreen(), settings: routeSettings);
+      case heartRate: return MaterialPageRoute(builder: (_) => const HeartRateScreen(), settings: routeSettings);
       case delivery: return MaterialPageRoute(builder: (_) => const DeliveryScreen(), settings: routeSettings);
       case deliveryTracking: return MaterialPageRoute(builder: (_) => DeliveryTrackingScreen(orderId: routeSettings.arguments is String ? routeSettings.arguments as String : ''), settings: routeSettings);
       default:
