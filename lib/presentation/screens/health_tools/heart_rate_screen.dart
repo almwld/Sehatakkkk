@@ -28,7 +28,12 @@ class _HeartRateScreenState extends State<HeartRateScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.error, Color(0xFFC62828)]), borderRadius: BorderRadius.circular(16)),
             child: Column(children: [
-              const Icon(Icons.favorite, color: Colors.white, size: 48),
+              Image.asset(
+                'assets/icons/health/heart_rate.png',
+                width: 48,
+                height: 48,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.favorite, color: Colors.white, size: 48),
+              ),
               const SizedBox(height: 8),
               const Text('أقصى معدل لقلبك', style: TextStyle(color: Colors.white70, fontSize: 14)),
               Text('$_maxHR', style: const TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold)),
