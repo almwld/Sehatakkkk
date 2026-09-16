@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/mock/sample_labs.dart';
 import 'package:sehatak/presentation/screens/lab/lab_booking_screen.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
@@ -17,7 +16,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
   Map<String, dynamic>? _lab;
   bool _loading = true;
   String? _error;
-  bool _isDemo = false;
 
   @override void initState() { super.initState(); _tabs = TabController(length: 2, vsync: this); _load(); }
   @override void dispose() { _tabs.dispose(); super.dispose(); }
@@ -28,14 +26,11 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
   Future<void> _load() async {
     try {
       final snap = await _db.collection('labs').doc(widget.labId).get();
-      if (snap.exists) { if (mounted) setState(() { _lab = {'id': snap.id, ...snap.data()!}; _loading = false; _isDemo = false; }); return; }
-      final demo = sampleLabs.where((x) => _s(x['id']) == widget.labId).toList();
-      if (demo.isNotEmpty) { if (mounted) setState(() { _lab = Map<String, dynamic>.from(demo.first); _loading = false; _isDemo = true; }); return; }
-      throw Exception();
+      if (!snap.exists) throw Exception('المختبر غير موجود');
+      if (!mounted) return;
+      setState(() { _lab = {'id': snap.id, ...snap.data()!}; _loading = false; });
     } catch (_) {
-      final demo = sampleLabs.where((x) => _s(x['id']) == widget.labId).toList();
-      if (demo.isNotEmpty) { if (mounted) setState(() { _lab = Map<String, dynamic>.from(demo.first); _loading = false; _isDemo = true; }); return; }
-      if (mounted) setState(() { _loading = false; _error = 'تعذر تحميل بيانات المختبر.'; });
+      if (mounted) setState(() { _loading = false; _error = 'تعذر تحميل بيانات المختبر من النظام.'; });
     }
   }
 
@@ -56,16 +51,16 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
   Widget _overview(Map<String, dynamic> l, String image, bool verified, bool dark) => SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     if (image.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(18), child: SizedBox(height: 190, width: double.infinity, child: AppImage(imageUrl: image, fit: BoxFit.cover))),
     const SizedBox(height: 12),
-    if (_isDemo) Container(width: double.infinity, padding: const EdgeInsets.all(10), margin: const EdgeInsets.only(bottom: 12), decoration: BoxDecoration(color: AppColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(10)), child: const Text('بيانات تجريبية — الصورة من ImageKit وهي صورة تعريفية وليست إثباتًا لصورة الفرع المحدد.', style: TextStyle(color: AppColors.primary, fontSize: 12))),
     _card(dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [Expanded(child: Text(_s(l['name']), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87))), if (verified) const Icon(Icons.verified, color: AppColors.primary)]),
       const SizedBox(height: 8),
-      Text(_s(l['description']).isEmpty ? 'مختبر يقدم خدمات مخبرية متكاملة.' : _s(l['description']), style: TextStyle(height: 1.6, color: dark ? Colors.grey[300] : Colors.grey[700])),
+      if (_s(l['description']).isNotEmpty) Text(_s(l['description']), style: TextStyle(height: 1.6, color: dark ? Colors.grey[300] : Colors.grey[700])),
       const SizedBox(height: 12),
       _row(Icons.location_on, 'العنوان', _s(l['address'] ?? l['location'] ?? 'غير محدد'), dark),
       _row(Icons.phone, 'الهاتف', _s(l['phone']).isEmpty ? 'غير متوفر' : _s(l['phone']), dark),
       _row(Icons.email, 'البريد', _s(l['email']).isEmpty ? 'غير متوفر' : _s(l['email']), dark),
       _row(Icons.star, 'التقييم', '${_n(l['rating']).toStringAsFixed(1)} (${_n(l['reviews'] ?? l['reviewsCount']).toInt()} تقييم)', dark),
+      _row(Icons.home_work, 'السحب المنزلي', (l['homeService'] == true || l['homeCollection'] == true || l['hasHomeService'] == true) ? 'متاح' : 'غير متاح', dark),
     ])),
     const SizedBox(height: 16),
     _card(dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('الخدمات والتخصصات', style: TextStyle(fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)), const SizedBox(height: 10), Wrap(spacing: 8, runSpacing: 8, children: _list(l['specialties']).map((x) => Chip(label: Text(_s(x)))).toList())])),
@@ -74,14 +69,14 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
 
   Widget _tests(Map<String, dynamic> l, List<dynamic> tests, bool dark) => Column(children: [
     Expanded(child: tests.isEmpty ? Center(child: Text('لا توجد فحوصات مسجلة حاليًا.', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700]))) : ListView.builder(padding: const EdgeInsets.all(16), itemCount: tests.length, itemBuilder: (c, i) {
-      final t = tests[i] is Map ? Map<String, dynamic>.from(tests[i]) : {'name': tests[i]};
+      final t = tests[i] is Map ? Map<String, dynamic>.from(tests[i]) : {'name': tests[i], 'id': 'test_$i'};
       final testId = _s(t['id']).isEmpty ? 'test_$i' : _s(t['id']);
-      return Card(color: dark ? const Color(0xFF1A2540) : Colors.white, child: ListTile(leading: const CircleAvatar(backgroundColor: Color(0x1A0A8F83), child: Icon(Icons.science, color: AppColors.primary)), title: Text(_s(t['name']).isEmpty ? 'فحص' : _s(t['name']), style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600)), subtitle: Text(_s(t['description']), style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])), trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text('${_n(t['price']).toStringAsFixed(0)} ر.ي', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), TextButton(onPressed: _isDemo ? _showDemoBooking : () => Navigator.push(c, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id']), testId: testId))), child: const Text('حجز'))])));
+      final price = _n(t['price']);
+      return Card(color: dark ? const Color(0xFF1A2540) : Colors.white, child: ListTile(leading: const CircleAvatar(backgroundColor: Color(0x1A0A8F83), child: Icon(Icons.science, color: AppColors.primary)), title: Text(_s(t['name']).isEmpty ? 'فحص' : _s(t['name']), style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600)), subtitle: Text(_s(t['description']), style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])), trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text('${price.toStringAsFixed(0)} ر.ي', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), TextButton(onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id']), testId: testId))), child: const Text('حجز'))])));
     })),
-    Container(padding: const EdgeInsets.all(16), color: dark ? const Color(0xFF1A2540) : Colors.white, child: SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: _isDemo ? _showDemoBooking : () => Navigator.push(context, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id'])))), icon: const Icon(Icons.calendar_today), label: const Text('حجز فحص'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))))
+    Container(padding: const EdgeInsets.all(16), color: dark ? const Color(0xFF1A2540) : Colors.white, child: SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: tests.isEmpty ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id'])))), icon: const Icon(Icons.calendar_today), label: const Text('حجز فحص'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))))
   ]);
 
-  void _showDemoBooking() => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('هذه بيانات تجريبية. فعّل سجل المختبر في Firestore ويجب أن يكون موثقًا ليصبح الحجز فعليًا.'), backgroundColor: AppColors.primary));
   Widget _card(bool dark, Widget child) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16)), child: child);
   Widget _row(IconData i, String label, String value, bool dark) => Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [Icon(i, size: 18, color: AppColors.primary), const SizedBox(width: 8), Text('$label: ', style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])), Expanded(child: Text(value, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)))]));
 }
