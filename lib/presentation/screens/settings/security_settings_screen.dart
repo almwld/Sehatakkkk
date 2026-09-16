@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
@@ -52,6 +52,39 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     }
   }
 
+  Future<void> _signOutAllDevices() async {
+    if (_busy) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تسجيل الخروج من جميع الأجهزة'),
+        content: const Text('سيتم إبطال جلسات تسجيل الدخول الحالية على جميع الأجهزة، ثم تسجيل خروجك من هذا الجهاز أيضاً.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('متابعة')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await FirebaseFunctions.instance.httpsCallable('revokeAllSessions').call();
+      await FirebaseAuth.instance.signOut();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
+        (_) => false,
+      );
+    } on FirebaseFunctionsException catch (e) {
+      if (mounted) ToastService.showError('تعذر إبطال الجلسات: ${e.message ?? e.code}');
+    } catch (e) {
+      if (mounted) ToastService.showError('تعذر إبطال الجلسات: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _deleteAccount() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || _busy) return;
@@ -84,7 +117,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         MaterialPageRoute(builder: (_) => const AuthScreen()),
         (_) => false,
       );
-    } on firebase_auth.FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final message = e.code == 'requires-recent-login'
           ? 'لأسباب أمنية، أعد تسجيل الدخول ثم حاول حذف الحساب مرة أخرى.'
@@ -125,14 +158,25 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Text('الجلسة الحالية', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+          Text('الجلسات والأجهزة', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 8),
           Card(
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: AppColors.primary),
-              title: const Text('تسجيل الخروج من هذا الجهاز'),
-              subtitle: const Text('إنهاء جلسة التطبيق الحالية فقط'),
-              onTap: _busy ? null : _signOutCurrentDevice,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.logout, color: AppColors.primary),
+                  title: const Text('تسجيل الخروج من هذا الجهاز'),
+                  subtitle: const Text('إنهاء جلسة التطبيق الحالية فقط'),
+                  onTap: _busy ? null : _signOutCurrentDevice,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.devices, color: AppColors.primary),
+                  title: const Text('تسجيل الخروج من جميع الأجهزة'),
+                  subtitle: const Text('إبطال جلسات تسجيل الدخول الأخرى عبر Firebase'),
+                  onTap: _busy ? null : _signOutAllDevices,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -148,7 +192,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
           ),
           const SizedBox(height: 16),
           const Text(
-            'ملاحظة: قائمة الأجهزة الأخرى وإبطال جلساتها تتطلب صلاحية Firebase Admin من الخادم؛ لا يتم عرض أجهزة غير مؤكدة من التطبيق.',
+            'تسجيل الخروج من جميع الأجهزة يلغي رموز الجلسات القابلة للتجديد من خادم Firebase.',
             style: TextStyle(fontSize: 12, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
