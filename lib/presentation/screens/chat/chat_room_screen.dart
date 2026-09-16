@@ -271,6 +271,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     try { await _firestore.collection('chats').doc(widget.chatId).set({'typing.$uid': typing}, SetOptions(merge: true)); } catch (e) { debugPrint('typing update: $e'); }
   }
 
+  Future<void> _setTyping(bool typing) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    _typingClearTimer?.cancel();
+    if (typing) {
+      _typingClearTimer = Timer(const Duration(seconds: 2), () => _setTyping(false));
+    }
+    try { await _firestore.collection('chats').doc(widget.chatId).set({'typing.$uid': typing}, SetOptions(merge: true)); } catch (e) { debugPrint('typing update: $e'); }
+  }
+
   void _startPendingRefresh() {
     _pendingRefreshTimer?.cancel();
     var delay = const Duration(seconds: 2);
@@ -377,7 +387,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return null;
   }
 
-  @override void dispose() { _pendingRefreshTimer?.cancel(); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _messagesSub?.cancel(); _chatSub?.cancel(); _userSub?.cancel(); ChatReplyContext.instance.clear(widget.chatId); super.dispose(); }
+  @override void dispose() { _pendingRefreshTimer?.cancel(); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _messagesSub?.cancel(); _chatSub?.cancel(); _userSub?.cancel(); ChatReplyContext.instance.clear(widget.chatId); super.dispose(); }
 
   @override Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark; final image = widget.otherUserImage ?? widget.groupImage;
