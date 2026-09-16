@@ -53,7 +53,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'value': 120.0,
         'max': 180.0,
         'display': '120',
-        'color': Colors.red,
+        'color': const Color(0xFF0A8F83),
         'icon': 'assets/images/tracking/blood_pressure.png'
       },
       {
@@ -61,7 +61,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'value': 98.0,
         'max': 200.0,
         'display': '98',
-        'color': Colors.orange,
+        'color': const Color(0xFF12AFA0),
         'icon': 'assets/images/tracking/blood_sugar.png'
       },
       {
@@ -69,7 +69,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'value': 85.0,
         'max': 100.0,
         'display': '85%',
-        'color': Colors.green,
+        'color': const Color(0xFF20B2AA),
         'icon': 'assets/images/tracking/fitness.png'
       },
       {
@@ -77,7 +77,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'value': 72.0,
         'max': 120.0,
         'display': '72',
-        'color': Colors.purple,
+        'color': const Color(0xFF159A9C),
         'icon': 'assets/images/tracking/weight_tracking.png'
       },
       {
@@ -85,7 +85,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'value': 8.0,
         'max': 10.0,
         'display': '8/10',
-        'color': Colors.teal,
+        'color': const Color(0xFF2BB7A9),
         'icon': 'assets/images/tracking/nutrition.png'
       },
       {
@@ -93,7 +93,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'value': 9.0,
         'max': 10.0,
         'display': '9/10',
-        'color': Colors.indigo,
+        'color': const Color(0xFF3AAFA9),
         'icon': 'assets/images/tracking/mental_health.png'
       },
     ];
