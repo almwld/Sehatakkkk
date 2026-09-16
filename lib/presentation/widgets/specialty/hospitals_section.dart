@@ -1,0 +1,3 @@
+import 'package:flutter/material.dart';
+import 'specialty_section_header.dart';
+class HospitalsSection extends StatelessWidget { final String title; final Color accentColor; final List<Widget> hospitals; final VoidCallback? onSeeAll; const HospitalsSection({super.key,this.title='المستشفيات',required this.accentColor,required this.hospitals,this.onSeeAll}); @override Widget build(BuildContext context){return Column(children:[SpecialtySectionHeader(title:title,accentColor:accentColor,onSeeAll:onSeeAll),const SizedBox(height:8),if(hospitals.isEmpty)const Padding(padding:EdgeInsets.all(12),child:Text('لا توجد مستشفيات متاحة حالياً'))else ...hospitals]);}}
