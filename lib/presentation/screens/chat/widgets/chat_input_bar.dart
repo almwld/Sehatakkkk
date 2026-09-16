@@ -19,6 +19,7 @@ class ChatInputBar extends StatefulWidget {
   final Function(String)? onSendImage;
   final Function(Map<String, dynamic>)? onLocalMedia;
   final VoidCallback? onShareLocation;
+  final Function(bool)? onTyping;
 
   const ChatInputBar({
     super.key,
@@ -27,6 +28,7 @@ class ChatInputBar extends StatefulWidget {
     this.onSendImage,
     this.onLocalMedia,
     this.onShareLocation,
+    this.onTyping,
   });
 
   @override
@@ -39,6 +41,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
   final _picker = ImagePicker();
   final _recorder = AudioRecorder();
   Timer? _timer;
+  Timer? _typingTimer;
   Duration _duration = Duration.zero;
   String? _recordPath;
   bool _recording = false;
@@ -59,11 +62,21 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   void _onTextChanged() {
     if (mounted) setState(() {});
+    if (_controller.text.trim().isNotEmpty) {
+      widget.onTyping?.call(true);
+      _typingTimer?.cancel();
+      _typingTimer = Timer(const Duration(seconds: 2), () => widget.onTyping?.call(false));
+    } else {
+      _typingTimer?.cancel();
+      widget.onTyping?.call(false);
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _typingTimer?.cancel();
+    widget.onTyping?.call(false);
     _controller.dispose();
     _focus.dispose();
     _recorder.dispose();

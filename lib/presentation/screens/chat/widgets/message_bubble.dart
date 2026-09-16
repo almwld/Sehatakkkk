@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
@@ -65,10 +66,16 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildText(Map<String, dynamic> m, bool dark) => _shell(Padding(padding: const EdgeInsets.fromLTRB(13, 9, 10, 7), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    if ((m['replyPreview']?.toString().trim() ?? '').isNotEmpty) Container(width: double.infinity, margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: widget.isMe ? Colors.white.withOpacity(.14) : Colors.black.withOpacity(.06), borderRadius: BorderRadius.circular(8)), child: Text(m['replyPreview'].toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: widget.isMe ? Colors.white70 : Colors.black54))),
+    if (m['replyPreview'] is Map) _replyPreview(m['replyPreview'] as Map, dark),
     Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : Colors.black87), fontSize: 14))), const SizedBox(width: 6), _status(m)]),
     _reactions(m, dark),
   ])), dark);
+
+  Widget _replyPreview(Map preview, bool dark) {
+    final sender = preview['senderName']?.toString().trim() ?? 'مستخدم';
+    final text = preview['text']?.toString().trim() ?? 'مرفق';
+    return Container(width: double.infinity, margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: widget.isMe ? Colors.white.withOpacity(.14) : Colors.black.withOpacity(.06), borderRadius: BorderRadius.circular(8)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(sender, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white : AppColors.primary)), const SizedBox(height: 2), Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : Colors.black54))) ]));
+  }
 
   Widget _status(Map<String, dynamic> m) {
     if (!widget.isMe) return const SizedBox.shrink();
@@ -160,6 +167,15 @@ class _MessageBubbleState extends State<MessageBubble> {
                           ))
                       .toList(),
                 ),
+              ),
+            if ((widget.message['text']?.toString().trim() ?? '').isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: const Text('نسخ الرسالة'),
+                onTap: () async {
+                  await Clipboard.setData(ClipboardData(text: widget.message['text'].toString()));
+                  if (mounted) Navigator.pop(context);
+                },
               ),
             if (widget.onReply != null)
               ListTile(

@@ -95,6 +95,7 @@ class FcmTokenService {
     await _firestore.collection('users').doc(uid).set(
       {
         'fcmToken': token,
+        'fcmTokens': FieldValue.arrayUnion([token]),
         'lastTokenUpdate': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),

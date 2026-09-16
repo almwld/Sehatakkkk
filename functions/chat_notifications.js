@@ -5,13 +5,14 @@ const db=admin.firestore();
 async function sendToUser(uid,payload){
   if(!uid)return;
   const snap=await db.collection('users').doc(uid).get();
-  const token=snap.data()?.fcmToken;
-  if(!token)return;
+  const userData=snap.data()||{};
+  const tokens=[...(Array.isArray(userData.fcmTokens)?userData.fcmTokens:[]), userData.fcmToken].map(v=>String(v||'').trim()).filter(Boolean);
+  if(!tokens.length)return;
   try{
     const type=String(payload.data?.type||'');
     const isCall=type==='incoming_call';
     const message={
-      token:String(token).trim(),
+      tokens,
       data:Object.fromEntries(Object.entries(payload.data||{}).map(([k,v])=>[k,String(v??'')])),
       android:{
         priority:'high',
@@ -29,7 +30,8 @@ async function sendToUser(uid,payload){
         },
       },
     };
-    await admin.messaging().send(message);
+    const response=await admin.messaging().sendEachForMulticast(message);
+    if(response.failureCount){ console.warn(`FCM multicast failures for ${uid}: ${response.failureCount}`); }
   }catch(e){
     console.error(`FCM send failed for ${uid}:`,e.message);
     if(['messaging/registration-token-not-registered','messaging/invalid-registration-token'].includes(e.code)){

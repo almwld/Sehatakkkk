@@ -38,6 +38,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _chatSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
   Timer? _pendingRefreshTimer;
+  Timer? _typingClearTimer;
+  bool _otherTyping = false;
   List<MessageModel> _messages = [];
   final List<Map<String, dynamic>> _localMedia = [];
   bool _loading = true;
@@ -48,6 +50,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   CollectionReference<Map<String, dynamic>> get _messagesRef => _firestore.collection('chats').doc(widget.chatId).collection('messages');
 
   @override void initState() { super.initState(); _listen(); _loadPendingMedia(); _startPendingRefresh(); _markRead(); }
+
+  Future<void> _setTyping(bool typing) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    _typingClearTimer?.cancel();
+    if (typing) {
+      _typingClearTimer = Timer(const Duration(seconds: 2), () => _setTyping(false));
+    }
+    try { await _firestore.collection('chats').doc(widget.chatId).set({'typing.$uid': typing}, SetOptions(merge: true)); } catch (e) { debugPrint('typing update: $e'); }
+  }
 
   void _startPendingRefresh() {
     _pendingRefreshTimer?.cancel();
@@ -98,6 +110,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     _chatSub = _firestore.collection('chats').doc(widget.chatId).snapshots().listen((snapshot) {
       if (!mounted || !snapshot.exists) return;
       final data = snapshot.data() ?? <String, dynamic>{}; final uid = _auth.currentUser?.uid; final mutedFor = data['mutedFor']; final pinnedFor = data['pinnedFor'];
+      final typing = data['typing']; final otherId = widget.otherUserId; final otherTyping = typing is Map && typing[otherId] == true; if (mounted && _otherTyping != otherTyping) setState(() => _otherTyping = otherTyping);
       setState(() { _muted = uid != null && mutedFor is Map && mutedFor[uid] == true ? true : data['isMuted'] == true && mutedFor is! Map; _pinned = uid != null && pinnedFor is Map && pinnedFor[uid] == true ? true : data['isPinned'] == true && pinnedFor is! Map; });
     });
     _userSub = _firestore.collection('users').doc(widget.otherUserId).snapshots().listen((snapshot) { if (mounted) setState(() => _online = snapshot.data()?['isOnline'] == true); });
@@ -154,7 +167,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return null;
   }
 
-  @override void dispose() { _pendingRefreshTimer?.cancel(); _messagesSub?.cancel(); _chatSub?.cancel(); _userSub?.cancel(); ChatReplyContext.instance.clear(widget.chatId); super.dispose(); }
+  @override void dispose() { _pendingRefreshTimer?.cancel(); _typingClearTimer?.cancel(); unawaited(_setTyping(false)); _messagesSub?.cancel(); _chatSub?.cancel(); _userSub?.cancel(); ChatReplyContext.instance.clear(widget.chatId); super.dispose(); }
 
   @override Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark; final image = widget.otherUserImage ?? widget.groupImage;
@@ -163,7 +176,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF2F5F6),
       appBar: AppBar(elevation: 0, backgroundColor: dark ? const Color(0xFF101827) : Colors.white, leading: const BackButton(), titleSpacing: 0,
-        title: InkWell(onTap: _profile, child: Row(children: [CircleAvatar(radius: 21, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: image != null ? CachedNetworkImageProvider(image) : null, child: image == null ? Text(widget.otherUserName.isEmpty ? 'م' : widget.otherUserName.substring(0, 1)) : null), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.isGroup ? 'المجموعة' : widget.otherUserName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)), Text(_online ? 'متصل الآن' : 'غير متصل', style: TextStyle(fontSize: 11, color: _online ? Colors.green : Colors.grey))]))])),
+        title: InkWell(onTap: _profile, child: Row(children: [CircleAvatar(radius: 21, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: image != null ? CachedNetworkImageProvider(image) : null, child: image == null ? Text(widget.otherUserName.isEmpty ? 'م' : widget.otherUserName.substring(0, 1)) : null), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.isGroup ? 'المجموعة' : widget.otherUserName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)), Text(_otherTyping ? 'يكتب الآن...' : (_online ? 'متصل الآن' : 'غير متصل'), style: TextStyle(fontSize: 11, color: _otherTyping ? AppColors.primary : (_online ? Colors.green : Colors.grey)))]))])),
         actions: [IconButton(onPressed: _searchMessages, tooltip: 'البحث داخل الرسائل', icon: const Icon(Icons.search_rounded)), if (!widget.isGroup) IconButton(onPressed: () => _call(false), icon: const Icon(Icons.call_rounded)), if (!widget.isGroup) IconButton(onPressed: () => _call(true), icon: const Icon(Icons.videocam_rounded)), PopupMenuButton<String>(onSelected: (value) { if (value == 'mute') _toggleMute(); if (value == 'pin') _togglePin(); }, itemBuilder: (_) => [PopupMenuItem(value: 'mute', child: Text(_muted ? 'إلغاء كتم الإشعارات' : 'كتم الإشعارات')), PopupMenuItem(value: 'pin', child: Text(_pinned ? 'إلغاء تثبيت المحادثة' : 'تثبيت المحادثة'))])],
       ),
       body: Column(children: [
@@ -176,7 +189,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           return Stack(clipBehavior: Clip.none, children: [bubble, MediaUploadStatusWidget(status: status, progress: (message['uploadProgress'] as num?)?.toDouble() ?? 0.0, onRetry: () => message['onRetry']?.call())]);
         }))),
         if (_replyingTo != null) _replyBanner(_replyingTo!),
-        ChatInputBar(chatId: widget.chatId, onSendMessage: (_) { if (_replyingTo != null) _clearReply(); }, onSendImage: (_) {}, onLocalMedia: _addLocalMedia, onShareLocation: _shareLocation),
+        ChatInputBar(chatId: widget.chatId, onSendMessage: (_) { unawaited(_setTyping(false)); if (_replyingTo != null) _clearReply(); }, onTyping: _setTyping, onSendImage: (_) {}, onLocalMedia: _addLocalMedia, onShareLocation: _shareLocation),
       ]),
     );
   }

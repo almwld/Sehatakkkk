@@ -279,11 +279,6 @@ class _HealthDashboardState extends State<HealthDashboard>
                 color: isDark ? Colors.white : Colors.black87),
             onPressed: () {},
           ),
-          IconButton(
-            icon: Icon(Icons.more_vert,
-                color: isDark ? Colors.white : Colors.black87),
-            onPressed: () {},
-          ),
         ],
       ),
       body: _isLoading

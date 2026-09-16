@@ -90,7 +90,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
         actions: [
           TextButton(
             onPressed: _publishing ? null : _publish,
-            child: const Text('نشر', style: TextStyle(fontWeight: FontWeight.w800)),
+            child: const Text('حفظ', style: TextStyle(fontWeight: FontWeight.w800)),
           ),
         ],
       ),

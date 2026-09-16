@@ -1,5 +1,11 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sehatak/core/services/chat_service.dart';
+import 'package:sehatak/core/models/call_model.dart';
+import 'package:sehatak/core/services/call_service.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class VideoConsultationScreen extends StatefulWidget {
@@ -232,7 +238,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    ToastService.showSuccess('✅ بدء الاستشارة مع ${doctor['name']}');
+                    _startRealCall(doctor, true);
                   },
                   icon: const Icon(Icons.videocam),
                   label: const Text('بدء الفيديو'),
@@ -247,7 +253,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    ToastService.showSuccess('📞 بدء المكالمة الصوتية مع ${doctor['name']}');
+                    _startRealCall(doctor, false);
                   },
                   icon: const Icon(Icons.phone),
                   label: const Text('صوت فقط'),
@@ -270,6 +276,19 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _startRealCall(Map<String,dynamic> doctor,bool video) async {
+    final me=FirebaseAuth.instance.currentUser;
+    final doctorId=(doctor['userId'] ?? doctor['id'] ?? '').toString();
+    if(me==null || doctorId.isEmpty || doctorId==me.uid){ ToastService.showError('حساب الطبيب غير صالح للمكالمة'); return; }
+    try {
+      final data=await FirebaseFirestore.instance.collection('users').doc(me.uid).get();
+      final chatId=await ChatService().createChat(doctorId:doctorId,doctorName:doctor['name'].toString(),patientName:(data.data()?['name'] ?? me.displayName ?? 'مستخدم').toString(),doctorImage:doctor['image']?.toString(),patientImage:me.photoURL);
+      final call=await CallService().initiateCall(receiverId:doctorId,receiverName:doctor['name'].toString(),receiverPhotoUrl:doctor['image']?.toString(),type:video?CallType.video:CallType.audio,chatId:chatId);
+      if(!mounted || call==null)return;
+      await Navigator.push(context,MaterialPageRoute(builder:(_)=>CallScreen(chatId:chatId,doctorName:doctor['name'].toString(),doctorId:doctorId,doctorImage:doctor['image']?.toString(),isVideo:video,isOutgoing:true)));
+    }catch(e){ if(mounted) ToastService.showError('تعذر بدء المكالمة: $e'); }
   }
 
   @override
