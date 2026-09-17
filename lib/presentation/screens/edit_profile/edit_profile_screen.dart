@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_assets.dart';
+import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -21,6 +23,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _addressController = TextEditingController();
   final _bloodTypeController = TextEditingController();
   final _allergiesController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _ageController = TextEditingController();
 
   static const List<String> _bloodTypes = [
     'A+',
@@ -55,27 +60,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final doc = await _firestore.collection('users').doc(user.uid).get();
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
-        final savedBloodType = (data['bloodType'] ?? 'O+').toString().trim();
+        final savedBloodType = (data['bloodType'] ?? '').toString().trim();
         setState(() {
           _nameController.text = data['name'] ?? user.displayName ?? '';
           _phoneController.text = data['phone'] ?? user.phoneNumber ?? '';
           _addressController.text = data['address'] ?? '';
-          _bloodTypeController.text = _bloodTypes.contains(savedBloodType) ? savedBloodType : 'O+';
+          _bloodTypeController.text = _bloodTypes.contains(savedBloodType) ? savedBloodType : '';
           _allergiesController.text = data['allergies'] ?? '';
+          _heightController.text = data['height']?.toString() ?? '';
+          _weightController.text = data['weight']?.toString() ?? '';
+          _ageController.text = data['age']?.toString() ?? '';
         });
       } else {
-        // ✅ بيانات من Firebase Auth كنسخة احتياطية
         setState(() {
           _nameController.text = user.displayName ?? '';
           _phoneController.text = user.phoneNumber ?? '';
-          _bloodTypeController.text = 'O+';
         });
       }
     } catch (e) {
       print('❌ Error loading user data: $e');
-      if (mounted && _bloodTypeController.text.trim().isEmpty) {
-        _bloodTypeController.text = 'O+';
-      }
     }
 
     if (mounted) {
@@ -90,32 +93,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _isSaving = true);
 
     try {
+      final height = double.tryParse(_heightController.text.trim());
+      final weight = double.tryParse(_weightController.text.trim());
+      final age = int.tryParse(_ageController.text.trim());
+
+      if (_heightController.text.trim().isNotEmpty && height == null ||
+          _weightController.text.trim().isNotEmpty && weight == null ||
+          _ageController.text.trim().isNotEmpty && age == null) {
+        ToastService.showError('يرجى إدخال الطول والوزن والعمر بقيم صحيحة');
+        if (mounted) setState(() => _isSaving = false);
+        return;
+      }
+
+      if ((height != null && (height <= 0 || height > 300)) ||
+          (weight != null && (weight <= 0 || weight > 500)) ||
+          (age != null && (age < 0 || age > 150))) {
+        ToastService.showError('تحقق من قيم الطول والوزن والعمر');
+        if (mounted) setState(() => _isSaving = false);
+        return;
+      }
+
       final bloodType = _bloodTypes.contains(_bloodTypeController.text)
           ? _bloodTypeController.text
-          : 'O+';
+          : null;
 
-      // ✅ تحديث DisplayName في Firebase Auth
       await user.updateDisplayName(_nameController.text.trim());
 
-      // ✅ حفظ البيانات في Firestore
-      await _firestore.collection('users').doc(user.uid).set({
+      final updates = <String, dynamic>{
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
-        'bloodType': bloodType,
         'allergies': _allergiesController.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      };
+      if (bloodType != null) updates['bloodType'] = bloodType;
+      if (height != null) updates['height'] = height;
+      if (weight != null) updates['weight'] = weight;
+      if (age != null) updates['age'] = age;
 
-      // ✅ تحديث الـ Auth مرة أخرى بعد التحديث
+      await _firestore.collection('users').doc(user.uid).set(
+        updates,
+        SetOptions(merge: true),
+      );
+
       await user.reload();
 
       if (!mounted) return;
-
-      ToastService.showSuccess('✅ تم تحديث الملف الشخصي بنجاح');
-
+      ToastService.showSuccess('✅ تم تحديث الملف الشخصي والبيانات الصحية');
       Navigator.pop(context, true);
-
     } catch (e) {
       ToastService.showError('❌ فشل التحديث: $e');
     }
@@ -132,6 +157,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _addressController.dispose();
     _bloodTypeController.dispose();
     _allergiesController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    _ageController.dispose();
     super.dispose();
   }
 
@@ -181,14 +209,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildTextField(
               controller: _nameController,
               label: 'الاسم الكامل',
-              icon: Icons.person_rounded,
+              icon: AppAssets.userIcon,
               enabled: !_isSaving,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _phoneController,
               label: 'رقم الهاتف',
-              icon: Icons.phone_rounded,
+              icon: AppAssets.phoneIcon,
               keyboardType: TextInputType.phone,
               enabled: !_isSaving,
             ),
@@ -196,7 +224,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildTextField(
               controller: _addressController,
               label: 'العنوان',
-              icon: Icons.location_on_rounded,
+              icon: AppAssets.locationIcon,
+              enabled: !_isSaving,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _heightController,
+              label: 'الطول (سم)',
+              icon: AppAssets.heightIcon,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              enabled: !_isSaving,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _weightController,
+              label: 'الوزن (كجم)',
+              icon: AppAssets.weightIcon,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              enabled: !_isSaving,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _ageController,
+              label: 'العمر (سنة)',
+              icon: AppAssets.calendarIcon,
+              keyboardType: TextInputType.number,
               enabled: !_isSaving,
             ),
             const SizedBox(height: 16),
@@ -205,7 +257,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildTextField(
               controller: _allergiesController,
               label: 'الحساسية (إن وجدت)',
-              icon: Icons.warning_rounded,
+              icon: AppAssets.warningIcon,
               enabled: !_isSaving,
             ),
             const SizedBox(height: 30),
@@ -250,14 +302,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final selected = _bloodTypes.contains(_bloodTypeController.text)
         ? _bloodTypeController.text
-        : 'O+';
+        : null;
 
     return DropdownButtonFormField<String>(
       value: selected,
       isExpanded: true,
       decoration: InputDecoration(
         labelText: 'فصيلة الدم',
-        prefixIcon: const Icon(Icons.bloodtype_rounded, color: AppColors.primary),
+        prefixIcon: LocalAssetIcon(AppAssets.bloodPressureIcon, color: AppColors.primary, size: 20),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -316,8 +368,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
               ),
-              child: const Icon(
-                Icons.camera_alt_rounded,
+              child: LocalAssetIcon(
+                AppAssets.cameraIcon,
                 color: Colors.white,
                 size: 16,
               ),
@@ -331,7 +383,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
-    required IconData icon,
+    required String icon,
     TextInputType keyboardType = TextInputType.text,
     bool enabled = true,
   }) {
@@ -344,7 +396,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primary),
+        prefixIcon: LocalAssetIcon(icon, color: AppColors.primary, size: 20),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
