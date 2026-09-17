@@ -43,16 +43,7 @@ class ChatBackground extends StatelessWidget {
             ),
           ),
         ),
-        Positioned.fill(
-          child: IgnorePointer(
-            child: AnimatedOpacity(
-              opacity: 1,
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              child: child,
-            ),
-          ),
-        ),
+        child,
       ],
     );
   }
