@@ -24,14 +24,35 @@ class ChatBackground extends StatelessWidget {
       children: [
         Positioned.fill(
           child: IgnorePointer(
-            child: SvgPicture.asset(
-              wallpaper,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
+            child: ColoredBox(
+              color: isDark
+                  ? const Color(0xFF0B1121)
+                  : const Color(0xFFE3F1EF),
+              child: ColorFiltered(
+                colorFilter: isDark
+                    ? const ColorFilter.mode(
+                        Color(0x00000000), BlendMode.srcOver)
+                    : const ColorFilter.mode(
+                        Color(0x120A8F83), BlendMode.multiply),
+                child: SvgPicture.asset(
+                  wallpaper,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
+              ),
             ),
           ),
         ),
-        child,
+        Positioned.fill(
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              opacity: 1,
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              child: child,
+            ),
+          ),
+        ),
       ],
     );
   }
