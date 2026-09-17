@@ -109,4 +109,56 @@ Thumbs.db
 *.tmp.sh
 /tmp/
 service-account.json
-*.json
+scripts/patch/
+*.clean
+*.pre-inject
+*.backup-*
+
+# 🔓 استثناءات صريحة لملفات Firebase المطلوبة
+!firebase.json
+!.firebaserc
+!firestore.indexes.json
+!firestore.rules
+!pubspec.lock
+!livekit-token-server/package-lock.json
+!android/app/google-services.json
+
+# ============================================================
+# 🔒 Firebase & Service Accounts (critical)
+# ============================================================
+firebase-service-account.json
+firebase-service-account*.json
+*firebase*service-account*.json
+*firebase-adminsdk*.json
+service-account.json
+service-account-*.json
+livekit-token-server/firebase-service-account.json
+
+# ============================================================
+# 🗑️ Backups and temp files
+# ============================================================
+*.backup
+*.backup-*
+*.backup-before-*
+*.bak
+*.old
+*.save
+*.clean
+*.pre-inject
+livekit-token-server/tests/reports/
+
+# ============================================================
+# 🚫 Patch scripts (temporary, never commit)
+# ============================================================
+scripts/patch/
+
+# ============================================================
+# 🔓 Explicit exceptions (important files)
+# ============================================================
+!firebase.json
+!.firebaserc
+!firestore.indexes.json
+!firestore.rules
+!pubspec.lock
+!livekit-token-server/package-lock.json
+!android/app/google-services.json

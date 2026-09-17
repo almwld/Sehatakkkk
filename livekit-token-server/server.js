@@ -5,6 +5,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const { AccessToken } = require('livekit-server-sdk');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
@@ -14,10 +15,17 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL || '';
 
 // Firebase Admin credentials are supplied through Railway environment variables.
 if (!admin.apps.length) {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
-    : null;
-  admin.initializeApp(serviceAccount ? { credential: admin.credential.cert(serviceAccount) } : { credential: admin.credential.applicationDefault() });
+  const fs = require('fs');
+  const path = require('path');
+  let credential;
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON));
+  } else if (fs.existsSync(path.join(__dirname, 'firebase-service-account.json'))) {
+    credential = admin.credential.cert(require('./firebase-service-account.json'));
+  } else {
+    credential = admin.credential.applicationDefault();
+  }
+  admin.initializeApp({ credential });
 }
 
 const db = admin.firestore();
@@ -159,6 +167,142 @@ app.post('/call-notification', async (req, res) => {
   }
 });
 
+// ============================================================
+// Firestore -> FCM: New chat message listener
+// ============================================================
+function buildMessagePayload(opts) {
+  var preview = String(opts.messageText || '').slice(0, 120);
+  return {
+    token: opts.fcmToken,
+    data: {
+      type: 'new_message',
+      chatId: String(opts.chatId || ''),
+      messageId: String(opts.messageId || ''),
+      senderId: String(opts.senderId || ''),
+      senderName: String(opts.senderName || 'user'),
+      senderPhotoUrl: String(opts.senderPhotoUrl || ''),
+      body: preview,
+      title: String(opts.senderName || 'New message'),
+      chatType: String(opts.chatType || 'direct'),
+      timestamp: String(Date.now())
+    },
+    android: {
+      priority: 'high',
+      ttl: 3600000,
+      notification: { channelId: 'sehatak_messages_v2' }
+    },
+    apns: {
+      headers: { 'apns-priority': '5', 'apns-push-type': 'background' },
+      payload: { aps: { 'content-available': 1 } }
+    }
+  };
+}
+
+async function handleNewMessage(change) {
+  try {
+    var msg = change.doc.data() || {};
+    var messageId = change.doc.id;
+    var parent = change.doc.ref.parent;
+    var chatId = parent && parent.parent ? parent.parent.id : null;
+    if (!chatId) { console.warn('[msg] no chatId id=' + messageId); return; }
+
+    var senderId = String(msg.senderId || '');
+    if (!senderId) { console.warn('[msg] no senderId id=' + messageId); return; }
+
+    var senderName = String(msg.senderName || msg.senderDisplayName || '');
+    var senderPhotoUrl = String(msg.senderPhotoUrl || msg.senderAvatar || '');
+    var messageText = '';
+    if (typeof msg.text === 'string') messageText = msg.text;
+    else if (typeof msg.message === 'string') messageText = msg.message;
+    else if (typeof msg.content === 'string') messageText = msg.content;
+
+    var chatSnap = await db.collection('chats').doc(chatId).get();
+    if (!chatSnap.exists) { console.warn('[msg] chat missing id=' + chatId); return; }
+    var chat = chatSnap.data() || {};
+
+    if (chat.isMuted === true || chat.muted === true) {
+      console.log('[msg] muted chatId=' + chatId);
+      return;
+    }
+
+    var participants = Array.isArray(chat.participants)
+      ? chat.participants.map(String).filter(Boolean) : [];
+    if (participants.length === 0) { console.warn('[msg] no participants'); return; }
+
+    var receivers = participants.filter(function(id) { return id !== senderId; });
+    if (receivers.length === 0) { console.log('[msg] self-chat'); return; }
+
+    var userRefs = receivers.map(function(uid) { return db.collection('users').doc(uid); });
+    var userSnaps = await db.getAll.apply(db, userRefs);
+
+    var chatType = String(chat.type || 'direct');
+    var senderLabel = senderName || 'user';
+    var sentCount = 0;
+    var i;
+
+    for (i = 0; i < userSnaps.length; i++) {
+      var userSnap = userSnaps[i];
+      if (!userSnap.exists) continue;
+      var user = userSnap.data() || {};
+      var fcmToken = typeof user.fcmToken === 'string' ? user.fcmToken.trim() : '';
+      if (!fcmToken) continue;
+
+      var payload = buildMessagePayload({
+        fcmToken: fcmToken,
+        senderId: senderId,
+        senderName: senderLabel,
+        senderPhotoUrl: senderPhotoUrl,
+        chatId: chatId,
+        messageId: messageId,
+        messageText: messageText,
+        chatType: chatType
+      });
+
+      try {
+        var fcmId = await admin.messaging().send(payload);
+        sentCount++;
+        console.log('[msg] sent id=' + messageId + ' to=' + userSnap.id + ' fcm=' + fcmId);
+      } catch (err) {
+        console.error('[msg] FCM failed to=' + userSnap.id + ' code=' + (err.code || '?'));
+        if (err.code === 'messaging/registration-token-not-registered' ||
+            err.code === 'messaging/invalid-registration-token') {
+          await db.collection('users').doc(userSnap.id).set(
+            { fcmToken: null, lastTokenUpdate: null }, { merge: true }
+          );
+        }
+      }
+    }
+    console.log('[msg] done id=' + messageId + ' sent=' + sentCount + '/' + receivers.length);
+  } catch (err) {
+    console.error('[msg] handler error: ' + (err.message || err));
+  }
+}
+
+function startMessageListener() {
+  try {
+    var startTime = new Date();
+    console.log('[msg] listener starting since ' + startTime.toISOString());
+    db.collectionGroup('messages')
+      .where('timestamp', '>=', startTime)
+      .orderBy('timestamp', 'asc')
+      .onSnapshot(
+        function(snap) {
+          snap.docChanges().forEach(function(change) {
+            if (change.type !== 'added') return;
+            handleNewMessage(change).catch(function(err) {
+              console.error('[msg] unhandled: ' + (err.message || err));
+            });
+          });
+        },
+        function(err) { console.error('[msg] snapshot error: ' + (err.message || err)); }
+      );
+    console.log('[msg] listener active.');
+  } catch (err) {
+    console.error('[msg] listener failed: ' + (err.message || err));
+  }
+}
+// ============================================================
+
 app.use((error, _req, res, _next) => {
   if (error instanceof SyntaxError) return res.status(400).json({ success: false, message: 'Invalid JSON body' });
   console.error('Request error:', error);
@@ -168,4 +312,5 @@ app.use((error, _req, res, _next) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Sehatak LiveKit token server running on port ${PORT}`);
   console.log(`LIVEKIT_URL: ${LIVEKIT_URL}`);
+  startMessageListener();
 });
