@@ -44,7 +44,6 @@ class _CommunityScreenState extends State<CommunityScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) => _updateFabVisibility());
   }
 
-  @override
   void _updateFabVisibility() {
     if (!_feedController.hasClients || !mounted) return;
     final position = _feedController.position;
