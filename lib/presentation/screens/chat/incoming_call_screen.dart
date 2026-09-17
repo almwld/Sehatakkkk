@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -167,7 +168,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     setState(() {
       _answerSwipeTriggered = true;
       _isProcessing = true;
-      _answerSwipeDistance = 0;
+      _answerSwipeDistance = 110;
     });
     try {
       await _answerExpansionController.forward();
@@ -321,30 +322,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   child: const SizedBox(width: 44, height: 44, child: Center(child: Icon(Icons.close, color: Colors.white70, size: 28))),
                 ),
               ),
-              if (_answerSwipeTriggered)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: AnimatedBuilder(
-                      animation: _answerExpansionAnimation,
-                      builder: (_, __) {
-                        final size = MediaQuery.sizeOf(context);
-                        final radius = size.longestSide * 1.15;
-                        return Center(
-                          child: Transform.scale(
-                            scale: _answerExpansionAnimation.value * radius / 75,
-                            child: Container(
-                              width: 75,
-                              height: 75,
-                              decoration: const BoxDecoration(shape: BoxShape.circle, color: green),
-                              padding: const EdgeInsets.all(20),
-                              child: Icon(widget.isVideo ? Icons.videocam : Icons.call, color: Colors.white, size: 35),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
@@ -381,18 +358,47 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
         onTap: onTap,
         onPanUpdate: onPanUpdate,
         onPanEnd: onPanEnd,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          transform: Matrix4.identity()..translate(0.0, -swipeDistance * .12),
-          width: size + swipeDistance * .12,
-          height: size + swipeDistance * .12,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isMain ? color : color.withOpacity(.15),
-            border: Border.all(color: color, width: isMain ? 0 : 2),
-            boxShadow: (isMain || pulse) ? [BoxShadow(color: color.withOpacity(.40), blurRadius: 20 + swipeDistance * .12, spreadRadius: 5 + swipeDistance * .05)] : null,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: size,
+                    height: size,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isMain
+                          ? Colors.white.withOpacity(swipeDistance > 0 ? .16 : .08)
+                          : color.withOpacity(.15),
+                      border: Border.all(
+                        color: isMain
+                            ? Colors.white.withOpacity(swipeDistance > 0 ? .70 : .28)
+                            : color,
+                        width: isMain ? 1.5 : 2,
+                      ),
+                      boxShadow: (isMain || pulse)
+                          ? [BoxShadow(
+                              color: color.withOpacity(swipeDistance > 0 ? .28 : .40),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            )]
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+              Transform.translate(
+                offset: Offset(0, -swipeDistance * .12),
+                child: Icon(icon, color: Colors.white, size: isMain ? 34 : 26),
+              ),
+            ],
           ),
-          child: Icon(icon, color: Colors.white, size: isMain ? 34 : 26),
         ),
       ),
       const SizedBox(height: 8),
