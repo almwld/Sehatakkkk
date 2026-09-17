@@ -19,21 +19,30 @@ class StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mine = currentUserId == null
+        ? null
+        : statuses.cast<UserStatusModel?>().firstWhere(
+            (status) => status?.userId == currentUserId,
+            orElse: () => null,
+          );
+    final others = statuses.where((status) => status.userId != currentUserId).toList();
+
     return SizedBox(
       height: 112,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-        itemCount: statuses.length + 1,
+        itemCount: others.length + 1,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (_, index) {
-          if (index == 0) return _AddStatusButton(onTap: onAddStatus);
-          final status = statuses[index - 1];
-          return _StatusCircle(
-            status: status,
-            isMine: currentUserId != null && status.userId == currentUserId,
-            onTap: () => onOpenStatus(status),
-          );
+          if (index == 0) {
+            if (mine != null) {
+              return _StatusCircle(status: mine, isMine: true, onTap: () => onOpenStatus(mine));
+            }
+            return _AddStatusButton(onTap: onAddStatus);
+          }
+          final status = others[index - 1];
+          return _StatusCircle(status: status, isMine: false, onTap: () => onOpenStatus(status));
         },
       ),
     );
@@ -42,7 +51,6 @@ class StatusRow extends StatelessWidget {
 
 class _StatusCircle extends StatelessWidget {
   const _StatusCircle({required this.status, required this.onTap, required this.isMine});
-
   final UserStatusModel status;
   final VoidCallback onTap;
   final bool isMine;
@@ -54,10 +62,21 @@ class _StatusCircle extends StatelessWidget {
         : status.isViewed
             ? [Colors.grey.shade400, Colors.grey.shade600]
             : [Colors.purple, Colors.pink, Colors.orange];
+    final story = status.stories.firstWhere(
+      (item) => item.type == 'image' && item.url.isNotEmpty,
+      orElse: () => status.stories.first,
+    );
+
+    Widget content;
+    if (story.type == 'image' && story.url.isNotEmpty) {
+      content = Image.network(story.url, fit: BoxFit.cover, width: double.infinity, height: double.infinity, errorBuilder: (_, __, ___) => _fallback(story));
+    } else {
+      content = _fallback(story);
+    }
 
     return Semantics(
       button: true,
-      label: 'حالة ${status.userName}',
+      label: 'حالة ' + status.userName,
       child: GestureDetector(
         onTap: onTap,
         child: SizedBox(
@@ -65,41 +84,36 @@ class _StatusCircle extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                width: 68,
-                height: 68,
-                padding: const EdgeInsets.all(3),
+                width: 68, height: 68, padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: ringColors)),
                 child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                  child: CircleAvatar(
-                    backgroundColor: AppColors.primary.withOpacity(.14),
-                    backgroundImage: status.userImage?.isNotEmpty == true ? NetworkImage(status.userImage!) : null,
-                    child: status.userImage?.isNotEmpty == true
-                        ? null
-                        : Text(
-                            status.userName.isEmpty ? 'م' : status.userName.characters.first,
-                            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 20),
-                          ),
-                  ),
+                  child: ClipOval(child: content),
                 ),
               ),
               const SizedBox(height: 5),
-              Text(
-                isMine ? 'حالتك' : status.userName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-              ),
+              Text(isMine ? 'حالتك' : status.userName, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
       ),
     );
   }
-}
 
+  Widget _fallback(StoryItem story) {
+    if (story.type == 'video') {
+      return Container(color: Colors.black87, alignment: Alignment.center, child: const Icon(Icons.play_circle_fill, color: Colors.white, size: 30));
+    }
+    final text = story.text?.trim();
+    return Container(
+      color: AppColors.primary.withOpacity(.14),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(6),
+      child: Text(text != null && text.isNotEmpty ? text : 'حالتك', maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 10)),
+    );
+  }
+}
 class _AddStatusButton extends StatelessWidget {
   const _AddStatusButton({required this.onTap});
 
