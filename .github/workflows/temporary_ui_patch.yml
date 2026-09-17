@@ -1,0 +1,89 @@
+name: temporary-ui-patch
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor == 'almwld'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 2
+
+      - name: Apply minimal UI corrections
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('lib/presentation/screens/community/community_screen.dart')
+          text = path.read_text(encoding='utf-8')
+
+          if "import 'package:sehatak/core/services/toast_service.dart';" not in text:
+              text = text.replace(
+                  "import 'package:sehatak/core/constants/app_colors.dart';",
+                  "import 'package:sehatak/core/constants/app_colors.dart';\nimport 'package:sehatak/core/services/toast_service.dart';",
+                  1,
+              )
+
+          text = text.replace(
+              "  late final Animation<double> _fabScale;",
+              "  late final Animation<double> _fabScale;\n  late final AnimationController _tapController;\n  bool _fabVisible = true;\n  late final ScrollController _feedController;",
+              1,
+          )
+
+          text = text.replace(
+              "    _fabScale = Tween<double>(begin: 0.96, end: 1.04).animate(\n      CurvedAnimation(parent: _fabController, curve: Curves.easeInOut),\n    );",
+              "    _fabScale = Tween<double>(begin: 0.96, end: 1.04).animate(\n      CurvedAnimation(parent: _fabController, curve: Curves.easeInOut),\n    );\n    _tapController = AnimationController(\n      vsync: this,\n      duration: const Duration(milliseconds: 320),\n    );\n    _feedController = ScrollController()..addListener(_updateFabVisibility);\n    WidgetsBinding.instance.addPostFrameCallback((_) => _updateFabVisibility());",
+              1,
+          )
+
+          text = text.replace(
+              "  void dispose() {\n    _fabController.dispose();\n    super.dispose();\n  }",
+              "  void _updateFabVisibility() {\n    if (!_feedController.hasClients || !mounted) return;\n    final position = _feedController.position;\n    final atStart = position.pixels <= position.minScrollExtent + 1;\n    final atEnd = position.pixels >= position.maxScrollExtent - 1;\n    final visible = atStart || atEnd;\n    if (visible != _fabVisible) setState(() => _fabVisible = visible);\n  }\n\n  Future<void> _handleCreatePostTap() async {\n    if (_tapController.isAnimating) return;\n    await _tapController.forward();\n    await _tapController.reverse();\n    if (mounted) await _openCreatePost();\n  }\n\n  @override\n  void dispose() {\n    _feedController.removeListener(_updateFabVisibility);\n    _feedController.dispose();\n    _tapController.dispose();\n    _fabController.dispose();\n    super.dispose();\n  }",
+              1,
+          )
+
+          text = text.replace(
+              "            child: ListView.separated(\n              padding: const EdgeInsets.fromLTRB(12, 12, 12, 110),",
+              "            child: ListView.separated(\n              controller: _feedController,\n              padding: const EdgeInsets.fromLTRB(12, 12, 12, 110),",
+              1,
+          )
+
+          text = text.replace(
+              "  void _message(String text) => ScaffoldMessenger.of(context).showSnackBar(\n        SnackBar(content: Text(text)),\n      );",
+              "  void _message(String text) => ToastService.showInfo(text);",
+              1,
+          )
+
+          pattern = re.compile(r"      floatingActionButton: AnimatedBuilder\(.*?      floatingActionButtonLocation: FloatingActionButtonLocation\.endFloat,", re.S)
+          replacement = """      floatingActionButton: IgnorePointer(\n        ignoring: !_fabVisible,\n        child: AnimatedOpacity(\n          opacity: _fabVisible ? 1 : 0,\n          duration: const Duration(milliseconds: 160),\n          child: AnimatedBuilder(\n            animation: Listenable.merge([_fabScale, _tapController]),\n            builder: (context, child) => Transform.rotate(\n              angle: 3.141592653589793 * _tapController.value,\n              child: Transform.scale(scale: _fabScale.value, child: child),\n            ),\n            child: FloatingActionButton(\n              heroTag: 'community_create_post_fab',\n              onPressed: _handleCreatePostTap,\n              backgroundColor: AppColors.primary,\n              foregroundColor: Colors.white,\n              elevation: 8,\n              shape: const CircleBorder(),\n              child: const Icon(Icons.add_rounded, size: 30),\n            ),\n          ),\n        ),\n      ),\n      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,"""
+          text, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit('community FAB block not found')
+
+          path.write_text(text, encoding='utf-8')
+
+          # Remove this temporary workflow after applying the patch.
+          workflow = Path('.github/workflows/temporary_ui_patch.yml')
+          workflow.unlink()
+
+      - name: Commit patched files
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/presentation/screens/community/community_screen.dart .github/workflows/temporary_ui_patch.yml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "fix(community): use toast and circular edge-only post button"
+          git push origin HEAD:master
