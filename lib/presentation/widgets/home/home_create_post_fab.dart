@@ -111,20 +111,19 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
           animation: Listenable.merge([_pulse, _tapController]),
           builder: (context, child) {
             final scale = _pulse.value * (1 - (_tapController.value * .08));
-            return Transform.scale(scale: scale, child: child);
+            return Transform.rotate(
+              angle: 3.141592653589793 * _tapController.value,
+              child: Transform.scale(scale: scale, child: child),
+            );
           },
-          child: AnimatedRotation(
-            turns: _tapController.value / 2,
-            duration: const Duration(milliseconds: 320),
-            child: FloatingActionButton(
-              heroTag: 'home_create_post_fab',
-              onPressed: _pressed ? null : _handleTap,
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 8,
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add_rounded, size: 30),
-            ),
+          child: FloatingActionButton(
+            heroTag: 'home_create_post_fab',
+            onPressed: _pressed ? null : _handleTap,
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 8,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add_rounded, size: 30),
           ),
         ),
       ),
