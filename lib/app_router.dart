@@ -23,6 +23,11 @@ import 'package:sehatak/presentation/screens/delivery/delivery_tracking_screen.d
 import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/step_tracker/step_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
+import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
+import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
+import 'package:sehatak/presentation/screens/diet_plan/diet_plan_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
@@ -79,6 +84,11 @@ class AppRouter {
       sleepTracker = '/sleep-tracker',
       stepTracker = '/step-tracker',
       heartRate = '/heart-rate',
+      bloodPressure = '/blood-pressure',
+      glucoseTracker = '/glucose-tracker',
+      weightTracker = '/weight-tracker',
+      mentalHealth = '/mental-health',
+      dietPlan = '/diet-plan',
       delivery = '/delivery',
       deliveryCompanies = '/delivery/companies',
       deliveryTracking = '/delivery/tracking';
@@ -213,6 +223,11 @@ class AppRouter {
           path: sleepTracker, builder: (_, __) => const SleepTrackerScreen()),
       GoRoute(path: stepTracker, builder: (_, __) => const StepTrackerScreen()),
       GoRoute(path: heartRate, builder: (_, __) => const HeartRateScreen()),
+      GoRoute(path: bloodPressure, builder: (_, __) => const BloodPressureScreen()),
+      GoRoute(path: glucoseTracker, builder: (_, __) => const GlucoseTrackerScreen()),
+      GoRoute(path: weightTracker, builder: (_, __) => const WeightTrackerScreen()),
+      GoRoute(path: mentalHealth, builder: (_, __) => const MentalHealthScreen()),
+      GoRoute(path: dietPlan, builder: (_, __) => const DietPlanScreen()),
       GoRoute(path: delivery, builder: (_, __) => const DeliveryScreen()),
       GoRoute(
           path: deliveryCompanies,
@@ -349,6 +364,21 @@ class AppRouter {
       case heartRate:
         return MaterialPageRoute(
             builder: (_) => const HeartRateScreen(), settings: routeSettings);
+      case bloodPressure:
+        return MaterialPageRoute(
+            builder: (_) => const BloodPressureScreen(), settings: routeSettings);
+      case glucoseTracker:
+        return MaterialPageRoute(
+            builder: (_) => const GlucoseTrackerScreen(), settings: routeSettings);
+      case weightTracker:
+        return MaterialPageRoute(
+            builder: (_) => const WeightTrackerScreen(), settings: routeSettings);
+      case mentalHealth:
+        return MaterialPageRoute(
+            builder: (_) => const MentalHealthScreen(), settings: routeSettings);
+      case dietPlan:
+        return MaterialPageRoute(
+            builder: (_) => const DietPlanScreen(), settings: routeSettings);
       case delivery:
         return MaterialPageRoute(
             builder: (_) => const DeliveryScreen(), settings: routeSettings);
