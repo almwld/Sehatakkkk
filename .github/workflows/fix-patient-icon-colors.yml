@@ -1,0 +1,30 @@
+name: Fix Patient Screen Icon Colors
+'on': [push]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Remove PNG tint from PatientDashboard icons
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('lib/presentation/screens/patient/patient_dashboard.dart')
+          s = p.read_text(encoding='utf-8')
+          old = "      fit: BoxFit.contain,\n      color: color,\n      errorBuilder:"
+          new = "      fit: BoxFit.contain,\n      errorBuilder:"
+          if old not in s:
+              raise SystemExit('Expected icon tint was not found; no unrelated edit will be made.')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+          rm .github/workflows/fix-patient-icon-colors.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/presentation/screens/patient/patient_dashboard.dart .github/workflows/fix-patient-icon-colors.yml
+          git diff --cached --check
+          git commit -m "fix(patient): preserve original icon colors"
+          git push
