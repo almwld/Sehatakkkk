@@ -1,0 +1,3 @@
+import 'package:flutter/material.dart';
+import 'package:sehatak/core/services/dental_service.dart';
+class DentalTipsScreen extends StatelessWidget { const DentalTipsScreen({super.key}); @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('نصائح صحة الأسنان')),body:StreamBuilder(stream:DentalService().streamTips(limit:30),builder:(context,s){if(!s.hasData)return const Center(child:CircularProgressIndicator());return ListView(padding:const EdgeInsets.all(16),children:s.data!.map((d)=>Card(child:ExpansionTile(title:Text(d.title),subtitle:Text(d.category),children:[Padding(padding:const EdgeInsets.all(16),child:Text(d.body))]))).toList());}));} }

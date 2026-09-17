@@ -1,0 +1,3 @@
+import 'package:flutter/material.dart';
+import 'package:sehatak/core/services/dental_service.dart';
+class DentalHospitalsScreen extends StatelessWidget { const DentalHospitalsScreen({super.key}); @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('مستشفيات الأسنان والطوارئ')),body:StreamBuilder(stream:DentalService().streamHospitals(limit:20),builder:(context,s){if(!s.hasData)return const Center(child:CircularProgressIndicator());return ListView(padding:const EdgeInsets.all(16),children:s.data!.map((d)=>Card(child:ListTile(leading:Icon(d.emergency?Icons.emergency:Icons.local_hospital,color:d.emergency?Colors.red:Colors.cyan),title:Text(d.name),subtitle:Text('${d.address}\n${d.phone}')))).toList());}));} }

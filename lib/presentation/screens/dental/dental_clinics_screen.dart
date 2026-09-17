@@ -1,0 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
+import 'package:sehatak/core/models/dental/dental_models.dart';
+import 'package:sehatak/core/services/dental_service.dart';
+class DentalClinicsScreen extends StatelessWidget { const DentalClinicsScreen({super.key}); @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('عيادات الأسنان')),body:StreamBuilder<List<DentalClinic>>(stream:DentalService().streamClinics(),builder:(context,s){if(!s.hasData)return const Center(child:CircularProgressIndicator());return ListView(padding:const EdgeInsets.all(12),children:s.data!.map((d)=>Card(child:ListTile(onTap:()=>context.push(AppRouter.dentalClinicDetail.replaceFirst(':id',d.id)),title:Text(d.name),subtitle:Text(d.address),trailing:Text(d.isOpen?'مفتوح':'مغلق')))).toList());}));} }
