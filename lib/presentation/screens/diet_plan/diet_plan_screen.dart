@@ -1,180 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/screens/health_tools/calorie_calculator_screen.dart';
 
 class DietPlanScreen extends StatefulWidget {
   const DietPlanScreen({super.key});
-
-  @override
-  State<DietPlanScreen> createState() => _DietPlanScreenState();
+  @override State<DietPlanScreen> createState() => _DietPlanScreenState();
 }
 
 class _DietPlanScreenState extends State<DietPlanScreen> {
-  String _goal = 'تخسيس';
+  String _goal = 'توازن غذائي';
+  final goals = const ['توازن غذائي', 'إدارة الوزن', 'بناء اللياقة'];
+  final meals = const [
+    ('الفطور', 'بيض أو لبن + حبوب كاملة + خضار/فاكهة', 'وجبة متنوعة ومشبعة'),
+    ('الغداء', 'بروتين مناسب + حبوب/نشويات + خضار', 'اجعل الخضار جزءاً أساسياً من الوجبة'),
+    ('العشاء', 'بروتين خفيف + خضار + مصدر حبوب مناسب', 'اضبط الكمية حسب احتياجك'),
+    ('وجبة خفيفة', 'فاكهة أو مكسرات غير مملحة أو لبن', 'اختر خيارات أقل في السكر المضاف'),
+  ];
 
-  final Map<String, List<Map<String, String>>> _meals = {
-    'تخسيس': [
-      {'meal': 'فطور', 'food': 'بيضتان + خبز أسمر + خيار', 'cal': '250', 'icon': '🍳'},
-      {'meal': 'غداء', 'food': 'صدر دجاج + سلطة', 'cal': '350', 'icon': '🍗'},
-      {'meal': 'عشاء', 'food': 'سمك مشوي + خضار', 'cal': '300', 'icon': '🐟'},
-      {'meal': 'خفيفة', 'food': 'تفاحة + مكسرات', 'cal': '150', 'icon': '🍎'},
-    ],
-    'بناء عضل': [
-      {'meal': 'فطور', 'food': '4 بيضات + شوفان + موز', 'cal': '450', 'icon': '🍳'},
-      {'meal': 'غداء', 'food': 'دجاج 200g + رز بني', 'cal': '600', 'icon': '🍗'},
-      {'meal': 'عشاء', 'food': 'تونة + بطاطا حلوة', 'cal': '500', 'icon': '🐟'},
-      {'meal': 'خفيفة', 'food': 'سموذي بروتين', 'cal': '350', 'icon': '🥤'},
-    ],
-    'صحي متوازن': [
-      {'meal': 'فطور', 'food': 'توست أسمر + جبنة + خضار', 'cal': '300', 'icon': '🍞'},
-      {'meal': 'غداء', 'food': 'سمك/دجاج + رز + سلطة', 'cal': '450', 'icon': '🍛'},
-      {'meal': 'عشاء', 'food': 'شوربة عدس + بيضة', 'cal': '300', 'icon': '🍜'},
-      {'meal': 'خفيفة', 'food': 'فواكه + لبن', 'cal': '200', 'icon': '🍓'},
-    ],
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final meals = _meals[_goal]!;
-    final total = meals.fold(0, (s, m) => s + int.parse(m['cal']!));
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('خطة غذائية'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: ['تخسيس', 'بناء عضل', 'صحي متوازن'].map((g) {
-                final isSelected = _goal == g;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _goal = g),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : AppColors.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        g,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.secondary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.success, AppColors.primary],
-                ),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.local_fire_department, color: Colors.white, size: 32),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'إجمالي السعرات',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                        Text(
-                          '$total سعرة',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            ...meals.map((m) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 6,
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Text(m['icon']!, style: const TextStyle(fontSize: 32)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              m['meal']!,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '${m['cal']} سعرة',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          m['food']!,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.secondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            )),
-          ],
-        ),
-      ),
-    );
-  }
+  @override Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFFF5FBF8),
+    appBar: AppBar(title: const Text('التغذية الصحية'), backgroundColor: AppColors.success, foregroundColor: Colors.white, elevation: 0),
+    body: ListView(padding: const EdgeInsets.all(16), children: [
+      Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: AppColors.success, borderRadius: BorderRadius.circular(22)), child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('خطة غذائية متوازنة', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)), SizedBox(height: 7), Text('اختر هدفك ثم استخدم الاقتراحات كأساس مرن، وليس كخطة علاجية شخصية.', style: TextStyle(color: Colors.white70, height: 1.5))])),
+      const SizedBox(height: 18),
+      const Text('هدفك', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8),
+      Wrap(spacing: 8, children: goals.map((g) => ChoiceChip(label: Text(g), selected: _goal == g, onSelected: (_) => setState(() => _goal = g))).toList()),
+      const SizedBox(height: 18),
+      Row(children: [const Expanded(child: Text('وجبات مقترحة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalorieCalculatorScreen())), icon: const Icon(Icons.calculate_rounded, size: 18), label: const Text('السعرات'))]),
+      const SizedBox(height: 10),
+      ...meals.map((m) => Card(elevation: 0, margin: const EdgeInsets.only(bottom: 9), child: ListTile(leading: Container(width: 44, height: 44, decoration: BoxDecoration(color: AppColors.success.withOpacity(.10), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.restaurant_rounded, color: AppColors.success)), title: Text(m.$1, style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('${m.$2}\n${m.$3}'), isThreeLine: true))),
+      const SizedBox(height: 12),
+      const Card(child: Padding(padding: EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('أساسيات التغذية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)), SizedBox(height: 10), Text('• نوّع الخضروات والفواكه والبقوليات والحبوب الكاملة ومصادر البروتين.'), Text('• اختر الدهون غير المشبعة قدر الإمكان وقلل الملح والسكريات المضافة.'), Text('• اجعل الماء خياراً أساسياً، مع مراعاة اختلاف احتياج السوائل بين الأشخاص.'), Text('• لا تتبع حمية قاسية أو تستخدم مكملات دون معرفة الحاجة والجرعة المناسبة.'), Text('• الحمل والرضاعة والأطفال والأمراض المزمنة تحتاج إرشاداً غذائياً مناسباً للحالة.')]))) ,
+      const SizedBox(height: 12),
+      const Card(child: Padding(padding: EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('متى تستشير مختصاً؟', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)), SizedBox(height: 8), Text('عند فقدان أو زيادة وزن غير مقصودة، اضطراب أكل، نقص غذائي مشتبه، مرض مزمن، أو حاجة لخطة علاجية خاصة.')])))
+    ]),
+  );
 }
