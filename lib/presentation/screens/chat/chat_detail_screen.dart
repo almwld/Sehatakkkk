@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/messages/messages_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/chat_service.dart';
+import '../../../core/services/message_delivery_service.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_bubble.dart';
 
@@ -91,7 +92,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
       body: Column(children: [
         Expanded(child: BlocConsumer<MessagesBloc, MessagesState>(
-          listener: (context, state) { if (state is MessagesLoaded) _stickToBottom(); },
+          listener: (context, state) {
+            if (state is MessagesLoaded) {
+              final uid = FirebaseAuth.instance.currentUser?.uid;
+              if (uid != null) {
+                final incomingIds = state.messages.where((m) => m.senderId != uid && !m.isDelivered).map((m) => m.id).toList();
+                if (incomingIds.isNotEmpty) unawaited(MessageDeliveryService.instance.acknowledgeDelivered(chatId: widget.chatId, messageIds: incomingIds));
+              }
+              _stickToBottom();
+            }
+          },
           builder: (context, state) {
             if (state is MessagesLoading) return const Center(child: CircularProgressIndicator());
             if (state is MessagesError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(state.message, textAlign: TextAlign.center)));
