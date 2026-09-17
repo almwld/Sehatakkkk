@@ -334,6 +334,20 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted) return;
     final created = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddStatusScreen()));
     if (created == true && mounted) {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        try {
+          final mine = await _statusService.getUserStatus(uid);
+          if (mounted && mine != null) {
+            setState(() {
+              _statuses = [mine, ..._statuses.where((status) => status.userId != uid)];
+              _loadingStatuses = false;
+            });
+          }
+        } catch (error) {
+          debugPrint('reload own status error: ' + error.toString());
+        }
+      }
       _subscribeStatuses();
     }
   }
