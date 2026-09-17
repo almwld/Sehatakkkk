@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class MedicinesScreen extends StatefulWidget {
   const MedicinesScreen({super.key});
@@ -278,14 +279,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
         String tempSearch = '';
         return AlertDialog(
           title: const Text('بحث عن دواء'),
-          content: TextField(
-            onChanged: (value) => tempSearch = value,
-            autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'أدخل اسم الدواء...',
-              prefixIcon: Icon(Icons.search),
-            ),
-          ),
+          content: UnifiedSearchBar(onChanged: (value) => tempSearch = value),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
