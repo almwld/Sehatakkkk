@@ -1,0 +1,148 @@
+name: Unify remaining search bars
+
+on:
+  push:
+    paths:
+      - '.github/workflows/unify-search-bars.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  unify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply unified search bars
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          ROOT = Path('.')
+          COMMON = "package:sehatak/presentation/widgets/common/unified_search_bar.dart"
+          ROOT_WIDGET = "package:sehatak/presentation/widgets/unified_search_bar.dart"
+
+          def add_import(path, imp):
+              p = Path(path)
+              s = p.read_text()
+              if imp in s:
+                  return s
+              marker = "import 'package:flutter/material.dart';"
+              if marker not in s:
+                  raise SystemExit(f'No Flutter import marker in {path}')
+              s = s.replace(marker, marker + "\nimport '" + imp + "';", 1)
+              p.write_text(s)
+              return s
+
+          def replace_once(path, pattern, replacement, flags=re.S):
+              p = Path(path)
+              s = p.read_text()
+              ns, n = re.subn(pattern, replacement, s, count=1, flags=flags)
+              if n != 1:
+                  raise SystemExit(f'Expected exactly one match in {path}, got {n}')
+              p.write_text(ns)
+
+          # Chat conversations: preserve controller/filter behavior, unify geometry.
+          path = 'lib/presentation/screens/chat/chat_screen.dart'
+          add_import(path, COMMON)
+          replace_once(path,
+              r"        Padding\(\n          padding: const EdgeInsets\.fromLTRB\(16, 14, 16, 8\),\n          child: TextField\(\n            controller: _searchController,\n            textDirection: TextDirection\.rtl,\n            decoration: InputDecoration\(\n              hintText: 'ابحث في محادثاتك\.\.\.',\n              prefixIcon: const Icon\(Icons\.search\),\n              suffixIcon: _search\.isEmpty \? null : IconButton\(icon: const Icon\(Icons\.clear\), onPressed: _searchController\.clear\),\n              filled: true,\n              fillColor: isDark \? const Color\(0xFF162039\) : Colors\.white,\n              border: OutlineInputBorder\(borderRadius: BorderRadius\.circular\(15\), borderSide: BorderSide\.none\),\n            \),\n          \),\n        \),",
+              "        Padding(\n          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),\n          child: UnifiedSearchBar(\n            controller: _searchController,\n            hintText: 'ابحث في محادثاتك...',\n            isDark: isDark,\n            onClear: _searchController.clear,\n          ),\n        ),")
+
+          # Doctors list.
+          path = 'lib/presentation/screens/doctor/doctors_list_screen.dart'
+          add_import(path, COMMON)
+          replace_once(path,
+              r"  Widget _buildSearchBar\(\n    bool isDark,\n  \) \{.*?\n  \}\n\n  Widget _buildSpecialtiesFilter",
+              "  Widget _buildSearchBar(\n    bool isDark,\n  ) {\n    return Padding(\n      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),\n      child: UnifiedSearchBar(\n        controller: _searchController,\n        onChanged: _searchDoctors,\n        onClear: _clearSearch,\n        hintText: 'ابحث عن طبيب...',\n        isDark: isDark,\n      ),\n    );\n  }\n\n  Widget _buildSpecialtiesFilter")
+
+          # Advanced search: same 52px/18px field, retain filter action beside it.
+          path = 'lib/presentation/screens/search/advanced_search_screen.dart'
+          add_import(path, COMMON)
+          replace_once(path,
+              r"              Row\(\n              children: \[\n                Expanded\(\n                  child: Container\(\n                    height: 48,.*?\n                  \),\n                \),\n              \],\n            \),",
+              "              Row(\n              children: [\n                Expanded(\n                  child: UnifiedSearchBar(\n                    controller: _searchController,\n                    hintText: 'ابحث عن طبيب، صيدلية، مختبر...',\n                    isDark: isDark,\n                    onChanged: (value) {\n                      if (value.isEmpty) {\n                        _clearSearch();\n                      } else {\n                        _getSuggestions(value);\n                      }\n                    },\n                    onClear: _clearSearch,\n                  ),\n                ),\n                IconButton(\n                  icon: Icon(Icons.filter_list, color: _showFilters ? AppColors.primary : Colors.grey),\n                  onPressed: () => setState(() => _showFilters = !_showFilters),\n                ),\n              ],\n            ),")
+
+          # Interactive map search.
+          path = 'lib/presentation/screens/map/interactive_map_screen.dart'
+          add_import(path, COMMON)
+          replace_once(path,
+              r"          // 🔍 شريط البحث\n          Padding\(\n            padding: const EdgeInsets\.symmetric\(horizontal: 10, vertical: 6\),\n            child: TextField\(\n              controller: _searchController,\n              decoration: InputDecoration\(\n                hintText: 'ابحث عن مستشفى، صيدلية، مختبر، عيادة\.\.\.',.*?\n              \),\n            \),\n          \),",
+              "          // 🔍 شريط البحث\n          Padding(\n            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),\n            child: UnifiedSearchBar(\n              controller: _searchController,\n              hintText: 'ابحث عن مستشفى، صيدلية، مختبر، عيادة...',\n              isDark: Theme.of(context).brightness == Brightness.dark,\n            ),\n          ),")
+
+          # Small utility/detail search fields: use the same canonical geometry while keeping their callbacks.
+          simple = {
+            'lib/presentation/screens/hospital/hospital_screen.dart': ('_search', 'ابحث عن مستشفى...'),
+            'lib/presentation/screens/health_tools/calorie_calculator_screen.dart': (None, 'ابحث عن طعام...'),
+            'lib/presentation/screens/drug_dictionary/drug_dictionary_screen.dart': (None, 'ابحث عن دواء...'),
+            'lib/presentation/screens/reports/medical_reports_screen.dart': ('_searchCtrl', 'ابحث عن تقرير...'),
+            'lib/presentation/screens/records/medical_records_screen.dart': ('_searchCtrl', 'ابحث عن ملف طبي...'),
+          }
+          for path, (controller, hint) in simple.items():
+              p = Path(path)
+              if not p.exists():
+                  continue
+              add_import(path, COMMON)
+              s = p.read_text()
+              # Only replace a search TextField when its hint is uniquely present.
+              if hint not in s:
+                  continue
+              if controller:
+                  pattern = rf"TextField\(controller: {re.escape(controller)}, onChanged:.*?decoration: const InputDecoration\(hintText: '{re.escape(hint)}'.*?\),?\)"
+                  repl = f"UnifiedSearchBar(controller: {controller}, hintText: '{hint}', isDark: Theme.of(context).brightness == Brightness.dark)"
+              else:
+                  pattern = rf"TextField\(onChanged: \(v\) => setState\(\(\) => _query = v\), decoration: InputDecoration\(hintText: '{re.escape(hint)}'.*?\)\)"
+                  repl = f"UnifiedSearchBar(onChanged: (v) => setState(() => _query = v), hintText: '{hint}', isDark: Theme.of(context).brightness == Brightness.dark)"
+              ns, n = re.subn(pattern, repl, s, count=1, flags=re.S)
+              if n == 1:
+                  p.write_text(ns)
+
+          # Medical map and message search are independent search screens.
+          for path in [
+              'lib/presentation/screens/map/medical_map_screen.dart',
+              'lib/presentation/screens/chat/message_search_screen.dart',
+          ]:
+              p = Path(path)
+              if not p.exists():
+                  continue
+              add_import(path, COMMON)
+              s = p.read_text()
+              # Do not rewrite if the screen uses a specialized AppBar layout that cannot safely accept the widget.
+              # These screens are handled only when their search field is a direct TextField with a known hint.
+              if 'ابحث عن منشأة صحية' in s:
+                  s = re.sub(r"const TextField\(\s*decoration: InputDecoration\(\s*hintText: 'ابحث عن منشأة صحية \(مستشفى، مختبر، صيدلية\)\.\.\.',.*?\),\s*\)",
+                             "UnifiedSearchBar(hintText: 'ابحث عن منشأة صحية (مستشفى، مختبر، صيدلية)...', isDark: Theme.of(context).brightness == Brightness.dark)", s, count=1, flags=re.S)
+              if 'ابحث داخل الرسائل' in s:
+                  s = re.sub(r"TextField\(\s*controller: _controller,\s*autofocus: true,\s*textDirection: TextDirection\.rtl,\s*decoration: const InputDecoration\(hintText: 'ابحث داخل الرسائل\.\.\.', border: InputBorder\.none\),\s*\)",
+                             "UnifiedSearchBar(controller: _controller, hintText: 'ابحث داخل الرسائل...', isDark: Theme.of(context).brightness == Brightness.dark)", s, count=1, flags=re.S)
+              p.write_text(s)
+
+          # Keep the legacy shared widget as the compatibility surface for SearchScreen; it already has canonical 52/18 geometry.
+          print('Unified search-bar migration completed.')
+          PY
+
+      - name: Validate Dart formatting/parsing
+        run: |
+          dart --version
+          git diff --check
+          git status --short
+
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/presentation
+          git diff --cached --quiet && { echo 'No changes were produced.'; exit 0; }
+          git commit -m 'refactor(ui): unify remaining search bar sizes'
+          git push origin HEAD:master
+
+      - name: Remove temporary workflow
+        if: success()
+        run: |
+          git rm .github/workflows/unify-search-bars.yml
+          git commit -m 'chore: remove temporary search migration workflow'
+          git push origin HEAD:master
