@@ -2,12 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/create_post_sheet.dart';
 
 /// Floating community action shown on the Home tab.
-/// Uses the same permission rules as CommunityScreen and opens the real post sheet.
+/// It is visible only at the start/end of the feed and hidden while scrolling.
 class HomeCreatePostFab extends StatefulWidget {
-  const HomeCreatePostFab({super.key});
+  final ScrollController? scrollController;
+
+  const HomeCreatePostFab({super.key, this.scrollController});
 
   @override
   State<HomeCreatePostFab> createState() => _HomeCreatePostFabState();
@@ -18,8 +21,8 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
   late final AnimationController _pulseController;
   late final AnimationController _tapController;
   late final Animation<double> _pulse;
-  late final Animation<double> _tapScale;
   bool _pressed = false;
+  bool _visible = true;
 
   @override
   void initState() {
@@ -34,16 +37,30 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
 
     _tapController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 140),
-      reverseDuration: const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 320),
     );
-    _tapScale = Tween<double>(begin: 1, end: .92).animate(
-      CurvedAnimation(parent: _tapController, curve: Curves.easeOutCubic),
-    );
+
+    widget.scrollController?.addListener(_handleScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateVisibility());
+  }
+
+  void _handleScroll() => _updateVisibility();
+
+  void _updateVisibility() {
+    final controller = widget.scrollController;
+    if (controller == null || !controller.hasClients) return;
+    final position = controller.position;
+    final atStart = position.pixels <= position.minScrollExtent + 1;
+    final atEnd = position.pixels >= position.maxScrollExtent - 1;
+    final nextVisible = atStart || atEnd;
+    if (nextVisible != _visible && mounted) {
+      setState(() => _visible = nextVisible);
+    }
   }
 
   @override
   void dispose() {
+    widget.scrollController?.removeListener(_handleScroll);
     _pulseController.dispose();
     _tapController.dispose();
     super.dispose();
@@ -52,7 +69,7 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
   Future<void> _openCreatePost() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _message('سجل الدخول أولاً لإضافة منشور');
+      ToastService.showInfo('سجل الدخول أولاً لإضافة منشور');
       return;
     }
 
@@ -66,15 +83,11 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
 
     if (!mounted) return;
     if (!verified) {
-      _message('إضافة المنشورات متاحة للأطباء الموثقين فقط');
+      ToastService.showInfo('إضافة المنشورات متاحة للأطباء الموثقين فقط');
       return;
     }
 
     await CreatePostSheet.show(context);
-  }
-
-  void _message(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
   Future<void> _handleTap() async {
@@ -89,36 +102,29 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_pulse, _tapScale]),
-      builder: (context, child) {
-        final scale = _pulse.value * _tapScale.value;
-        return Transform.scale(scale: scale, child: child);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(_pressed ? .12 : .28),
-              blurRadius: _pressed ? 8 : 18,
-              spreadRadius: _pressed ? 0 : 1,
-              offset: const Offset(0, 7),
+    return IgnorePointer(
+      ignoring: !_visible,
+      child: AnimatedOpacity(
+        opacity: _visible ? 1 : 0,
+        duration: const Duration(milliseconds: 160),
+        child: AnimatedBuilder(
+          animation: Listenable.merge([_pulse, _tapController]),
+          builder: (context, child) {
+            final scale = _pulse.value * (1 - (_tapController.value * .08));
+            return Transform.scale(scale: scale, child: child);
+          },
+          child: AnimatedRotation(
+            turns: _tapController.value / 2,
+            duration: const Duration(milliseconds: 320),
+            child: FloatingActionButton(
+              heroTag: 'home_create_post_fab',
+              onPressed: _pressed ? null : _handleTap,
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 8,
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add_rounded, size: 30),
             ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          heroTag: 'home_create_post_fab',
-          onPressed: _pressed ? null : _handleTap,
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          icon: const Icon(Icons.add_rounded, size: 27),
-          label: const Text(
-            'إضافة منشور',
-            style: TextStyle(fontWeight: FontWeight.w900),
           ),
         ),
       ),
