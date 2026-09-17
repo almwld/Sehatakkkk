@@ -8,7 +8,7 @@ class MessageModel extends Equatable {
   final String? senderPhotoUrl, text;
   final Map<String, dynamic>? replyPreview;
   final MessageType type;
-  final Timestamp? timestamp, readAt, deliveredAt;
+  final Timestamp? timestamp, clientTimestamp, readAt, deliveredAt;
   final bool isRead, isDelivered, isEdited, isDeleted, isPinned;
   final String? replyToId;
   final MessageModel? replyTo;
@@ -20,7 +20,7 @@ class MessageModel extends Equatable {
 
   const MessageModel({
     required this.id, required this.chatId, required this.senderId, required this.senderName,
-    this.senderPhotoUrl, this.text, this.replyPreview, this.type = MessageType.text, this.timestamp,
+    this.senderPhotoUrl, this.text, this.replyPreview, this.type = MessageType.text, this.timestamp, this.clientTimestamp,
     this.isRead = false, this.isDelivered = false, this.isEdited = false, this.isDeleted = false,
     this.replyToId, this.replyTo, this.reactions = const {}, this.deletedFor,
     this.attachments, this.metadata, this.imageUrl, this.audioUrl, this.fileUrl, this.videoUrl,
@@ -30,15 +30,16 @@ class MessageModel extends Equatable {
   });
 
   factory MessageModel.fromFirestore(String id, Map<String, dynamic> d) {
-    Timestamp? ts = d['timestamp'] is Timestamp ? d['timestamp'] as Timestamp : null;
-    Timestamp? ra = d['readAt'] is Timestamp ? d['readAt'] as Timestamp : null;
-    Timestamp? da = d['deliveredAt'] is Timestamp ? d['deliveredAt'] as Timestamp : null;
+    final ts = d['timestamp'] is Timestamp ? d['timestamp'] as Timestamp : null;
+    final clientTs = d['clientTimestamp'] is Timestamp ? d['clientTimestamp'] as Timestamp : null;
+    final ra = d['readAt'] is Timestamp ? d['readAt'] as Timestamp : null;
+    final da = d['deliveredAt'] is Timestamp ? d['deliveredAt'] as Timestamp : null;
     final rawReply = d['replyPreview'];
     return MessageModel(
       id: id, chatId: d['chatId']?.toString() ?? '', senderId: d['senderId']?.toString() ?? '', senderName: d['senderName']?.toString() ?? '',
       senderPhotoUrl: d['senderPhotoUrl']?.toString(), text: d['text']?.toString(),
       replyPreview: rawReply is Map ? Map<String, dynamic>.from(rawReply) : null,
-      type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text), timestamp: ts,
+      type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text), timestamp: ts, clientTimestamp: clientTs,
       isRead: d['isRead'] == true, isDelivered: d['isDelivered'] == true, isEdited: d['isEdited'] == true, isDeleted: d['isDeleted'] == true,
       replyToId: d['replyToId']?.toString(),
       reactions: d['reactions'] is Map ? Map<String, String>.from((d['reactions'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()))) : <String, String>{},
@@ -53,7 +54,7 @@ class MessageModel extends Equatable {
 
   Map<String, dynamic> toFirestore() => {
     'chatId': chatId, 'senderId': senderId, 'senderName': senderName, 'senderPhotoUrl': senderPhotoUrl, 'text': text, 'type': type.name,
-    'timestamp': timestamp ?? FieldValue.serverTimestamp(), 'isRead': isRead, 'isDelivered': isDelivered, 'isEdited': isEdited, 'isDeleted': isDeleted,
+    'timestamp': timestamp ?? FieldValue.serverTimestamp(), 'clientTimestamp': clientTimestamp, 'isRead': isRead, 'isDelivered': isDelivered, 'isEdited': isEdited, 'isDeleted': isDeleted,
     'replyToId': replyToId, 'replyPreview': replyPreview, 'reactions': reactions, 'deletedFor': deletedFor, 'attachments': attachments, 'metadata': metadata,
     'imageUrl': imageUrl, 'audioUrl': audioUrl, 'fileUrl': fileUrl, 'videoUrl': videoUrl, 'locationUrl': locationUrl, 'locationAddress': locationAddress,
     'locationLat': locationLat, 'locationLng': locationLng, 'audioDuration': audioDuration, 'fileSize': fileSize, 'fileName': fileName, 'fileMimeType': fileMimeType,
@@ -64,5 +65,5 @@ class MessageModel extends Equatable {
   bool get isLocation => type == MessageType.location; bool get isDeletedMessage => type == MessageType.deleted; bool get isText => type == MessageType.text; bool get isReply => type == MessageType.reply;
   bool get isCall => type == MessageType.call;
   bool get hasReactions => reactions?.isNotEmpty ?? false; bool get hasAttachments => attachments?.isNotEmpty ?? false;
-  @override List<Object?> get props => [id, chatId, senderId, senderName, senderPhotoUrl, text, replyPreview, type, timestamp, isRead, isDelivered, isEdited, isDeleted, replyToId, replyTo, reactions, deletedFor, attachments, metadata, imageUrl, audioUrl, fileUrl, videoUrl, locationUrl, locationAddress, locationLat, locationLng, audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl, readAt, deliveredAt, isPinned];
+  @override List<Object?> get props => [id, chatId, senderId, senderName, senderPhotoUrl, text, replyPreview, type, timestamp, clientTimestamp, isRead, isDelivered, isEdited, isDeleted, replyToId, replyTo, reactions, deletedFor, attachments, metadata, imageUrl, audioUrl, fileUrl, videoUrl, locationUrl, locationAddress, locationLat, locationLng, audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl, readAt, deliveredAt, isPinned];
 }
