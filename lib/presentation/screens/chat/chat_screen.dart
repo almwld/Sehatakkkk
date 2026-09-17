@@ -179,7 +179,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildTabs(bool isDark) {
-    const labels = ['المحادثات', 'المكالمات', 'جهات الاتصال'];
+    const labels = ['المحادثات', 'المكالمات', 'تواصل صحي'];
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
       height: 48,
@@ -269,7 +269,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (chats.isEmpty) {
       return Center(
         child: Text(
-          _search.isEmpty ? 'لا توجد محادثات بعد\nابدأ محادثة مع طبيب من تبويب جهات الاتصال' : 'لا توجد نتائج مطابقة',
+          _search.isEmpty ? 'لا توجد محادثات بعد\nابدأ محادثة مع طبيب من تبويب تواصل صحي' : 'لا توجد نتائج مطابقة',
           textAlign: TextAlign.center,
           style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
         ),
