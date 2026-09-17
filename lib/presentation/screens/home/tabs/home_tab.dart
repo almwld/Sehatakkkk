@@ -258,3 +258,115 @@ class _HomeTabState extends State<HomeTab>
         more: () => _go(AppRouter.pharmacy),
         child: FutureBuilder<List<ProductModel>>(
           future: _products,
+          builder: (_, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+            final products = snapshot.data ?? const <ProductModel>[];
+            if (products.isEmpty) return _empty('لا توجد منتجات متاحة حالياً', dark);
+            return SizedBox(
+              height: 210,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: products.length > 8 ? 8 : products.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, index) {
+                  final product = products[index];
+                  final image = product.imageUrl ?? '';
+                  return InkWell(
+                    onTap: () => _go(AppRouter.pharmacy),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: 154,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(child: image.isEmpty ? const Icon(Icons.medication_outlined, color: AppColors.primary, size: 48) : AppImage(imageUrl: image, height: 100, width: 100, fit: BoxFit.contain)),
+                          const SizedBox(height: 6),
+                          Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
+                          const Spacer(),
+                          Text('${product.price} ريال', style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      );
+
+  Widget _discover(bool dark) {
+    final items = [
+      {'name': 'حجز موعد', 'asset': 'assets/images/services/calendar_booking.png', 'route': AppRouter.appointments},
+      {'name': 'طوارئ', 'asset': 'assets/images/services/emergency.png', 'route': AppRouter.emergency},
+      {'name': 'خريطة', 'asset': 'assets/images/services/map_location.png', 'route': AppRouter.map},
+      {'name': 'باقات', 'asset': 'assets/images/services/packages.png', 'route': AppRouter.services},
+    ];
+    return _section(
+      title: 'اكتشف المزيد',
+      dark: dark,
+      child: SizedBox(
+        height: 112,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (_, index) {
+            final item = items[index];
+            return InkWell(
+              onTap: () => _go(item['route']!),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: 92,
+                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(item['asset']!, width: 42, height: 42, fit: BoxFit.contain),
+                    const SizedBox(height: 8),
+                    Text(item['name']!, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _section({required String title, required bool dark, Widget? child, VoidCallback? more}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text))),
+                if (more != null) TextButton(onPressed: more, child: const Text('المزيد')),
+              ],
+            ),
+          ),
+          if (child != null) child,
+        ],
+      ),
+    );
+  }
+
+  Widget _empty(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(text, style: TextStyle(color: dark ? Colors.white70 : _muted))));
+
+  Widget _places(String title, List<dynamic> items, IconData icon, bool dark, {VoidCallback? more}) => _section(title: title, dark: dark, more: more, child: const SizedBox(height: 10));
+  Widget _articles(List<dynamic> items, bool dark) => _section(title: 'مقالات طبية', dark: dark, child: const SizedBox(height: 10));
+  Widget _tips(List<dynamic> items, bool dark) => _section(title: 'نصائح يومية', dark: dark, child: const SizedBox(height: 10));
+  Widget _weather(bool dark) => _section(title: 'الطقس', dark: dark, child: const SizedBox(height: 10));
+  Widget _community(List<dynamic> items, bool dark) => _section(title: 'المجتمع', dark: dark, child: const SizedBox(height: 10));
+  Widget _error(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Text(text, style: TextStyle(color: dark ? Colors.white : _text)));
+}
