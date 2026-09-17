@@ -1,0 +1,15 @@
+import 'dart:math' as math;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sehatak/core/models/women/women_models.dart';
+class WomenService {
+ final FirebaseFirestore _db=FirebaseFirestore.instance;
+ CollectionReference<Map<String,dynamic>> get _doctors=>_db.collection('women_doctors');CollectionReference<Map<String,dynamic>> get _clinics=>_db.collection('women_clinics');CollectionReference<Map<String,dynamic>> get _tips=>_db.collection('women_tips');CollectionReference<Map<String,dynamic>> get _hospitals=>_db.collection('women_hospitals');CollectionReference<Map<String,dynamic>> get _consultations=>_db.collection('women_consultations');
+ Stream<List<WomenDoctor>> streamDoctors({String? specialty,int limit=20}){Query<Map<String,dynamic>>q=_doctors.limit(limit);if(specialty!=null&&specialty.isNotEmpty)q=q.where('specialty',isEqualTo:specialty);return q.snapshots().map((s)=>s.docs.map((d)=>WomenDoctor.fromFirestore(d.id,d.data())).toList());}
+ Future<List<WomenDoctor>> getTopDoctors({int limit=6})async{final s=await _doctors.orderBy('rating',descending:true).limit(limit).get();return s.docs.map((d)=>WomenDoctor.fromFirestore(d.id,d.data())).toList();} Future<WomenDoctor?> getDoctor(String id)async{final d=await _doctors.doc(id).get();return d.exists?WomenDoctor.fromFirestore(id,d.data()!):null;}
+ Stream<List<WomenClinic>> streamClinics({int limit=20})=>_clinics.limit(limit).snapshots().map((s)=>s.docs.map((d)=>WomenClinic.fromFirestore(d.id,d.data())).toList());
+ Future<List<WomenClinic>> getNearbyClinics(GeoPoint center,double radiusKm)async{final s=await _clinics.limit(100).get();return s.docs.map((d)=>WomenClinic.fromFirestore(d.id,d.data())).where((c)=>c.location!=null&&_distance(center,c.location!)<=radiusKm).toList();}double _distance(GeoPoint a,GeoPoint b){const r=6371.0,p=math.pi/180;final dl=(b.latitude-a.latitude)*p,dn=(b.longitude-a.longitude)*p,x=math.sin(dl/2)*math.sin(dl/2)+math.cos(a.latitude*p)*math.cos(b.latitude*p)*math.sin(dn/2)*math.sin(dn/2);return r*2*math.atan2(math.sqrt(x),math.sqrt(1-x));}
+ Stream<List<WomenTip>> streamTips({String? category,int limit=20}){Query<Map<String,dynamic>>q=_tips.where('isPublished',isEqualTo:true).limit(limit);if(category!=null&&category.isNotEmpty)q=q.where('category',isEqualTo:category);return q.snapshots().map((s)=>s.docs.map((d)=>WomenTip.fromFirestore(d.id,d.data())).toList());}
+ Stream<List<WomenHospital>> streamHospitals({int limit=10})=>_hospitals.limit(limit).snapshots().map((s)=>s.docs.map((d)=>WomenHospital.fromFirestore(d.id,d.data())).toList());
+ Future<String> createConsultation({required String userId,required String question,String doctorId=''})async{final r=_consultations.doc();await r.set({'userId':userId,'doctorId':doctorId,'question':question,'status':'pending','answer':'','createdAt':FieldValue.serverTimestamp()});return r.id;}
+ Stream<List<WomenConsultation>> streamMyConsultations(String userId)=>_consultations.where('userId',isEqualTo:userId).snapshots().map((s)=>s.docs.map((d)=>WomenConsultation.fromFirestore(d.id,d.data())).toList());
+}
