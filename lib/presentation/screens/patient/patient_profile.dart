@@ -258,7 +258,7 @@ class _PatientProfileState extends State<PatientProfile> {
 
   Widget _accountSections(bool dark) {
     return _card(dark, 'حساب المستخدم', AppImages.uiUserProfile, Column(children: [
-      _tile(AppImages.uiUserProfile, 'الأطباء المفضلون', 'الوصول إلى الأطباء المضافين للمفضلة', _favoriteDoctors, dark),
+      _tile('assets/images/ui/favorites.png', 'الأطباء المفضلون', 'الوصول إلى الأطباء المضافين للمفضلة', _favoriteDoctors, dark),
       _tile(AppImages.uiSettingsGear, 'التفضيلات', 'إدارة تفضيلات الحساب والخدمات', _settings, dark),
       _tile(AppImages.uiUserProfile, 'المتابعات', 'الحسابات التي يتابعها المستخدم', null, dark),
       if (_isOwnProfile) _tile(AppImages.uiEditButton, 'تعديل الملف', 'تحديث تفاصيل الحساب', _edit, dark),
