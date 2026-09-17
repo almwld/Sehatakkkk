@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/models/community/community_post_model.dart';
 import 'package:sehatak/core/services/community_share_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -21,6 +22,9 @@ class _CommunityScreenState extends State<CommunityScreen>
   final _query = FirebaseFirestore.instance.collection('community_posts');
   late final AnimationController _fabController;
   late final Animation<double> _fabScale;
+  late final AnimationController _tapController;
+  bool _fabVisible = true;
+  late final ScrollController _feedController;
 
   @override
   void initState() {
@@ -32,10 +36,36 @@ class _CommunityScreenState extends State<CommunityScreen>
     _fabScale = Tween<double>(begin: 0.96, end: 1.04).animate(
       CurvedAnimation(parent: _fabController, curve: Curves.easeInOut),
     );
+    _tapController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
+    _feedController = ScrollController()..addListener(_updateFabVisibility);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateFabVisibility());
+  }
+
+  @override
+  void _updateFabVisibility() {
+    if (!_feedController.hasClients || !mounted) return;
+    final position = _feedController.position;
+    final atStart = position.pixels <= position.minScrollExtent + 1;
+    final atEnd = position.pixels >= position.maxScrollExtent - 1;
+    final visible = atStart || atEnd;
+    if (visible != _fabVisible) setState(() => _fabVisible = visible);
+  }
+
+  Future<void> _handleCreatePostTap() async {
+    if (_tapController.isAnimating) return;
+    await _tapController.forward();
+    await _tapController.reverse();
+    if (mounted) await _openCreatePost();
   }
 
   @override
   void dispose() {
+    _feedController.removeListener(_updateFabVisibility);
+    _feedController.dispose();
+    _tapController.dispose();
     _fabController.dispose();
     super.dispose();
   }
@@ -187,9 +217,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     );
   }
 
-  void _message(String text) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(text)),
-      );
+  void _message(String text) => ToastService.showInfo(text);
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +250,7 @@ class _CommunityScreenState extends State<CommunityScreen>
           return RefreshIndicator(
             onRefresh: () async => setState(() {}),
             child: ListView.separated(
+              controller: _feedController,
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 110),
               itemCount: docs.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -237,22 +266,26 @@ class _CommunityScreenState extends State<CommunityScreen>
           );
         },
       ),
-      floatingActionButton: AnimatedBuilder(
-        animation: _fabScale,
-        builder: (context, child) => Transform.scale(
-          scale: _fabScale.value,
-          child: child,
-        ),
-        child: FloatingActionButton.extended(
-          heroTag: 'community_create_post_fab',
-          onPressed: _openCreatePost,
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 8,
-          icon: const Icon(Icons.add_rounded, size: 28),
-          label: const Text(
-            'منشور جديد',
-            style: TextStyle(fontWeight: FontWeight.w900),
+      floatingActionButton: IgnorePointer(
+        ignoring: !_fabVisible,
+        child: AnimatedOpacity(
+          opacity: _fabVisible ? 1 : 0,
+          duration: const Duration(milliseconds: 160),
+          child: AnimatedBuilder(
+            animation: Listenable.merge([_fabScale, _tapController]),
+            builder: (context, child) => Transform.rotate(
+              angle: 3.141592653589793 * _tapController.value,
+              child: Transform.scale(scale: _fabScale.value, child: child),
+            ),
+            child: FloatingActionButton(
+              heroTag: 'community_create_post_fab',
+              onPressed: _handleCreatePostTap,
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 8,
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add_rounded, size: 30),
+            ),
           ),
         ),
       ),
