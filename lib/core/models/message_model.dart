@@ -5,7 +5,8 @@ enum MessageType { text, image, audio, video, file, location, contact, system, r
 
 class MessageModel extends Equatable {
   final String id, chatId, senderId, senderName;
-  final String? senderPhotoUrl, text, replyPreview;
+  final String? senderPhotoUrl, text;
+  final Map<String, dynamic>? replyPreview;
   final MessageType type;
   final Timestamp? timestamp, readAt, deliveredAt;
   final bool isRead, isDelivered, isEdited, isDeleted, isPinned;
@@ -32,9 +33,11 @@ class MessageModel extends Equatable {
     Timestamp? ts = d['timestamp'] is Timestamp ? d['timestamp'] as Timestamp : null;
     Timestamp? ra = d['readAt'] is Timestamp ? d['readAt'] as Timestamp : null;
     Timestamp? da = d['deliveredAt'] is Timestamp ? d['deliveredAt'] as Timestamp : null;
+    final rawReply = d['replyPreview'];
     return MessageModel(
       id: id, chatId: d['chatId']?.toString() ?? '', senderId: d['senderId']?.toString() ?? '', senderName: d['senderName']?.toString() ?? '',
-      senderPhotoUrl: d['senderPhotoUrl']?.toString(), text: d['text']?.toString(), replyPreview: d['replyPreview']?.toString(),
+      senderPhotoUrl: d['senderPhotoUrl']?.toString(), text: d['text']?.toString(),
+      replyPreview: rawReply is Map ? Map<String, dynamic>.from(rawReply) : null,
       type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text), timestamp: ts,
       isRead: d['isRead'] == true, isDelivered: d['isDelivered'] == true, isEdited: d['isEdited'] == true, isDeleted: d['isDeleted'] == true,
       replyToId: d['replyToId']?.toString(),
