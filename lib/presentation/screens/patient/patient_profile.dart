@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_images.dart';
+import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
 import 'package:sehatak/core/services/status_service.dart';
 import 'package:sehatak/core/models/status_model.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
@@ -90,8 +92,8 @@ class _PatientProfileState extends State<PatientProfile> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          if (_isOwnProfile) IconButton(icon: const Icon(Icons.edit_rounded), onPressed: _edit),
-          if (_isOwnProfile) IconButton(icon: const Icon(Icons.settings_rounded), onPressed: _settings),
+          if (_isOwnProfile) IconButton(icon: LocalAssetIcon(AppImages.uiEditButton, color: Colors.white, size: 22), onPressed: _edit),
+          if (_isOwnProfile) IconButton(icon: LocalAssetIcon(AppImages.uiSettingsGear, color: Colors.white, size: 22), onPressed: _settings),
         ],
       ),
       body: _loading
@@ -187,7 +189,7 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _stories(String name, String photo, bool dark) {
-    return _card(dark, 'الحالة اليومية', Icons.auto_stories_rounded, StreamBuilder<UserStatusModel?>(
+    return _card(dark, 'الحالة اليومية', AppImages.uiUserProfile, StreamBuilder<UserStatusModel?>(
       stream: _profileId.isEmpty ? Stream.value(null) : _statusService.streamUserStatus(_profileId),
       builder: (context, snapshot) {
         final status = snapshot.data;
@@ -209,8 +211,8 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _posts(bool dark) {
-    if (_profileId.isEmpty) return _card(dark, 'منشورات المجتمع', Icons.forum_outlined, const Text('سجّل الدخول لعرض منشورات الحساب.'));
-    return _card(dark, 'منشورات المجتمع', Icons.forum_outlined, StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    if (_profileId.isEmpty) return _card(dark, 'منشورات المجتمع', AppImages.uiUserProfile, const Text('سجّل الدخول لعرض منشورات الحساب.'));
+    return _card(dark, 'منشورات المجتمع', AppImages.uiUserProfile, StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _firestore.collection('community_posts').where('userId', isEqualTo: _profileId).where('isPublished', isEqualTo: true).limit(20).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Text('تعذر تحميل منشورات المجتمع.');
@@ -255,33 +257,33 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _accountSections(bool dark) {
-    return _card(dark, 'حساب المستخدم', Icons.person_outline_rounded, Column(children: [
-      _tile(Icons.favorite_border_rounded, 'الأطباء المفضلون', 'الوصول إلى الأطباء المضافين للمفضلة', _favoriteDoctors, dark),
-      _tile(Icons.tune_rounded, 'التفضيلات', 'إدارة تفضيلات الحساب والخدمات', _settings, dark),
-      _tile(Icons.people_outline_rounded, 'المتابعات', 'الحسابات التي يتابعها المستخدم', null, dark),
-      if (_isOwnProfile) _tile(Icons.edit_outlined, 'تعديل الملف', 'تحديث تفاصيل الحساب', _edit, dark),
+    return _card(dark, 'حساب المستخدم', AppImages.uiUserProfile, Column(children: [
+      _tile(AppImages.uiUserProfile, 'الأطباء المفضلون', 'الوصول إلى الأطباء المضافين للمفضلة', _favoriteDoctors, dark),
+      _tile(AppImages.uiSettingsGear, 'التفضيلات', 'إدارة تفضيلات الحساب والخدمات', _settings, dark),
+      _tile(AppImages.uiUserProfile, 'المتابعات', 'الحسابات التي يتابعها المستخدم', null, dark),
+      if (_isOwnProfile) _tile(AppImages.uiEditButton, 'تعديل الملف', 'تحديث تفاصيل الحساب', _edit, dark),
     ]));
   }
 
-  Widget _card(bool dark, String title, IconData icon, Widget child) {
+  Widget _card(bool dark, String title, String icon, Widget child) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Icon(icon, color: AppColors.primary, size: 20), const SizedBox(width: 8), Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: dark ? Colors.white : Colors.black87))]),
+        Row(children: [LocalAssetIcon(icon, color: AppColors.primary, size: 20), const SizedBox(width: 8), Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: dark ? Colors.white : Colors.black87))]),
         const SizedBox(height: 12),
         child,
       ]),
     );
   }
 
-  Widget _tile(IconData icon, String title, String subtitle, VoidCallback? onTap, bool dark) {
+  Widget _tile(String icon, String title, String subtitle, VoidCallback? onTap, bool dark) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Container(width: 42, height: 42, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: AppColors.primary, size: 21)),
+      leading: Container(width: 42, height: 42, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), borderRadius: BorderRadius.circular(12)), child: LocalAssetIcon(icon, color: AppColors.primary, size: 21)),
       title: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
       subtitle: Text(subtitle, style: TextStyle(fontSize: 10, color: dark ? Colors.white60 : Colors.grey[600])),
-      trailing: onTap == null ? null : const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+      trailing: onTap == null ? null : LocalAssetIcon(AppImages.uiEditButton, color: AppColors.primary, size: 14),
       onTap: onTap,
     );
   }
