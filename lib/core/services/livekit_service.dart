@@ -15,7 +15,7 @@ class LiveKitService {
   Room? _room;
   bool _isCameraEnabled = false;
   bool _isMicrophoneEnabled = false;
-  bool _isSpeakerOn = false;
+  bool _isSpeakerOn = true;
   bool _isConnected = false;
   bool _isFrontCamera = true;
 
@@ -55,7 +55,7 @@ class LiveKitService {
       await _room!.connect(tokenData['url'] as String, tokenData['token'] as String, roomOptions: options);
       _isConnected = true;
       await enableMicrophone();
-      await setSpeakerphone(_isSpeakerOn);
+      await setSpeakerphone(true);
       return _room!;
     } catch (_) {
       _isConnected = false;
@@ -73,10 +73,7 @@ class LiveKitService {
       LocalVideoTrack? track;
       for (final publication in local.videoTracks) {
         final candidate = publication.track;
-        if (candidate is LocalVideoTrack && publication.source == TrackSource.camera) {
-          track = candidate;
-          break;
-        }
+        if (candidate is LocalVideoTrack && publication.source == TrackSource.camera) { track = candidate; break; }
       }
       if (track == null) throw StateError('تم الاتصال لكن لم يتم نشر فيديو الكاميرا');
     }
@@ -168,7 +165,7 @@ class LiveKitService {
       _isConnected = false;
       _isCameraEnabled = false;
       _isMicrophoneEnabled = false;
-      _isSpeakerOn = false;
+      _isSpeakerOn = true;
       _isFrontCamera = true;
     }
   }
@@ -179,7 +176,7 @@ class LiveKitService {
     _isConnected = false;
     _isCameraEnabled = false;
     _isMicrophoneEnabled = false;
-    _isSpeakerOn = false;
+    _isSpeakerOn = true;
     _isFrontCamera = true;
   }
 }
