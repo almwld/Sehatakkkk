@@ -24,7 +24,20 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
       const SizedBox(height: 24),
       const Text('ما الذي قد يؤثر في مزاجك؟', style: TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
-      Wrap(spacing: 8, children: factors.map((f) => FilterChip(label: Text(f), selected: _factors.contains(f), onSelected: (v) => setState(() => v ? _factors.add(f) : _factors.remove(f))).toList()),
+      Wrap(
+        spacing: 8,
+        children: factors.map((f) => FilterChip(
+          label: Text(f),
+          selected: _factors.contains(f),
+          onSelected: (v) => setState(() {
+            if (v) {
+              _factors.add(f);
+            } else {
+              _factors.remove(f);
+            }
+          }),
+        )).toList(),
+      ),
       const SizedBox(height: 20),
       TextField(controller: _note, maxLines: 4, decoration: const InputDecoration(labelText: 'ملاحظات اليوم', hintText: 'اكتب ما تريد تذكره...', border: OutlineInputBorder())),
       const SizedBox(height: 16),
