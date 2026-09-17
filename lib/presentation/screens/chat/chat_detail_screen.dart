@@ -56,22 +56,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (!_keepAtBottom || !_scrollController.hasClients) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients || !_keepAtBottom) return;
-      if (_scrollController.position.pixels > 1) {
-        _scrollController.animateTo(0, duration: const Duration(milliseconds: 160), curve: Curves.easeOut);
-      }
+      if (_scrollController.position.pixels > 1) _scrollController.animateTo(0, duration: const Duration(milliseconds: 160), curve: Curves.easeOut);
     });
   }
 
   Future<void> _markConversationSeen() async {
     if (_markingSeen) return;
     _markingSeen = true;
-    try {
-      await _chatService.markAsRead(widget.chatId);
-    } catch (e) {
-      debugPrint('Chat mark-as-read failed: $e');
-    } finally {
-      _markingSeen = false;
-    }
+    try { await _chatService.markAsRead(widget.chatId); } catch (e) { debugPrint('Chat mark-as-read failed: $e'); } finally { _markingSeen = false; }
   }
 
   void _sendText(String text) {
@@ -86,22 +78,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final title = widget.userName?.trim().isNotEmpty == true ? widget.userName!.trim() : 'الدردشة';
     final headerColor = isDark ? const Color(0xFF102B2A) : AppColors.primary;
-    final headerIcon = isDark ? Colors.white : Colors.white;
     final inputSurface = isDark ? const Color(0xFF121A29) : Colors.white;
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
         titleSpacing: 0,
         title: Row(children: [
-          CircleAvatar(radius: 19, backgroundColor: isDark ? const Color(0xFF214442) : Colors.white.withOpacity(.18), backgroundImage: widget.userImage?.trim().isNotEmpty == true ? NetworkImage(widget.userImage!.trim()) : null, child: widget.userImage?.trim().isNotEmpty == true ? null : Icon(Icons.person_rounded, color: headerIcon, size: 22)),
-          const SizedBox(width: 10),
-          Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))),
+          CircleAvatar(radius: 19, backgroundColor: isDark ? const Color(0xFF214442) : Colors.white.withOpacity(.18), backgroundImage: widget.userImage?.trim().isNotEmpty == true ? NetworkImage(widget.userImage!.trim()) : null, child: widget.userImage?.trim().isNotEmpty == true ? null : Icon(Icons.person_rounded, color: Colors.white, size: 22)),
+          const SizedBox(width: 10), Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))),
         ]),
-        backgroundColor: headerColor,
-        foregroundColor: Colors.white,
-        elevation: 3,
-        shadowColor: Colors.black.withOpacity(.18),
-        surfaceTintColor: Colors.transparent,
+        backgroundColor: headerColor, foregroundColor: Colors.white, elevation: 3, shadowColor: Colors.black.withOpacity(.18), surfaceTintColor: Colors.transparent,
       ),
       body: Column(children: [
         Expanded(child: BlocConsumer<MessagesBloc, MessagesState>(
@@ -113,14 +99,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               if (state.messages.isEmpty) return const Center(child: Text('لا توجد رسائل'));
               unawaited(_markConversationSeen());
               final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+              final messages = List.of(state.messages)..sort((a, b) => (b.timestamp ?? Timestamp(0, 0)).compareTo(a.timestamp ?? Timestamp(0, 0)));
               return ListView.builder(
-                controller: _scrollController,
-                reverse: true,
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                itemCount: state.messages.length + (state.isLoadingMore ? 1 : 0),
+                controller: _scrollController, reverse: true, padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                itemCount: messages.length + (state.isLoadingMore ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (index == state.messages.length) return const Padding(padding: EdgeInsets.all(8), child: Center(child: CircularProgressIndicator()));
-                  final message = state.messages[index];
+                  if (index == messages.length) return const Padding(padding: EdgeInsets.all(8), child: Center(child: CircularProgressIndicator()));
+                  final message = messages[index];
                   return MessageBubble(message: message.toFirestore(), isMe: message.senderId == currentUserId);
                 },
               );
