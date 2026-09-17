@@ -51,6 +51,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   bool _otherTyping = false;
   List<MessageModel> _messages = [];
   final List<Map<String, dynamic>> _localMedia = [];
+  final Set<String> _knownMessageIds = <String>{};
+  Set<String> _newMessageIds = <String>{};
+  bool _hasInitialMessageSnapshot = false;
   bool _loading = true;
   bool _online = false;
   bool _muted = false;
@@ -225,6 +228,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           .where((m) => !_hiddenForCurrentUser(m.toFirestore()))
           .toList();
       final remoteIds = messages.map((m) => m.id).toSet();
+      final currentIds = remoteIds;
+      final newIds = _hasInitialMessageSnapshot
+          ? currentIds.difference(_knownMessageIds)
+          : <String>{};
+      _knownMessageIds
+        ..clear()
+        ..addAll(currentIds);
+      _newMessageIds = newIds;
+      _hasInitialMessageSnapshot = true;
       setState(() {
         _messages = messages;
         _localMedia.removeWhere((m) => remoteIds.contains(m['id']));
@@ -402,10 +414,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     all.sort((a, b) =>
         _messageTime(b['timestamp']).compareTo(_messageTime(a['timestamp'])));
     return Scaffold(
-      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF2F5F6),
+      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFE3F1EF),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: dark ? const Color(0xFF101827) : Colors.white,
+        backgroundColor: dark ? const Color(0xFF101827) : const Color(0xFFF7FBFA),
         leading: const BackButton(),
         titleSpacing: 0,
         title: InkWell(
@@ -475,59 +487,96 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
       body: Column(children: [
         Expanded(
-            child: _loading && all.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : all.isEmpty
-                    ? const Center(child: Text('ابدأ المحادثة'))
-                    : ChatBackground(
-                        child: ListView.builder(
-                            reverse: true,
-                            padding: const EdgeInsets.all(8),
-                            itemCount: all.length,
-                            itemBuilder: (_, index) {
-                              final message = all[index];
-                              final remote = message['isLocal'] != true;
-                              final messageId = message['id']?.toString();
-                              final model = remote && messageId != null
-                                  ? _messages.firstWhere(
-                                      (m) => m.id == messageId,
-                                      orElse: () => MessageModel(
-                                          id: '',
-                                          chatId: '',
-                                          senderId: '',
-                                          senderName: ''))
-                                  : null;
-                              final status = _uploadStatusFor(message);
-                              final bubble = MessageBubble(
-                                  key: ValueKey(message['id'] ?? index),
-                                  message: message,
-                                  isMe: message['senderId'] ==
-                                          _auth.currentUser?.uid ||
-                                      message['isLocal'] == true,
-                                  onReply: model == null || model.id.isEmpty
-                                      ? null
-                                      : () => _startReply(model),
-                                  onDelete: model == null || model.id.isEmpty
-                                      ? null
-                                      : () => _deleteMessage(model),
-                                  onCallAgain: (_) => _call(false),
-                                  onReaction: remote && messageId != null
-                                      ? (emoji) => _chat.addReaction(
-                                          widget.chatId, messageId, emoji)
-                                      : null);
-                              if (status == null) return bubble;
-                              return Stack(clipBehavior: Clip.none, children: [
-                                bubble,
-                                MediaUploadStatusWidget(
-                                    status: status,
-                                    progress:
-                                        (message['uploadProgress'] as num?)
-                                                ?.toDouble() ??
-                                            0.0,
-                                    onRetry: () => message['onRetry']?.call())
-                              ]);
-                            }))),
-        if (_replyingTo != null) _replyBanner(_replyingTo!),
+            child: ChatBackground(
+                child: Stack(children: [
+          if (all.isEmpty)
+            Center(
+                child: Text('ابدأ المحادثة',
+                    style: TextStyle(
+                        color: dark ? Colors.white70 : const Color(0xFF49615E),
+                        fontWeight: FontWeight.w600)))
+          else
+            ListView.builder(
+                reverse: true,
+                padding: const EdgeInsets.all(8),
+                itemCount: all.length,
+                itemBuilder: (_, index) {
+                  final message = all[index];
+                  final remote = message['isLocal'] != true;
+                  final messageId = message['id']?.toString();
+                  final model = remote && messageId != null
+                      ? _messages.firstWhere(
+                          (m) => m.id == messageId,
+                          orElse: () => MessageModel(
+                              id: '', chatId: '', senderId: '', senderName: ''))
+                      : null;
+                  final status = _uploadStatusFor(message);
+                  Widget bubble = MessageBubble(
+                      key: ValueKey(message['id'] ?? index),
+                      message: message,
+                      isMe: message['senderId'] == _auth.currentUser?.uid ||
+                          message['isLocal'] == true,
+                      onReply: model == null || model.id.isEmpty
+                          ? null
+                          : () => _startReply(model),
+                      onDelete: model == null || model.id.isEmpty
+                          ? null
+                          : () => _deleteMessage(model),
+                      onCallAgain: (_) => _call(false),
+                      onReaction: remote && messageId != null
+                          ? (emoji) => _chat.addReaction(
+                              widget.chatId, messageId, emoji)
+                          : null);
+                  if (messageId != null && _newMessageIds.contains(messageId)) {
+                    bubble = TweenAnimationBuilder<double>(
+                        key: ValueKey('entrance-$messageId'),
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: const Duration(milliseconds: 240),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, value, child) => Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                                offset: Offset(0, 10 * (1 - value)),
+                                child: child)),
+                        child: bubble);
+                  }
+                  if (status == null) return bubble;
+                  return Stack(clipBehavior: Clip.none, children: [
+                    bubble,
+                    MediaUploadStatusWidget(
+                        status: status,
+                        progress:
+                            (message['uploadProgress'] as num?)?.toDouble() ??
+                                0.0,
+                        onRetry: () => message['onRetry']?.call())
+                  ]);
+                }),
+          if (_loading)
+            Positioned.fill(
+                child: IgnorePointer(
+                    child: ColoredBox(
+                        color: dark
+                            ? const Color(0xFF0B1121).withOpacity(.12)
+                            : const Color(0xFFE3F1EF).withOpacity(.12),
+                        child: Center(
+                            child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2.2,
+                                    color: AppColors.primary))))))
+        ]))),
+        AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) => SizeTransition(
+                sizeFactor: animation,
+                axisAlignment: -1,
+                child: FadeTransition(opacity: animation, child: child)),
+            child: _replyingTo == null
+                ? const SizedBox.shrink(key: ValueKey('no-reply'))
+                : _replyBanner(_replyingTo!)),
         ChatInputBar(
             chatId: widget.chatId,
             onSendMessage: (_) {
@@ -547,9 +596,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         ? message.text!.trim()
         : _replyTypeLabel(message.type);
     return Material(
+        key: ValueKey('reply-${message.id}'),
         color: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF162039)
-            : Colors.white,
+            : const Color(0xFFF7FBFA),
         child: Container(
             padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
             decoration: BoxDecoration(
