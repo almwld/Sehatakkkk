@@ -17,6 +17,7 @@ import 'package:sehatak/presentation/screens/home/widgets/quick_services_widget.
 import 'package:sehatak/presentation/widgets/home/home_health_widgets.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/home/featured_facilities_grid.dart';
+import 'package:sehatak/presentation/widgets/home/home_create_post_fab.dart';
 
 /// Canonical Home implementation. One screen, one navigation source, reusable sections.
 class HomeTab extends StatefulWidget {
@@ -113,7 +114,9 @@ class _HomeTabState extends State<HomeTab>
         final dark = Theme.of(context).brightness == Brightness.dark;
         return Container(
           color: dark ? _darkBackground : _background,
-          child: RefreshIndicator(
+          child: Stack(
+            children: [
+              child: RefreshIndicator(
             color: AppColors.primary,
             onRefresh: _refresh,
             child: CustomScrollView(
@@ -139,6 +142,13 @@ class _HomeTabState extends State<HomeTab>
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
               ],
             ),
+          ),
+              const Positioned(
+                right: 16,
+                bottom: 16,
+                child: HomeCreatePostFab(),
+              ),
+            ],
           ),
         );
       },
