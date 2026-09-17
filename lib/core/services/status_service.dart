@@ -40,6 +40,8 @@ class StatusService {
       if (!status.isValid || status.stories.isEmpty) return null;
       return status;
     });
+  }
+
   Future<UserStatusModel?> getUserStatus(String userId) async {
     final cleanId = userId.trim();
     if (cleanId.isEmpty) return null;
@@ -48,8 +50,6 @@ class StatusService {
     final status = UserStatusModel.fromDocument(document);
     if (!status.isValid || status.stories.isEmpty) return null;
     return status;
-  }
-
   }
 
   Future<List<UserStatusModel>> _withViewState(QuerySnapshot<Map<String, dynamic>> snapshot) async {
