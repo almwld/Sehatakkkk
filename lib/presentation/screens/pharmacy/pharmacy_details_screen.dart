@@ -7,13 +7,32 @@ class PharmacyDetailsScreen extends StatelessWidget {
 
   const PharmacyDetailsScreen({super.key, required this.pharmacy});
 
+  String _text(String key, [String fallback = 'غير متوفر']) {
+    final value = pharmacy[key];
+    if (value == null) return fallback;
+    final text = '$value'.trim();
+    return text.isEmpty ? fallback : text;
+  }
+
+  bool _bool(String key) => pharmacy[key] == true;
+
+  String _imageUrl() {
+    final value = pharmacy['imageUrl'] ?? pharmacy['image'] ?? pharmacy['photoUrl'];
+    final url = '${value ?? ''}'.trim();
+    return url.startsWith('http://') || url.startsWith('https://') ? url : '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final imageUrl = _imageUrl();
+    final name = _text('name', 'صيدلية');
+    final rating = _text('rating', '0');
+    final reviews = _text('reviews', _text('reviewCount', '0'));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(pharmacy['name']),
+        title: Text(name),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -21,53 +40,65 @@ class PharmacyDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ صورة الصيدلية
-            Container(
+            SizedBox(
               height: 200,
               width: double.infinity,
-              child: CachedNetworkImage(
-                imageUrl: pharmacy['image'],
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
-                  color: Colors.grey[300],
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (_, __, ___) => Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.local_pharmacy, size: 80, color: Colors.grey),
-                ),
-              ),
+              child: imageUrl.isEmpty
+                  ? Container(
+                      color: isDark ? Colors.white10 : Colors.grey[200],
+                      child: const Center(
+                        child: Icon(Icons.local_pharmacy,
+                            size: 80, color: Colors.grey),
+                      ),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        color: isDark ? Colors.white10 : Colors.grey[300],
+                        child: const Center(
+                            child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (_, __, ___) => Container(
+                        color: isDark ? Colors.white10 : Colors.grey[200],
+                        child: const Center(
+                          child: Icon(Icons.local_pharmacy,
+                              size: 80, color: Colors.grey),
+                        ),
+                      ),
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ معلومات الصيدلية
-                  Text(
-                    pharmacy['name'],
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                  Text(name,
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       const Icon(Icons.star, color: AppColors.amber),
                       const SizedBox(width: 4),
-                      Text(
-                        '${pharmacy['rating']} (${pharmacy['reviews']} تقييم)',
-                        style: TextStyle(fontSize: 14),
-                      ),
+                      Text('$rating ($reviews تقييم)',
+                          style: const TextStyle(fontSize: 14)),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _infoRow(Icons.location_on, 'العنوان', pharmacy['address']),
-                  _infoRow(Icons.phone, 'الهاتف', pharmacy['phone']),
-                  _infoRow(Icons.access_time, 'الحالة', pharmacy['open'] ? '🟢 مفتوح' : '🔴 مغلق'),
-                  _infoRow(Icons.delivery_dining, 'التوصيل', pharmacy['delivery'] ? '✅ متوفر' : '❌ غير متوفر'),
-                  _infoRow(Icons.place, 'المسافة', pharmacy['distance']),
+                  _infoRow(Icons.location_on, 'العنوان',
+                      _text('address', _text('city'))),
+                  _infoRow(Icons.phone, 'الهاتف', _text('phone')),
+                  _infoRow(Icons.access_time, 'الحالة',
+                      _bool('isOpen') || _bool('openNow') ? 'مفتوح' : 'مغلق'),
+                  _infoRow(Icons.delivery_dining, 'التوصيل',
+                      _bool('deliveryAvailable') ||
+                              _bool('hasDelivery') ||
+                              _bool('delivery')
+                          ? 'متوفر'
+                          : 'غير متوفر'),
+                  _infoRow(Icons.place, 'المسافة', _text('distance')),
                   const SizedBox(height: 16),
-                  
-                  // ✅ زر الاتصال
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -100,15 +131,12 @@ class PharmacyDetailsScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: AppColors.primary),
           const SizedBox(width: 8),
-          Text(
-            '$label: ',
-            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-          ),
+          Text('$label: ',
+              style:
+                  const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(fontSize: 13, color: Colors.grey),
-            ),
+            child: Text(value,
+                style: const TextStyle(fontSize: 13, color: Colors.grey)),
           ),
         ],
       ),
