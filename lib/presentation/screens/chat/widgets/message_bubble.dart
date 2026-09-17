@@ -47,7 +47,26 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  Widget _shell(Widget child, bool dark) => GestureDetector(onLongPress: _options, child: Container(decoration: BoxDecoration(color: widget.isMe ? AppColors.primary : (dark ? const Color(0xFF1A2540) : Colors.grey[100]), borderRadius: BorderRadius.circular(14)), child: child));
+  Widget _shell(Widget child, bool dark) => GestureDetector(
+      onLongPress: _options,
+      child: Container(
+          decoration: BoxDecoration(
+              color: widget.isMe
+                  ? AppColors.primary
+                  : (dark ? const Color(0xFF1A2540) : const Color(0xFFF9FCFB)),
+              borderRadius: BorderRadius.circular(14),
+              border: !widget.isMe && !dark
+                  ? Border.all(color: const Color(0xFFC8DEDA), width: .8)
+                  : null,
+              boxShadow: !widget.isMe && !dark
+                  ? const [
+                      BoxShadow(
+                          color: Color(0x14000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 1))
+                    ]
+                  : null),
+          child: child));
 
   Widget _buildContent(String type, bool dark) {
     final m = widget.message;
@@ -67,14 +86,14 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _buildText(Map<String, dynamic> m, bool dark) => _shell(Padding(padding: const EdgeInsets.fromLTRB(13, 9, 10, 7), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     if (m['replyPreview'] is Map) _replyPreview(m['replyPreview'] as Map, dark),
-    Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : Colors.black87), fontSize: 14))), const SizedBox(width: 6), _status(m)]),
+    Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F)), fontSize: 14))), const SizedBox(width: 6), _status(m)]),
     _reactions(m, dark),
   ])), dark);
 
   Widget _replyPreview(Map preview, bool dark) {
     final sender = preview['senderName']?.toString().trim() ?? 'مستخدم';
     final text = preview['text']?.toString().trim() ?? 'مرفق';
-    return Container(width: double.infinity, margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: widget.isMe ? Colors.white.withOpacity(.14) : Colors.black.withOpacity(.06), borderRadius: BorderRadius.circular(8)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(sender, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white : AppColors.primary)), const SizedBox(height: 2), Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : Colors.black54))) ]));
+    return Container(width: double.infinity, margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: widget.isMe ? Colors.white.withOpacity(.14) : (dark ? Colors.black.withOpacity(.16) : const Color(0xFFEAF5F3)), borderRadius: BorderRadius.circular(8)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(sender, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white : AppColors.primary)), const SizedBox(height: 2), Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))) ]));
   }
 
   Widget _status(Map<String, dynamic> m) {
@@ -119,7 +138,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget _buildFile(Map<String, dynamic> m, bool dark) {
     final url = m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
     final name = (m['fileName']?.toString().trim().isNotEmpty == true) ? m['fileName'].toString() : 'ملف';
-    final tc = widget.isMe ? Colors.white : (dark ? Colors.white : Colors.black87);
+    final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
     return _shell(InkWell(onTap: () async { if (url.isEmpty) return; final target = _isLocal(url) ? Uri.file(url.replaceFirst('file://', '')) : Uri.tryParse(url); if (target != null && await canLaunchUrl(target)) await launchUrl(target, mode: LaunchMode.externalApplication); }, child: Padding(padding: const EdgeInsets.all(12), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.insert_drive_file, color: tc, size: 30), const SizedBox(width: 10), Flexible(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: tc, fontWeight: FontWeight.w600))), const SizedBox(width: 8), Icon(Icons.download_for_offline, color: tc)]))), dark);
   }
 
@@ -132,7 +151,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final incoming = !missed && !widget.isMe;
     final icon = missed ? Icons.call_missed : incoming ? Icons.call_received : Icons.call_made;
     final title = missed ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} فائتة' : incoming ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} واردة' : 'مكالمة ${video ? 'فيديو' : 'صوتية'} صادرة';
-    final tc = widget.isMe ? Colors.white : (dark ? Colors.white : Colors.black87);
+    final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
     final ic = missed ? Colors.red : incoming ? Colors.green : Colors.blue;
     return _shell(Padding(padding: const EdgeInsets.all(10), child: Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 48, height: 48, decoration: BoxDecoration(color: ic.withOpacity(.15), shape: BoxShape.circle), child: Icon(icon, color: ic, size: 24)), const SizedBox(width: 12), Flexible(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(color: tc, fontWeight: FontWeight.bold, fontSize: 13)), if (duration.isNotEmpty) ...[const SizedBox(height: 3), Text(duration, style: TextStyle(color: tc.withOpacity(.7), fontSize: 11))]])), const SizedBox(width: 12), InkWell(borderRadius: BorderRadius.circular(20), onTap: () => widget.onCallAgain?.call(video ? 'video' : 'audio'), child: Padding(padding: const EdgeInsets.all(6), child: Icon(video ? Icons.videocam : Icons.call, color: tc, size: 20)))])), dark);
   }
@@ -140,11 +159,11 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget _buildLocation(Map<String, dynamic> m, bool dark) {
     final text = m['locationAddress']?.toString() ?? m['text']?.toString() ?? 'الموقع';
     final url = m['locationUrl']?.toString() ?? '';
-    final tc = widget.isMe ? Colors.white : (dark ? Colors.white : Colors.black87);
+    final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
     return _shell(InkWell(onTap: () async { final uri = Uri.tryParse(url); if (uri != null && await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication); }, child: Padding(padding: const EdgeInsets.all(11), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.location_on, color: Colors.redAccent), const SizedBox(width: 7), Flexible(child: Text(text, style: TextStyle(color: tc)))]))), dark);
   }
 
-  Widget _buildSystem(Map<String, dynamic> m) => Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Center(child: Text(m['text']?.toString() ?? '', style: const TextStyle(fontSize: 11, color: Colors.black54))));
+  Widget _buildSystem(Map<String, dynamic> m) => Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Center(child: Text(m['text']?.toString() ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF49615E)))));
 
   void _options() {
     showModalBottomSheet<void>(
