@@ -56,6 +56,8 @@ import 'package:sehatak/presentation/screens/patient/patient_medical_history.dar
 import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';
+import 'package:sehatak/presentation/screens/eye_care/eye_care_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   final ScrollController? scrollController;
@@ -169,6 +171,8 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
           {'icon': 'assets/images/tracking/fruits.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
           {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},
+          {'icon': 'assets/icons/services/dentistry.png', 'title': 'صحة الأسنان', 'subtitle': 'العناية بالأسنان والفم', 'screen': const DentalCareScreen()},
+          {'icon': 'assets/icons/services/ophthalmology.png', 'title': 'صحة العيون', 'subtitle': 'العناية بالعين وفحص النظر', 'screen': const EyeCareScreen()},
         ];
       case 'أدوات تشخيصية':
         return [
