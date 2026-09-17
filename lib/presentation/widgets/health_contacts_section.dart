@@ -11,6 +11,7 @@ import 'package:sehatak/presentation/screens/chat/add_status_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/widgets/status_row.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class HealthContactsSection extends StatefulWidget {
   final bool isDark;
@@ -63,17 +64,11 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
                 _buildStatuses(statuses),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: TextField(
+                  child: UnifiedSearchBar(
                     controller: _searchController,
-                    textDirection: TextDirection.rtl,
-                    decoration: InputDecoration(
-                      hintText: 'ابحث في التواصل الصحي...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _search.isEmpty ? null : IconButton(icon: const Icon(Icons.clear), onPressed: _searchController.clear),
-                      filled: true,
-                      fillColor: widget.isDark ? const Color(0xFF162039) : Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-                    ),
+                    hintText: 'ابحث في التواصل الصحي...',
+                    isDark: widget.isDark,
+                    onClear: _searchController.clear,
                   ),
                 ),
                 Expanded(child: _buildDirectory(records)),
@@ -120,16 +115,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       grouped.putIfAbsent(record.category, () => <_DirectoryRecord>[]).add(record);
     }
 
-    const order = <String>[
-      'أطباء',
-      'صيدليات',
-      'مرافق صحية',
-      'مستشفيات',
-      'مختبرات',
-      'مندوب توصيل',
-      'مسعف ميداني',
-      'عينة مخبر منزلي',
-    ];
+    const order = <String>['أطباء', 'صيدليات', 'مرافق صحية', 'مستشفيات', 'مختبرات', 'مندوب توصيل', 'مسعف ميداني', 'عينة مخبر منزلي'];
     final visible = order.where((title) => grouped[title]?.isNotEmpty ?? false).toList();
     if (visible.isEmpty) {
       return Center(child: Text(_search.isEmpty ? 'لا توجد حسابات صحية متاحة للتواصل حالياً.' : 'لا توجد نتائج مطابقة.', style: TextStyle(color: widget.isDark ? Colors.white70 : Colors.black54)));
@@ -171,12 +157,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        leading: CircleAvatar(
-          radius: 25,
-          backgroundColor: AppColors.primary.withOpacity(.12),
-          backgroundImage: item.image.isNotEmpty ? NetworkImage(item.image) : null,
-          child: item.image.isEmpty ? Icon(item.icon, color: AppColors.primary) : null,
-        ),
+        leading: CircleAvatar(radius: 25, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: item.image.isNotEmpty ? NetworkImage(item.image) : null, child: item.image.isEmpty ? Icon(item.icon, color: AppColors.primary) : null),
         title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
         subtitle: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
@@ -199,67 +180,29 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
     }
 
     Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> collection(String name) async {
-      try {
-        return (await FirebaseFirestore.instance.collection(name).limit(100).get()).docs;
-      } catch (e) {
-        debugPrint('health directory $name error: $e');
-        return const [];
-      }
+      try { return (await FirebaseFirestore.instance.collection(name).limit(100).get()).docs; } catch (e) { debugPrint('health directory $name error: $e'); return const []; }
     }
 
     Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> healthRole(String role) async {
-      try {
-        return (await FirebaseFirestore.instance.collection('health_contacts').where('role', isEqualTo: role).limit(100).get()).docs;
-      } catch (e) {
-        debugPrint('health directory role $role error: $e');
-        return const [];
-      }
+      try { return (await FirebaseFirestore.instance.collection('health_contacts').where('role', isEqualTo: role).limit(100).get()).docs; } catch (e) { debugPrint('health directory role $role error: $e'); return const []; }
     }
 
-    final results = await Future.wait([
-      collection('doctors'),
-      collection('pharmacies'),
-      collection('hospitals'),
-      collection('labs'),
-      healthRole('delivery'),
-      healthRole('paramedic'),
-      healthRole('service'),
-    ]);
-
+    final results = await Future.wait([collection('doctors'), collection('pharmacies'), collection('hospitals'), collection('labs'), healthRole('delivery'), healthRole('paramedic'), healthRole('service')]);
     for (final d in results[0]) add('أطباء', d.id, d.data(), Icons.medical_services_outlined);
     for (final d in results[1]) add('صيدليات', d.id, d.data(), Icons.local_pharmacy_outlined);
     for (final d in results[2]) add('مستشفيات', d.id, d.data(), Icons.local_hospital_outlined);
-    for (final d in results[3]) {
-      add('مختبرات', d.id, d.data(), Icons.science_outlined);
-      if (_isHomeSample(d.data())) add('عينة مخبر منزلي', d.id, d.data(), Icons.home_work_outlined);
-    }
+    for (final d in results[3]) { add('مختبرات', d.id, d.data(), Icons.science_outlined); if (_isHomeSample(d.data())) add('عينة مخبر منزلي', d.id, d.data(), Icons.home_work_outlined); }
     for (final d in results[4]) add('مندوب توصيل', d.id, d.data(), Icons.delivery_dining);
     for (final d in results[5]) add('مسعف ميداني', d.id, d.data(), Icons.emergency);
     for (final d in results[6]) add(_isHospital(d.data()) ? 'مستشفيات' : 'مرافق صحية', d.id, d.data(), Icons.health_and_safety_outlined);
     return records;
   }
 
-  bool _isHospital(Map<String, dynamic> data) {
-    final value = '${data['type'] ?? ''} ${data['facilityType'] ?? ''} ${data['category'] ?? ''} ${data['name'] ?? ''}'.toLowerCase();
-    return value.contains('hospital') || value.contains('مستشفى');
-  }
+  bool _isHospital(Map<String, dynamic> data) { final value = '${data['type'] ?? ''} ${data['facilityType'] ?? ''} ${data['category'] ?? ''} ${data['name'] ?? ''}'.toLowerCase(); return value.contains('hospital') || value.contains('مستشفى'); }
+  bool _isHomeSample(Map<String, dynamic> data) { final value = '${data['homeSample'] ?? ''} ${data['homeCollection'] ?? ''} ${data['serviceType'] ?? ''} ${data['services'] ?? ''} ${data['name'] ?? ''}'.toLowerCase(); return value.contains('true') || value.contains('home') || value.contains('منزلي') || value.contains('منزل'); }
 
-  bool _isHomeSample(Map<String, dynamic> data) {
-    final value = '${data['homeSample'] ?? ''} ${data['homeCollection'] ?? ''} ${data['serviceType'] ?? ''} ${data['services'] ?? ''} ${data['name'] ?? ''}'.toLowerCase();
-    return value.contains('true') || value.contains('home') || value.contains('منزلي') || value.contains('منزل');
-  }
-
-  Future<void> _openAddStatus() async {
-    if (!mounted) return;
-    final created = await context.push<bool>(AppRouter.addStatus);
-    if (created == true && mounted) setState(() => _statusStream = _statusService.streamActiveStatuses());
-  }
-
-  Future<void> _openStatus(UserStatusModel status) async {
-    if (!mounted || status.stories.isEmpty) return;
-    await context.push(AppRouter.storyViewer, extra: status);
-  }
-
+  Future<void> _openAddStatus() async { if (!mounted) return; final created = await context.push<bool>(AppRouter.addStatus); if (created == true && mounted) setState(() => _statusStream = _statusService.streamActiveStatuses()); }
+  Future<void> _openStatus(UserStatusModel status) async { if (!mounted || status.stories.isEmpty) return; await context.push(AppRouter.storyViewer, extra: status); }
   Future<void> _openChat(_DirectoryRecord item) async {
     if (_opening) return;
     final current = FirebaseAuth.instance.currentUser;
@@ -268,20 +211,12 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
     try {
       final me = await FirebaseFirestore.instance.collection('users').doc(current.uid).get();
       final data = me.data() ?? const <String, dynamic>{};
-      final chatId = await _chatService.createChat(
-        doctorId: item.userId,
-        doctorName: item.name,
-        patientName: (data['name'] ?? current.displayName ?? 'مستخدم').toString(),
-        doctorImage: item.image.isEmpty ? null : item.image,
-        patientImage: (data['photoUrl'] ?? current.photoURL)?.toString(),
-      );
+      final chatId = await _chatService.createChat(doctorId: item.userId, doctorName: item.name, patientName: (data['name'] ?? current.displayName ?? 'مستخدم').toString(), doctorImage: item.image.isEmpty ? null : item.image, patientImage: (data['photoUrl'] ?? current.photoURL)?.toString());
       if (!mounted) return;
       await context.push(AppRouter.chatRoom, extra: <String, dynamic>{'chatId': chatId, 'otherUserId': item.userId, 'otherUserName': item.name, 'otherUserImage': item.image.isEmpty ? null : item.image, 'isGroup': false});
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر فتح المحادثة: $e')));
-    } finally {
-      if (mounted) setState(() => _opening = false);
-    }
+    } finally { if (mounted) setState(() => _opening = false); }
   }
 }
 
