@@ -26,15 +26,79 @@ class DentalCareScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF4F6F7),
       appBar: AppBar(title: const Text('صحة الأسنان'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)), child: const Row(children: [CircleAvatar(radius: 28, backgroundColor: Colors.white24, child: Icon(Icons.health_and_safety_rounded, color: Colors.white, size: 30)), SizedBox(width: 14), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('رعاية الأسنان', style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)), SizedBox(height: 5), Text('اختر الخدمة للاطلاع على التفاصيل ثم الانتقال للحجز.', style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4))]))])),
-        const SizedBox(height: 18),
-        Text('الخدمات', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        ..._services.map((service) => Card(elevation: 0, margin: const EdgeInsets.only(bottom: 10), child: InkWell(borderRadius: BorderRadius.circular(14), onTap: () => _openService(context, service), child: Padding(padding: const EdgeInsets.all(14), child: Row(children: [Container(width: 48, height: 48, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), borderRadius: BorderRadius.circular(12)), child: Icon(service['icon'] as IconData, color: AppColors.primary)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(service['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), const SizedBox(height: 4), Text(service['description'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600))])), const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.primary)])))),
-        const SizedBox(height: 8),
-        SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorsListScreen())), icon: const Icon(Icons.person_search_rounded), label: const Text('عرض أطباء الأسنان والحجز'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)))),
-      ]),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
+            child: const Row(
+              children: [
+                CircleAvatar(radius: 28, backgroundColor: Colors.white24, child: Icon(Icons.health_and_safety_rounded, color: Colors.white, size: 30)),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('رعاية الأسنان', style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      Text('اختر الخدمة للاطلاع على التفاصيل ثم الانتقال للحجز.', style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text('الخدمات', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          ..._services.map((service) {
+            return Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 10),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => _openService(context, service),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), borderRadius: BorderRadius.circular(12)),
+                        child: Icon(service['icon'] as IconData, color: AppColors.primary),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(service['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            const SizedBox(height: 4),
+                            Text(service['description'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.primary),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorsListScreen())),
+              icon: const Icon(Icons.person_search_rounded),
+              label: const Text('عرض أطباء الأسنان والحجز'),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -49,13 +113,44 @@ class DentalServiceDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF4F6F7),
       appBar: AppBar(title: Text(service['name'] as String), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [CircleAvatar(radius: 34, backgroundColor: AppColors.primary.withOpacity(.10), child: Icon(service['icon'] as IconData, color: AppColors.primary, size: 34)), const SizedBox(height: 16), Text(service['name'] as String, textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)), const SizedBox(height: 10), Text(service['description'] as String, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700))])),
-        const SizedBox(height: 14),
-        Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: const Text('الخدمة تحتاج إلى تقييم طبيب الأسنان لتحديد الإجراء والموعد المناسب. الأسعار والمواعيد تُحدد حسب الطبيب والعيادة المتاحة.', style: TextStyle(fontSize: 13, height: 1.5)))),
-        const SizedBox(height: 14),
-        SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorsListScreen())), icon: const Icon(Icons.calendar_month_rounded), label: const Text('اختيار طبيب وبدء الحجز'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)))),
-      ]),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  CircleAvatar(radius: 34, backgroundColor: AppColors.primary.withOpacity(.10), child: Icon(service['icon'] as IconData, color: AppColors.primary, size: 34)),
+                  const SizedBox(height: 16),
+                  Text(service['name'] as String, textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Text(service['description'] as String, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Card(
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: const Text('الخدمة تحتاج إلى تقييم طبيب الأسنان لتحديد الإجراء والموعد المناسب. الأسعار والمواعيد تُحدد حسب الطبيب والعيادة المتاحة.', style: TextStyle(fontSize: 13, height: 1.5)),
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorsListScreen())),
+              icon: const Icon(Icons.calendar_month_rounded),
+              label: const Text('اختيار طبيب وبدء الحجز'),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
