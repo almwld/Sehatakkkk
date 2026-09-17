@@ -1,0 +1,1 @@
+abstract class WomenEvent{const WomenEvent();}class WomenStarted extends WomenEvent{const WomenStarted();}class WomenRefreshed extends WomenEvent{const WomenRefreshed();}class WomenFilterBySpecialty extends WomenEvent{final String specialty;const WomenFilterBySpecialty(this.specialty);}class WomenSearch extends WomenEvent{final String query;const WomenSearch(this.query);}
