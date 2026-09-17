@@ -41,25 +41,77 @@ class SleepTrackerService {
     _snoreCount = 0;
     _start = DateTime.now();
     _tracking = true;
-    _acc = accelerometerEvents.listen((e) => _movement.add(sqrt(e.x * e.x + e.y * e.y + e.z * e.z)));
-    _gyro = gyroscopeEvents.listen((e) => _gyroData.add(e.x.abs() + e.y.abs() + e.z.abs()));
+
+    try {
+      _acc = accelerometerEvents.listen(
+        (e) {
+          if (_tracking) {
+            _movement.add(sqrt(e.x * e.x + e.y * e.y + e.z * e.z));
+          }
+        },
+        onError: (Object error, StackTrace stack) {
+          // Sensor failure must not terminate the sleep session or the app.
+          _acc = null;
+        },
+        cancelOnError: false,
+      );
+    } catch (_) {
+      _acc = null;
+    }
+
+    try {
+      _gyro = gyroscopeEvents.listen(
+        (e) {
+          if (_tracking) {
+            _gyroData.add(e.x.abs() + e.y.abs() + e.z.abs());
+          }
+        },
+        onError: (Object error, StackTrace stack) {
+          _gyro = null;
+        },
+        cancelOnError: false,
+      );
+    } catch (_) {
+      _gyro = null;
+    }
+
     try {
       if (await _recorder.hasPermission()) {
         final dir = await getTemporaryDirectory();
-        await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 64000, sampleRate: 16000, numChannels: 1), path: '${dir.path}/sleep_${DateTime.now().millisecondsSinceEpoch}.m4a');
+        await _recorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            bitRate: 64000,
+            sampleRate: 16000,
+            numChannels: 1,
+          ),
+          path: '${dir.path}/sleep_${DateTime.now().millisecondsSinceEpoch}.m4a',
+        );
       }
-    } catch (_) {}
+    } catch (_) {
+      // Microphone is optional; movement tracking continues without audio.
+    }
   }
 
   Future<Map<String, dynamic>> stopTracking() async {
     if (!_tracking) return {'duration': 0.0, 'quality': 0.0, 'snore': 0, 'dataAvailable': false};
-    await _acc?.cancel();
-    await _gyro?.cancel();
-    _acc = null; _gyro = null;
-    String? audioPath;
-    try { audioPath = await _recorder.stop(); } catch (_) {}
-    if (audioPath != null) await _analyzeAudio(audioPath);
+
     _tracking = false;
+    try {
+      await _acc?.cancel();
+    } catch (_) {}
+    try {
+      await _gyro?.cancel();
+    } catch (_) {}
+    _acc = null;
+    _gyro = null;
+
+    String? audioPath;
+    try {
+      audioPath = await _recorder.stop();
+    } catch (_) {}
+    if (audioPath != null) await _analyzeAudio(audioPath);
+
     final end = DateTime.now();
     final durationHours = _start == null ? 0.0 : end.difference(_start!).inSeconds / 3600.0;
     final quality = _calculateQuality();
@@ -93,8 +145,8 @@ class SleepTrackerService {
     try {
       final bytes = await File(path).readAsBytes();
       if (bytes.length < 4096) return;
-      // لا نحسب الشخير من bytes الخام؛ ملفات AAC مضغوطة ولا تمثل amplitude الصوتية مباشرة.
-      // إبقاء القيمة صفرًا أفضل من إنتاج تشخيص/عدد شخير وهمي.
+      // AAC is compressed; raw bytes are not a valid amplitude measurement.
+      // Keep zero rather than producing a false snoring count.
       _snoreCount = 0;
     } catch (_) {}
   }
@@ -114,5 +166,21 @@ class SleepTrackerService {
   }
 
   Future<void> clearData() async { final db = await database; await db.delete('sleep_sessions'); }
-  Future<void> dispose() async { await _acc?.cancel(); await _gyro?.cancel(); if (_tracking) { try { await _recorder.stop(); } catch (_) {} } }
+
+  Future<void> dispose() async {
+    try {
+      await _acc?.cancel();
+    } catch (_) {}
+    try {
+      await _gyro?.cancel();
+    } catch (_) {}
+    if (_tracking) {
+      try {
+        await _recorder.stop();
+      } catch (_) {}
+    }
+    _acc = null;
+    _gyro = null;
+    _tracking = false;
+  }
 }
