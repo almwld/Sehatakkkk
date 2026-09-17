@@ -108,5 +108,31 @@ Thumbs.db
 *.bash~
 *.tmp.sh
 /tmp/
-service-account.json
-*.json
+
+# 🔥 Firebase Admin SDK service accounts
+firebase-service-account.json
+*firebase*service-account*.json
+*firebase-adminsdk*.json
+
+# 🔒 Backups and temp files
+*.backup-*
+*.pre-inject
+*.clean
+livekit-token-server/tests/reports/
+
+# 🔓 استثناءات ملفات مهمة
+!firebase.json
+!.firebaserc
+!pubspec.lock
+!livekit-token-server/package-lock.json
+
+# 🔓 ملفات livekit-token-server المصدرية
+!livekit-token-server/server.js
+!livekit-token-server/notification-server.js
+!livekit-token-server/package.json
+!livekit-token-server/railway.toml
+!livekit-token-server/railway.json
+!livekit-token-server/Dockerfile
+
+# 🔒 scripts/patch مؤقت (لن يُرفع)
+scripts/patch/
