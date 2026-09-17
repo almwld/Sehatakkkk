@@ -209,15 +209,38 @@ class NextcloudService {
 
   Future<bool> verifyPublicUrl(String url) async {
     final client = http.Client();
+    var current = Uri.parse(url);
     try {
-      final request = http.Request('GET', Uri.parse(url));
-      request.headers['Range'] = 'bytes=0-0';
-      final streamed = await client.send(request).timeout(const Duration(seconds: 20));
-      final status = streamed.statusCode;
-      final contentLength = streamed.contentLength;
-      debugPrint('🔗 verify status: $status url=$url');
-      await streamed.stream.drain<void>();
-      return (status == 200 || status == 206) && (contentLength == null || contentLength > 0);
+      for (var hop = 0; hop <= 5; hop++) {
+        final request = http.Request('GET', current)
+          ..followRedirects = false
+          ..maxRedirects = 0;
+        request.headers['Range'] = 'bytes=0-0';
+        final response = await client.send(request).timeout(const Duration(seconds: 20));
+        final status = response.statusCode;
+        final location = response.headers['location'];
+        final contentLength = response.contentLength;
+        debugPrint('🔗 verifyPublicUrl hop=$hop status=$status url=$current location=${location ?? '(none)'}');
+        await response.stream.drain<void>();
+
+        if (status == 200 || status == 206) {
+          return contentLength == null || contentLength > 0;
+        }
+
+        if (status >= 300 && status < 400 && location != null && location.isNotEmpty) {
+          final next = current.resolve(location);
+          if (next.host != current.host) {
+            debugPrint('❌ verifyPublicUrl rejected cross-host redirect: ${next.host}');
+            return false;
+          }
+          current = next;
+          continue;
+        }
+
+        return false;
+      }
+      debugPrint('❌ verifyPublicUrl exceeded redirect limit url=$url');
+      return false;
     } catch (e, st) {
       debugPrint('❌ verifyPublicUrl failed for $url: $e');
       debugPrint('❌ stack: $st');

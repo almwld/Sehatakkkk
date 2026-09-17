@@ -98,7 +98,8 @@ app.post('/call-notification', async (req, res) => {
     const callerId = String(call.callerId || '');
     const receiverId = String(call.receiverId || '').trim();
     const status = String(call.status || '');
-    console.log(`📋 [${requestId}] call status=${status} caller=${callerId} receiver=${receiverId}`);
+    const chatId = String(call.chatId || '').trim();
+    console.log(`📋 [${requestId}] call status=${status} caller=${callerId} receiver=${receiverId} chatId=${chatId || '(missing)'}`);
 
     if (callerId !== String(decodedToken.uid)) {
       console.error(`❌ [${requestId}] caller authorization mismatch token=${decodedToken.uid} call.callerId=${callerId}`);
@@ -111,6 +112,10 @@ app.post('/call-notification', async (req, res) => {
     if (!receiverId || receiverId === decodedToken.uid) {
       console.error(`❌ [${requestId}] invalid receiverId=${receiverId}`);
       return res.status(400).json({ success: false, message: 'Invalid receiverId', requestId });
+    }
+    if (!chatId) {
+      console.error(`❌ [${requestId}] call has no chatId callId=${callId}`);
+      return res.status(400).json({ success: false, reason: 'missing_chat_id', message: 'Call chatId is required for incoming-call UI', requestId });
     }
 
     const receiverSnapshot = await db.collection('users').doc(receiverId).get();
@@ -127,7 +132,6 @@ app.post('/call-notification', async (req, res) => {
 
     const isVideo = call.isVideoCall === true || String(call.callType || '') === 'video';
     const callerName = String(call.callerName || decodedToken.name || 'مستخدم');
-    const chatId = String(call.chatId || '');
     const callerPhotoUrl = String(call.callerPhotoUrl || '');
     const message = {
       token: fcmToken,
@@ -147,7 +151,7 @@ app.post('/call-notification', async (req, res) => {
       },
     };
 
-    console.log(`📤 [${requestId}] sending DATA-ONLY FCM receiver=${receiverId} token=${fcmToken.slice(0, 16)}… type=incoming_call isVideo=${isVideo}`);
+    console.log(`📤 [${requestId}] sending DATA-ONLY FCM receiver=${receiverId} token=${fcmToken.slice(0, 16)}… type=incoming_call isVideo=${isVideo} chatId=${chatId}`);
     try {
       const messageId = await admin.messaging().send(message);
       console.log(`✅ [${requestId}] FCM accepted by Firebase messageId=${messageId}`);
