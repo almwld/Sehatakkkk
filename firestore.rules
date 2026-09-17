@@ -60,7 +60,7 @@ service cloud.firestore {
       match /reactions/{userId} {
         allow read: if isSignedIn();
         allow create, update: if isSignedIn() && userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-        allow delete: if isSignedIn() && userId == request.auth.uid;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
       }
 
       match /replies/{replyId} {
@@ -76,6 +76,7 @@ service cloud.firestore {
     function isExistingChatParticipant(chatId) { return isSignedIn() && resource.data.participants != null && request.auth.uid in resource.data.participants; }
     function isCreatingChatParticipant() { return isSignedIn() && request.resource.data.participants != null && request.auth.uid in request.resource.data.participants; }
     function isMessageSender() { return isSignedIn() && request.resource.data.senderId == request.auth.uid; }
+    function isMessageRecipient() { return isSignedIn() && resource.data.senderId != request.auth.uid; }
 
     match /chats/{chatId} {
       allow read: if isChatParticipant(chatId);
@@ -86,7 +87,7 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow read: if isChatParticipant(chatId);
         allow create: if isChatParticipant(chatId) && isMessageSender() && request.resource.data.chatId == chatId;
-        allow update: if isChatParticipant(chatId) && (resource.data.senderId == request.auth.uid || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead','readAt']) || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']) && request.resource.data.reactions is map && request.resource.data.reactions.diff(resource.data.reactions).affectedKeys().hasOnly([request.auth.uid])) || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deletedFor']) && request.resource.data.deletedFor is map && request.resource.data.deletedFor.diff(resource.data.deletedFor).affectedKeys().hasOnly([request.auth.uid]) && request.resource.data.deletedFor[request.auth.uid] == true));
+        allow update: if isChatParticipant(chatId) && (resource.data.senderId == request.auth.uid || (isMessageRecipient() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isDelivered','deliveredAt','isRead','readAt'])) || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']) && request.resource.data.reactions is map && request.resource.data.reactions.diff(resource.data.reactions).affectedKeys().hasOnly([request.auth.uid])) || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deletedFor']) && request.resource.data.deletedFor is map && request.resource.data.deletedFor.diff(resource.data.deletedFor).affectedKeys().hasOnly([request.auth.uid]) && request.resource.data.deletedFor[request.auth.uid] == true));
         allow delete: if false;
       }
     }
