@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class EmojiPicker extends StatefulWidget {
   final Function(String) onEmojiSelected;
@@ -65,21 +66,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              onChanged: (value) => setState(() => _searchQuery = value),
-              decoration: InputDecoration(
-                hintText: 'ابحث عن إيموجي...',
-                prefixIcon: Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
-              ),
-              textAlign: TextAlign.right,
-            ),
+            child: UnifiedSearchBar(onChanged: (value) => setState(() => _searchQuery = value), hintText: 'ابحث عن إيموجي...'),
           ),
           const SizedBox(height: 8),
           Expanded(

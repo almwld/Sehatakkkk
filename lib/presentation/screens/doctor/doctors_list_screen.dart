@@ -12,6 +12,7 @@ import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class DoctorsListScreen extends StatefulWidget {
   const DoctorsListScreen({super.key});
@@ -331,20 +332,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: TextField(
-              controller: _searchController,
-              onChanged: _searchDoctors,
-              decoration:
-                  const InputDecoration(
-                hintText: 'ابحث عن طبيب...',
-                border: InputBorder.none,
-              ),
-              style: TextStyle(
-                color: isDark
-                    ? Colors.white
-                    : Colors.black87,
-              ),
-            ),
+            child: UnifiedSearchBar(controller: _searchController, onChanged: _searchDoctors, hintText: 'ابحث عن طبيب...'),
           ),
           if (_searchController.text.isNotEmpty)
             IconButton(

@@ -4,6 +4,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class HospitalScreen extends StatefulWidget {
   const HospitalScreen({super.key});
@@ -43,7 +44,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
       body: _loading ? const Center(child: CircularProgressIndicator(color: AppColors.primary)) : ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          TextField(controller: _search, onChanged: (_) => setState(() {}), decoration: const InputDecoration(hintText: 'ابحث عن مستشفى', prefixIcon: Icon(Icons.search), border: OutlineInputBorder())),
+          UnifiedSearchBar(controller: _search, onChanged: (_) => setState(() {}), hintText: 'ابحث عن مستشفى'),
           const SizedBox(height: 12),
           ...filtered.asMap().entries.map((e) => _card(e.value, e.key, dark)),
         ],

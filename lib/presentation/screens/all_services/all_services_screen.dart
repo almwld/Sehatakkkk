@@ -33,6 +33,7 @@ import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_scr
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class AllServicesScreen extends StatefulWidget {
   const AllServicesScreen({super.key});
@@ -511,17 +512,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'ابحث عن خدمة...',
-                border: InputBorder.none,
-              ),
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black87,
-                fontSize: 14,
-              ),
-              onChanged: (value) => setState(() => _searchQuery = value),
-            ),
+            child: UnifiedSearchBar(onChanged: (value) => setState(() => _searchQuery = value), hintText: 'ابحث عن خدمة...'),
           ),
           if (_searchQuery.isNotEmpty)
             IconButton(

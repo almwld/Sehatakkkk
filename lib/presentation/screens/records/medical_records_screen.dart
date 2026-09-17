@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class MedicalRecordsScreen extends StatefulWidget {
   const MedicalRecordsScreen({super.key});
@@ -76,12 +77,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
   Widget _buildSearchBar() => Padding(
     padding: const EdgeInsets.all(12),
-    child: TextField(
-      controller: _searchCtrl,
-      onChanged: (_) => setState(() {}),
-      textAlign: TextAlign.right,
-      decoration: InputDecoration(hintText: 'ابحث عن ملف طبي...', prefixIcon: const Icon(Icons.search, color: AppColors.primary), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none)),
-    ),
+    child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن ملف طبي...'),
   );
 
   Widget _buildFilterChips() => SizedBox(

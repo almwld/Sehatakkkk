@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class InteractiveMapScreen extends StatefulWidget {
   final String type;
@@ -1067,42 +1068,9 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
           // 🔍 شريط البحث
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'ابحث عن مستشفى، صيدلية، مختبر، عيادة...',
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Image.asset(
-                    'assets/images/icons/search/Search button.png',
-                    width: 20,
-                    height: 20,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.search, size: 20),
-                  ),
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-              ),
-              onChanged: (value) {
+            child: UnifiedSearchBar(controller: _searchController, onChanged: (value) {
                 setState(() => _searchQuery = value);
-              },
-            ),
+              }, hintText: 'ابحث عن مستشفى، صيدلية، مختبر، عيادة...'),
           ),
           
           // 🏷️ فلتر الفئات

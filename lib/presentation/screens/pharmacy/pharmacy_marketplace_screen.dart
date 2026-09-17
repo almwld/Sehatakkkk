@@ -7,6 +7,7 @@ import '../../../core/services/order_service.dart';
 import '../../../core/services/unified_cart_service.dart';
 import 'cart_screen.dart';
 import 'pharmacy_detail_screen.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class PharmacyMarketplaceScreen extends StatefulWidget {
   const PharmacyMarketplaceScreen({super.key});
@@ -265,19 +266,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
       body: Column(children: [
         Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-            child: TextField(
-                controller: _search,
-                textDirection: TextDirection.rtl,
-                decoration: InputDecoration(
-                    hintText: 'ابحث عن دواء، منتج، أو صيدلية',
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    filled: true,
-                    fillColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white10
-                        : const Color(0xFFF4F6F7),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none)))),
+            child: UnifiedSearchBar(controller: _search, hintText: 'ابحث عن دواء، منتج، أو صيدلية')),
         TabBar(
             controller: _tabController,
             isScrollable: true,

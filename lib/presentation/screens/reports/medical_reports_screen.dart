@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class MedicalReportsScreen extends StatefulWidget {
   const MedicalReportsScreen({super.key});
@@ -35,10 +36,7 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
         actions: [IconButton(icon: const Icon(Icons.add), onPressed: () => _showAddReportDialog(context))],
       ),
       body: Column(children: [
-        Padding(padding: const EdgeInsets.all(12), child: TextField(
-          controller: _searchCtrl, onChanged: (_) => setState(() {}), textAlign: TextAlign.right,
-          decoration: const InputDecoration(hintText: 'ابحث عن تقرير...', prefixIcon: Icon(Icons.search), border: OutlineInputBorder()),
-        )),
+        Padding(padding: const EdgeInsets.all(12), child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن تقرير...')),
         SizedBox(height: 40, child: ListView.separated(
           scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), itemCount: _types.length,
           separatorBuilder: (_, __) => const SizedBox(width: 6),

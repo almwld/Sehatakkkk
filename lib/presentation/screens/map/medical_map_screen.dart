@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/theme/app_theme.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class MedicalMapScreen extends StatefulWidget {
   const MedicalMapScreen({super.key});
@@ -164,15 +165,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
                   ),
                 ],
               ),
-              child: const TextField(
-                decoration: InputDecoration(
-                  hintText: 'ابحث عن منشأة صحية (مستشفى، مختبر، صيدلية)...',
-                  hintStyle: TextStyle(fontFamily: 'Tajawal', fontSize: 14),
-                  prefixIcon: Icon(Icons.search, color: AppTheme.primaryColor),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
+              child: const UnifiedSearchBar(hintText: 'ابحث عن منشأة صحية (مستشفى، مختبر، صيدلية)...'),
             ),
           ),
 

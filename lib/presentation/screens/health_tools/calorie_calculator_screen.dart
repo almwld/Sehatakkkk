@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class CalorieCalculatorScreen extends StatefulWidget {
   const CalorieCalculatorScreen({super.key});
@@ -46,7 +47,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: TextField(onChanged: (v) => setState(() => _query = v), decoration: InputDecoration(hintText: 'ابحث عن طعام...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: AppColors.surfaceContainerLow, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none))),
+          child: UnifiedSearchBar(onChanged: (v) => setState(() => _query = v), hintText: 'ابحث عن طعام...'),
         ),
         if (_selected.isNotEmpty) Padding(padding: const EdgeInsets.all(8), child: Wrap(spacing: 6, children: _selected.map((f) => Chip(label: Text('${f['name']} (${f['cal']})'), onDeleted: () => setState(() => _selected.remove(f)))).toList())),
         Expanded(

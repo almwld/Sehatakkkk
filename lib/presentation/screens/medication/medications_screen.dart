@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class MedicationsScreen extends StatefulWidget {
   const MedicationsScreen({super.key});
@@ -248,26 +249,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
               color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
               borderRadius: BorderRadius.circular(14),
             ),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (_) => setState(() {}),
-              textAlign: TextAlign.right,
-              decoration: InputDecoration(
-                hintText: 'ابحث عن دواء، مستلزمات...',
-                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.close, size: 18),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-              ),
-            ),
+            child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن دواء، مستلزمات...'),
           ),
           const SizedBox(height: 8),
           // ✅ تصفية وترتيب

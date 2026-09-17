@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/message_model.dart';
 import 'package:sehatak/core/services/chat_service.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class MessageSearchScreen extends StatefulWidget {
   final String chatId;
@@ -78,12 +79,7 @@ class _MessageSearchScreenState extends State<MessageSearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: TextField(
-          controller: _controller,
-          autofocus: true,
-          textDirection: TextDirection.rtl,
-          decoration: const InputDecoration(hintText: 'ابحث داخل الرسائل...', border: InputBorder.none),
-        ),
+        title: UnifiedSearchBar(controller: _controller, hintText: 'ابحث داخل الرسائل...'),
         actions: [if (_loading) const Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)))],
       ),
       body: _query.isEmpty

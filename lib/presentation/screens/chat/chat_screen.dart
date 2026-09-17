@@ -19,6 +19,7 @@ import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/widgets/status_row.dart';
 import 'package:sehatak/presentation/widgets/health_contacts_section.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -226,18 +227,7 @@ class _ChatScreenState extends State<ChatScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          child: TextField(
-            controller: _searchController,
-            textDirection: TextDirection.rtl,
-            decoration: InputDecoration(
-              hintText: 'ابحث في محادثاتك...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _search.isEmpty ? null : IconButton(icon: const Icon(Icons.clear), onPressed: _searchController.clear),
-              filled: true,
-              fillColor: isDark ? const Color(0xFF162039) : Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-            ),
-          ),
+          child: UnifiedSearchBar(controller: _searchController, hintText: 'ابحث في محادثاتك...'),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),

@@ -9,6 +9,7 @@ import 'package:sehatak/presentation/screens/lab/home_lab_test_screen.dart';
 import 'package:sehatak/presentation/screens/physiotherapy/physiotherapy_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class HomeServicesScreen extends StatefulWidget {
   const HomeServicesScreen({super.key});
@@ -293,12 +294,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
         var tempSearch = _searchQuery;
         return AlertDialog(
           title: const Text('بحث في الخدمات المنزلية'),
-          content: TextField(
-            controller: TextEditingController(text: tempSearch),
-            onChanged: (value) => tempSearch = value,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: 'ابحث عن خدمة...', prefixIcon: Icon(Icons.search)),
-          ),
+          content: UnifiedSearchBar(controller: TextEditingController(text: tempSearch), onChanged: (value) => tempSearch = value, hintText: 'ابحث عن خدمة...'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
             TextButton(

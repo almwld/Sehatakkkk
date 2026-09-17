@@ -3,6 +3,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class EducationalVideosScreen extends StatefulWidget {
   const EducationalVideosScreen({super.key});
@@ -105,17 +106,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
           color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
           borderRadius: BorderRadius.circular(14),
         ),
-        child: TextField(
-          controller: _searchCtrl,
-          onChanged: (_) => setState(() {}),
-          textAlign: TextAlign.right,
-          decoration: InputDecoration(
-            hintText: 'ابحث عن فيديو...',
-            prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-        ),
+        child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن فيديو...'),
       ),
     );
   }

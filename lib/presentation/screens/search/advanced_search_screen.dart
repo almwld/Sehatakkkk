@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/search_service.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class AdvancedSearchScreen extends StatefulWidget {
   final String? initialQuery;
@@ -129,21 +130,13 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                         const Icon(Icons.search, color: Colors.grey),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            onSubmitted: (_) => _performSearch(),
-                            onChanged: (value) {
+                          child: UnifiedSearchBar(controller: _searchController, onChanged: (value) {
                               if (value.isEmpty) {
                                 _clearSearch();
                               } else {
                                 _getSuggestions(value);
                               }
-                            },
-                            decoration: const InputDecoration(
-                              hintText: 'ابحث عن طبيب، صيدلية، مختبر...',
-                              border: InputBorder.none,
-                            ),
-                          ),
+                            }, hintText: 'ابحث عن طبيب، صيدلية، مختبر...'),
                         ),
                         if (_searchController.text.isNotEmpty)
                           IconButton(

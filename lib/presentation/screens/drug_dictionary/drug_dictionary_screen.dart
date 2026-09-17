@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class DrugDictionaryScreen extends StatefulWidget {
   const DrugDictionaryScreen({super.key});
@@ -35,7 +36,7 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.all(12),
-          child: TextField(onChanged: (v) => setState(() => _query = v), decoration: InputDecoration(hintText: 'ابحث عن دواء...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: AppColors.surfaceContainerLow, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none))),
+          child: UnifiedSearchBar(onChanged: (v) => setState(() => _query = v), hintText: 'ابحث عن دواء...'),
         ),
         Expanded(
           child: ListView.builder(padding: const EdgeInsets.symmetric(horizontal: 12), itemCount: filtered.length, itemBuilder: (ctx, i) {
