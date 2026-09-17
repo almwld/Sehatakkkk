@@ -1,0 +1,302 @@
+name: apply-routing-fix
+on:
+  push:
+    branches: [master]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply routing architecture fix
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          
+          def read(p): return Path(p).read_text(encoding='utf-8')
+          def write(p, s): Path(p).write_text(s, encoding='utf-8')
+          def replace_once(s, old, new, label):
+              n=s.count(old)
+              if n != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {n}')
+              return s.replace(old,new)
+          
+          cache_path=Path('lib/core/services/user_role_cache.dart')
+          if not cache_path.exists():
+              write(cache_path, '''import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class UserRoleCache extends ChangeNotifier {
+  UserRoleCache._();
+
+  static final UserRoleCache instance = UserRoleCache._();
+
+  static const _roleKey = 'user_role';
+  static const _uidKey = 'user_role_uid';
+
+  String _role = 'user';
+  String? _uid;
+  bool _loaded = false;
+
+  String get currentRole => _role;
+  bool get isAdmin => _role == 'admin' || _role == 'superAdmin';
+  bool get isLoaded => _loaded;
+
+  bool isReadyFor(String uid) => _loaded && _uid == uid;
+
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    _role = prefs.getString(_roleKey) ?? 'user';
+    _uid = prefs.getString(_uidKey);
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get()
+            .timeout(const Duration(seconds: 3));
+        _role = doc.data()?['role']?.toString() ?? 'user';
+        _uid = user.uid;
+        await prefs.setString(_roleKey, _role);
+        await prefs.setString(_uidKey, user.uid);
+      } catch (_) {
+        if (_uid != user.uid) {
+          _role = 'user';
+          _uid = user.uid;
+        }
+      }
+    }
+
+    _loaded = true;
+  }
+
+  Future<void> setRole(String role, {String? uid, bool persist = true}) async {
+    _role = role.isEmpty ? 'user' : role;
+    _uid = uid ?? _uid;
+    _loaded = true;
+
+    if (persist) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_roleKey, _role);
+      if (_uid == null || _uid!.isEmpty) {
+        await prefs.remove(_uidKey);
+      } else {
+        await prefs.setString(_uidKey, _uid!);
+      }
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> clear() async {
+    _role = 'user';
+    _uid = null;
+    _loaded = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_roleKey);
+    await prefs.remove(_uidKey);
+    notifyListeners();
+  }
+}
+''')
+          
+          p='lib/main.dart'; s=read(p)
+          s=s.replace("import 'presentation/screens/home/home_screen.dart';\n", '')
+          s=s.replace("import 'presentation/screens/platform/dashboard/platform_dashboard.dart';\n", '')
+          s=s.replace("import 'core/services/toast_service.dart';\n", "import 'core/services/toast_service.dart';\nimport 'core/services/user_role_cache.dart';\n")
+          s=s.replace("  await ChatMediaTransferService.instance.initialize();\n", "  await ChatMediaTransferService.instance.initialize();\n  await UserRoleCache.instance.load();\n")
+          s=s.replace("  StreamSubscription<User?>? _authNavigationSubscription;\n", '')
+          s=s.replace("  bool _authStatePrimed = false;\n", '')
+          s=s.replace("  bool _fastNavigationInProgress = false;\n", '')
+          old='''    _authNavigationSubscription =
+        FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (!_authStatePrimed) {
+        _authStatePrimed = true;
+        if (user != null) unawaited(_fcmTokenService.syncCurrentToken());
+        return;
+      }
+      if (user != null) {
+        unawaited(_fcmTokenService.syncCurrentToken());
+        unawaited(_navigateAfterSignInFast(user));
+      }
+    });
+'''
+          s=replace_once(s, old, '', 'main auth routing listener')
+          s=re.sub(r"\n  Future<void> _navigateAfterSignInFast\(User user\) async \{.*?\n  \}\n\n  @override\n  void dispose", "\n  @override\n  void dispose", s, count=1, flags=re.S)
+          s=replace_once(s, "    _authNavigationSubscription?.cancel();\n", '', 'main auth routing dispose')
+          write(p,s)
+          
+          p='lib/presentation/screens/auth/auth_screen.dart'; s=read(p)
+          s=s.replace("import 'package:firebase_auth/firebase_auth.dart';\n", "import 'package:firebase_auth/firebase_auth.dart';\nimport 'package:go_router/go_router.dart';\n")
+          s=s.replace("import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';\n", '')
+          s=re.sub(r"\n  void _navigateToHome\(\) \{.*?\n  \}\n\n  Future<void> _loginWithGoogle", "\n  Future<void> _loginWithGoogle", s, count=1, flags=re.S)
+          old="""      _hideLoading();
+      if (mounted) setState(() => _isLoading = false);
+      await _showSuccessAnimation();
+      if (!mounted) return;
+
+      if (role == 'admin' || role == 'superAdmin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PlatformDashboard()),
+        );
+      } else {
+        _navigateToHome();
+      }
+"""
+          new="""      _hideLoading();
+      if (mounted) setState(() => _isLoading = false);
+      await _showSuccessAnimation();
+      if (!mounted) return;
+      await UserRoleCache.instance.setRole(role, uid: user.uid);
+"""
+          s=replace_once(s, old, new, 'Google sign-in navigation')
+          old="""      _hideLoading();
+      await _showSuccessAnimation();
+
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (doc.exists) {
+          final role = doc.data()?['role'] ?? 'user';
+
+          if (role == 'admin' || role == 'superAdmin') {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PlatformDashboard(),
+                ),
+              );
+            }
+
+            return;
+          }
+        }
+      }
+
+      if (mounted) {
+        _navigateToHome();
+      }
+"""
+          new="""      _hideLoading();
+      await _showSuccessAnimation();
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null || !mounted) return;
+
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final role = doc.data()?['role']?.toString() ?? 'user';
+      await UserRoleCache.instance.setRole(role, uid: user.uid);
+"""
+          s=replace_once(s, old, new, 'email sign-in navigation')
+          guest_pattern=r"\n  void _guestLogin\(\) \{.*?\n  \}\n"
+          s, guest_count = re.subn(guest_pattern, "\n  void _guestLogin() {\n    context.go('/')\n  }\n", s, count=1, flags=re.S)
+          if guest_count != 1:
+              raise SystemExit(f'guest navigation: expected 1 method, found {guest_count}')
+          s=s.replace("import 'package:sehatak/presentation/screens/home/home_screen.dart';\n", "import 'package:sehatak/presentation/screens/home/home_screen.dart';\nimport 'package:sehatak/core/services/user_role_cache.dart';\n")
+          write(p,s)
+          
+          p='lib/app_router.dart'; s=read(p)
+          s=s.replace("import 'package:sehatak/core/services/toast_service.dart';\n", "import 'package:sehatak/core/services/toast_service.dart';\nimport 'package:sehatak/core/services/user_role_cache.dart';\n")
+          s=s.replace("import 'package:sehatak/presentation/screens/platform/marketplace_admin_dashboard.dart';\n", "import 'package:sehatak/presentation/screens/platform/marketplace_admin_dashboard.dart';\nimport 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';\n")
+          old="""    refreshListenable:
+        GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
+    redirect: (_, state) {
+      final loggedIn = FirebaseAuth.instance.currentUser != null;
+      if (state.matchedLocation == auth && loggedIn) return home;
+      return null;
+    },
+"""
+          new="""    refreshListenable: Listenable.merge([
+      GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
+      UserRoleCache.instance,
+    ]),
+    redirect: (_, state) {
+      final user = FirebaseAuth.instance.currentUser;
+      final loggedIn = user != null;
+      final loc = state.matchedLocation;
+      final roleReady = user != null && UserRoleCache.instance.isReadyFor(user.uid);
+      final isAdmin = UserRoleCache.instance.isAdmin;
+
+      if (!loggedIn) {
+        if (loc == auth || loc == splash) return null;
+        return auth;
+      }
+
+      if (!roleReady) return null;
+
+      if (loc == auth || loc == splash) {
+        return isAdmin ? dashboard : home;
+      }
+
+      if (isAdmin && loc == home) return dashboard;
+      if (!isAdmin && loc == dashboard) return home;
+
+      return null;
+    },
+"""
+          s=replace_once(s, old, new, 'app router redirect')
+          s=s.replace("path: dashboard,\n          builder: (_, __) => const RoleBasedDashboardScreen()),", "path: dashboard,\n          builder: (_, __) => UserRoleCache.instance.isAdmin\n              ? const PlatformDashboard()\n              : const RoleBasedDashboardScreen()),")
+          old="""      case dashboard:
+        return MaterialPageRoute(
+            builder: (_) => const RoleBasedDashboardScreen(),
+            settings: routeSettings);
+"""
+          new="""      case dashboard:
+        return MaterialPageRoute(
+            builder: (_) => UserRoleCache.instance.isAdmin
+                ? const PlatformDashboard()
+                : const RoleBasedDashboardScreen(),
+            settings: routeSettings);
+"""
+          s=replace_once(s, old, new, 'legacy dashboard mapping')
+          write(p,s)
+          
+          main=read('lib/main.dart')
+          auth=read('lib/presentation/screens/auth/auth_screen.dart')
+          assert '_navigateAfterSignInFast' not in main
+          assert 'pushAndRemoveUntil' not in main
+          assert 'PlatformDashboard' not in auth
+          assert '_navigateToHome' not in auth
+          print('Routing patch applied with exact-match guards.')
+      - name: Flutter analyze
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings
+      - name: Commit source changes and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --short
+          git diff --check
+          git diff --stat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/main.dart lib/app_router.dart lib/presentation/screens/auth/auth_screen.dart lib/core/services/user_role_cache.dart
+          git rm .github/workflows/apply-routing-fix.yml
+          git commit -m "refactor(routing): centralize auth navigation in AppRouter"
+          git push origin master
