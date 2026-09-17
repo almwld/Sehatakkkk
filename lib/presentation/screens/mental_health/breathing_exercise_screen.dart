@@ -14,26 +14,50 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen> {
   String _phase = 'استعد';
 
   void _toggle() {
-    if (_running) { _timer?.cancel(); setState(() { _running = false; _phase = 'متوقف مؤقتاً'; }); return; }
+    if (_running) {
+      _timer?.cancel();
+      setState(() { _running = false; _phase = 'متوقف مؤقتاً'; });
+      return;
+    }
     setState(() { _running = true; _phase = 'شهيق ببطء'; });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
-      if (_seconds <= 1) { _timer?.cancel(); setState(() { _seconds = 60; _running = false; _phase = 'اكتملت الجلسة'; }); return; }
-      setState(() { _seconds--; final elapsed = 60 - _seconds; _phase = elapsed % 8 < 4 ? 'شهيق ببطء' : 'زفير ببطء'; });
+      if (_seconds <= 1) {
+        _timer?.cancel();
+        setState(() { _seconds = 60; _running = false; _phase = 'اكتملت الجلسة'; });
+        return;
+      }
+      setState(() {
+        _seconds--;
+        final elapsed = 60 - _seconds;
+        _phase = elapsed % 8 < 4 ? 'شهيق ببطء' : 'زفير ببطء';
+      });
     });
   }
-  @override void dispose() { _timer?.cancel(); super.dispose(); }
 
-  @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('تمارين التنفس'), backgroundColor: AppColors.success, foregroundColor: Colors.white),
-    body: Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text(_phase, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 24),
-      AnimatedContainer(duration: const Duration(seconds: 3), curve: Curves.easeInOut, width: _running ? 190 : 140, height: _running ? 190 : 140, decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.success.withOpacity(.12), border: Border.all(color: AppColors.success, width: 2)), child: Center(child: Text('${_seconds}s', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold)))),
+  void _reset() {
+    _timer?.cancel();
+    setState(() { _seconds = 60; _running = false; _phase = 'استعد'; });
+  }
+
+  @override
+  void dispose() { _timer?.cancel(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('تمارين التنفس والاسترخاء'), backgroundColor: AppColors.success, foregroundColor: Colors.white),
+    body: ListView(padding: const EdgeInsets.all(20), children: [
+      const Card(child: Padding(padding: EdgeInsets.all(15), child: Text('جلسة قصيرة للتنفس الهادئ. اجلس في وضع مريح واترك التنفس طبيعياً دون إجبار.', style: TextStyle(height: 1.5)))),
       const SizedBox(height: 28),
-      const Text('تنفس براحة وبوتيرة مريحة. أوقف التمرين إذا شعرت بدوخة أو ضيق نفس.', textAlign: TextAlign.center),
+      Text(_phase, textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 24),
+      Center(child: AnimatedContainer(duration: const Duration(seconds: 3), curve: Curves.easeInOut, width: _running ? 190 : 140, height: _running ? 190 : 140, decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.success.withOpacity(.12), border: Border.all(color: AppColors.success, width: 2)), child: Center(child: Text('${_seconds}s', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold))))),
+      const SizedBox(height: 28),
+      const Text('نمط الجلسة: 4 ثوانٍ شهيق ثم 4 ثوانٍ زفير. أوقف التمرين إذا شعرت بدوخة أو ضيق نفس.', textAlign: TextAlign.center, style: TextStyle(height: 1.45)),
       const SizedBox(height: 24),
       SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _toggle, child: Text(_running ? 'إيقاف مؤقت' : 'بدء التمرين'))),
-    ]))),
+      const SizedBox(height: 8),
+      TextButton(onPressed: _reset, child: const Text('إعادة الجلسة')),
+    ]),
   );
 }
