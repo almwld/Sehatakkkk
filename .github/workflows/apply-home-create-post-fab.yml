@@ -62,7 +62,7 @@ jobs:
           text = text[:start] + replacement + text[end:]
           path.write_text(text, encoding='utf-8')
           check = path.read_text(encoding='utf-8')
-          if check.count('HomeCreatePostFab') != 2 or check.count('home_create_post_fab.dart') != 1:
+          if check.count('HomeCreatePostFab') != 1 or check.count('home_create_post_fab.dart') != 1:
               raise SystemExit('Validation failed')
       - name: Commit changes
         run: |
@@ -73,7 +73,7 @@ jobs:
           git commit -m "feat(home): add floating create post action"
           git push
       - name: Remove temporary workflow
-        if: always()
+        if: success()
         run: |
           rm -f .github/workflows/apply-home-create-post-fab.yml
           git add .github/workflows/apply-home-create-post-fab.yml || true
