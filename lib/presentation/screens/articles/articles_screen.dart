@@ -1,6 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
-import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -17,6 +16,7 @@ class ArticlesScreen extends StatefulWidget {
 class _ArticlesScreenState extends State<ArticlesScreen> {
   String _selectedCategory = 'الكل';
   String _searchQuery = '';
+  final _searchController = TextEditingController();
 
   final List<String> _categories = [
     'الكل', 'صحة عامة', 'تغذية', 'صحة نفسية', 'جلدية', 'أطفال', 'رياضة'
@@ -29,6 +29,12 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
     {'id': '4', 'title': 'العناية بالبشرة في فصل الصيف', 'category': 'جلدية', 'author': 'د. فاطمة صديقي', 'date': '2024-01-08', 'image': ImageKit.skinCare, 'likes': 145, 'comments': 19, 'readTime': '4 دقائق'},
     {'id': '5', 'title': 'تغذية الأطفال في مرحلة النمو', 'category': 'أطفال', 'author': 'د. محمد العلاي', 'date': '2024-01-05', 'image': ImageKit.nutritionTips, 'likes': 98, 'comments': 12, 'readTime': '7 دقائق'},
   ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   List<Map<String, dynamic>> get _filteredArticles {
     var list = _articles;
@@ -45,6 +51,15 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
     return list;
   }
 
+  void _searchArticles(String value) {
+    setState(() => _searchQuery = value.trim());
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() => _searchQuery = '');
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -57,16 +72,19 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search_rounded),
-            onPressed: () => _showSearchDialog(),
-          ),
-        ],
       ),
       body: Column(
         children: [
-          // ✅ التصنيفات
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+            child: UnifiedSearchBar(
+              controller: _searchController,
+              onChanged: _searchArticles,
+              onClear: _clearSearch,
+              hintText: 'ابحث عن مقال...',
+              isDark: isDark,
+            ),
+          ),
           Container(
             height: 45,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -98,7 +116,6 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
               },
             ),
           ),
-          // ✅ القائمة
           Expanded(
             child: filtered.isEmpty
                 ? _buildEmptyState(isDark)
@@ -203,13 +220,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                         children: [
                           const Icon(Icons.favorite_border, size: 16, color: Colors.grey),
                           const SizedBox(width: 4),
-                          Text(
-                            article['likes'].toString(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
+                          Text(article['likes'].toString(), style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                         ],
                       ),
                       const SizedBox(width: 16),
@@ -217,30 +228,14 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                         children: [
                           const Icon(Icons.comment, size: 16, color: Colors.grey),
                           const SizedBox(width: 4),
-                          Text(
-                            article['comments'].toString(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
+                          Text(article['comments'].toString(), style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                         ],
                       ),
                       const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'اقرأ',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
+                        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                        child: const Text('اقرأ', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 12)),
                       ),
                     ],
                   ),
@@ -260,50 +255,11 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
         children: [
           Icon(Icons.article_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
           const SizedBox(height: 16),
-          Text(
-            'لا توجد مقالات',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
+          Text('لا توجد مقالات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 8),
-          Text(
-            'جرب تغيير البحث أو التصنيف',
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-          ),
+          Text('جرب تغيير البحث أو التصنيف', style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600])),
         ],
       ),
-    );
-  }
-
-  void _showSearchDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        String tempSearch = '';
-        return AlertDialog(
-          title: const Text('بحث عن مقالات'),
-          content: UnifiedSearchBar(onChanged: (value) => tempSearch = value),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('إلغاء'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() => _searchQuery = tempSearch);
-                Navigator.pop(context);
-              },
-              child: const Text('بحث'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
