@@ -22,6 +22,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   static const double _barHeight = 48.75;
   static const double _itemHeight = 48.75;
+  static const double _chatSize = 50.7; // 39 * 1.30
+  static const double _chatIconSize = 26.0; // 20 * 1.30
 
   static const List<NavItem> _navItems = [
     NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
@@ -38,7 +40,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
-
     return Material(
       color: Colors.transparent,
       clipBehavior: Clip.none,
@@ -46,23 +47,11 @@ class CustomBottomNavigationBar extends StatelessWidget {
         height: _barHeight + bottomPadding,
         padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 4),
         clipBehavior: Clip.none,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, -4)),
-          ],
-        ),
+        decoration: BoxDecoration(color: backgroundColor, borderRadius: const BorderRadius.vertical(top: Radius.circular(24)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, -4))]),
         child: SafeArea(
           top: false,
           bottom: true,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: _navItems.map((item) {
-              return item.isSpecial ? _buildSpecialChatButton(item, isDark) : _buildNavItem(item, isDark);
-            }).toList(),
-          ),
+          child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, crossAxisAlignment: CrossAxisAlignment.center, children: _navItems.map((item) => item.isSpecial ? _buildSpecialChatButton(item, isDark) : _buildNavItem(item, isDark)).toList()),
         ),
       ),
     );
@@ -71,74 +60,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
   Widget _buildNavItem(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
     final color = isSelected ? AppColors.primary : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _handleTap(item),
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          height: _itemHeight,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(item.icon, color: color, size: 19),
-              const SizedBox(height: 2),
-              Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: color)),
-              const SizedBox(height: 1),
-              AnimatedContainer(duration: const Duration(milliseconds: 200), width: isSelected ? 10 : 0, height: 2, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
-            ],
-          ),
-        ),
-      ),
-    );
+    return Expanded(child: GestureDetector(onTap: () => _handleTap(item), behavior: HitTestBehavior.opaque, child: SizedBox(height: _itemHeight, child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(item.icon, color: color, size: 19), const SizedBox(height: 2), Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: color)), const SizedBox(height: 1), AnimatedContainer(duration: const Duration(milliseconds: 200), width: isSelected ? 10 : 0, height: 2, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)))]))));
   }
 
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
     final inactiveColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _handleTap(item),
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          height: _itemHeight,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              OverflowBox(
-                minWidth: 0,
-                maxWidth: double.infinity,
-                minHeight: 0,
-                maxHeight: 90,
-                alignment: Alignment.topCenter,
-                child: Transform.translate(
-                  offset: const Offset(0, -13.5),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 39,
-                        height: 39,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                          shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.45), blurRadius: 8, spreadRadius: 1.5, offset: const Offset(0, 3))],
-                        ),
-                        child: const Icon(Icons.chat_rounded, color: Colors.white, size: 20),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8, color: isSelected ? AppColors.primary : inactiveColor, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return Expanded(child: GestureDetector(onTap: () => _handleTap(item), behavior: HitTestBehavior.opaque, child: SizedBox(height: _itemHeight, child: Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [OverflowBox(minWidth: 0, maxWidth: double.infinity, minHeight: 0, maxHeight: 100, alignment: Alignment.topCenter, child: Transform.translate(offset: const Offset(0, -18), child: Column(mainAxisSize: MainAxisSize.min, children: [Container(width: _chatSize, height: _chatSize, decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark], begin: Alignment.topLeft, end: Alignment.bottomRight), shape: BoxShape.circle, boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.45), blurRadius: 9, spreadRadius: 1.8, offset: const Offset(0, 3))]), child: const Icon(Icons.chat_rounded, color: Colors.white, size: _chatIconSize)), const SizedBox(height: 1), Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8, color: isSelected ? AppColors.primary : inactiveColor, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500))])))]))));
   }
 
   void _handleTap(NavItem item) {
