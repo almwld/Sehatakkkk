@@ -42,7 +42,16 @@ class _MentalHealthAssessmentScreenState extends State<MentalHealthAssessmentScr
       const SizedBox(height: 12),
       Text(questions[_index], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, height: 1.5)),
       const SizedBox(height: 24),
-      ...answers.asMap().entries.map((e) => Padding(padding: const EdgeInsets.only(bottom: 10), child: SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => _answer(e.key), child: Text(e.value, style: const TextStyle(fontSize: 15))))),
+      ...answers.asMap().entries.map((e) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => _answer(e.key),
+            child: Text(e.value, style: const TextStyle(fontSize: 15)),
+          ),
+        ),
+      )),
       const SizedBox(height: 8),
       const Text('هذا الاستبيان لا يشخّص الاكتئاب أو القلق أو أي اضطراب نفسي.', style: TextStyle(fontSize: 12, color: AppColors.grey)),
     ])),
