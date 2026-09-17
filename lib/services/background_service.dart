@@ -25,23 +25,29 @@ class BackgroundService {
   static Future<void> initialize() async {
     if (_configured) return;
     _configured = true;
-    await _service.configure(
-      androidConfiguration: AndroidConfiguration(
-        onStart: _onStart,
-        autoStart: false,
-        autoStartOnBoot: true,
-        isForegroundMode: true,
-        notificationChannelId: 'sehatak_steps_tracking',
-        initialNotificationTitle: 'صحتك',
-        initialNotificationContent: 'تتبع الخطوات نشط',
-        foregroundServiceNotificationId: 71001,
-      ),
-      iosConfiguration: IosConfiguration(
-        autoStart: false,
-        onForeground: _onStart,
-        onBackground: _onIosBackground,
-      ),
-    );
+    try {
+      await _service.configure(
+        androidConfiguration: AndroidConfiguration(
+          onStart: _onStart,
+          autoStart: false,
+          autoStartOnBoot: true,
+          isForegroundMode: true,
+          notificationChannelId: 'sehatak_steps_tracking',
+          initialNotificationTitle: 'صحتك',
+          initialNotificationContent: 'تتبع الخطوات نشط',
+          foregroundServiceNotificationId: 71001,
+        ),
+        iosConfiguration: IosConfiguration(
+          autoStart: false,
+          onForeground: _onStart,
+          onBackground: _onIosBackground,
+        ),
+      );
+    } catch (e) {
+      _configured = false;
+      debugPrint('Failed to configure step tracking service: $e');
+      rethrow;
+    }
   }
 
   static Future<bool> startStepTracking() async {
@@ -49,7 +55,11 @@ class BackgroundService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_trackingEnabledKey, true);
     try {
-      return await _service.startService();
+      final started = await _service.startService();
+      if (!started) {
+        await prefs.setBool(_trackingEnabledKey, false);
+      }
+      return started;
     } catch (e) {
       await prefs.setBool(_trackingEnabledKey, false);
       debugPrint('Failed to start step tracking service: $e');
@@ -60,8 +70,12 @@ class BackgroundService {
   static Future<void> stopStepTracking() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_trackingEnabledKey, false);
-    if (await _service.isRunning()) {
-      _service.invoke('stopStepTracking');
+    try {
+      if (await _service.isRunning()) {
+        _service.invoke('stopStepTracking');
+      }
+    } catch (e) {
+      debugPrint('Failed to stop step tracking service: $e');
     }
   }
 
@@ -75,8 +89,6 @@ class BackgroundService {
     WidgetsFlutterBinding.ensureInitialized();
     final prefs = await SharedPreferences.getInstance();
 
-    // The boot receiver may start the service after a device restart. Do not
-    // track unless the user had previously enabled tracking.
     if (!(prefs.getBool(_trackingEnabledKey) ?? false)) {
       service.stopSelf();
       return;
@@ -101,94 +113,125 @@ class BackgroundService {
     DateTime? lastStep;
     var lastPersist = DateTime.now();
     var processing = false;
+    StreamSubscription<AccelerometerEvent>? accelerometerSubscription;
+    var stopped = false;
+
+    Future<void> stopSafely({String? reason}) async {
+      if (stopped) return;
+      stopped = true;
+      await prefs.setBool(_trackingEnabledKey, false);
+      await accelerometerSubscription?.cancel();
+      accelerometerSubscription = null;
+      if (reason != null) debugPrint('Step sensor stopped: $reason');
+      try {
+        service.stopSelf();
+      } catch (e) {
+        debugPrint('Failed to stop step service: $e');
+      }
+    }
 
     if (service is AndroidServiceInstance) {
-      await service.setAsForegroundService();
-      await service.setForegroundNotificationInfo(
-        title: 'صحتك • تتبع الخطوات',
-        content: '$steps من $goal خطوة',
-      );
+      try {
+        await service.setAsForegroundService();
+        await service.setForegroundNotificationInfo(
+          title: 'صحتك • تتبع الخطوات',
+          content: '$steps من $goal خطوة',
+        );
+      } catch (e) {
+        await stopSafely(reason: 'foreground service setup failed: $e');
+        return;
+      }
     }
 
     service.on('stopStepTracking').listen((_) async {
-      await prefs.setBool(_trackingEnabledKey, false);
-      await service.stopSelf();
+      await stopSafely(reason: 'requested by app');
     });
 
-    accelerometerEvents.listen((event) async {
-      if (processing) return;
-      processing = true;
-      try {
-        final magnitude = sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
-        samples.add(magnitude);
-        if (samples.length > 12) samples.removeAt(0);
-        if (samples.length < 3) return;
+    try {
+      accelerometerSubscription = accelerometerEvents.listen(
+        (event) async {
+          if (stopped || processing) return;
+          processing = true;
+          try {
+            final magnitude = sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
+            samples.add(magnitude);
+            if (samples.length > 12) samples.removeAt(0);
+            if (samples.length < 3) return;
 
-        final a = samples[samples.length - 3];
-        final b = samples[samples.length - 2];
-        final c = samples[samples.length - 1];
-        final now = DateTime.now();
-        final enoughTime = lastStep == null || now.difference(lastStep!).inMilliseconds >= 300;
+            final a = samples[samples.length - 3];
+            final b = samples[samples.length - 2];
+            final c = samples[samples.length - 1];
+            final now = DateTime.now();
+            final enoughTime = lastStep == null || now.difference(lastStep!).inMilliseconds >= 300;
 
-        // Local peak detection with a short refractory period to reduce
-        // double-counting from a single footfall.
-        if (b > a && b >= c && b > 11.0 && enoughTime) {
-          if (_dateKey(now) != date) {
-            date = _dateKey(now);
-            steps = 0;
-            recentStepTimes.clear();
-            lastStep = null;
-            await prefs.setString(_dateKeyName, date);
-            await prefs.setInt(_stepsKey, 0);
-            await prefs.setDouble(_distanceKey, 0);
-            await prefs.setDouble(_caloriesKey, 0);
-            await prefs.setDouble(_speedKey, 0);
-          }
+            if (b > a && b >= c && b > 11.0 && enoughTime) {
+              if (_dateKey(now) != date) {
+                date = _dateKey(now);
+                steps = 0;
+                recentStepTimes.clear();
+                lastStep = null;
+                await prefs.setString(_dateKeyName, date);
+                await prefs.setInt(_stepsKey, 0);
+                await prefs.setDouble(_distanceKey, 0);
+                await prefs.setDouble(_caloriesKey, 0);
+                await prefs.setDouble(_speedKey, 0);
+              }
 
-          steps++;
-          lastStep = now;
-          recentStepTimes.add(now);
-          while (recentStepTimes.isNotEmpty &&
-              now.difference(recentStepTimes.first).inSeconds > 30) {
-            recentStepTimes.removeAt(0);
-          }
+              steps++;
+              lastStep = now;
+              recentStepTimes.add(now);
+              while (recentStepTimes.isNotEmpty &&
+                  now.difference(recentStepTimes.first).inSeconds > 30) {
+                recentStepTimes.removeAt(0);
+              }
 
-          double speedKmh = 0;
-          if (recentStepTimes.length >= 2) {
-            final elapsedSeconds =
-                now.difference(recentStepTimes.first).inMilliseconds / 1000.0;
-            if (elapsedSeconds > 0) {
-              final cadence =
-                  (recentStepTimes.length - 1) * 60.0 / elapsedSeconds;
-              speedKmh = (cadence * 0.00076 * 60.0).clamp(0.0, 12.0).toDouble();
+              double speedKmh = 0;
+              if (recentStepTimes.length >= 2) {
+                final elapsedSeconds =
+                    now.difference(recentStepTimes.first).inMilliseconds / 1000.0;
+                if (elapsedSeconds > 0) {
+                  final cadence =
+                      (recentStepTimes.length - 1) * 60.0 / elapsedSeconds;
+                  speedKmh = (cadence * 0.00076 * 60.0).clamp(0.0, 12.0).toDouble();
+                }
+              }
+
+              await prefs.setInt(_stepsKey, steps);
+              await prefs.setDouble(_distanceKey, steps * 0.00076);
+              await prefs.setDouble(_caloriesKey, steps * 0.04);
+              await prefs.setDouble(_speedKey, speedKmh);
+              await _saveHistory(prefs, date, steps);
+
+              if (service is AndroidServiceInstance && !stopped) {
+                await service.setForegroundNotificationInfo(
+                  title: 'صحتك • تتبع الخطوات',
+                  content: '$steps من $goal خطوة',
+                );
+              }
             }
+
+            if (now.difference(lastPersist).inSeconds >= 30) {
+              lastPersist = now;
+              await prefs.setInt(_stepsKey, steps);
+              await prefs.setDouble(_distanceKey, steps * 0.00076);
+              await prefs.setDouble(_caloriesKey, steps * 0.04);
+              await _saveHistory(prefs, date, steps);
+            }
+          } catch (e) {
+            debugPrint('Step sensor processing error: $e');
+          } finally {
+            processing = false;
           }
-
-          await prefs.setInt(_stepsKey, steps);
-          await prefs.setDouble(_distanceKey, steps * 0.00076);
-          await prefs.setDouble(_caloriesKey, steps * 0.04);
-          await prefs.setDouble(_speedKey, speedKmh);
-          await _saveHistory(prefs, date, steps);
-
-          if (service is AndroidServiceInstance) {
-            await service.setForegroundNotificationInfo(
-              title: 'صحتك • تتبع الخطوات',
-              content: '$steps من $goal خطوة',
-            );
-          }
-        }
-
-        if (now.difference(lastPersist).inSeconds >= 30) {
-          lastPersist = now;
-          await prefs.setInt(_stepsKey, steps);
-          await prefs.setDouble(_distanceKey, steps * 0.00076);
-          await prefs.setDouble(_caloriesKey, steps * 0.04);
-          await _saveHistory(prefs, date, steps);
-        }
-      } finally {
-        processing = false;
-      }
-    });
+        },
+        onError: (Object error, StackTrace stack) async {
+          debugPrint('Step accelerometer stream error: $error');
+          await stopSafely(reason: 'accelerometer stream error');
+        },
+        cancelOnError: false,
+      );
+    } catch (e) {
+      await stopSafely(reason: 'accelerometer initialization failed: $e');
+    }
   }
 
   @pragma('vm:entry-point')
