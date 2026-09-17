@@ -19,20 +19,23 @@ class FcmTokenService {
 
   Future<void> start() async {
     if (_started) {
-      debugPrint('FCM TOKEN service already started');
+      debugPrint('🔔 FCM: service already started');
       return;
     }
     _started = true;
-    debugPrint('FCM TOKEN service starting user=${_auth.currentUser?.uid ?? '(signed-out)'}');
+    debugPrint('🔔 FCM: service starting uid=${_auth.currentUser?.uid ?? '(signed-out)'}');
     _refreshSubscription = _messaging.onTokenRefresh.listen(
       (token) {
-        debugPrint('FCM TOKEN refresh received length=${token.length}');
+        debugPrint('🔑 FCM: token refresh received length=${token.length}');
         unawaited(syncToken(token));
       },
-      onError: (Object error, StackTrace stack) => debugPrint('❌ FCM token refresh stream: $error'),
+      onError: (Object error, StackTrace stack) {
+        debugPrint('❌ FCM: token refresh stream error=$error');
+        debugPrint('❌ FCM: token refresh stack=$stack');
+      },
     );
     _authSubscription = _auth.authStateChanges().listen((user) {
-      debugPrint('FCM TOKEN auth change uid=${user?.uid ?? '(signed-out)'}');
+      debugPrint('🔐 FCM: auth change uid=${user?.uid ?? '(signed-out)'}');
       if (user != null) {
         unawaited(syncCurrentToken());
       } else {
@@ -45,35 +48,41 @@ class FcmTokenService {
   Future<void> syncCurrentToken() async {
     final user = _auth.currentUser;
     if (user == null) {
-      debugPrint('FCM TOKEN sync skipped: no signed-in user');
+      debugPrint('⚠️ FCM: sync skipped; no signed-in user');
       return;
     }
+    debugPrint('🔑 FCM: about to call getToken uid=${user.uid}');
     try {
       final token = await _messaging.getToken();
+      debugPrint('🔑 FCM: getToken result=${token?.length ?? 0} chars uid=${user.uid}');
       if (token == null || token.isEmpty) {
-        debugPrint('❌ FCM TOKEN getToken returned empty uid=${user.uid}');
+        debugPrint('❌ FCM: getToken returned empty uid=${user.uid}');
         return;
       }
-      debugPrint('FCM TOKEN obtained uid=${user.uid} length=${token.length}');
       await syncToken(token);
-    } catch (e) {
-      debugPrint('❌ FCM token read error uid=${user.uid}: $e');
+    } catch (e, st) {
+      debugPrint('❌ FCM: getToken failed uid=${user.uid}: $e');
+      debugPrint('❌ FCM: getToken stack=$st');
     }
   }
 
   Future<void> syncToken(String token) async {
     final user = _auth.currentUser;
     if (user == null) {
-      debugPrint('❌ FCM TOKEN write skipped: no signed-in user');
+      debugPrint('❌ FCM: Firestore write skipped; no signed-in user');
       return;
     }
-    if (token.isEmpty) return;
+    if (token.isEmpty) {
+      debugPrint('❌ FCM: Firestore write skipped; token empty uid=${user.uid}');
+      return;
+    }
     if (_lastSyncedToken == token) {
-      debugPrint('FCM TOKEN already synchronized uid=${user.uid}');
+      debugPrint('🔑 FCM: token already synchronized uid=${user.uid}');
       return;
     }
     final previous = _syncInFlight;
     if (previous != null) {
+      debugPrint('🔑 FCM: waiting for existing Firestore sync uid=${user.uid}');
       await previous;
       if (_lastSyncedToken == token) return;
     }
@@ -82,9 +91,11 @@ class FcmTokenService {
     try {
       await future;
       _lastSyncedToken = token;
-      debugPrint('✅ FCM TOKEN synchronized to users/${user.uid}');
-    } catch (e) {
-      debugPrint('❌ FCM TOKEN Firestore write failed uid=${user.uid}: $e');
+      debugPrint('✅ FCM: token synchronized users/${user.uid}');
+    } catch (e, st) {
+      debugPrint('❌ FCM: Firestore write failed uid=${user.uid}: $e');
+      debugPrint('❌ FCM: Firestore path=users/${user.uid}');
+      debugPrint('❌ FCM: Firestore write stack=$st');
       rethrow;
     } finally {
       if (identical(_syncInFlight, future)) _syncInFlight = null;
@@ -92,14 +103,22 @@ class FcmTokenService {
   }
 
   Future<void> _writeToken(String uid, String token) async {
-    await _firestore.collection('users').doc(uid).set(
-      {
-        'fcmToken': token,
-        'fcmTokens': FieldValue.arrayUnion([token]),
-        'lastTokenUpdate': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    debugPrint('🔑 FCM: writing token metadata users/$uid');
+    try {
+      await _firestore.collection('users').doc(uid).set(
+        {
+          'fcmToken': token,
+          'fcmTokens': FieldValue.arrayUnion([token]),
+          'lastTokenUpdate': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    } catch (e, st) {
+      debugPrint('❌ FCM write failed: $e');
+      debugPrint('❌ Firestore path: users/$uid');
+      debugPrint('❌ FCM write stack: $st');
+      rethrow;
+    }
   }
 
   Future<void> dispose() async {
