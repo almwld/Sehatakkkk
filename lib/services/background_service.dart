@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -87,6 +88,7 @@ class BackgroundService {
   @pragma('vm:entry-point')
   static void _onStart(ServiceInstance service) async {
     WidgetsFlutterBinding.ensureInitialized();
+    DartPluginRegistrant.ensureInitialized();
     final prefs = await SharedPreferences.getInstance();
 
     if (!(prefs.getBool(_trackingEnabledKey) ?? false)) {
