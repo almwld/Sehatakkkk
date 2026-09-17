@@ -39,7 +39,18 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
       const SizedBox(height: 8),
       LinearProgressIndicator(value: (_round + 1) / _patterns.length),
       const SizedBox(height: 26),
-      Center(child: SizedBox(width: 240, height: 190, child: Center(child: Transform.rotate(angle: _rotation * pi / 2, child: Text('E', style: TextStyle(fontSize: size, fontWeight: FontWeight.bold))))),
+      Center(
+        child: SizedBox(
+          width: 240,
+          height: 190,
+          child: Center(
+            child: Transform.rotate(
+              angle: _rotation * pi / 2,
+              child: Text('E', style: TextStyle(fontSize: size, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ),
+      ),
       const Center(child: Text('إلى أي اتجاه تتجه فتحة الحرف؟', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
       const SizedBox(height: 18),
       GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 2.5, children: _directions.map((d) => OutlinedButton(onPressed: () => _answer(d), child: Text(d))).toList()),
