@@ -178,6 +178,12 @@ class HomeHealthWidgets extends StatelessWidget {
 
   String? _trackerRoute(String name) {
     switch (name) {
+      case 'ضغط الدم': return AppRouter.bloodPressure;
+      case 'سكر الدم': return AppRouter.glucoseTracker;
+      case 'اللياقة': return AppRouter.stepTracker;
+      case 'الوزن': return AppRouter.weightTracker;
+      case 'التغذية': return AppRouter.dietPlan;
+      case 'الصحة النفسية': return AppRouter.mentalHealth;
       case 'الخطوات': return AppRouter.stepTracker;
       case 'النوم': return AppRouter.sleepTracker;
       case 'النبض': return AppRouter.heartRate;
@@ -231,7 +237,10 @@ class HomeHealthWidgets extends StatelessWidget {
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          onTap: () => onNavigate(AppRouter.dashboard),
+          onTap: () {
+            final route = _trackerRoute(item['label'] as String);
+            onNavigate(route ?? AppRouter.dashboard);
+          },
           borderRadius: BorderRadius.circular(16),
           child: Column(
             children: [
