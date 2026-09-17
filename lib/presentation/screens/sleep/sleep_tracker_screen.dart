@@ -123,7 +123,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF172033) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4))],
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
           ),
           child: Column(
             children: [
@@ -156,7 +156,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
 
   Widget _buildTodayCard(bool isDark) {
     final record = _todayRecord;
-    return _buildCard(isDark, 'سجل اليوم', record == null ? 'لا يوجد سجل نوم اليوم' : 'مدة النوم: ${record.duration.inHours} ساعة و${record.duration.inMinutes.remainder(60)} دقيقة');
+    return _buildCard(isDark, 'سجل اليوم', record == null ? 'لا يوجد سجل نوم اليوم' : 'مدة النوم: ${record.durationMinutes ~/ 60} ساعة و${record.durationMinutes.remainder(60)} دقيقة');
   }
 
   Widget _buildWeeklyStats(bool isDark) {
@@ -197,7 +197,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('النوم خلال الأسبوع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
         const SizedBox(height: 12),
-        Expanded(child: _weeklyRecords.isEmpty ? const Center(child: Text('لا توجد بيانات كافية')) : BarChart(BarChartData(barGroups: _weeklyRecords.asMap().entries.map((entry) => BarChartGroupData(x: entry.key, barRods: [BarChartRodData(toY: entry.value.duration.inMinutes.toDouble(), width: 14, color: AppColors.primary)])).toList()))),
+        Expanded(child: _weeklyRecords.isEmpty ? const Center(child: Text('لا توجد بيانات كافية')) : BarChart(BarChartData(barGroups: _weeklyRecords.asMap().entries.map((entry) => BarChartGroupData(x: entry.key, barRods: [BarChartRodData(toY: entry.value.durationMinutes.toDouble(), width: 14, color: AppColors.primary)])).toList()))),
       ]),
     );
   }
