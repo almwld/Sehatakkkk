@@ -2,7 +2,8 @@ name: One-time Family Care Fix
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
 
 permissions:
   contents: write
@@ -16,23 +17,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Patch family care services
+        shell: bash
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('lib/presentation/screens/more/more_screen.dart')
-          s = p.read_text()
-          imports = "import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';\nimport 'package:sehatak/presentation/screens/eye_care/eye_care_screen.dart';\n"
-          marker = "import 'package:sehatak/core/services/toast_service.dart';\n"
-          if "dental_care/dental_care_screen.dart" not in s:
-              s = s.replace(marker, marker + imports)
-          old = "          {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},\n"
-          new = old + "          {'icon': 'assets/icons/services/dentistry.png', 'title': 'صحة الأسنان', 'subtitle': 'العناية بالأسنان والفم', 'screen': const DentalCareScreen()},\n          {'icon': 'assets/icons/services/ophthalmology.png', 'title': 'صحة العيون', 'subtitle': 'العناية بالعين وفحص النظر', 'screen': const EyeCareScreen()},\n"
-          if "'title': 'صحة الأسنان'" not in s:
-              if old not in s:
-                  raise SystemExit('Family care insertion marker not found')
-              s = s.replace(old, new, 1)
-          p.write_text(s)
-          PY
+          python3 -c "from pathlib import Path; p=Path('lib/presentation/screens/more/more_screen.dart'); s=p.read_text(); marker=\"import 'package:sehatak/core/services/toast_service.dart';\\n\"; imports=\"import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';\\nimport 'package:sehatak/presentation/screens/eye_care/eye_care_screen.dart';\\n\"; s=s if 'dental_care/dental_care_screen.dart' in s else s.replace(marker, marker+imports); old=\"          {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},\\n\"; new=old+\"          {'icon': 'assets/icons/services/dentistry.png', 'title': 'صحة الأسنان', 'subtitle': 'العناية بالأسنان والفم', 'screen': const DentalCareScreen()},\\n          {'icon': 'assets/icons/services/ophthalmology.png', 'title': 'صحة العيون', 'subtitle': 'العناية بالعين وفحص النظر', 'screen': const EyeCareScreen()},\\n\"; s=s if \"'title': 'صحة الأسنان'\" in s else s.replace(old,new,1); p.write_text(s)"
           git diff --check
           git diff -- lib/presentation/screens/more/more_screen.dart
       - name: Commit and push
