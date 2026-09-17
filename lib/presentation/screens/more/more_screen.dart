@@ -68,17 +68,78 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF4F6F7),
       appBar: AppBar(title: const Text('المزيد'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
-      body: ListView(controller: widget.scrollController, padding: const EdgeInsets.fromLTRB(16, 16, 16, 28), children: [
-        Text('المؤشرات الحيوية', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        SizedBox(height: 112, child: ListView.separated(scrollDirection: Axis.horizontal, itemCount: _vitals.length, separatorBuilder: (_, __) => const SizedBox(width: 10), itemBuilder: (_, i) { final v = _vitals[i]; return SizedBox(width: 125, child: Card(elevation: 0, child: InkWell(borderRadius: BorderRadius.circular(14), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => v['screen'] as Widget)), child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(v['icon'] as IconData, color: AppColors.primary, size: 22), const Spacer(), Text(v['label'] as String, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)), const SizedBox(height: 3), Text('${v['value']} ${v['unit']}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold))])))); })),
-        const SizedBox(height: 22),
-        Text('الخدمات', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Wrap(spacing: 8, runSpacing: 8, children: ['الكل', 'رعاية عائلية', 'أدوات تشخيصية', 'لوجستيات وتأمين', 'خدمات طبية', 'إعدادات'].map((c) => ChoiceChip(label: Text(c), selected: _category == c, onSelected: (_) => setState(() => _category = c))).toList()),
-        const SizedBox(height: 14),
-        ..._filtered.map((service) => Card(elevation: 0, margin: const EdgeInsets.only(bottom: 9), child: ListTile(contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4), leading: Container(width: 44, height: 44, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), borderRadius: BorderRadius.circular(11)), child: Icon(service['icon'] as IconData, color: AppColors.primary)), title: Text(service['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), subtitle: Text(service['subtitle'] as String, style: const TextStyle(fontSize: 11)), trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => service['screen'] as Widget))))),
-      ]),
+      body: ListView(
+        controller: widget.scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+        children: [
+          Text('المؤشرات الحيوية', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 112,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _vitals.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (_, i) {
+                final v = _vitals[i];
+                return SizedBox(
+                  width: 125,
+                  child: Card(
+                    elevation: 0,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => v['screen'] as Widget)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(v['icon'] as IconData, color: AppColors.primary, size: 22),
+                            const Spacer(),
+                            Text(v['label'] as String, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 3),
+                            Text('${v['value']} ${v['unit']}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 22),
+          Text('الخدمات', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: ['الكل', 'رعاية عائلية', 'أدوات تشخيصية', 'لوجستيات وتأمين', 'خدمات طبية', 'إعدادات']
+                .map((c) => ChoiceChip(label: Text(c), selected: _category == c, onSelected: (_) => setState(() => _category = c)))
+                .toList(),
+          ),
+          const SizedBox(height: 14),
+          ..._filtered.map((service) {
+            return Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 9),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                leading: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), borderRadius: BorderRadius.circular(11)),
+                  child: Icon(service['icon'] as IconData, color: AppColors.primary),
+                ),
+                title: Text(service['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: Text(service['subtitle'] as String, style: const TextStyle(fontSize: 11)),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => service['screen'] as Widget)),
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 }
