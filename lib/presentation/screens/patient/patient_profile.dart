@@ -1,517 +1,288 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/status_service.dart';
+import 'package:sehatak/core/models/status_model.dart';
+import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/screens/edit_profile/edit_profile_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sehatak/presentation/screens/favorites/favorite_doctors_screen.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class PatientProfile extends StatefulWidget {
-  const PatientProfile({super.key});
+  final String? userId;
+  const PatientProfile({super.key, this.userId});
 
   @override
   State<PatientProfile> createState() => _PatientProfileState();
 }
 
 class _PatientProfileState extends State<PatientProfile> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  Map<String, dynamic>? _userData;
-  bool _isLoading = true;
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  final _statusService = StatusService();
+  Map<String, dynamic> _userData = {};
+  bool _loading = true;
+
+  String get _profileId => widget.userId?.trim().isNotEmpty == true
+      ? widget.userId!.trim()
+      : (_auth.currentUser?.uid ?? '');
+
+  bool get _isOwnProfile => _profileId.isNotEmpty && _profileId == _auth.currentUser?.uid;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadUser();
   }
 
-  Future<void> _loadUserData() async {
-    setState(() => _isLoading = true);
-    final user = _auth.currentUser;
-    if (user == null) {
-      setState(() => _isLoading = false);
+  Future<void> _loadUser() async {
+    final uid = _profileId;
+    if (uid.isEmpty) {
+      if (mounted) setState(() => _loading = false);
       return;
     }
     try {
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        setState(() => _userData = doc.data() as Map<String, dynamic>);
-      } else {
-        _userData = {
-          'name': user.displayName ?? 'مستخدم',
-          'email': user.email ?? '',
-          'phone': user.phoneNumber ?? '',
-          'photoUrl': user.photoURL,
-        };
+      final snap = await _firestore.collection('users').doc(uid).get();
+      final data = snap.data() ?? <String, dynamic>{};
+      final user = _auth.currentUser;
+      if (data.isEmpty && _isOwnProfile && user != null) {
+        data.addAll({'name': user.displayName ?? 'مستخدم', 'email': user.email ?? '', 'photoUrl': user.photoURL});
       }
-    } catch (e) {
-      print('❌ Error loading user data: $e');
+      if (mounted) setState(() { _userData = data; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
     }
-    setState(() => _isLoading = false);
   }
+
+  String _value(String key, [String fallback = '']) {
+    final value = _userData[key];
+    return value == null || value.toString().trim().isEmpty ? fallback : value.toString();
+  }
+
+  int? _count(String key) {
+    final value = _userData[key];
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<void> _edit() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+    if (mounted) await _loadUser();
+  }
+
+  void _favoriteDoctors() => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteDoctorsScreen()));
+  void _settings() => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user = _auth.currentUser;
-    final name = _userData?['name'] ?? user?.displayName ?? 'مستخدم';
-    final email = _userData?['email'] ?? user?.email ?? '';
-    final photoUrl = _userData?['photoUrl'] ?? user?.photoURL;
-    final bloodType = _userData?['bloodType'] ?? 'غير محدد';
-    final weight = _userData?['weight'] ?? '--';
-    final height = _userData?['height'] ?? '--';
-    final age = _userData?['age'] ?? '--';
-    final phone = _userData?['phone'] ?? user?.phoneNumber ?? '';
-
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final name = _value('name', _auth.currentUser?.displayName ?? 'مستخدم');
+    final email = _value('email', _auth.currentUser?.email ?? '');
+    final photo = _value('photoUrl', _auth.currentUser?.photoURL ?? '');
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: 'ملفي الشخصي',
+      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('ملفي الشخصي'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_rounded),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-            ).then((_) => _loadUserData()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_rounded),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
-          ),
+          if (_isOwnProfile) IconButton(icon: const Icon(Icons.edit_rounded), onPressed: _edit),
+          if (_isOwnProfile) IconButton(icon: const Icon(Icons.settings_rounded), onPressed: _settings),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ✅ Header
-            _buildProfileHeader(photoUrl, name, email, isDark),
-            const SizedBox(height: 20),
-
-            // ✅ الإحصائيات السريعة
-            _buildQuickStats(isDark),
-            const SizedBox(height: 20),
-
-            // ✅ المعلومات الشخصية
-            _buildInfoSection('المعلومات الشخصية', isDark),
-            const SizedBox(height: 12),
-            _buildInfoCard([
-              {'icon': Icons.bloodtype_rounded, 'label': 'فصيلة الدم', 'value': bloodType},
-              {'icon': Icons.monitor_weight_rounded, 'label': 'الوزن', 'value': '$weight كجم'},
-              {'icon': Icons.height_rounded, 'label': 'الطول', 'value': '$height سم'},
-              {'icon': Icons.cake_rounded, 'label': 'العمر', 'value': '$age سنة'},
-              {'icon': Icons.phone_rounded, 'label': 'رقم الهاتف', 'value': phone},
-              {'icon': Icons.email_rounded, 'label': 'البريد الإلكتروني', 'value': email},
-            ], isDark),
-            const SizedBox(height: 20),
-
-            // ✅ الإحصائيات الصحية
-            _buildInfoSection('الإحصائيات الصحية', isDark),
-            const SizedBox(height: 12),
-            _buildHealthStats(isDark),
-            const SizedBox(height: 20),
-
-            // ✅ الإجراءات السريعة
-            _buildQuickActions(isDark),
-            const SizedBox(height: 20),
-
-            // ✅ زر تسجيل الخروج
-            _buildLogoutButton(isDark),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader(String? photoUrl, String name, String email, bool isDark) {
-    return Row(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 3),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(40),
-            child: photoUrl != null && photoUrl.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: photoUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person, size: 40),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person, size: 40),
-                    ),
-                  )
-                : Container(
-                    color: AppColors.primary.withOpacity(0.1),
-                    child: Center(
-                      child: Text(
-                        name.isNotEmpty ? name[0] : 'م',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                email,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.circle, color: Colors.green, size: 8),
-                    SizedBox(width: 4),
-                    Text(
-                      'نشط',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickStats(bool isDark) {
-    final stats = [
-      {'label': 'المواعيد', 'value': '24', 'icon': Icons.calendar_today_rounded, 'color': AppColors.primary},
-      {'label': 'الوصفات', 'value': '12', 'icon': Icons.medication_rounded, 'color': AppColors.success},
-      {'label': 'التحاليل', 'value': '8', 'icon': Icons.science_rounded, 'color': AppColors.purple},
-      {'label': 'الزيارات', 'value': '6', 'icon': Icons.local_hospital_rounded, 'color': AppColors.info},
-    ];
-
-    return Row(
-      children: stats.map((stat) {
-        final color = stat['color'] as Color;
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Icon(stat['icon'] as IconData, color: color, size: 22),
-                const SizedBox(height: 4),
-                Text(
-                  stat['value'] as String,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                Text(
-                  stat['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildInfoSection(String title, bool isDark) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 20,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard(List<Map<String, dynamic>> items, bool isDark) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.2,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final value = item['value'] as String;
-        final hasValue = value != 'غير محدد' && value != '--';
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: hasValue ? Colors.green.withOpacity(0.2) : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                item['icon'] as IconData,
-                color: hasValue ? AppColors.primary : Colors.grey,
-                size: 20,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: hasValue ? (isDark ? Colors.white : Colors.black87) : Colors.grey,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                item['label'] as String,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHealthStats(bool isDark) {
-    final stats = [
-      {'label': 'ضغط الدم', 'value': '120/80', 'status': 'طبيعي', 'color': Colors.green},
-      {'label': 'معدل السكر', 'value': '95', 'status': 'طبيعي', 'color': Colors.green},
-      {'label': 'معدل القلب', 'value': '72', 'status': 'طبيعي', 'color': Colors.green},
-      {'label': 'الوزن', 'value': '75 كجم', 'status': 'مستقر', 'color': Colors.orange},
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.4,
-      ),
-      itemCount: stats.length,
-      itemBuilder: (context, index) {
-        final stat = stats[index];
-        final color = stat['color'] as Color;
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.2)),
-          ),
-          child: Row(
-            children: [
-              Container(width: 4, height: 30, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(stat['label'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600])),
-                    Text(stat['value'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Text(stat['status'] as String, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w500)),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildQuickActions(bool isDark) {
-    final actions = [
-      {'icon': Icons.medical_services_rounded, 'label': 'استشارة', 'color': AppColors.primary},
-      {'icon': Icons.calendar_month_rounded, 'label': 'موعد', 'color': Colors.blue},
-      {'icon': Icons.local_pharmacy_rounded, 'label': 'صيدلية', 'color': Colors.green},
-      {'icon': Icons.science_rounded, 'label': 'مختبر', 'color': Colors.purple},
-    ];
-
-    return Row(
-      children: actions.map((action) {
-        final color = action['color'] as Color;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () {},
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[200]!),
-              ),
-              child: Column(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : RefreshIndicator(
+              onRefresh: _loadUser,
+              color: AppColors.primary,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 32),
                 children: [
-                  Icon(action['icon'] as IconData, color: color, size: 24),
-                  const SizedBox(height: 4),
-                  Text(
-                    action['label'] as String,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
+                  _header(name, email, photo, dark),
+                  const SizedBox(height: 14),
+                  _stats(dark),
+                  const SizedBox(height: 16),
+                  _stories(name, photo, dark),
+                  const SizedBox(height: 16),
+                  _posts(dark),
+                  const SizedBox(height: 16),
+                  _accountSections(dark),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _header(String name, String email, String photo, bool dark) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(20)),
+      child: Column(children: [
+        _storyAvatar(name, photo, 48),
+        const SizedBox(height: 10),
+        Text(name, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, color: dark ? Colors.white : Colors.black87)),
+        if (email.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(email, style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.grey[600])),
+        ],
+        if (_value('bio').isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Text(_value('bio'), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.4, color: dark ? Colors.white70 : Colors.black54)),
+        ],
+      ]),
+    );
+  }
+
+  Widget _storyAvatar(String name, String photo, double radius) {
+    return StreamBuilder<UserStatusModel?>(
+      stream: _profileId.isEmpty ? Stream.value(null) : _statusService.streamUserStatus(_profileId),
+      builder: (context, snapshot) {
+        final status = snapshot.data;
+        final hasStatus = status?.isValid == true && status!.stories.isNotEmpty;
+        final avatar = Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: hasStatus ? AppColors.primary : Colors.transparent, width: 3)),
+          child: CircleAvatar(
+            radius: radius,
+            backgroundColor: AppColors.primary.withOpacity(.10),
+            backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
+            child: photo.isEmpty ? Text(name.isEmpty ? 'م' : name.characters.first, style: TextStyle(fontSize: radius * .7, color: AppColors.primary, fontWeight: FontWeight.w900)) : null,
           ),
         );
-      }).toList(),
+        return GestureDetector(
+          onTap: hasStatus ? () {
+            _statusService.markViewed(status!);
+            Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status)));
+          } : null,
+          child: avatar,
+        );
+      },
     );
   }
 
-  Widget _buildLogoutButton(bool isDark) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => _showLogoutDialog(context),
-        icon: const Icon(Icons.logout_rounded, color: Colors.red),
-        label: const Text(
-          'تسجيل الخروج',
-          style: TextStyle(color: Colors.red, fontSize: 16),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.red),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+  Widget _stats(bool dark) {
+    return Row(children: [
+      Expanded(child: _stat('المنشورات', _count('postsCount'), dark)),
+      const SizedBox(width: 8),
+      Expanded(child: _stat('المتابعون', _count('followersCount'), dark)),
+      const SizedBox(width: 8),
+      Expanded(child: _stat('يتابع', _count('followingCount'), dark)),
+    ]);
+  }
+
+  Widget _stat(String label, int? value, bool dark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 5),
+      decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(14)),
+      child: Column(children: [
+        Text(value?.toString() ?? '--', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: dark ? Colors.white : Colors.black87)),
+        const SizedBox(height: 3),
+        Text(label, style: TextStyle(fontSize: 10, color: dark ? Colors.white60 : Colors.grey[600])),
+      ]),
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('تسجيل الخروج'),
-        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+  Widget _stories(String name, String photo, bool dark) {
+    return _card(dark, 'الحالة اليومية', Icons.auto_stories_rounded, StreamBuilder<UserStatusModel?>(
+      stream: _profileId.isEmpty ? Stream.value(null) : _statusService.streamUserStatus(_profileId),
+      builder: (context, snapshot) {
+        final status = snapshot.data;
+        final hasStatus = status?.isValid == true && status!.stories.isNotEmpty;
+        return Row(children: [
+          GestureDetector(
+            onTap: hasStatus ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status!))) : null,
+            child: Column(children: [
+              _storyAvatar(name, photo, 28),
+              const SizedBox(height: 5),
+              Text(hasStatus ? 'عرض الحالة' : 'لا توجد حالة', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : Colors.grey[700])),
+            ]),
           ),
-          ElevatedButton(
-            onPressed: () {
-              _auth.signOut();
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const AuthScreen()),
-                (route) => false,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('تسجيل الخروج'),
-          ),
+          const SizedBox(width: 14),
+          Expanded(child: Text(hasStatus ? 'الحالة اليومية متاحة من دائرة صورة المستخدم.' : 'عند نشر حالة ستظهر هنا ويمكن فتحها من دائرة صورة المستخدم.', style: TextStyle(fontSize: 12, height: 1.45, color: dark ? Colors.white70 : Colors.grey[700]))),
+        ]);
+      },
+    ));
+  }
+
+  Widget _posts(bool dark) {
+    if (_profileId.isEmpty) return _card(dark, 'منشورات المجتمع', Icons.forum_outlined, const Text('سجّل الدخول لعرض منشورات الحساب.'));
+    return _card(dark, 'منشورات المجتمع', Icons.forum_outlined, StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _firestore.collection('community_posts').where('userId', isEqualTo: _profileId).where('isPublished', isEqualTo: true).limit(20).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return const Text('تعذر تحميل منشورات المجتمع.');
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+        final docs = [...snapshot.data!.docs];
+        docs.sort((a, b) {
+          final av = a.data()['createdAt'];
+          final bv = b.data()['createdAt'];
+          final at = av is Timestamp ? av.toDate() : DateTime.fromMillisecondsSinceEpoch(0);
+          final bt = bv is Timestamp ? bv.toDate() : DateTime.fromMillisecondsSinceEpoch(0);
+          return bt.compareTo(at);
+        });
+        if (docs.isEmpty) return const Text('لا توجد منشورات منشورة لهذا الحساب حالياً.');
+        return Column(children: docs.map((doc) => _post(doc, dark)).toList());
+      },
+    ));
+  }
+
+  Widget _post(QueryDocumentSnapshot<Map<String, dynamic>> doc, bool dark) {
+    final data = doc.data();
+    final title = (data['title'] ?? '').toString();
+    final content = (data['content'] ?? '').toString();
+    var image = (data['imageUrl'] ?? '').toString();
+    final images = data['images'];
+    if (image.isEmpty && images is List && images.isNotEmpty) image = images.first.toString();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: dark ? const Color(0xFF102A2A) : const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(14)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (title.isNotEmpty) Text(title, style: TextStyle(fontWeight: FontWeight.w900, color: dark ? Colors.white : Colors.black87)),
+        if (content.isNotEmpty) ...[
+          const SizedBox(height: 5),
+          Text(content, maxLines: 5, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, height: 1.45, color: dark ? Colors.white70 : Colors.black87)),
         ],
-      ),
+        if (image.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          ClipRRect(borderRadius: BorderRadius.circular(12), child: AppImage(imageUrl: image, height: 180, width: double.infinity, fit: BoxFit.cover)),
+        ],
+      ]),
+    );
+  }
+
+  Widget _accountSections(bool dark) {
+    return _card(dark, 'حساب المستخدم', Icons.person_outline_rounded, Column(children: [
+      _tile(Icons.favorite_border_rounded, 'الأطباء المفضلون', 'الوصول إلى الأطباء المضافين للمفضلة', _favoriteDoctors, dark),
+      _tile(Icons.tune_rounded, 'التفضيلات', 'إدارة تفضيلات الحساب والخدمات', _settings, dark),
+      _tile(Icons.people_outline_rounded, 'المتابعات', 'الحسابات التي يتابعها المستخدم', null, dark),
+      if (_isOwnProfile) _tile(Icons.edit_outlined, 'تعديل الملف', 'تحديث تفاصيل الحساب', _edit, dark),
+    ]));
+  }
+
+  Widget _card(bool dark, String title, IconData icon, Widget child) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Icon(icon, color: AppColors.primary, size: 20), const SizedBox(width: 8), Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: dark ? Colors.white : Colors.black87))]),
+        const SizedBox(height: 12),
+        child,
+      ]),
+    );
+  }
+
+  Widget _tile(IconData icon, String title, String subtitle, VoidCallback? onTap, bool dark) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Container(width: 42, height: 42, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: AppColors.primary, size: 21)),
+      title: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
+      subtitle: Text(subtitle, style: TextStyle(fontSize: 10, color: dark ? Colors.white60 : Colors.grey[600])),
+      trailing: onTap == null ? null : const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+      onTap: onTap,
     );
   }
 }
