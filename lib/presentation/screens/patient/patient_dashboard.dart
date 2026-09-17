@@ -867,7 +867,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       width: size,
       height: size,
       fit: BoxFit.contain,
-      color: color,
       errorBuilder: (context, error, stackTrace) {
         return Icon(Icons.health_and_safety, color: color, size: size);
       },
