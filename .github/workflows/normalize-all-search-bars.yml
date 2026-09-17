@@ -1,0 +1,124 @@
+name: Normalize All Search Bars
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'lib/**/*.dart'
+      - '.github/workflows/normalize-all-search-bars.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Normalize search fields
+        shell: python
+        run: |
+          import pathlib, re, subprocess
+
+          SEARCH_HINT_RE = re.compile(r"['\"]([^'\"]*(?:ابحث|بحث|البحث|search|Search)[^'\"]*)['\"]")
+
+          def matching_paren(s, start):
+              depth = 0; quote = None; esc = False
+              for i in range(start, len(s)):
+                  c = s[i]
+                  if quote:
+                      if esc: esc = False
+                      elif c == '\\': esc = True
+                      elif c == quote: quote = None
+                  else:
+                      if c in "'\"": quote = c
+                      elif c == '(': depth += 1
+                      elif c == ')':
+                          depth -= 1
+                          if depth == 0: return i
+              return -1
+
+          def split_args(s):
+              parts = []; start = 0; stack = []; quote = None; esc = False
+              for i, c in enumerate(s):
+                  if quote:
+                      if esc: esc = False
+                      elif c == '\\': esc = True
+                      elif c == quote: quote = None
+                  else:
+                      if c in "'\"": quote = c
+                      elif c in '([{': stack.append(c)
+                      elif c in ')]}':
+                          if stack: stack.pop()
+                      elif c == ',' and not stack:
+                          parts.append(s[start:i].strip()); start = i + 1
+              parts.append(s[start:].strip())
+              return [p for p in parts if p]
+
+          def arg(parts, name):
+              pat = re.compile(r'^\s*' + re.escape(name) + r'\s*:')
+              for p in parts:
+                  if pat.match(p): return re.sub(r'^\s*' + re.escape(name) + r'\s*:\s*', '', p, count=1)
+              return None
+
+          def transform(call):
+              parts = split_args(call)
+              decoration = arg(parts, 'decoration')
+              hint = None
+              if decoration:
+                  m = SEARCH_HINT_RE.search(decoration)
+                  if m: hint = m.group(1)
+              is_search = bool(hint) or bool(re.search(r'Icons\\.search(?:_rounded)?', call))
+              if not is_search: return None
+              controller = arg(parts, 'controller')
+              on_changed = arg(parts, 'onChanged')
+              on_tap = arg(parts, 'onTap')
+              read_only = arg(parts, 'readOnly')
+              enabled = arg(parts, 'enabled')
+              args = []
+              if controller: args.append(f'controller: {controller}')
+              if on_changed: args.append(f'onChanged: {on_changed}')
+              if on_tap: args.append(f'onTap: {on_tap}')
+              if hint: args.append("hintText: " + repr(hint))
+              if read_only: args.append(f'readOnly: {read_only}')
+              if enabled: args.append(f'enabled: {enabled}')
+              return 'UnifiedSearchBar(' + ', '.join(args) + ')'
+
+          changed = []
+          for path in pathlib.Path('lib').rglob('*.dart'):
+              text = path.read_text(encoding='utf-8')
+              if 'class UnifiedSearchBar' in text: continue
+              replacements = []; cursor = 0
+              while True:
+                  m = re.search(r'\bTextField\s*\(', text[cursor:])
+                  if not m: break
+                  start = cursor + m.start(); openp = text.find('(', start); end = matching_paren(text, openp)
+                  if end < 0: break
+                  repl = transform(text[openp+1:end])
+                  if repl: replacements.append((start, end + 1, repl))
+                  cursor = end + 1
+              if not replacements: continue
+              for a, b, repl in reversed(replacements): text = text[:a] + repl + text[b:]
+              imp = "import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';"
+              if imp not in text:
+                  lines = text.splitlines(True)
+                  last = max((i for i,l in enumerate(lines) if l.startswith('import ')), default=-1)
+                  if last >= 0: lines.insert(last + 1, imp + '\n'); text = ''.join(lines)
+                  else: text = imp + '\n' + text
+              path.write_text(text, encoding='utf-8')
+              changed.append(str(path))
+          print('Changed search files:', *changed, sep='\n- ')
+          if not changed: raise SystemExit('No search fields required normalization')
+
+      - name: Commit changes and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib
+          git commit -m 'fix(search): unify all search field appearance'
+          git push
+          git rm .github/workflows/normalize-all-search-bars.yml
+          git commit -m 'chore(ci): remove temporary search normalization workflow'
+          git push
