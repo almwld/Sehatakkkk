@@ -30,8 +30,9 @@ class MessageModel extends Equatable {
   });
 
   factory MessageModel.fromFirestore(String id, Map<String, dynamic> d) {
-    final ts = d['timestamp'] is Timestamp ? d['timestamp'] as Timestamp : null;
+    final serverTs = d['timestamp'] is Timestamp ? d['timestamp'] as Timestamp : null;
     final clientTs = d['clientTimestamp'] is Timestamp ? d['clientTimestamp'] as Timestamp : null;
+    final effectiveTs = serverTs ?? clientTs ?? Timestamp.now();
     final ra = d['readAt'] is Timestamp ? d['readAt'] as Timestamp : null;
     final da = d['deliveredAt'] is Timestamp ? d['deliveredAt'] as Timestamp : null;
     final rawReply = d['replyPreview'];
@@ -39,7 +40,7 @@ class MessageModel extends Equatable {
       id: id, chatId: d['chatId']?.toString() ?? '', senderId: d['senderId']?.toString() ?? '', senderName: d['senderName']?.toString() ?? '',
       senderPhotoUrl: d['senderPhotoUrl']?.toString(), text: d['text']?.toString(),
       replyPreview: rawReply is Map ? Map<String, dynamic>.from(rawReply) : null,
-      type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text), timestamp: ts, clientTimestamp: clientTs,
+      type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text), timestamp: effectiveTs, clientTimestamp: clientTs,
       isRead: d['isRead'] == true, isDelivered: d['isDelivered'] == true, isEdited: d['isEdited'] == true, isDeleted: d['isDeleted'] == true,
       replyToId: d['replyToId']?.toString(),
       reactions: d['reactions'] is Map ? Map<String, String>.from((d['reactions'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()))) : <String, String>{},
