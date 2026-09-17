@@ -30,9 +30,6 @@ import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
 import 'package:sehatak/presentation/screens/diet_plan/diet_plan_screen.dart';
-import 'package:sehatak/presentation/screens/health/womens_health_screen.dart';
-import 'package:sehatak/presentation/screens/health/pregnancy_follow_up_screen.dart';
-import 'package:sehatak/presentation/screens/health/child_health_screen.dart';
 import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
@@ -56,6 +53,9 @@ import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart'
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 import 'package:sehatak/presentation/screens/dental/dental_health_screen.dart';
 import 'package:sehatak/presentation/screens/eye/eye_health_screen.dart';
+import 'package:sehatak/presentation/screens/pregnancy/pregnancy_health_screen.dart';
+import 'package:sehatak/presentation/screens/women/women_health_screen.dart';
+import 'package:sehatak/presentation/screens/child/child_health_screen.dart';
 
 class MoreScreen extends StatefulWidget { final ScrollController? scrollController; const MoreScreen({super.key,this.scrollController}); @override State<MoreScreen> createState()=>_MoreScreenState(); }
 class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMixin,WidgetsBindingObserver{
@@ -74,10 +74,10 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
   {'icon':'assets/images/tracking/water_drinking.png','label':'الماء','value':'6','unit':'أكواب','color':Colors.cyan,'screen':const HealthDashboard()},
  ];
  List<Map<String,dynamic>> get _filteredServices{switch(_selectedCategory){case 'رعاية عائلية':return[
-  {'icon':'assets/images/services/womens_health.png','title':'صحة المرأة','subtitle':'متابعة الدورة والحمل','screen':const WomensHealthScreen()},
-  {'icon':'assets/images/childhealth.png','title':'نمو الطفل','subtitle':'مراحل التطور','screen':const ChildHealthScreen()},
+  {'icon':'assets/images/services/womens_health.png','title':'صحة المرأة','subtitle':'متابعة الدورة والحمل','screen':const WomenHealthScreen()},
+  {'icon':'assets/images/childhealth.png','title':'صحة الطفل','subtitle':'نمو الطفل وتطعيماته','screen':const ChildHealthScreen()},
   {'icon':'assets/images/services/hospital.png','title':'طبيب العائلة','subtitle':'رعاية منزلية متكاملة','screen':const DoctorsListScreen()},
-  {'icon':'assets/images/pregnancy_follow_up.png','title':'متابعة الحمل','subtitle':'أسابيع الحمل بدقة','screen':const PregnancyFollowUpScreen()},
+  {'icon':'assets/images/pregnancy_follow_up.png','title':'رعاية الحمل','subtitle':'متابعة الحمل أسبوعاً بأسبوع','screen':const PregnancyHealthScreen()},
   {'icon':'assets/images/tracking/mental_health.png','title':'الصحة النفسية','subtitle':'دعم الصحة النفسية','screen':const MentalHealthScreen()},
   {'icon':'assets/images/tracking/fruits.png','title':'نظام غذائي','subtitle':'خطط غذائية صحية','screen':const DietPlanScreen()},
   {'icon':'assets/images/tracking/vaccination.png','title':'التطعيمات','subtitle':'جدول التطعيمات','screen':const VaccinationScreen()},
