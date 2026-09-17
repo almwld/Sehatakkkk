@@ -162,3 +162,24 @@ scripts/patch/
 !pubspec.lock
 !livekit-token-server/package-lock.json
 !android/app/google-services.json
+
+# ============================================================
+# 🧪 Local diagnostic & admin scripts (never commit)
+# ============================================================
+livekit-token-server/check-*.js
+livekit-token-server/test-*.js
+livekit-token-server/create-*.js
+livekit-token-server/clean-*.js
+livekit-token-server/delete-*.js
+livekit-token-server/backup-*.js
+livekit-token-server/diagnose-*.js
+livekit-token-server/detect-*.js
+livekit-token-server/find-*.js
+livekit-token-server/list-*.js
+livekit-token-server/verify-*.js
+livekit-token-server/inject-*.js
+livekit-token-server/enable-*.js
+livekit-token-server/clear-*.js
+livekit-token-server/firestore-backup-*.json
+livekit-token-server/users-backup-*.json
+livekit-token-server/current.json
