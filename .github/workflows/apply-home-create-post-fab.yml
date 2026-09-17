@@ -1,7 +1,9 @@
 name: Apply Home Create Post FAB
 
 on:
-  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-home-create-post-fab.yml'
 
 jobs:
   apply:
@@ -10,13 +12,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
       - name: Apply Home FAB
         shell: python
         run: |
           from pathlib import Path
-          import subprocess
-
           path = Path('lib/presentation/screens/home/tabs/home_tab.dart')
           text = path.read_text(encoding='utf-8')
           imp = "import 'package:sehatak/presentation/widgets/home/home_create_post_fab.dart';"
@@ -25,14 +24,12 @@ jobs:
               if anchor not in text:
                   raise SystemExit('Home import anchor not found')
               text = text.replace(anchor, anchor + '\n' + imp, 1)
-
+          if 'HomeCreatePostFab' in text:
+              raise SystemExit('HomeCreatePostFab already applied')
           marker = 'child: RefreshIndicator('
           start = text.find(marker)
           if start < 0:
               raise SystemExit('RefreshIndicator marker not found')
-          if 'HomeCreatePostFab' in text:
-              raise SystemExit('HomeCreatePostFab already applied')
-
           open_pos = start + len(marker) - 1
           depth = 0
           quote = None
@@ -60,18 +57,13 @@ jobs:
                       break
           if end is None:
               raise SystemExit('Could not balance RefreshIndicator expression')
-
           expr = text[start:end]
           replacement = "child: Stack(\n            children: [\n              " + expr + ",\n              const Positioned(\n                right: 16,\n                bottom: 16,\n                child: HomeCreatePostFab(),\n              ),\n            ],\n          )"
           text = text[:start] + replacement + text[end:]
           path.write_text(text, encoding='utf-8')
-
           check = path.read_text(encoding='utf-8')
-          if imp not in check or check.count('HomeCreatePostFab') != 2:
-              raise SystemExit('Validation failed: import/widget reference count')
-          if check.count('home_create_post_fab.dart') != 1:
-              raise SystemExit('Validation failed: import count')
-
+          if check.count('HomeCreatePostFab') != 2 or check.count('home_create_post_fab.dart') != 1:
+              raise SystemExit('Validation failed')
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
@@ -80,7 +72,6 @@ jobs:
           git diff --cached --check
           git commit -m "feat(home): add floating create post action"
           git push
-
       - name: Remove temporary workflow
         if: always()
         run: |
