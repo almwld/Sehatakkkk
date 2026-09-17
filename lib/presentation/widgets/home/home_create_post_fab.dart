@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/create_post_sheet.dart';
 
@@ -14,25 +14,38 @@ class HomeCreatePostFab extends StatefulWidget {
 }
 
 class _HomeCreatePostFabState extends State<HomeCreatePostFab>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scale;
+    with TickerProviderStateMixin {
+  late final AnimationController _pulseController;
+  late final AnimationController _tapController;
+  late final Animation<double> _pulse;
+  late final Animation<double> _tapScale;
+  bool _pressed = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
-    _scale = Tween<double>(begin: .96, end: 1.04).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _pulse = Tween<double>(begin: .96, end: 1.04).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _tapController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 140),
+      reverseDuration: const Duration(milliseconds: 220),
+    );
+    _tapScale = Tween<double>(begin: 1, end: .92).animate(
+      CurvedAnimation(parent: _tapController, curve: Curves.easeOutCubic),
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _pulseController.dispose();
+    _tapController.dispose();
     super.dispose();
   }
 
@@ -64,21 +77,49 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
+  Future<void> _handleTap() async {
+    if (_pressed) return;
+    setState(() => _pressed = true);
+    await _tapController.forward();
+    await _tapController.reverse();
+    if (!mounted) return;
+    setState(() => _pressed = false);
+    await _openCreatePost();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _scale,
-      builder: (context, child) => Transform.scale(scale: _scale.value, child: child),
-      child: FloatingActionButton.extended(
-        heroTag: 'home_create_post_fab',
-        onPressed: _openCreatePost,
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 8,
-        icon: const Icon(Icons.add_rounded, size: 27),
-        label: const Text(
-          'إضافة منشور',
-          style: TextStyle(fontWeight: FontWeight.w900),
+      animation: Listenable.merge([_pulse, _tapScale]),
+      builder: (context, child) {
+        final scale = _pulse.value * _tapScale.value;
+        return Transform.scale(scale: scale, child: child);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(_pressed ? .12 : .28),
+              blurRadius: _pressed ? 8 : 18,
+              spreadRadius: _pressed ? 0 : 1,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          heroTag: 'home_create_post_fab',
+          onPressed: _pressed ? null : _handleTap,
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          icon: const Icon(Icons.add_rounded, size: 27),
+          label: const Text(
+            'إضافة منشور',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
         ),
       ),
     );
