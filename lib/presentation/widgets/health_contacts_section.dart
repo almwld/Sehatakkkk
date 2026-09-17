@@ -101,14 +101,12 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
           ),
           SizedBox(
             height: 112,
-            child: statuses.isEmpty
-                ? Center(child: Text('لا توجد حالات يومية حالياً', style: TextStyle(color: widget.isDark ? Colors.white54 : Colors.black45)))
-                : StatusRow(
-                    statuses: statuses,
-                    currentUserId: FirebaseAuth.instance.currentUser?.uid,
-                    onAddStatus: _openAddStatus,
-                    onOpenStatus: _openStatus,
-                  ),
+            child: StatusRow(
+              statuses: statuses,
+              currentUserId: FirebaseAuth.instance.currentUser?.uid,
+              onAddStatus: _openAddStatus,
+              onOpenStatus: _openStatus,
+            ),
           ),
         ],
       ),
