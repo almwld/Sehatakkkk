@@ -84,6 +84,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final canPublish = _selectedMedia != null || _textController.text.trim().isNotEmpty;
     return Scaffold(
       appBar: AppBar(
         title: const Text('إضافة حالة'),
@@ -95,7 +96,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
           Container(
             height: 360,
@@ -140,16 +141,34 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 18),
+          SizedBox(
+            height: 54,
+            child: FilledButton.icon(
+              onPressed: _publishing || !canPublish ? null : _publish,
+              icon: _publishing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                    )
+                  : const Icon(Icons.send_rounded),
+              label: Text(_publishing ? 'جاري الإرسال...' : 'حفظ وإرسال الحالة'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                disabledBackgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFD7DDDF),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
           const SizedBox(height: 10),
           const Text(
             'ستختفي الحالة تلقائياً بعد 24 ساعة. الفيديو حتى 15 ثانية.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
-          if (_publishing) ...[
-            const SizedBox(height: 18),
-            const LinearProgressIndicator(color: AppColors.primary),
-          ],
         ],
       ),
     );
