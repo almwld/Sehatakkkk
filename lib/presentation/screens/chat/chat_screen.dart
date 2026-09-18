@@ -162,6 +162,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _buildContactsTab(isDark),
         ],
       ),
+    );
   }
 
   Widget _buildTabs(bool isDark) {
