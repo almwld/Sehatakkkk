@@ -18,6 +18,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /verification_requests/{requestId} {
+      allow read: if isAdmin() || isSelf(requestId);
+      allow create, update: if false;
+      allow delete: if isAdmin();
+    }
+
     match /users/{userId}/favorites/{doctorId} {
       allow read: if isSelf(userId);
       allow create: if isSelf(userId) && request.resource.data.doctorId == doctorId && request.resource.data.doctorId != '';
