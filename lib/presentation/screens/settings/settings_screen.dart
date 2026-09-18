@@ -35,6 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isBiometricEnabled = false;
   bool _isSystemMode = false;
   String? _deliveryArea;
+  String? _deliveryAddress;
 
   static const String _logoutIcon = 'assets/images/ui/logout.png';
   static const String _languageIcon = 'assets/icons/settings/app_language.png';
@@ -73,7 +74,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadDeliveryArea() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (mounted) setState(() => _deliveryArea = prefs.getString('delivery_area'));
+      if (mounted) {
+        setState(() {
+          _deliveryArea = prefs.getString('delivery_area');
+          _deliveryAddress = prefs.getString('delivery_address');
+        });
+      }
     } catch (_) {}
   }
 
@@ -161,7 +167,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _listTileAsset(
               _locationIcon,
               'تحديد منطقتك',
-              _deliveryArea == null ? 'اختر منطقتك لعرض شركات التوصيل المتاحة' : 'المنطقة المحددة: $_deliveryArea',
+              _deliveryArea == null
+                  ? 'اختر محافظتك وحدد موقعك بالتفصيل أو عبر GPS'
+                  : (_deliveryAddress == null || _deliveryAddress!.isEmpty
+                      ? 'المحافظة: $_deliveryArea'
+                      : '$_deliveryArea — $_deliveryAddress'),
               isDark,
               () async {
                 await Navigator.push(context, MaterialPageRoute(builder: (_) => const LocationSelectionScreen()));
