@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final GlobalScrollManager _scrollManager;
   bool _isLoggedIn = false, _backPressedOnce = false;
   Timer? _backExitTimer;
+  Timer? _healthRefreshTimer;
   late final Map<int, Widget> _screens;
 
   @override
@@ -60,6 +61,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     };
     _checkAuth();
     _systemNav();
+    _healthRefreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted) context.read<HomeBloc>().add(HomeHealthStatsRefreshed());
+    });
   }
 
   void _systemNav() {
@@ -80,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _backExitTimer?.cancel();
+    _healthRefreshTimer?.cancel();
     _scrollController.dispose();
     _scrollManager.dispose();
     WidgetsBinding.instance.removeObserver(this);
