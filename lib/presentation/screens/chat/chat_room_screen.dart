@@ -552,9 +552,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       onReply: model == null || model.id.isEmpty
                           ? null
                           : () => _startReply(model),
-                      onDelete: model == null || model.id.isEmpty
+                      onDelete: model == null || model.id.isEmpty || model.senderId != _auth.currentUser?.uid
                           ? null
                           : () => _deleteMessage(model),
+                      onDeleteForMe: model == null || model.id.isEmpty
+                          ? null
+                          : () => _deleteMessageForMe(model),
                       onPin: model == null || model.id.isEmpty
                           ? null
                           : () => _toggleMessagePin(model),
