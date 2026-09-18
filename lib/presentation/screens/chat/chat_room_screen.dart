@@ -14,6 +14,7 @@ import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/status_service.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/message_search_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';
@@ -308,11 +309,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   }
 
   void _profile() {
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => _ChatContactProfile(
-            userId: widget.otherUserId,
-            name: widget.otherUserName,
-            imageUrl: widget.otherUserImage ?? widget.groupImage)));
+    if (widget.otherUserId.trim().isEmpty) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(userId: widget.otherUserId),
+      ),
+    );
   }
 
   Future<void> _openOtherUserStatus(UserStatusModel status) async { if (!mounted || status.stories.isEmpty) return; await Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status))); }
@@ -801,42 +803,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   }
 }
 
-class _ChatContactProfile extends StatelessWidget {
-  final String userId;
-  final String name;
-  final String? imageUrl;
-  const _ChatContactProfile(
-      {required this.userId, required this.name, this.imageUrl});
-  @override
-  Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text('الملف الشخصي')),
-      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-          future:
-              FirebaseFirestore.instance.collection('users').doc(userId).get(),
-          builder: (context, snapshot) {
-            final data = snapshot.data?.data() ?? <String, dynamic>{};
-            final image = imageUrl ??
-                data['photoUrl']?.toString() ??
-                data['imageUrl']?.toString();
-            final displayName = data['name']?.toString() ??
-                data['displayName']?.toString() ??
-                name;
-            return Center(
-                child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(children: [
-                      CircleAvatar(
-                          radius: 52,
-                          backgroundImage: image != null
-                              ? CachedNetworkImageProvider(image)
-                              : null,
-                          child: image == null
-                              ? const Icon(Icons.person, size: 52)
-                              : null),
-                      const SizedBox(height: 14),
-                      Text(displayName,
-                          style: const TextStyle(
-                              fontSize: 22, fontWeight: FontWeight.bold)),
+e: 22, fontWeight: FontWeight.bold)),
                       if ('${data['specialty'] ?? ''}'.isNotEmpty)
                         Padding(
                             padding: const EdgeInsets.only(top: 8),
