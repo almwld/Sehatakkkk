@@ -345,10 +345,179 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _empty(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(text, style: TextStyle(color: dark ? Colors.white70 : _muted))));
 
-  Widget _places(String title, List<dynamic> items, IconData icon, bool dark, {VoidCallback? more}) => _section(title: title, dark: dark, more: more, child: const SizedBox(height: 10));
-  Widget _articles(List<dynamic> items, bool dark) => _section(title: 'مقالات طبية', dark: dark, child: const SizedBox(height: 10));
-  Widget _tips(List<dynamic> items, bool dark) => _section(title: 'نصائح يومية', dark: dark, child: const SizedBox(height: 10));
-  Widget _weather(bool dark) => _section(title: 'الطقس', dark: dark, child: const SizedBox(height: 10));
-  Widget _community(List<dynamic> items, bool dark) => _section(title: 'المجتمع', dark: dark, child: const SizedBox(height: 10));
+  Widget _places(String title, List<dynamic> items, IconData icon, bool dark, {VoidCallback? more}) {
+    return _section(
+      title: title,
+      dark: dark,
+      more: more,
+      child: items.isEmpty
+          ? _empty('لا توجد بيانات متاحة حالياً', dark)
+          : SizedBox(
+              height: 176,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, i) {
+                  final item = items[i] as Map<String, dynamic>;
+                  final name = (item['name'] ?? item['pharmacyName'] ?? 'صيدلية').toString();
+                  final image = (item['imageUrl'] ?? item['image'] ?? item['photoUrl'] ?? '').toString();
+                  final location = (item['location'] ?? item['city'] ?? item['address'] ?? '').toString();
+                  return InkWell(
+                    onTap: more,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: 170,
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: image.isEmpty
+                              ? Container(height: 82, width: double.infinity, color: AppColors.primary.withOpacity(.08), child: Icon(icon, color: AppColors.primary, size: 34))
+                              : AppImage(imageUrl: image, height: 82, width: double.infinity, fit: BoxFit.cover),
+                        ),
+                        const SizedBox(height: 7),
+                        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: dark ? Colors.white : _text)),
+                        if (location.isNotEmpty) ...[
+                          const SizedBox(height: 3),
+                          Text(location, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9, color: dark ? Colors.white60 : _muted)),
+                        ],
+                      ]),
+                    ),
+                  );
+                },
+              ),
+            ),
+    );
+  }
+
+  Widget _articles(List<dynamic> items, bool dark) => _dataCards('مقالات طبية', items, dark, 'assets/images/services/medical_articles.png', () => _go(AppRouter.articles), 'لا توجد مقالات منشورة حالياً', 'summary');
+
+  Widget _tips(List<dynamic> items, bool dark) => _dataCards('نصائح يومية', items, dark, 'assets/images/services/health_tips.png', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), 'لا توجد نصائح منشورة حالياً', 'content');
+
+  Widget _dataCards(String title, List<dynamic> items, bool dark, String asset, VoidCallback onMore, String emptyText, String subtitleKey) {
+    return _section(
+      title: title,
+      dark: dark,
+      more: onMore,
+      child: items.isEmpty
+          ? _empty(emptyText, dark)
+          : SizedBox(
+              height: 138,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, i) {
+                  final item = items[i] as Map<String, dynamic>;
+                  final image = (item['imageUrl'] ?? item['image'] ?? '').toString();
+                  final titleValue = (item['title'] ?? item['name'] ?? title).toString();
+                  final subtitle = (item[subtitleKey] ?? item['description'] ?? '').toString();
+                  return InkWell(
+                    onTap: onMore,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: 220,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                      child: Row(children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: image.isEmpty
+                              ? Image.asset(asset, width: 60, height: 60, fit: BoxFit.contain)
+                              : AppImage(imageUrl: image, width: 60, height: 60, fit: BoxFit.cover),
+                        ),
+                        const SizedBox(width: 9),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Text(titleValue, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: dark ? Colors.white : _text)),
+                          if (subtitle.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9, height: 1.3, color: dark ? Colors.white60 : _muted)),
+                          ],
+                        ])),
+                      ]),
+                    ),
+                  );
+                },
+              ),
+            ),
+    );
+  }
+
+  Widget _weather(bool dark) {
+    return _section(
+      title: 'الطقس',
+      dark: dark,
+      child: FutureBuilder<Map<String, dynamic>>(
+        future: _weatherFuture,
+        builder: (_, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 92, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+          final data = snapshot.data ?? const <String, dynamic>{};
+          final temp = data['temp']?.toString();
+          final condition = data['condition']?.toString() ?? 'غير متوفر';
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Row(children: [
+                const Icon(Icons.wb_sunny_outlined, color: AppColors.primary, size: 34),
+                const SizedBox(width: 12),
+                Expanded(child: Text(condition, style: TextStyle(fontWeight: FontWeight.w800, color: dark ? Colors.white : _text))),
+                if (temp != null) Text('$temp°', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+              ]),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _community(List<dynamic> items, bool dark) {
+    return _section(
+      title: 'المجتمع',
+      dark: dark,
+      more: () => _go(AppRouter.community),
+      child: items.isEmpty
+          ? _empty('لا توجد منشورات منشورة حالياً', dark)
+          : SizedBox(
+              height: 150,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, i) {
+                  final item = items[i] as Map<String, dynamic>;
+                  final title = (item['title'] ?? 'منشور').toString();
+                  final content = (item['content'] ?? '').toString();
+                  final author = (item['userName'] ?? 'مستخدم').toString();
+                  return InkWell(
+                    onTap: () => _go(AppRouter.community),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: 250,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(author, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 5),
+                        Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                        if (content.isNotEmpty) ...[
+                          const SizedBox(height: 5),
+                          Text(content, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9.5, height: 1.3, color: dark ? Colors.white60 : _muted)),
+                        ],
+                      ]),
+                    ),
+                  );
+                },
+              ),
+            ),
+    );
+  }
+
   Widget _error(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Text(text, style: TextStyle(color: dark ? Colors.white : _text)));
 }
