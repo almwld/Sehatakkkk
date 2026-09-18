@@ -47,10 +47,12 @@ exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{message
   const chatSnap=await db.collection('chats').doc(chatId).get();
   if(!chatSnap.exists)return;
   const chat=chatSnap.data()||{};
-  if(chat.isMuted===true)return;
   const ids=Array.isArray(chat.participants)?chat.participants.map(String):[];
   const receivers=ids.filter(id=>id&&id!==senderId);
   if(!receivers.length)return;
+  const mutedFor=chat.mutedFor&&typeof chat.mutedFor==='object'?chat.mutedFor:{};
+  const notifyReceivers=receivers.filter(uid=>mutedFor[uid]!==true);
+  if(!notifyReceivers.length)return;
   const type=String(m.type||'text'),text=String(m.text||'').trim();
   const body={image:'📷 أرسل صورة',video:'🎬 أرسل فيديو',audio:'🎵 أرسل رسالة صوتية',file:'📎 أرسل ملف',location:'📍 شارك موقعاً'}[type]||text||'أرسل رسالة جديدة';
   const senderName=String(m.senderName||'مستخدم');
@@ -65,7 +67,7 @@ exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{message
     deliveredAt:delivered?admin.firestore.FieldValue.serverTimestamp():null,
   });
 
-  await Promise.all(receivers.map(uid=>sendToUser(uid,{data:{type:'new_message',chatId,messageId:event.params.messageId,senderId,senderName,body}})));
+  await Promise.all(notifyReceivers.map(uid=>sendToUser(uid,{data:{type:'new_message',chatId,messageId:event.params.messageId,senderId,senderName,body}})));
 });
 
 exports.notifyIncomingCall=onDocumentCreated('calls/{callId}',async event=>{
