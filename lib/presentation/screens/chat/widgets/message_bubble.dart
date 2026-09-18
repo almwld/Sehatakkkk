@@ -30,6 +30,56 @@ class MessageBubble extends StatefulWidget {
 class _MessageBubbleState extends State<MessageBubble> {
   bool _isLocal(String path) => widget.message['isLocal'] == true || widget.message['isUploading'] == true || path.startsWith('file://') || (path.isNotEmpty && !path.startsWith('http') && File(path).existsSync());
 
+  String _formatMessageTime(dynamic value) {
+    if (value == null) return 'غير متوفر';
+    DateTime? date;
+    if (value is Timestamp) date = value.toDate();
+    if (value is DateTime) date = value;
+    if (value is String) date = DateTime.tryParse(value);
+    if (date == null) return 'غير متوفر';
+    final local = date.toLocal();
+    final hh = local.hour.toString().padLeft(2, '0');
+    final mm = local.minute.toString().padLeft(2, '0');
+    final dd = local.day.toString().padLeft(2, '0');
+    final mo = local.month.toString().padLeft(2, '0');
+    return '$dd/$mo/${local.year} $hh:$mm';
+  }
+
+  Future<void> _showMessageInfo() async {
+    if (!mounted) return;
+    final m = widget.message;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('معلومات الرسالة', textAlign: TextAlign.right, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 16),
+              _infoRow(Icons.schedule_rounded, 'أُرسلت', _formatMessageTime(m['timestamp'])),
+              _infoRow(Icons.done_all_rounded, 'تم التسليم', m['isDelivered'] == true ? _formatMessageTime(m['deliveredAt']) : 'لم تُسلّم بعد'),
+              _infoRow(Icons.done_all_rounded, 'تمت القراءة', m['isRead'] == true ? _formatMessageTime(m['readAt']) : 'لم تُقرأ بعد'),
+              if (m['isEdited'] == true) _infoRow(Icons.edit_outlined, 'الحالة', 'تم تعديل الرسالة'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String label, String value) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        child: Row(children: [
+          Icon(icon, size: 20, color: AppColors.primary),
+          const SizedBox(width: 10),
+          Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700))),
+          Text(value, textDirection: TextDirection.ltr),
+        ]),
+      );
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
@@ -202,6 +252,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                   if (mounted) Navigator.pop(context);
                 },
               ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('معلومات الرسالة'),
+              onTap: () {
+                Navigator.pop(context);
+                _showMessageInfo();
+              },
+            ),
             if (widget.onReply != null)
               ListTile(
                 leading: const Icon(Icons.reply),
