@@ -514,20 +514,61 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         backgroundColor: dark ? const Color(0xFF101827) : const Color(0xFFF7FBFA),
         leading: const BackButton(),
         titleSpacing: 0,
-        title: InkWell(
-            onTap: _profile,
-            child: Row(children: [
-              CircleAvatar(
-                  radius: 21,
-                  backgroundColor: AppColors.primary.withOpacity(.12),
-                  backgroundImage:
-                      image != null ? CachedNetworkImageProvider(image) : null,
-                  child: image == null
-                      ? Text(widget.otherUserName.isEmpty
-                          ? 'م'
-                          : widget.otherUserName.substring(0, 1))
-                      : null),
-              const SizedBox(width: 10),
+        title: StreamBuilder<UserStatusModel?>(
+            stream: _statusService.streamUserStatus(widget.otherUserId),
+            builder: (context, snapshot) {
+              final status = snapshot.data;
+              final hasStoryImage =
+                  status != null &&
+                  status.stories.isNotEmpty &&
+                  status.stories.first.type == 'image' &&
+                  status.stories.first.url.isNotEmpty;
+              final avatar = InkWell(
+                onTap: status != null && status.stories.isNotEmpty
+                    ? () => _openOtherUserStatus(status)
+                    : _profile,
+                borderRadius: BorderRadius.circular(22),
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: status != null && status.stories.isNotEmpty
+                        ? Border.all(color: AppColors.primary, width: 2)
+                        : null,
+                  ),
+                  child: ClipOval(
+                    child: hasStoryImage
+                        ? CachedNetworkImage(
+                            imageUrl: status.stories.first.url,
+                            fit: BoxFit.cover,
+                          )
+                        : image != null
+                            ? CachedNetworkImage(
+                                imageUrl: image,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: AppColors.primary.withOpacity(.12),
+                                child: Center(
+                                  child: Text(
+                                    widget.otherUserName.isEmpty
+                                        ? 'م'
+                                        : widget.otherUserName.substring(0, 1),
+                                    style: const TextStyle(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                  ),
+                ),
+              );
+              return Row(children: [
+                avatar,
+                const SizedBox(width: 10),
               Expanded(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,27 +590,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                   ]))
             ])),
         actions: [
-          StreamBuilder<UserStatusModel?>(
-              stream: _statusService.streamUserStatus(widget.otherUserId),
-              builder: (context, snapshot) {
-                final status = snapshot.data;
-                if (status == null) return const SizedBox.shrink();
-                final story = status.stories.first;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: InkWell(
-                    onTap: () => _openOtherUserStatus(status),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
-                      child: ClipOval(child: story.type == 'image' && story.url.isNotEmpty ? CachedNetworkImage(imageUrl: story.url, fit: BoxFit.cover) : Container(color: AppColors.primary.withOpacity(.12), child: const Icon(Icons.circle, size: 13, color: AppColors.primary))),
-                    ),
-                  ),
-                );
-              }),
           IconButton(
               onPressed: _searchMessages,
               tooltip: 'البحث داخل الرسائل',
