@@ -14,6 +14,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeStarted>(_onStarted);
     on<HomeDataFetched>(_onDataFetched);
     on<HomeDataRefreshed>(_onDataRefreshed);
+    on<HomeHealthStatsRefreshed>(_onHealthStatsRefreshed);
     on<HomeBannerChanged>(_onBannerChanged);
   }
 
@@ -32,6 +33,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       HomeDataRefreshed event, Emitter<HomeState> emit) async {
     if (state.isRefreshing) return;
     await _fetchAllData(emit, initialLoad: false);
+  }
+
+  Future<void> _onHealthStatsRefreshed(HomeHealthStatsRefreshed event, Emitter<HomeState> emit) async {
+    final stats = await _safe(
+      () => _repository.getHealthStats(),
+      (calories: state.calories, steps: state.steps, sleep: state.sleep, heartRate: state.heartRate),
+    );
+    if (!state.isLoaded) return;
+    emit(state.copyWith(
+      calories: stats.calories,
+      steps: stats.steps,
+      sleep: stats.sleep,
+      heartRate: stats.heartRate,
+    ));
   }
 
   void _onBannerChanged(
