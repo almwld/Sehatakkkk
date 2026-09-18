@@ -22,6 +22,15 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
   XFile? _selectedMedia;
   String _mediaType = 'image';
   bool _publishing = false;
+  int _textThemeIndex = 0;
+  static const _textThemes = <List<Color>>[
+    [Color(0xFF0A8F83), Color(0xFF14532D)],
+    [Color(0xFF2563EB), Color(0xFF4C1D95)],
+    [Color(0xFFDB2777), Color(0xFF7C2D12)],
+    [Color(0xFF7C3AED), Color(0xFF1E3A8A)],
+    [Color(0xFFEA580C), Color(0xFF9A3412)],
+    [Color(0xFF0891B2), Color(0xFF164E63)],
+  ];
 
   @override
   void dispose() {
@@ -121,6 +130,28 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
             ),
             onChanged: (_) => setState(() {}),
           ),
+          if (_selectedMedia == null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 42,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _textThemes.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, index) => GestureDetector(
+                  onTap: () => setState(() => _textThemeIndex = index),
+                  child: Container(
+                    width: 42,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: _textThemes[index]),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: _textThemeIndex == index ? Colors.white : Colors.transparent, width: 3),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 14),
           Row(
             children: [
@@ -179,9 +210,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
       if (_mediaType == 'image') {
         return Image.file(File(_selectedMedia!.path), fit: BoxFit.cover);
       }
-      return const Center(
-        child: Icon(Icons.play_circle_fill, size: 80, color: AppColors.primary),
-      );
+      return Center(child: Text('فيديو', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 18, fontWeight: FontWeight.w700)));
     }
     final text = _textController.text.trim();
     if (text.isNotEmpty) {
@@ -189,10 +218,8 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(32),
         alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0A8F83), Color(0xFF263238)],
-          ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: _textThemes[_textThemeIndex]),
         ),
         child: Text(
           text,
