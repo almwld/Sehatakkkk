@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/screens/delivery/delivery_health_info_screen.dart';
+import 'package:sehatak/presentation/screens/delivery/delivery_tracking_screen.dart';
 
 class DeliveryScreen extends StatefulWidget {
   const DeliveryScreen({super.key});
@@ -14,6 +16,7 @@ class DeliveryScreen extends StatefulWidget {
 class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProviderStateMixin {
   String _selectedType = 'standard';
   late TabController _tabController;
+  final TextEditingController _orderIdController = TextEditingController();
 
   // ✅ شركات التوصيل مع أيقونات ImageKit
   final List<Map<String, dynamic>> _deliveryCompanies = [
@@ -70,12 +73,13 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _orderIdController.dispose();
     super.dispose();
   }
 
@@ -95,6 +99,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
           tabs: const [
             Tab(text: 'شركات التوصيل'),
             Tab(text: 'قريباً'),
+            Tab(text: 'معلومات التوصيل'),
+            Tab(text: 'تتبع مباشر'),
           ],
           indicatorColor: Colors.white,
           labelColor: Colors.white,
@@ -107,6 +113,48 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
         children: [
           _buildDeliveryCompanies(isDark),
           _buildComingSoon(isDark),
+          const DeliveryHealthInfoScreen(),
+          _buildTrackingEntry(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackingEntry(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.location_searching_rounded, size: 64, color: AppColors.primary),
+          const SizedBox(height: 16),
+          Text('تتبع طلبك مباشرة', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+          const SizedBox(height: 8),
+          Text('أدخل رقم الطلب لعرض حالة التوصيل والموقع الحالي للمندوب عند توفر بيانات التتبع.', textAlign: TextAlign.center, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], height: 1.5)),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _orderIdController,
+            textDirection: TextDirection.ltr,
+            decoration: const InputDecoration(labelText: 'رقم الطلب', hintText: 'مثال: ORD-1001', prefixIcon: Icon(Icons.receipt_long_outlined), border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                final id = _orderIdController.text.trim();
+                if (id.isEmpty) {
+                  ToastService.showError(context, 'أدخل رقم الطلب أولاً');
+                  return;
+                }
+                Navigator.push(context, MaterialPageRoute(builder: (_) => DeliveryTrackingScreen(orderId: id)));
+              },
+              icon: const Icon(Icons.my_location_rounded),
+              label: const Text('فتح التتبع المباشر'),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            ),
+          ),
         ],
       ),
     );
