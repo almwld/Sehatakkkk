@@ -61,6 +61,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   bool _hasInitialMessageSnapshot = false;
   bool _loading = true;
   bool _online = false;
+  DateTime? _lastSeen;
   bool _muted = false;
   bool _pinned = false;
   MessageModel? _replyingTo;
@@ -220,8 +221,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         .doc(widget.otherUserId)
         .snapshots()
         .listen((snapshot) {
-      if (mounted)
-        setState(() => _online = snapshot.data()?['isOnline'] == true);
+      if (mounted) {
+        final data = snapshot.data() ?? <String, dynamic>{};
+        final rawLastSeen = data['lastSeen'];
+        final lastSeen = rawLastSeen is Timestamp ? rawLastSeen.toDate() : (rawLastSeen is DateTime ? rawLastSeen : null);
+        setState(() { _online = data['isOnline'] == true; _lastSeen = lastSeen; });
+      }
     });
     _messagesSub = _messagesRef
         .orderBy('timestamp', descending: true)
@@ -277,6 +282,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     } catch (error) {
       debugPrint('mark read: $error');
     }
+  }
+
+  String _lastSeenLabel() {
+    final value = _lastSeen;
+    if (value == null) return 'غير متصل';
+    final now = DateTime.now();
+    final diff = now.difference(value);
+    if (diff.inMinutes < 1) return 'آخر ظهور منذ لحظات';
+    if (diff.inMinutes < 60) return 'آخر ظهور منذ ${diff.inMinutes} د';
+    if (diff.inHours < 24) return 'آخر ظهور منذ ${diff.inHours} س';
+    if (diff.inDays < 7) return 'آخر ظهور منذ ${diff.inDays} يوم';
+    return 'آخر ظهور ${value.day.toString().padLeft(2,'0')}/${value.month.toString().padLeft(2,'0')}';
   }
 
   void _call(bool video) {
@@ -523,7 +540,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                     Text(
                         _otherTyping
                             ? 'يكتب الآن...'
-                            : (_online ? 'متصل الآن' : 'غير متصل'),
+                            : (_online ? 'متصل الآن' : _lastSeenLabel()),
                         style: TextStyle(
                             fontSize: 11,
                             color: _otherTyping
