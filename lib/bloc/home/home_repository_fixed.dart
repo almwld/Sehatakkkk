@@ -63,7 +63,7 @@ class HomeRepositoryFixed {
   Future<List<Map<String, dynamic>>> _query(
     String collection,
     int limit,
-  )) async {
+  ) async {
     try {
       final f = firestore;
       if (f == null) return [];
