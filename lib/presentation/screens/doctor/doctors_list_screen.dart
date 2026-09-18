@@ -6,7 +6,7 @@ import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/models/doctor_model.dart';
-import 'package:sehatak/core/services/chat_service.dart';
+import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
@@ -24,8 +24,6 @@ class DoctorsListScreen extends StatefulWidget {
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
   final TextEditingController _searchController =
       TextEditingController();
-
-  final ChatService _chatService = ChatService();
 
   String _selectedSpecialty = 'الكل';
 
@@ -65,64 +63,12 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   Future<void> _startChatWithDoctor(
     DoctorModel doctor,
   ) async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      ToastService.showError(
-        '❌ يرجى تسجيل الدخول أولاً',
-      );
-      return;
-    }
-
-    final doctorUid = doctor.userId?.trim();
-
-    if (doctorUid == null || doctorUid.isEmpty) {
-      ToastService.showError(
-        '❌ حساب الطبيب غير مرتبط بحساب المستخدم',
-      );
-      return;
-    }
-
-    if (doctorUid == user.uid) {
-      ToastService.showError(
-        '❌ لا يمكنك بدء محادثة مع حسابك',
-      );
-      return;
-    }
-
-    try {
-      final chatId = await _chatService.createChat(
-        doctorId: doctorUid,
-        doctorName: doctor.name,
-        patientName: user.displayName ?? 'مريض',
-        doctorImage: doctor.photoUrl,
-        patientImage: user.photoURL,
-      );
-
-      if (!mounted || chatId.trim().isEmpty) {
-        return;
-      }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ChatRoomScreen(
-            chatId: chatId,
-            otherUserId: doctorUid,
-            otherUserName: doctor.name,
-            isGroup: false,
-          ),
-        ),
-      );
-    } catch (e) {
-      ToastService.showError(
-        '❌ فشل بدء المحادثة',
-      );
-
-      debugPrint(
-        'Doctor chat error: $e',
-      );
-    }
+    await ChatNavigation.openChat(
+      context,
+      doctorName: doctor.name,
+      doctorId: doctor.userId ?? '',
+      doctorImage: doctor.photoUrl,
+    );
   }
 
   void _startCallWithDoctor(
