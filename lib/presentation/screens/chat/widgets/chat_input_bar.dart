@@ -239,15 +239,15 @@ class _ChatInputBarState extends State<ChatInputBar> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final x = await _picker.pickImage(source: source, imageQuality: 90);
-    if (x != null) {
-      await _sendMedia(
-        File(x.path),
-        type: 'image',
-        folder: 'images',
-        preview: '📷 صورة',
-      );
+    if (source == ImageSource.gallery) {
+      final xs = await _picker.pickMultiImage(imageQuality: 90);
+      for (final x in xs) {
+        await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 صورة');
+      }
+      return;
     }
+    final x = await _picker.pickImage(source: source, imageQuality: 90);
+    if (x != null) await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 صورة');
   }
 
   Future<void> _pickVideo() async {
@@ -269,15 +269,15 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final result = await FilePicker.platform.pickFiles(withData: false);
     final picked = result?.files.single;
     if (picked?.path == null) return;
-    await _sendMedia(
-      File(picked!.path!),
-      type: 'file',
-      folder: 'files',
-      preview: '📎 ${picked.name}',
-      name: picked.name,
-      size: _formatBytes(picked.size),
-      mime: picked.extension == null ? null : _guessMime(picked.extension!),
-    );
+    final size = _formatBytes(picked!.size);
+    if (!mounted) return;
+    final send = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('معاينة الملف'),
+      content: ListTile(leading: const Icon(Icons.insert_drive_file_outlined), title: Text(picked.name, maxLines: 2, overflow: TextOverflow.ellipsis), subtitle: Text(size)),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')), FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إرسال'))],
+    ));
+    if (send != true) return;
+    await _sendMedia(File(picked.path!), type: 'file', folder: 'files', preview: '📎 ${picked.name}', name: picked.name, size: size, mime: picked.extension == null ? null : _guessMime(picked.extension!));
   }
 
   String _guessMime(String extension) {
