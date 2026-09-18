@@ -5,8 +5,15 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
 
-class CallsScreen extends StatelessWidget {
+class CallsScreen extends StatefulWidget {
   const CallsScreen({super.key});
+
+  @override
+  State<CallsScreen> createState() => _CallsScreenState();
+}
+
+class _CallsScreenState extends State<CallsScreen> {
+  List<CallModel> _lastCalls = const [];
 
   @override
   Widget build(BuildContext context) {
@@ -25,21 +32,31 @@ class CallsScreen extends StatelessWidget {
         }
         if (snapshot.hasError) {
           debugPrint('call history error: ${snapshot.error}');
+          if (_lastCalls.isNotEmpty) {
+            return _buildCallsList(context, _lastCalls, currentUid, isDark);
+          }
           return _empty('تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى', isDark);
         }
 
-        final calls = snapshot.data ?? const <CallModel>[];
+        if (snapshot.hasData) {
+          _lastCalls = snapshot.data!;
+        }
+        final calls = snapshot.data ?? _lastCalls;
         if (calls.isEmpty) {
           return _empty('لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً', isDark);
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
-          itemCount: calls.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (_, index) => _callTile(context, calls[index], currentUid, isDark),
-        );
+        return _buildCallsList(context, calls, currentUid, isDark);
       },
+    );
+  }
+
+  Widget _buildCallsList(BuildContext context, List<CallModel> calls, String uid, bool isDark) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
+      itemCount: calls.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (_, index) => _callTile(context, calls[index], uid, isDark),
     );
   }
 
