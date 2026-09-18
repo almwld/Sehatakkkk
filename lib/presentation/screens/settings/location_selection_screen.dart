@@ -192,6 +192,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
               'updatedAt': FieldValue.serverTimestamp(),
               'createdAt': FieldValue.serverTimestamp(),
             }, SetOptions(merge: true));
+          } else {
+            await firestore.collection('map_facilities').doc(user.uid).delete();
           }
         } catch (e) {
           debugPrint('Location profile/facility sync skipped: $e');
@@ -243,12 +245,14 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        final firestore = FirebaseFirestore.instance;
+        await firestore.collection('users').doc(user.uid).update({
           'deliveryArea': FieldValue.delete(),
           'deliveryAddress': FieldValue.delete(),
           'location': FieldValue.delete(),
           'locationUpdatedAt': FieldValue.delete(),
         });
+        await firestore.collection('map_facilities').doc(user.uid).delete();
       } catch (_) {}
     }
 
