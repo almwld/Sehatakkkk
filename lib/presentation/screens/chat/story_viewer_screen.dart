@@ -170,10 +170,6 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             _buildProgressBars(),
             _buildHeader(),
             _buildBottomActions(),
-            if (_isPaused)
-              const Center(
-                child: Icon(Icons.pause_circle_filled, color: Colors.white70, size: 64),
-              ),
           ],
         ),
       ),
@@ -376,7 +372,7 @@ class _StoryContentState extends State<_StoryContent> {
     if (widget.story.type == 'image' && widget.story.url.isNotEmpty) {
       return Image.network(
         widget.story.url,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => _textContent('تعذر تحميل الصورة'),
         loadingBuilder: (_, child, progress) => progress == null
             ? child
@@ -400,13 +396,26 @@ class _StoryContentState extends State<_StoryContent> {
     return _textContent(widget.story.text ?? '');
   }
 
+  List<Color> _textColors(String text) {
+    const palettes = <List<Color>>[
+      [Color(0xFF0A8F83), Color(0xFF14532D)],
+      [Color(0xFF2563EB), Color(0xFF4C1D95)],
+      [Color(0xFFDB2777), Color(0xFF7C2D12)],
+      [Color(0xFF7C3AED), Color(0xFF1E3A8A)],
+      [Color(0xFFEA580C), Color(0xFF9A3412)],
+      [Color(0xFF0891B2), Color(0xFF164E63)],
+    ];
+    final hash = text.codeUnits.fold<int>(0, (sum, code) => sum + code);
+    return palettes[hash.abs() % palettes.length];
+  }
+
   Widget _textContent(String text) {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0A8F83), Color(0xFF263238)],
+          colors: _textColors(text),
         ),
       ),
       alignment: Alignment.center,
