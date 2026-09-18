@@ -162,21 +162,6 @@ class _ChatScreenState extends State<ChatScreen> {
           _buildContactsTab(isDark),
         ],
       ),
-      floatingActionButton: (_tabIndex == 0 || _tabIndex == 2)
-          ? FloatingActionButton.extended(
-              backgroundColor: AppColors.primary,
-              onPressed: _openingChat ? null : () => _showDoctorsForNewChat(isDark),
-              icon: Image.asset(
-                'assets/images/chat/attach_file.png',
-                width: 21,
-                height: 21,
-                color: Colors.white,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
-              label: const Text('محادثة جديدة', style: TextStyle(color: Colors.white)),
-            )
-          : null,
-    );
   }
 
   Widget _buildTabs(bool isDark) {
