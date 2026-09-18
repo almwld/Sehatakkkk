@@ -17,6 +17,7 @@ import 'package:sehatak/presentation/screens/chat/add_status_screen.dart';
 import 'package:sehatak/presentation/screens/chat/calls_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/widgets/status_row.dart';
 import 'package:sehatak/presentation/widgets/health_contacts_section.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
@@ -271,7 +272,12 @@ class _ChatScreenState extends State<ChatScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        leading: CircleAvatar(radius: 27, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: image.isNotEmpty ? NetworkImage(image) : null, child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null),
+        leading: _conversationAvatar(
+          userId: otherId,
+          name: name,
+          image: image,
+          isDark: isDark,
+        ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(chat.lastMessage?.isNotEmpty == true ? chat.lastMessage! : 'اضغط لفتح المحادثة', maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: unread > 0
@@ -279,6 +285,71 @@ class _ChatScreenState extends State<ChatScreen> {
             : const Icon(Icons.chevron_left),
         onTap: otherId.isEmpty ? null : () => _openExistingChat(chat.id, otherId, name, image),
       ),
+    );
+  }
+
+  Widget _conversationAvatar({
+    required String userId,
+    required String name,
+    required String image,
+    required bool isDark,
+  }) {
+    if (userId.isEmpty) {
+      return _profileAvatar(name, image, false, null);
+    }
+    return StreamBuilder<UserStatusModel?>(
+      stream: _statusService.streamUserStatus(userId),
+      builder: (context, snapshot) {
+        final status = snapshot.data;
+        final hasStatus = status?.isValid == true && status!.stories.isNotEmpty;
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (hasStatus) {
+              _openStatus(status!);
+            } else {
+              _openPublicProfile(userId);
+            }
+          },
+          child: _profileAvatar(name, image, hasStatus, status),
+        );
+      },
+    );
+  }
+
+  Widget _profileAvatar(
+    String name,
+    String image,
+    bool hasStatus,
+    UserStatusModel? status,
+  ) {
+    return Container(
+      width: 58,
+      height: 58,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: hasStatus ? AppColors.primary : Colors.transparent,
+          width: 3,
+        ),
+      ),
+      child: CircleAvatar(
+        radius: 25,
+        backgroundColor: AppColors.primary.withOpacity(.12),
+        backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
+        child: image.isEmpty
+            ? const Icon(Icons.person, color: AppColors.primary)
+            : null,
+      ),
+    );
+  }
+
+  Future<void> _openPublicProfile(String userId) async {
+    if (!mounted || userId.isEmpty) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PatientProfile(userId: userId)),
     );
   }
 
