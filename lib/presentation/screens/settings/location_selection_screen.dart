@@ -97,7 +97,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
       }
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),
+        desiredAccuracy: LocationAccuracy.best,
       );
       final point = LatLng(position.latitude, position.longitude);
       setState(() => _selectedLocation = point);
