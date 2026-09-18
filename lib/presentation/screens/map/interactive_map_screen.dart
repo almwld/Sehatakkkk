@@ -744,15 +744,23 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
         AppColors.primary,
         BlendMode.srcIn,
       ),
+      placeholderBuilder: (context) => SizedBox(
+        width: size,
+        height: size,
+      ),
     );
   }
 
   Widget _buildMapLocationIcon({double size = 34}) {
-    return Image.asset(
-      'assets/icons/ic_launcher.png',
+    return SizedBox(
       width: size,
       height: size,
-      fit: BoxFit.contain,
+      child: Image.asset(
+        'android/app/src/main/res/mipmap-hdpi/ic_launcher.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+      ),
     );
   }
 
