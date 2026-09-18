@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -18,14 +19,38 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   DeliveryModel? _delivery;
   bool _isLoading = true;
   int _currentStep = 1;
+  StreamSubscription<DeliveryModel>? _deliverySubscription;
 
   @override
   void initState() {
     super.initState();
-    _loadDeliveryData();
+    _subscribeToDelivery();
+  }
+
+  void _subscribeToDelivery() {
+    _deliverySubscription?.cancel();
+    if (widget.orderId.trim().isEmpty) {
+      setState(() { _isLoading = false; _delivery = null; });
+      return;
+    }
+    setState(() => _isLoading = true);
+    _deliverySubscription = _deliveryService.watchDeliveryStatus(widget.orderId).listen((delivery) {
+      if (!mounted) return;
+      setState(() {
+        _delivery = delivery;
+        _currentStep = delivery.currentStep;
+        _isLoading = false;
+      });
+    }, onError: (_) {
+      if (mounted) setState(() => _isLoading = false);
+    });
   }
 
   Future<void> _loadDeliveryData() async {
+    _subscribeToDelivery();
+  }
+
+
     setState(() => _isLoading = true);
     try {
       final delivery = await _deliveryService.getDeliveryStatus(widget.orderId);
@@ -38,6 +63,12 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _deliverySubscription?.cancel();
+    super.dispose();
   }
 
   @override
