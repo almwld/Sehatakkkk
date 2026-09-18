@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
@@ -29,6 +32,8 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   LatLng? _selectedLocation;
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
+  List<Map<String, dynamic>> _firestorePlaces = const [];
+  bool _loadingFirestorePlaces = false;
 
   final List<String> _categories = [
     'الكل',
@@ -665,6 +670,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // دمج جميع الأماكن
   List<Map<String, dynamic>> get _allPlaces {
     return [
+      ..._firestorePlaces,
       ..._hospitals,
       ..._pharmacies,
       ..._labs,
@@ -733,34 +739,27 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
       _getIconPath(category),
       width: size,
       height: size,
+      fit: BoxFit.contain,
       colorFilter: const ColorFilter.mode(
         AppColors.primary,
         BlendMode.srcIn,
       ),
-      placeholderBuilder: (context) => const SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(strokeWidth: 2),
+      errorBuilder: (_, __, ___) => Image.asset(
+        'assets/icons/settings/select_location.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
       ),
     );
   }
 
-  // 🎨 أيقونة احتياطية (Material Icons)
-  IconData _getIconForCategory(String category) {
-    switch (category) {
-      case 'hospitals':
-        return Icons.local_hospital;
-      case 'pharmacies':
-        return Icons.local_pharmacy;
-      case 'labs':
-        return Icons.science;
-      case 'clinics':
-        return Icons.healing;
-      case 'other':
-        return Icons.place;
-      default:
-        return Icons.place;
-    }
+  Widget _buildMapLocationIcon({double size = 34}) {
+    return Image.asset(
+      'assets/icons/settings/select_location.png',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+    );
   }
 
   // 🏷️ الحصول على اسم الفئة بالعربية
@@ -812,9 +811,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                 fit: BoxFit.contain,
                 alignment: Alignment.bottomCenter,
                 placeholderBuilder: (context) => Center(
-                  child: Icon(
-                    _getIconForCategory(category),
-                    color: AppColors.primary,
+                  child: _buildMapLocationIcon(
                     size: isSelected ? 34 : 28,
                   ),
                 ),
@@ -879,7 +876,12 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: Colors.grey.shade600),
+                          Image.asset(
+                            'assets/icons/settings/select_location.png',
+                            width: 16,
+                            height: 16,
+                            fit: BoxFit.contain,
+                          ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
@@ -994,6 +996,86 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     );
   }
 
+  Future<void> _loadFirestoreMapData() async {
+    if (_loadingFirestorePlaces) return;
+    _loadingFirestorePlaces = true;
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('map_facilities')
+          .where('isPublished', isEqualTo: true)
+          .limit(300)
+          .get();
+
+      final places = <Map<String, dynamic>>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final location = data['location'];
+        final lat = data['lat'];
+        final lng = data['lng'];
+        double? latitude;
+        double? longitude;
+        if (location is GeoPoint) {
+          latitude = location.latitude;
+          longitude = location.longitude;
+        } else if (lat is num && lng is num) {
+          latitude = lat.toDouble();
+          longitude = lng.toDouble();
+        }
+        if (latitude == null || longitude == null) continue;
+
+        places.add({
+          'id': doc.id,
+          'name': (data['name'] ?? 'مرفق صحي').toString(),
+          'address': (data['address'] ?? data['area'] ?? 'الموقع المحفوظ').toString(),
+          'phone': (data['phone'] ?? '').toString(),
+          'role': (data['role'] ?? '').toString(),
+          'category': (data['category'] ?? 'other').toString(),
+          'lat': latitude,
+          'lng': longitude,
+          'rating': data['rating'] is num ? (data['rating'] as num).toDouble() : null,
+          'isFirestore': true,
+        });
+      }
+
+      if (mounted) setState(() => _firestorePlaces = places);
+    } catch (e) {
+      debugPrint('Map Firestore facilities load skipped: $e');
+    } finally {
+      _loadingFirestorePlaces = false;
+    }
+  }
+
+  Future<void> _loadSavedUserLocation() async {
+    LatLng? point;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lat = prefs.getDouble('delivery_latitude');
+      final lng = prefs.getDouble('delivery_longitude');
+      if (lat != null && lng != null) point = LatLng(lat, lng);
+    } catch (_) {}
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        final data = snapshot.data();
+        final location = data?['location'];
+        if (location is GeoPoint) {
+          point = LatLng(location.latitude, location.longitude);
+        }
+      } catch (e) {
+        debugPrint('Map user location load skipped: $e');
+      }
+    }
+
+    if (!mounted || point == null) return;
+    setState(() => _selectedLocation = point);
+    _mapController.move(point, 15);
+  }
+
   // 🌐 فتح الرابط
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
@@ -1005,18 +1087,32 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // 📍 الحصول على الموقع الحالي
   Future<void> _getCurrentLocation() async {
     try {
+      if (!await Geolocator.isLocationServiceEnabled()) return;
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        await _loadSavedUserLocation();
+        return;
+      }
+
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
+      if (!mounted) return;
       setState(() {
         _currentPosition = position;
+        _selectedLocation = LatLng(position.latitude, position.longitude);
       });
       _mapController.move(
         LatLng(position.latitude, position.longitude),
         14,
       );
     } catch (e) {
-      print('❌ Error getting location: $e');
+      debugPrint('Map current location error: $e');
+      await _loadSavedUserLocation();
     }
   }
 
@@ -1035,6 +1131,8 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     )..forward();
+    _loadFirestoreMapData();
+    _loadSavedUserLocation();
     _getCurrentLocation();
   }
 
@@ -1157,25 +1255,10 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     markers: [
                       Marker(
                         width: 60,
-                        height: 60,
+                        height: 70,
                         point: _selectedLocation!,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.primary,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withOpacity(0.4),
-                                blurRadius: 12,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.location_on,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                        ),
+                        alignment: Alignment.bottomCenter,
+                        child: _buildMapLocationIcon(size: 58),
                       ),
                     ],
                   ),
