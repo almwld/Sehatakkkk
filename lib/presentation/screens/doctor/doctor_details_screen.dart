@@ -12,7 +12,7 @@ import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/booking/booking_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
+import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
@@ -160,25 +160,16 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
   Future<void> _openChat() async {
     if (_busy) return;
+    final doctor = _doctor;
+    if (doctor == null) return;
     setState(() => _busy = true);
     try {
-      final chatId = await _ensureChat();
-      final doctor = _doctor;
-      if (!mounted || chatId == null || chatId.isEmpty || doctor == null) return;
-
-      await Navigator.push(
+      await ChatNavigation.openChat(
         context,
-        MaterialPageRoute(
-          builder: (_) => ChatRoomScreen(
-            chatId: chatId,
-            otherUserId: doctor.userId!,
-            otherUserName: doctor.name,
-            isGroup: false,
-          ),
-        ),
+        doctorName: doctor.name,
+        doctorId: doctor.userId ?? '',
+        doctorImage: doctor.photoUrl,
       );
-    } catch (e) {
-      if (mounted) ToastService.showError('❌ تعذر فتح الدردشة');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
