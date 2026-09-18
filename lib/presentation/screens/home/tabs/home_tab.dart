@@ -19,6 +19,10 @@ import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/home/featured_facilities_grid.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:sehatak/core/models/community/community_post_model.dart';
 
 /// Canonical Home implementation. One screen, one navigation source, reusable sections.
 class HomeTab extends StatefulWidget {
@@ -165,9 +169,9 @@ class _HomeTabState extends State<HomeTab>
           InkWell(onTap: () => _go(AppRouter.profile), borderRadius: BorderRadius.circular(24), child: CircleAvatar(radius: 23, backgroundColor: Colors.white24, child: Text(first, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)))),
           const SizedBox(width: 12),
           Expanded(child: InkWell(onTap: () => _go(AppRouter.profile), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizedBox(height: 3), Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]))),
-          _headerActionAsset('assets/icons/top_bar/notifications.png', AppRouter.notifications),
+          _headerActionAsset('assets/icons/top_bar/notifications.png', AppRouter.notifications, Icons.notifications_none_rounded),
           const SizedBox(width: 8),
-          _headerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart),
+          _headerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart, Icons.shopping_cart_outlined),
         ]),
         const SizedBox(height: 18),
         InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء، أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
@@ -175,7 +179,7 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _headerActionAsset(String asset, String route) => InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), alignment: Alignment.center, child: Image.asset(asset, width: 22, height: 22, errorBuilder: (_, __, ___) => const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 21))));
+  Widget _headerActionAsset(String asset, String route, IconData fallbackIcon) => InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), alignment: Alignment.center, child: Image.asset(asset, width: 22, height: 22, errorBuilder: (_, __, ___) => Icon(fallbackIcon, color: Colors.white, size: 21))));
 
   Widget _banner(HomeState state, bool dark) => state.bannerImages.isEmpty
       ? Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Container(height: 150, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, child: Text('صحتك معك كل يوم', style: TextStyle(color: dark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
@@ -286,7 +290,8 @@ class _HomeTabState extends State<HomeTab>
       {'name': 'حجز موعد', 'asset': 'assets/images/services/calendar_booking.png', 'route': AppRouter.appointments},
       {'name': 'طوارئ', 'asset': 'assets/images/services/emergency.png', 'route': AppRouter.emergency},
       {'name': 'خريطة', 'asset': 'assets/images/services/map_location.png', 'route': AppRouter.map},
-      {'name': 'باقات', 'asset': 'assets/images/services/packages.png', 'route': AppRouter.services},
+      {'name': 'باقات', 'asset': 'assets/images/services/packages.png', 'route': AppRouter.packages},
+      {'name': 'جميع الخدمات', 'asset': 'assets/images/ui/all_services.png', 'route': AppRouter.services},
     ];
     return _section(
       title: 'اكتشف المزيد',
@@ -479,46 +484,42 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _community(List<dynamic> items, bool dark) {
     return _section(
-      title: 'المجتمع',
-      dark: dark,
-      more: () => _go(AppRouter.community),
-      child: items.isEmpty
-          ? _empty('لا توجد منشورات منشورة حالياً', dark)
-          : SizedBox(
-              height: 150,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (_, i) {
-                  final item = items[i] as Map<String, dynamic>;
-                  final title = (item['title'] ?? 'منشور').toString();
-                  final content = (item['content'] ?? '').toString();
-                  final author = (item['userName'] ?? 'مستخدم').toString();
-                  return InkWell(
-                    onTap: () => _go(AppRouter.community),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      width: 250,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(author, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 5),
-                        Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
-                        if (content.isNotEmpty) ...[
-                          const SizedBox(height: 5),
-                          Text(content, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9.5, height: 1.3, color: dark ? Colors.white60 : _muted)),
-                        ],
-                      ]),
-                    ),
-                  );
-                },
-              ),
-            ),
+      title: 'المجتمع', dark: dark, more: () => _go(AppRouter.community),
+      child: items.isEmpty ? _empty('لا توجد منشورات منشورة حالياً', dark) :
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Column(children: items.take(3).map((raw) {
+          final data = Map<String, dynamic>.from(raw as Map);
+          final createdAt = data['createdAt'] is Timestamp ? (data['createdAt'] as Timestamp).toDate() : data['createdAt'] is DateTime ? data['createdAt'] as DateTime : null;
+          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? 'مستخدم'}', title: '${data['title'] ?? 'منشور'}', content: data['content']?.toString(), imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: data['category']?.toString(), likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
+          return Padding(padding: const EdgeInsets.only(bottom: 12), child: _HomeCommunityPost(post: post, dark: dark));
+        }).toList())),
     );
   }
-
   Widget _error(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Text(text, style: TextStyle(color: dark ? Colors.white : _text)));
+}
+
+class _HomeCommunityPost extends StatefulWidget {
+  final CommunityPostModel post; final bool dark;
+  const _HomeCommunityPost({required this.post, required this.dark});
+  @override State<_HomeCommunityPost> createState() => _HomeCommunityPostState();
+}
+class _HomeCommunityPostState extends State<_HomeCommunityPost> {
+  late int _likes, _shares; bool _liked = false;
+  @override void initState() { super.initState(); _likes = widget.post.likes; _shares = widget.post.shares; }
+  Future<void> _like() async {
+    final user = FirebaseAuth.instance.currentUser; if (user == null) return;
+    final ref = FirebaseFirestore.instance.collection('community_posts').doc(widget.post.id);
+    final likeRef = FirebaseFirestore.instance.collection('users').doc(user.uid).collection('liked_posts').doc(widget.post.id);
+    await FirebaseFirestore.instance.runTransaction((tx) async { final snap = await tx.get(ref); final ls = await tx.get(likeRef); final likes = (snap.data()?['likes'] as num?)?.toInt() ?? 0; if (ls.exists) { tx.update(ref, {'likes': likes > 0 ? likes - 1 : 0}); tx.delete(likeRef); } else { tx.update(ref, {'likes': likes + 1}); tx.set(likeRef, {'postId': widget.post.id, 'likedAt': FieldValue.serverTimestamp()}); } });
+    if (mounted) setState(() { _liked = !_liked; _likes += _liked ? 1 : -1; });
+  }
+  Future<void> _share() async { try { await FirebaseFirestore.instance.collection('community_posts').doc(widget.post.id).update({'shares': FieldValue.increment(1)}); await Share.share('${widget.post.title}\n${widget.post.content ?? ''}', subject: 'منشور من صحتك'); if (mounted) setState(() => _shares++); } catch (_) {} }
+  @override Widget build(BuildContext context) { final p = widget.post; final image = p.images?.isNotEmpty == true ? p.images!.first : p.imageUrl;
+    return Container(decoration: BoxDecoration(color: widget.dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(20)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Padding(padding: const EdgeInsets.fromLTRB(14,14,14,8), child: Row(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(p.userName.isEmpty ? 'ص' : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : _text)), Text('${p.category ?? 'عام'} • ${p.timeAgo}', style: TextStyle(fontSize: 10, color: widget.dark ? Colors.white60 : _muted))]))])),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Text(p.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : _text))),
+      if ((p.content ?? '').trim().isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(14,6,14,10), child: Text(p.content!, style: TextStyle(height: 1.5, color: widget.dark ? Colors.white70 : Colors.black87))),
+      if (image != null && image.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: ClipRRect(borderRadius: BorderRadius.circular(16), child: AppImage(imageUrl: image, height: 250, width: double.infinity, fit: BoxFit.cover))),
+      Padding(padding: const EdgeInsets.fromLTRB(10,6,10,8), child: Row(children: [InkWell(onTap: _like, child: Padding(padding: const EdgeInsets.all(8), child: Row(children: [Icon(_liked ? Icons.favorite : Icons.favorite_border, size: 20, color: _liked ? AppColors.primary : Colors.grey[600]), const SizedBox(width: 4), Text('$_likes', style: TextStyle(color: _liked ? AppColors.primary : Colors.grey[600], fontWeight: FontWeight.w700))]))), const SizedBox(width: 6), InkWell(onTap: _share, child: Padding(padding: const EdgeInsets.all(8), child: Row(children: [Icon(Icons.share_outlined, size: 20, color: Colors.grey[600]), const SizedBox(width: 4), Text('$_shares', style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w700))])))])),
+    ]));
+  }
 }
