@@ -170,7 +170,7 @@ class _HomeTabState extends State<HomeTab>
           _headerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart),
         ]),
         const SizedBox(height: 18),
-        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: const Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء، أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
+        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء، أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
       ]),
     );
   }
