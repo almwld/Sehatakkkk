@@ -12,11 +12,13 @@ import 'package:sehatak/presentation/widgets/create_post_sheet.dart';
 class DoctorCommunityFab extends StatefulWidget {
   final ScrollController scrollController;
   final bool dark;
+  final VoidCallback? onPostPublished;
 
   const DoctorCommunityFab({
     super.key,
     required this.scrollController,
     required this.dark,
+    this.onPostPublished,
   });
 
   @override
@@ -121,6 +123,7 @@ class _DoctorCommunityFabState extends State<DoctorCommunityFab> {
           child: const CreatePostSheet(),
         ),
       );
+      if (mounted) widget.onPostPublished?.call();
     } finally {
       if (mounted) {
         setState(() {
