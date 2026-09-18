@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -46,9 +47,11 @@ class ChatMediaTransferService {
   StreamSubscription<dynamic>? _connectivitySub;
   bool _processing = false;
   bool _workerInitialized = false;
-  final Map<String, dynamic> _activeTasks = {};
+  final Map<String, UploadTask> _activeFirebaseTasks = {};
+  final Map<String, CancelToken> _activeCancelTokens = {};
+  final Set<String> _cancelledIds = {};
 
-  bool _isCancelled(String id) => _activeTasks[id] == 'cancelled';
+  bool _isCancelled(String id) => _cancelledIds.contains(id);
 
   Future<Database> get _database async {
     if (_db != null) return _db!;
@@ -329,7 +332,7 @@ class ChatMediaTransferService {
       customMetadata: {'chatId': chatId, 'senderId': FirebaseAuth.instance.currentUser?.uid ?? '', 'outboxId': id},
     );
     final task = ref.putFile(file, metadata);
-    _activeTasks[id] = task;
+    _activeFirebaseTasks[id] = task;
     final sub = task.snapshotEvents.listen((snapshot) {
       final total = snapshot.totalBytes;
       if (total <= 0) return;
@@ -345,7 +348,7 @@ class ChatMediaTransferService {
       return await ref.getDownloadURL();
     } finally {
       await sub.cancel();
-      _activeTasks.remove(id);
+      _activeFirebaseTasks.remove(id);
     }
   }
 
@@ -367,12 +370,17 @@ class ChatMediaTransferService {
     return null;
   }
 
+  CancelToken _cancelToken(String id) =>
+      _activeCancelTokens.putIfAbsent(id, CancelToken.new);
+
   Future<void> cancel(String id) async {
-    _activeTasks[id] = 'cancelled';
-    final task = _activeTasks[id];
-    if (task is UploadTask) {
+    _cancelledIds.add(id);
+    final task = _activeFirebaseTasks[id];
+    if (task != null) {
       await task.cancel();
     }
+    final token = _activeCancelTokens[id];
+    token?.cancel('تم إلغاء رفع الوسائط');
     final db = await _database;
     final job = await getById(id);
     if (job != null) {
@@ -382,7 +390,9 @@ class ChatMediaTransferService {
         try { await File(localPath).delete(); } catch (_) {}
       }
     }
-    _activeTasks.remove(id);
+    _activeFirebaseTasks.remove(id);
+    _activeCancelTokens.remove(id);
+    _cancelledIds.remove(id);
   }
 
   Future<void> retry(String id) async {
