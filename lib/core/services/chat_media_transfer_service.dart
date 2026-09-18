@@ -36,6 +36,8 @@ void chatMediaTransferCallbackDispatcher() {
   });
 }
 
+class MediaUploadCancelled implements Exception {}
+
 class ChatMediaTransferService {
   ChatMediaTransferService._();
   static final ChatMediaTransferService instance = ChatMediaTransferService._();
@@ -44,6 +46,9 @@ class ChatMediaTransferService {
   StreamSubscription<dynamic>? _connectivitySub;
   bool _processing = false;
   bool _workerInitialized = false;
+  final Map<String, dynamic> _activeTasks = {};
+
+  bool _isCancelled(String id) => _activeTasks[id] == 'cancelled';
 
   Future<Database> get _database async {
     if (_db != null) return _db!;
@@ -189,6 +194,7 @@ class ChatMediaTransferService {
         try {
           await _process(job);
         } catch (e, st) {
+          if (e is MediaUploadCancelled) continue;
           debugPrint('❌ media job ${job['id']} failed: $e');
           debugPrint('$st');
           await db.update('media_outbox', {
@@ -221,6 +227,7 @@ class ChatMediaTransferService {
     var remotePath = job['remote_path']?.toString();
     var url = job['remote_url']?.toString();
     final type = job['type']?.toString() ?? 'file';
+    if (_isCancelled(id)) throw MediaUploadCancelled();
 
     if (url == null || url.isEmpty) {
       final provider = remotePath?.startsWith('firebase://') == true ? 'firebase' : 'nextcloud';
@@ -236,6 +243,7 @@ class ChatMediaTransferService {
             file: file,
             path: 'chats/${job['chat_id']}/${job['folder']}',
             fileName: job['file_name']?.toString(),
+            cancelToken: _cancelToken(id),
             onProgress: (sent, total) {
               if (total > 0) {
                 unawaited(db.update('media_outbox', {
@@ -271,6 +279,7 @@ class ChatMediaTransferService {
       }
     }
 
+    if (_isCancelled(id)) throw MediaUploadCancelled();
     if (url == null || url.isEmpty) throw StateError('تعذر إنشاء رابط قابل للوصول للوسائط');
     await db.update('media_outbox', {
       'status': 'link_ready',
@@ -320,6 +329,7 @@ class ChatMediaTransferService {
       customMetadata: {'chatId': chatId, 'senderId': FirebaseAuth.instance.currentUser?.uid ?? '', 'outboxId': id},
     );
     final task = ref.putFile(file, metadata);
+    _activeTasks[id] = task;
     final sub = task.snapshotEvents.listen((snapshot) {
       final total = snapshot.totalBytes;
       if (total <= 0) return;
@@ -331,9 +341,11 @@ class ChatMediaTransferService {
     });
     try {
       await task;
+      if (_isCancelled(id)) throw MediaUploadCancelled();
       return await ref.getDownloadURL();
     } finally {
       await sub.cancel();
+      _activeTasks.remove(id);
     }
   }
 
@@ -353,6 +365,24 @@ class ChatMediaTransferService {
       await Future<void>.delayed(Duration(seconds: 2 * (i + 1)));
     }
     return null;
+  }
+
+  Future<void> cancel(String id) async {
+    _activeTasks[id] = 'cancelled';
+    final task = _activeTasks[id];
+    if (task is UploadTask) {
+      await task.cancel();
+    }
+    final db = await _database;
+    final job = await getById(id);
+    if (job != null) {
+      final localPath = job['local_path']?.toString();
+      await db.delete('media_outbox', where: 'id = ?', whereArgs: [id]);
+      if (localPath != null && localPath.isNotEmpty) {
+        try { await File(localPath).delete(); } catch (_) {}
+      }
+    }
+    _activeTasks.remove(id);
   }
 
   Future<void> retry(String id) async {
