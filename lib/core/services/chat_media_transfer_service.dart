@@ -259,8 +259,10 @@ class ChatMediaTransferService {
             createShare: true,
           );
         } catch (e) {
+          if (_isCancelled(id)) throw MediaUploadCancelled();
           upload = NextcloudUploadResult(success: false, error: e.toString());
         }
+        if (_isCancelled(id)) throw MediaUploadCancelled();
         if (upload.success && upload.path != null) {
           remotePath = upload.path;
           url = upload.url;
@@ -392,7 +394,6 @@ class ChatMediaTransferService {
     }
     _activeFirebaseTasks.remove(id);
     _activeCancelTokens.remove(id);
-    _cancelledIds.remove(id);
   }
 
   Future<void> retry(String id) async {
