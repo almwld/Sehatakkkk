@@ -618,15 +618,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                 itemBuilder: (_, index) {
                   final message = all[index];
                   final remote = message['isLocal'] != true;
-                  final messageId = message['id']?.toString();
-                  final model = remote && messageId != null
+                  final rawMessageId = message['id']?.toString();
+                  final model = remote && rawMessageId != null
                       ? _messages.firstWhere(
-                          (m) => m.id == messageId,
+                          (m) => m.id == rawMessageId,
                           orElse: () => MessageModel(
                               id: '', chatId: '', senderId: '', senderName: ''))
                       : null;
                   final status = _uploadStatusFor(message);
-                  final messageId = message['id']?.toString() ?? index.toString();
+                  final messageId = rawMessageId ?? index.toString();
                   final messageKey = _messageKeys.putIfAbsent(messageId, GlobalKey.new);
                   Widget bubble = MessageBubble(
                       key: ValueKey(messageId),
