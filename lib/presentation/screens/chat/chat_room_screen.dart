@@ -42,7 +42,7 @@ class ChatRoomScreen extends StatefulWidget {
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
-class _ChatRoomScreenState extends State<ChatRoomScreen> {
+class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObserver {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   final _chat = ChatService();
@@ -56,6 +56,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   List<MessageModel> _messages = [];
   final List<Map<String, dynamic>> _localMedia = [];
   final Set<String> _knownMessageIds = <String>{};
+  final Map<String, GlobalKey> _messageKeys = <String, GlobalKey>{};
   Set<String> _newMessageIds = <String>{};
   bool _hasInitialMessageSnapshot = false;
   bool _loading = true;
@@ -69,6 +70,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _listen();
     _loadPendingMedia();
     _startPendingRefresh();
@@ -298,9 +300,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   Future<void> _openOtherUserStatus(UserStatusModel status) async { if (!mounted || status.stories.isEmpty) return; await Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status))); }
 
-  void _searchMessages() {
-    Navigator.of(context).push(MaterialPageRoute(
+  Future<void> _searchMessages() async {
+    final id = await Navigator.of(context).push<String>(MaterialPageRoute(
         builder: (_) => MessageSearchScreen(chatId: widget.chatId)));
+    if (!mounted || id == null || id.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _messageKeys[id];
+      final target = key?.currentContext;
+      if (target != null) {
+        Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 350), curve: Curves.easeOut, alignment: .45);
+      }
+    });
   }
 
   Future<void> _toggleMute() async {
@@ -443,7 +453,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_firestore.collection('users').doc(uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+      unawaited(_markDeliveryAndRead());
+    } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      unawaited(_firestore.collection('users').doc(uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      unawaited(_firestore.collection('users').doc(uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+    }
     _pendingRefreshTimer?.cancel();
     _typingClearTimer?.cancel();
     unawaited(_setTyping(false));
@@ -582,8 +609,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                               id: '', chatId: '', senderId: '', senderName: ''))
                       : null;
                   final status = _uploadStatusFor(message);
+                  final messageId = message['id']?.toString() ?? index.toString();
+                  final messageKey = _messageKeys.putIfAbsent(messageId, GlobalKey.new);
                   Widget bubble = MessageBubble(
-                      key: ValueKey(message['id'] ?? index),
+                      key: ValueKey(messageId),
                       message: message,
                       isMe: message['senderId'] == _auth.currentUser?.uid ||
                           message['isLocal'] == true,
