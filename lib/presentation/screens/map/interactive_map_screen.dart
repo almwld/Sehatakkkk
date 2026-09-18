@@ -806,16 +806,18 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
             child: SizedBox(
               width: isSelected ? 64 : 54,
               height: isSelected ? 82 : 70,
-              child: SvgPicture.asset(
-                _getIconPath(category),
-                fit: BoxFit.contain,
-                alignment: Alignment.bottomCenter,
-                placeholderBuilder: (context) => Center(
-                  child: _buildMapLocationIcon(
-                    size: isSelected ? 34 : 28,
-                  ),
-                ),
-              ),
+              child: (place['isFirestore'] == true)
+                  ? _buildMapLocationIcon(size: isSelected ? 52 : 44)
+                  : SvgPicture.asset(
+                      _getIconPath(category),
+                      fit: BoxFit.contain,
+                      alignment: Alignment.bottomCenter,
+                      placeholderBuilder: (context) => Center(
+                        child: _buildMapLocationIcon(
+                          size: isSelected ? 34 : 28,
+                        ),
+                      ),
+                    ),
             ),
           ),
         ),
@@ -877,7 +879,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                       Row(
                         children: [
                           Image.asset(
-                            'assets/icons/ic_launcher.png',
+                            'assets/icons/settings/select_location.png',
                             width: 16,
                             height: 16,
                             fit: BoxFit.contain,
@@ -1150,7 +1152,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الخريطة التفاعلية'),
+        title: const Text('الخريطة الصحية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
