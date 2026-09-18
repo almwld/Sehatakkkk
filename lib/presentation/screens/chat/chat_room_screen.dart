@@ -512,7 +512,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       appBar: AppBar(
         elevation: 0,
         backgroundColor: dark ? const Color(0xFF101827) : const Color(0xFFF7FBFA),
-        leading: const BackButton(),
+        foregroundColor: dark ? null : AppColors.primary,
+        leading: BackButton(color: dark ? null : AppColors.primary),
         titleSpacing: 0,
         title: StreamBuilder<UserStatusModel?>(
             stream: _statusService.streamUserStatus(widget.otherUserId),
@@ -576,8 +577,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                     Text(widget.isGroup ? 'المجموعة' : widget.otherUserName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w700)),
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: dark ? null : AppColors.primary)),
                     Text(
                         _otherTyping
                             ? 'يكتب الآن...'
@@ -593,16 +596,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           IconButton(
               onPressed: _searchMessages,
               tooltip: 'البحث داخل الرسائل',
-              icon: const Icon(Icons.search_rounded)),
+              icon: Icon(Icons.search_rounded,
+                  color: dark ? null : AppColors.primary)),
           if (!widget.isGroup)
             IconButton(
                 onPressed: () => _call(false),
-                icon: const Icon(Icons.call_rounded)),
+                icon: Icon(Icons.call_rounded,
+                    color: dark ? null : AppColors.primary)),
           if (!widget.isGroup)
             IconButton(
                 onPressed: () => _call(true),
-                icon: const Icon(Icons.videocam_rounded)),
+                icon: Icon(Icons.videocam_rounded,
+                    color: dark ? null : AppColors.primary)),
           PopupMenuButton<String>(
+              iconColor: dark ? null : AppColors.primary,
               onSelected: (value) {
                 if (value == 'mute') _toggleMute();
                 if (value == 'pin') _togglePin();
