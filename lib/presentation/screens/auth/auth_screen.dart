@@ -401,7 +401,7 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   bool _needsVerification(String role) {
-    return role == 'doctor' || role == 'pharmacist' || role == 'lab';
+    return role != 'user' && role != 'admin' && role != 'superAdmin';
   }
 
   String _getGreetingTitle() {
@@ -729,6 +729,7 @@ class _AuthScreenState extends State<AuthScreen>
       await user.updateDisplayName(_nameController.text.trim());
 
       final isDoctor = _selectedRole == 'doctor';
+      final needsVerification = _needsVerification(_selectedRole);
 
       final now = Timestamp.now();
 
@@ -743,16 +744,13 @@ class _AuthScreenState extends State<AuthScreen>
         'experience': _experienceController.text.trim(),
 
         'isVerified': false,
-        'verificationStatus':
-            _needsVerification(_selectedRole)
-                ? 'notSubmitted'
-                : 'verified',
+        'verificationStatus': needsVerification ? 'notSubmitted' : 'verified',
 
         'rating': 0.0,
         'reviewCount': 0,
 
         // الطبيب الجديد لا يصبح متاحاً قبل التوثيق.
-        'isAvailable': isDoctor ? false : true,
+        'isAvailable': needsVerification ? false : true,
 
         'createdAt': now,
         'updatedAt': now,
@@ -843,13 +841,10 @@ class _AuthScreenState extends State<AuthScreen>
             role: _getUserRole(_selectedRole),
             onComplete: () {
               if (_needsVerification(_selectedRole)) {
+                ToastService.showInfo('تم إنشاء الحساب. يلزم توثيق الحساب وتقديم المتطلبات قبل اعتماد الدور.');
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => VerificationScreen(
-                      userModel: userModel,
-                    ),
-                  ),
+                  MaterialPageRoute(builder: (_) => VerificationScreen(userModel: userModel)),
                 );
               } else {
                 Navigator.pushReplacement(
