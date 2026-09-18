@@ -5,12 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/status_model.dart';
-import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/status_service.dart';
 import 'package:sehatak/presentation/screens/chat/add_status_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/widgets/status_row.dart';
+import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class HealthContactsSection extends StatefulWidget {
@@ -205,19 +204,20 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
   Future<void> _openStatus(UserStatusModel status) async { if (!mounted || status.stories.isEmpty) return; await context.push(AppRouter.storyViewer, extra: status); }
   Future<void> _openChat(_DirectoryRecord item) async {
     if (_opening) return;
-    final current = FirebaseAuth.instance.currentUser;
-    if (current == null || item.userId.isEmpty) return;
+    if (item.userId.isEmpty) return;
     setState(() => _opening = true);
     try {
-      final me = await FirebaseFirestore.instance.collection('users').doc(current.uid).get();
-      final data = me.data() ?? const <String, dynamic>{};
-      final chatId = await _chatService.createChat(doctorId: item.userId, doctorName: item.name, patientName: (data['name'] ?? current.displayName ?? 'مستخدم').toString(), doctorImage: item.image.isEmpty ? null : item.image, patientImage: (data['photoUrl'] ?? current.photoURL)?.toString());
-      if (!mounted) return;
-      await context.push(AppRouter.chatRoom, extra: <String, dynamic>{'chatId': chatId, 'otherUserId': item.userId, 'otherUserName': item.name, 'otherUserImage': item.image.isEmpty ? null : item.image, 'isGroup': false});
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر فتح المحادثة: $e')));
-    } finally { if (mounted) setState(() => _opening = false); }
+      await ChatNavigation.openChat(
+        context,
+        doctorName: item.name,
+        doctorId: item.userId,
+        doctorImage: item.image.isEmpty ? null : item.image,
+      );
+    } finally {
+      if (mounted) setState(() => _opening = false);
+    }
   }
+
 }
 
 class _DirectoryRecord {
