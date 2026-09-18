@@ -7,10 +7,13 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/message_model.dart';
+import 'package:sehatak/core/models/status_model.dart';
 import 'package:sehatak/core/services/chat_media_transfer_service.dart';
 import 'package:sehatak/core/services/chat_reply_context.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/status_service.dart';
+import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/message_search_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';
@@ -43,6 +46,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   final _chat = ChatService();
+  final _statusService = StatusService();
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _messagesSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _chatSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
@@ -242,7 +246,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         _localMedia.removeWhere((m) => remoteIds.contains(m['id']));
         _loading = false;
       });
-      _markRead();
+      unawaited(_markDeliveryAndRead());
       unawaited(_loadPendingMedia());
     }, onError: (error) {
       debugPrint('chat stream: $error');
@@ -262,6 +266,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
     return DateTime.fromMillisecondsSinceEpoch(0);
   }
+
+  Future<void> _markDeliveryAndRead() async { try { await _chat.markDelivered(widget.chatId); } catch (error) { debugPrint('mark delivered: $error'); } await _markRead(); }
 
   Future<void> _markRead() async {
     try {
@@ -290,6 +296,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             imageUrl: widget.otherUserImage ?? widget.groupImage)));
   }
 
+  Future<void> _openOtherUserStatus(UserStatusModel status) async { if (!mounted || status.stories.isEmpty) return; await Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status))); }
+
   void _searchMessages() {
     Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => MessageSearchScreen(chatId: widget.chatId)));
@@ -310,6 +318,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       debugPrint('pin chat: $e');
     }
   }
+
+  Future<void> _toggleMessagePin(MessageModel message) async { try { await _chat.pinMessage(widget.chatId, message.id, !message.isPinned); } catch (e) { debugPrint('pin message: $e'); } }
+
+  Future<void> _deleteMessageForMe(MessageModel message) async { try { await _chat.deleteMessageForMe(widget.chatId, message.id); } catch (e) { debugPrint('delete message for me: $e'); } }
 
   Future<void> _deleteMessage(MessageModel message) async {
     if (message.senderId != _auth.currentUser?.uid) return;
@@ -455,6 +467,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   ]))
             ])),
         actions: [
+          StreamBuilder<UserStatusModel?>(
+              stream: _statusService.streamUserStatus(widget.otherUserId),
+              builder: (context, snapshot) {
+                final status = snapshot.data;
+                if (status == null) return const SizedBox.shrink();
+                final story = status.stories.first;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: InkWell(
+                    onTap: () => _openOtherUserStatus(status),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
+                      child: ClipOval(child: story.type == 'image' && story.url.isNotEmpty ? CachedNetworkImage(imageUrl: story.url, fit: BoxFit.cover) : Container(color: AppColors.primary.withOpacity(.12), child: const Icon(Icons.circle, size: 13, color: AppColors.primary))),
+                    ),
+                  ),
+                );
+              }),
           IconButton(
               onPressed: _searchMessages,
               tooltip: 'البحث داخل الرسائل',
@@ -522,6 +555,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       onDelete: model == null || model.id.isEmpty
                           ? null
                           : () => _deleteMessage(model),
+                      onPin: model == null || model.id.isEmpty
+                          ? null
+                          : () => _toggleMessagePin(model),
                       onCallAgain: (_) => _call(false),
                       onReaction: remote && messageId != null
                           ? (emoji) => _chat.addReaction(
