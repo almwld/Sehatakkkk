@@ -15,9 +15,10 @@ class MessageBubble extends StatefulWidget {
   final VoidCallback? onReply;
   final VoidCallback? onDelete;
   final Function(String)? onReaction;
+  final VoidCallback? onPin;
   final Function(String)? onCallAgain;
 
-  const MessageBubble({super.key, required this.message, required this.isMe, this.onReply, this.onDelete, this.onReaction, this.onCallAgain});
+  const MessageBubble({super.key, required this.message, required this.isMe, this.onReply, this.onDelete, this.onReaction, this.onPin, this.onCallAgain});
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -86,7 +87,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _buildText(Map<String, dynamic> m, bool dark) => _shell(Padding(padding: const EdgeInsets.fromLTRB(13, 9, 10, 7), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     if (m['replyPreview'] is Map) _replyPreview(m['replyPreview'] as Map, dark),
-    Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F)), fontSize: 14))), const SizedBox(width: 6), _status(m)]),
+    Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F)), fontSize: 14))), const SizedBox(width: 6), Text(_timeLabel(m['timestamp'] ?? m['clientTimestamp']), style: TextStyle(color: widget.isMe ? Colors.white70 : (dark ? Colors.white60 : const Color(0xFF6B7D7D)), fontSize: 9)), const SizedBox(width: 4), _status(m)]),
     _reactions(m, dark),
   ])), dark);
 
@@ -95,6 +96,8 @@ class _MessageBubbleState extends State<MessageBubble> {
     final text = preview['text']?.toString().trim() ?? 'مرفق';
     return Container(width: double.infinity, margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: widget.isMe ? Colors.white.withOpacity(.14) : (dark ? Colors.black.withOpacity(.16) : const Color(0xFFEAF5F3)), borderRadius: BorderRadius.circular(8)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(sender, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white : AppColors.primary)), const SizedBox(height: 2), Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))) ]));
   }
+
+  String _timeLabel(dynamic value) { final date = value is DateTime ? value : value?.toDate?.call(); if (date is! DateTime) return ''; final h = date.hour.toString().padLeft(2, '0'); final min = date.minute.toString().padLeft(2, '0'); return '$h:$min'; }
 
   Widget _status(Map<String, dynamic> m) {
     if (!widget.isMe) return const SizedBox.shrink();
@@ -205,6 +208,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                   widget.onReply?.call();
                 },
               ),
+            if (widget.onPin != null)
+              ListTile(leading: Icon((widget.message['isPinned'] == true) ? Icons.push_pin : Icons.push_pin_outlined), title: Text(widget.message['isPinned'] == true ? 'إلغاء تثبيت الرسالة' : 'تثبيت الرسالة'), onTap: () { Navigator.pop(context); widget.onPin?.call(); }),
             if (widget.onDelete != null)
               ListTile(
                 leading: const Icon(Icons.delete_outline),
