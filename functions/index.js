@@ -38,45 +38,17 @@ exports.createWallet = onCall(async (request) => {
   return {userId: uid, created: !snap.exists};
 });
 
-exports.submitDoctorVerification = onCall(async (request) => {
-  const uid = requireAuth(request);
-  const doctorRef = db.collection('doctors').doc(uid);
-  const userRef = db.collection('users').doc(uid);
-  await db.runTransaction(async (tx) => {
-    const [doctorSnap, userSnap] = await Promise.all([tx.get(doctorRef), tx.get(userRef)]);
-    if (!doctorSnap.exists || !userSnap.exists) throw new HttpsError('not-found', 'ملف الطبيب غير موجود');
-    const user = userSnap.data();
-    const doctor = doctorSnap.data();
-    if (user.role !== 'doctor' || doctor.userId !== uid) throw new HttpsError('permission-denied', 'حساب الطبيب غير صالح');
-    if (doctor.isVerified === true) throw new HttpsError('failed-precondition', 'الطبيب موثق بالفعل');
-    tx.update(doctorRef, {verificationStatus: 'pending', isVerified: false, updatedAt: FieldValue.serverTimestamp()});
-    tx.update(userRef, {verificationStatus: 'pending', isVerified: false, updatedAt: FieldValue.serverTimestamp()});
-  });
-  return {status: 'pending'};
+exports.submitVerificationRequest = onCall(async (request) => {
+  const uid=requireAuth(request);const userRef=db.collection('users').doc(uid);const requestRef=db.collection('verification_requests').doc(uid);let role='';
+  await db.runTransaction(async(tx)=>{const [userSnap,existingSnap]=await Promise.all([tx.get(userRef),tx.get(requestRef)]);if(!userSnap.exists)throw new HttpsError('not-found','حساب المستخدم غير موجود');const user=userSnap.data();role=String(user.role||'user');if(['user','admin','superAdmin'].includes(role))throw new HttpsError('failed-precondition','هذا الحساب لا يحتاج إلى طلب توثيق مهني');if(user.isVerified===true)throw new HttpsError('failed-precondition','الحساب موثق بالفعل');if(existingSnap.exists&&existingSnap.data().status==='pending')return;const now=FieldValue.serverTimestamp();tx.set(requestRef,{requestId:uid,userId:uid,name:user.name||user.displayName||'',email:user.email||'',phone:user.phone||'',role,specialty:user.specialty||'',licenseNumber:user.licenseNumber||'',experience:user.experience||'',status:'pending',submittedAt:now,updatedAt:now},{merge:true});tx.update(userRef,{verificationStatus:'pending',isVerified:false,updatedAt:now});});
+  const admins=await db.collection('users').where('role','==','admin').get();if(!admins.empty){const batch=db.batch();admins.docs.forEach(adminDoc=>batch.set(db.collection('notifications').doc(),{userId:adminDoc.id,type:'verification_request',title:'طلب توثيق حساب جديد',body:'يوجد طلب توثيق مهني جديد يحتاج إلى المراجعة.',verificationRequestId:uid,role,isRead:false,createdAt:FieldValue.serverTimestamp()}));await batch.commit();}return {status:'pending',requestId:uid};
 });
-
-exports.reviewDoctorVerification = onCall(async (request) => {
-  const adminUid = requireAuth(request);
-  if (!(await isAdmin(adminUid))) throw new HttpsError('permission-denied', 'صلاحية المدير مطلوبة');
-  const doctorId = text(request.data.doctorId, 'doctorId', 128);
-  const decision = text(request.data.decision, 'decision', 20);
-  if (!['approve', 'reject'].includes(decision)) throw new HttpsError('invalid-argument', 'قرار غير صالح');
-  const doctorRef = db.collection('doctors').doc(doctorId);
-  const userRef = db.collection('users').doc(doctorId);
-  await db.runTransaction(async (tx) => {
-    const [doctorSnap, userSnap] = await Promise.all([tx.get(doctorRef), tx.get(userRef)]);
-    if (!doctorSnap.exists || !userSnap.exists) throw new HttpsError('not-found', 'ملف الطبيب أو المستخدم غير موجود');
-    const doctor = doctorSnap.data();
-    const user = userSnap.data();
-    if (user.role !== 'doctor' || doctor.userId !== doctorId) throw new HttpsError('failed-precondition', 'ارتباط الطبيب بالمستخدم غير صالح');
-    const approved = decision === 'approve';
-    const now = FieldValue.serverTimestamp();
-    tx.update(doctorRef, {isVerified: approved, verificationStatus: approved ? 'approved' : 'rejected', isAvailable: approved ? Boolean(doctor.isAvailable) : false, isOnline: false, verifiedAt: approved ? now : null, verifiedBy: adminUid, updatedAt: now});
-    tx.update(userRef, {isVerified: approved, verificationStatus: approved ? 'approved' : 'rejected', updatedAt: now});
-  });
-  return {doctorId, status: decision === 'approve' ? 'approved' : 'rejected'};
+exports.reviewVerificationRequest = onCall(async (request) => {
+  const adminUid=requireAuth(request);if(!(await isAdmin(adminUid)))throw new HttpsError('permission-denied','صلاحية المدير مطلوبة');const requestId=text(request.data.requestId,'requestId',128);const decision=text(request.data.decision,'decision',20);if(!['approve','reject'].includes(decision))throw new HttpsError('invalid-argument','قرار غير صالح');const requestRef=db.collection('verification_requests').doc(requestId);const userRef=db.collection('users').doc(requestId);let status='rejected';
+  await db.runTransaction(async(tx)=>{const [reqSnap,userSnap]=await Promise.all([tx.get(requestRef),tx.get(userRef)]);if(!reqSnap.exists||!userSnap.exists)throw new HttpsError('not-found','طلب التوثيق أو الحساب غير موجود');const req=reqSnap.data(),user=userSnap.data();if(req.userId!==requestId)throw new HttpsError('failed-precondition','طلب التوثيق غير صالح');if(['user','admin','superAdmin'].includes(String(user.role||'')))throw new HttpsError('failed-precondition','هذا الدور لا يدعم التوثيق المهني');if(req.status!=='pending')throw new HttpsError('failed-precondition','تمت معالجة الطلب مسبقاً');const approved=decision==='approve';status=approved?'approved':'rejected';const now=FieldValue.serverTimestamp();tx.update(requestRef,{status,reviewedBy:adminUid,reviewedAt:now,updatedAt:now});tx.update(userRef,{isVerified:approved,verificationStatus:status,isAvailable:approved,updatedAt:now});if(String(user.role||'')==='doctor'){const doctorRef=db.collection('doctors').doc(requestId);const doctorSnap=await tx.get(doctorRef);if(doctorSnap.exists)tx.update(doctorRef,{isVerified:approved,verificationStatus:status,isAvailable:approved,isOnline:false,verifiedAt:approved?now:null,verifiedBy:adminUid,updatedAt:now});}});
+  await db.collection('notifications').add({userId:requestId,type:'verification_result',title:status==='approved'?'تم توثيق حسابك':'تم رفض طلب التوثيق',body:status==='approved'?'وافق مشرف المنصة على توثيق حسابك ويمكنك الآن استخدام ميزات دورك المهني.':'راجع متطلبات التوثيق وحدث بياناتك ثم أعد إرسال الطلب.',verificationStatus:status,isRead:false,createdAt:FieldValue.serverTimestamp()});return {requestId,status};
 });
-
+exports.submitDoctorVerification=exports.submitVerificationRequest;exports.reviewDoctorVerification=exports.reviewVerificationRequest;
 exports.createAppointment = onCall(async (request) => {
   const uid = requireAuth(request);
   const doctorId = text(request.data.doctorId, 'doctorId', 128);
