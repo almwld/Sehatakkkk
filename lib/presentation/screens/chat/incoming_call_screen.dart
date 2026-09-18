@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 
@@ -44,37 +42,15 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   static const green = Color(0xFF4CAF50);
 
   final CallService _callService = CallService();
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
-  late final AnimationController _answerExpansionController;
-  late final Animation<double> _answerExpansionAnimation;
   StreamSubscription<CallModel?>? _callSubscription;
   Timer? _vibrationTimer;
 
   bool _isProcessing = false;
-  bool _isMuted = false;
   bool _isAlerting = true;
-  bool _answerSwipeTriggered = false;
-  double _answerSwipeDistance = 0;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 1, end: 1.15).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    _answerExpansionController = AnimationController(
-      duration: const Duration(milliseconds: 430),
-      vsync: this,
-    );
-    _answerExpansionAnimation = CurvedAnimation(
-      parent: _answerExpansionController,
-      curve: Curves.easeInOutCubic,
-    );
     unawaited(_startVibration());
     _listenToCall();
   }
@@ -116,9 +92,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     _callSubscription = null;
   }
 
-  Future<void> _acceptCall({bool prelocked = false}) async {
-    if (_isProcessing && !prelocked) return;
-    if (!prelocked) setState(() => _isProcessing = true);
+  Future<void> _acceptCall() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
     try {
       await _callService.acceptCall(widget.callId);
       widget.onCallAnswered(true);
@@ -141,10 +117,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       if (!mounted) return;
       setState(() {
         _isProcessing = false;
-        _answerSwipeTriggered = false;
-        _answerSwipeDistance = 0;
       });
-      await _answerExpansionController.reverse();
       ToastService.showError('تعذر قبول المكالمة: $e');
     }
   }
@@ -163,55 +136,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     }
   }
 
-  Future<void> _triggerSwipeAnswer() async {
-    if (_isProcessing || _answerSwipeTriggered) return;
-    setState(() {
-      _answerSwipeTriggered = true;
-      _isProcessing = true;
-      _answerSwipeDistance = 110;
-    });
-    try {
-      await _answerExpansionController.forward();
-      if (mounted) await _acceptCall(prelocked: true);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isProcessing = false;
-        _answerSwipeTriggered = false;
-        _answerSwipeDistance = 0;
-      });
-      await _answerExpansionController.reverse();
-    }
-  }
-
-  void _handleAnswerSwipeUpdate(DragUpdateDetails details) {
-    if (_isProcessing || _answerSwipeTriggered) return;
-    final upward = -details.delta.dy;
-    if (upward <= 0) return;
-    setState(() => _answerSwipeDistance = (_answerSwipeDistance + upward).clamp(0, 110));
-    if (_answerSwipeDistance >= 78) unawaited(_triggerSwipeAnswer());
-  }
-
-  void _handleAnswerSwipeEnd(DragEndDetails details) {
-    if (_isProcessing || _answerSwipeTriggered) return;
-    if (_answerSwipeDistance >= 58) {
-      unawaited(_triggerSwipeAnswer());
-    } else if (mounted) {
-      setState(() => _answerSwipeDistance = 0);
-    }
-  }
-
-  Future<void> _toggleMute() async {
-    final muted = !_isMuted;
-    setState(() => _isMuted = muted);
-    await CallSoundCoordinator.instance.setIncomingMuted(muted);
-  }
-
   @override
   void dispose() {
     _stopAlerting();
-    _pulseController.dispose();
-    _answerExpansionController.dispose();
     super.dispose();
   }
 
@@ -219,190 +146,110 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   Widget build(BuildContext context) {
     final imageUrl = widget.callerImage?.trim().isNotEmpty == true
         ? widget.callerImage!.trim()
-        : ImageKit.doctor1;
+        : null;
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0F1C),
+      backgroundColor: Colors.black87,
       body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF0A0F1C), Color(0xFF10352F), Color(0xFF0A0F1C)],
-              stops: [0, .5, 1],
+        child: Column(
+          children: [
+            const Spacer(),
+            CircleAvatar(
+              radius: 60,
+              backgroundColor: const Color(0xFFE0F2F1),
+              backgroundImage: imageUrl == null ? null : NetworkImage(imageUrl),
+              child: imageUrl == null
+                  ? Icon(
+                      widget.isVideo ? Icons.videocam : Icons.person,
+                      size: 60,
+                      color: AppColors.primary,
+                    )
+                  : null,
             ),
-          ),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment.center,
-                      radius: .8,
-                      colors: [teal.withOpacity(.18), Colors.transparent],
-                    ),
-                  ),
-                ),
+            const SizedBox(height: 20),
+            Text(
+              widget.callerName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
-              Column(
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.isVideo
+                  ? '📹 مكالمة فيديو واردة'
+                  : '📞 مكالمة صوتية واردة',
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            const Spacer(),
+            if (_isProcessing)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 20),
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  const SizedBox(height: 18),
-                  const Text('مكالمة واردة', style: TextStyle(color: Colors.white70, fontSize: 14)),
-                  const Spacer(),
-                  AnimatedBuilder(
-                    animation: _pulseAnimation,
-                    builder: (_, child) => Transform.scale(scale: _pulseAnimation.value, child: child),
-                    child: Container(
-                      width: 160,
-                      height: 160,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(.3), width: 4),
-                        boxShadow: [BoxShadow(color: teal.withOpacity(.5), blurRadius: 50, spreadRadius: 15)],
-                        image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
-                      ),
-                    ),
+                  _buildActionButton(
+                    icon: Icons.call_end,
+                    color: AppColors.error,
+                    label: 'رفض',
+                    onTap: _isProcessing ? null : _rejectCall,
                   ),
-                  const SizedBox(height: 30),
-                  Text(widget.callerName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: .5)),
-                  const SizedBox(height: 14),
-                  _glassBadge(
+                  _buildActionButton(
                     icon: widget.isVideo ? Icons.videocam : Icons.call,
-                    text: widget.isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
-                  ),
-                  const Spacer(),
-                  if (_isProcessing)
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 16),
-                      child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(28, 12, 28, 36),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildCallButton(
-                          icon: _isMuted ? Icons.volume_up : Icons.volume_off,
-                          label: _isMuted ? 'تشغيل الرنين' : 'كتم الرنين',
-                          color: cyan,
-                          onTap: _isProcessing ? null : () => unawaited(_toggleMute()),
-                        ),
-                        _buildCallButton(
-                          icon: Icons.call_end,
-                          label: 'رفض',
-                          color: red,
-                          size: 75,
-                          isMain: true,
-                          onTap: _isProcessing ? null : _rejectCall,
-                        ),
-                        _buildCallButton(
-                          icon: widget.isVideo ? Icons.videocam : Icons.call,
-                          label: 'قبول',
-                          color: green,
-                          size: 75,
-                          isMain: true,
-                          pulse: true,
-                          swipeDistance: _answerSwipeDistance,
-                          expansionAnimation: _answerExpansionAnimation,
-                          onTap: _isProcessing ? null : _acceptCall,
-                          onPanUpdate: _handleAnswerSwipeUpdate,
-                          onPanEnd: _handleAnswerSwipeEnd,
-                        ),
-                      ],
-                    ),
+                    color: AppColors.success,
+                    label: 'رد',
+                    onTap: _isProcessing ? null : _acceptCall,
                   ),
                 ],
               ),
-              Positioned(
-                top: 4,
-                left: 4,
-                child: GestureDetector(
-                  onTap: _isProcessing ? null : _rejectCall,
-                  child: const SizedBox(width: 44, height: 44, child: Center(child: Icon(Icons.close, color: Colors.white70, size: 28))),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _glassBadge({required IconData icon, required String text}) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-    decoration: BoxDecoration(color: Colors.white.withOpacity(.10), borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withOpacity(.20))),
-    child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, color: Colors.white, size: 18),
-      const SizedBox(width: 8),
-      Text(text, style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
-    ]),
-  );
-
-  Widget _buildCallButton({
+  Widget _buildActionButton({
     required IconData icon,
-    required String label,
     required Color color,
+    required String label,
     required VoidCallback? onTap,
-    double size = 65,
-    bool isMain = false,
-    bool pulse = false,
-    double swipeDistance = 0,
-    Animation<double>? expansionAnimation,
-    GestureDragUpdateCallback? onPanUpdate,
-    GestureDragEndCallback? onPanEnd,
-  }) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      GestureDetector(
-        onTap: onTap,
-        onPanUpdate: onPanUpdate,
-        onPanEnd: onPanEnd,
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    width: size,
-                    height: size,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isMain
-                          ? Colors.white.withOpacity(swipeDistance > 0 ? .16 : .08)
-                          : color.withOpacity(.15),
-                      border: Border.all(
-                        color: isMain
-                            ? Colors.white.withOpacity(swipeDistance > 0 ? .70 : .28)
-                            : color,
-                        width: isMain ? 1.5 : 2,
-                      ),
-                      boxShadow: (isMain || pulse)
-                          ? [BoxShadow(
-                              color: color.withOpacity(swipeDistance > 0 ? .28 : .40),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                            )]
-                          : null,
-                    ),
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Opacity(
+            opacity: onTap == null ? 0.5 : 1,
+            child: Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-                ),
+                ],
               ),
-              Transform.translate(
-                offset: Offset(0, -swipeDistance * .12),
-                child: Icon(icon, color: Colors.white, size: isMain ? 34 : 26),
-              ),
-            ],
+              child: Icon(icon, color: Colors.white, size: 30),
+            ),
           ),
         ),
-      ),
-      const SizedBox(height: 8),
-      Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500)),
-    ],
-  );
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
+      ],
+    );
+  }
 }
