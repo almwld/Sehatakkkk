@@ -1,58 +1,87 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/models/sleep/sleep_model.dart';
 import 'package:sensors_plus/sensors_plus.dart';
-import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SleepService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  SleepService._();
+  static final SleepService instance = SleepService._();
 
-  // ✅ متغيرات تتبع النوم
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
   bool _isTracking = false;
-  Timer? _trackingTimer;
   DateTime? _sleepStartTime;
+  Timer? _trackingTimer;
+  StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   int _movementCount = 0;
-  int _soundCount = 0;
   double _avgHeartRate = 0;
-  List<double> _heartRates = [];
+  final List<double> _heartRates = [];
+  final StreamController<SleepSnapshot> _updates = StreamController<SleepSnapshot>.broadcast();
 
-  // ✅ بدء تتبع النوم
-  Future<void> startSleepTracking() async {
-    if (_isTracking) return;
-    
+  Stream<SleepSnapshot> get updates => _updates.stream;
+  bool get isTracking => _isTracking;
+  DateTime? get sleepStartTime => _sleepStartTime;
+
+  Future<bool> restoreTracking() async {
+    if (_isTracking) return true;
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('sleep_tracking_start');
+    if (raw == null) return false;
+    final start = DateTime.tryParse(raw);
+    if (start == null) {
+      await prefs.remove('sleep_tracking_start');
+      return false;
+    }
+    _sleepStartTime = start;
     _isTracking = true;
-    _sleepStartTime = DateTime.now();
-    _movementCount = 0;
-    _soundCount = 0;
-    _heartRates.clear();
-    
-    // ✅ بدء تتبع المستشعرات
-    _startSensorTracking();
-    
-    // ✅ تحديث كل دقيقة
-    _trackingTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      _updateSleepData();
-    });
+    _startSensors();
+    _startTimer();
+    _emit();
+    return true;
   }
 
-  // ✅ إيقاف تتبع النوم
-  Future<SleepRecord?> stopSleepTracking() async {
-    if (!_isTracking) return null;
-    
-    _isTracking = false;
+  Future<void> startSleepTracking() async {
+    if (_isTracking) return;
+    _sleepStartTime = DateTime.now();
+    _movementCount = 0;
+    _heartRates.clear();
+    _avgHeartRate = 0;
+    _isTracking = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('sleep_tracking_start', _sleepStartTime!.toIso8601String());
+    _startSensors();
+    _startTimer();
+    _emit();
+  }
+
+  void _startTimer() {
     _trackingTimer?.cancel();
-    _stopSensorTracking();
-    
+    _trackingTimer = Timer.periodic(const Duration(minutes: 1), (_) => _persistLive());
+  }
+
+  void _startSensors() {
+    _accelerometerSubscription?.cancel();
+    _accelerometerSubscription = accelerometerEvents.listen((event) {
+      final movement = event.x.abs() + event.y.abs() + event.z.abs();
+      if (movement > 18) _movementCount++;
+      _emit();
+    }, onError: (_) {});
+  }
+
+  Future<SleepRecord?> stopSleepTracking() async {
+    if (!_isTracking || _sleepStartTime == null) return null;
     final endTime = DateTime.now();
     final duration = endTime.difference(_sleepStartTime!).inMinutes;
-    
-    // ✅ حساب جودة النوم
+    _isTracking = false;
+    _trackingTimer?.cancel();
+    await _accelerometerSubscription?.cancel();
+    _accelerometerSubscription = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('sleep_tracking_start');
+
     final quality = _calculateSleepQuality(duration);
-    final deepSleep = _calculateDeepSleep(duration);
-    final lightSleep = _calculateLightSleep(duration);
-    final remSleep = _calculateRemSleep(duration);
-    
     final record = SleepRecord(
       id: _firestore.collection('sleep_records').doc().id,
       userId: _auth.currentUser?.uid ?? '',
@@ -60,169 +89,120 @@ class SleepService {
       bedtime: _sleepStartTime!,
       wakeTime: endTime,
       durationMinutes: duration,
-      deepSleepMinutes: deepSleep,
-      lightSleepMinutes: lightSleep,
-      remSleepMinutes: remSleep,
+      deepSleepMinutes: (duration * .22).toInt(),
+      lightSleepMinutes: (duration * .52).toInt(),
+      remSleepMinutes: (duration * .22).toInt(),
       awakeMinutes: _movementCount,
       quality: quality,
       heartRate: _avgHeartRate,
-      notes: _generateSleepNotes(quality),
+      notes: _notes(quality),
       createdAt: DateTime.now(),
     );
-    
-    // ✅ حفظ في Firebase
-    await _firestore
-        .collection('sleep_records')
-        .doc(record.id)
-        .set(record.toFirestore());
-    
+    if (record.userId.isNotEmpty) {
+      await _firestore.collection('sleep_records').doc(record.id).set(record.toFirestore());
+      await _firestore.collection('health_metrics').doc(record.userId).set({
+        'sleep': duration / 60.0,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+    _sleepStartTime = null;
+    _emit();
     return record;
   }
 
-  // ✅ جلب سجل النوم اليوم
   Future<SleepRecord?> getTodaySleepRecord() async {
     try {
       final user = _auth.currentUser;
       if (user == null) return null;
-      
-      final today = DateTime.now();
-      final startOfDay = DateTime(today.year, today.month, today.day);
-      
-      final snap = await _firestore
-          .collection('sleep_records')
+      final start = DateTime.now();
+      final day = DateTime(start.year, start.month, start.day);
+      final snap = await _firestore.collection('sleep_records')
           .where('userId', isEqualTo: user.uid)
-          .where('date', isGreaterThanOrEqualTo: startOfDay.toIso8601String())
-          .orderBy('date', descending: true)
-          .limit(1)
-          .get();
-      
-      if (snap.docs.isNotEmpty) {
-        return SleepRecord.fromFirestore(snap.docs.first.data() as Map<String, dynamic>, snap.docs.first.id);
-      }
-      return null;
-    } catch (e) {
+          .where('date', isGreaterThanOrEqualTo: day.toIso8601String())
+          .orderBy('date', descending: true).limit(1).get();
+      if (snap.docs.isEmpty) return null;
+      return SleepRecord.fromFirestore(snap.docs.first.data(), snap.docs.first.id);
+    } catch (_) {
       return null;
     }
   }
 
-  // ✅ جلب سجلات النوم للأسبوع
   Future<List<SleepRecord>> getWeeklySleepRecords() async {
     try {
       final user = _auth.currentUser;
       if (user == null) return [];
-      
-      final weekAgo = DateTime.now().subtract(const Duration(days: 7));
-      
-      final snap = await _firestore
-          .collection('sleep_records')
+      final since = DateTime.now().subtract(const Duration(days: 7));
+      final snap = await _firestore.collection('sleep_records')
           .where('userId', isEqualTo: user.uid)
-          .where('date', isGreaterThanOrEqualTo: weekAgo.toIso8601String())
-          .orderBy('date', descending: true)
-          .get();
-      
-      return snap.docs.map((doc) {
-        return SleepRecord.fromFirestore(doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-    } catch (e) {
+          .where('date', isGreaterThanOrEqualTo: since.toIso8601String())
+          .orderBy('date', descending: true).get();
+      return snap.docs.map((d) => SleepRecord.fromFirestore(d.data(), d.id)).toList();
+    } catch (_) {
       return [];
     }
   }
 
-  // ✅ جلب إحصائيات النوم
   Future<Map<String, dynamic>> getSleepStats() async {
     final records = await getWeeklySleepRecords();
-    if (records.isEmpty) {
-      return {
-        'avgDuration': 0,
-        'avgEfficiency': 0,
-        'totalHours': 0,
-        'bestDay': '',
-        'avgQuality': 'جيد',
-      };
-    }
-    
-    final avgDuration = records.fold(0, (sum, r) => sum + r.durationMinutes) / records.length;
-    final avgEfficiency = records.fold(0.0, (sum, r) => sum + r.sleepEfficiency) / records.length;
-    final totalHours = records.fold(0, (sum, r) => sum + r.durationMinutes) / 60;
-    
-    // ✅ أفضل يوم
-    final bestDay = records.reduce((a, b) => a.sleepEfficiency > b.sleepEfficiency ? a : b);
-    
+    if (records.isEmpty) return {'avgDuration': 0, 'avgEfficiency': 0, 'totalHours': 0, 'bestDay': '', 'avgQuality': 'جيد'};
+    final avgDuration = records.fold<int>(0, (sum, r) => sum + r.durationMinutes) / records.length;
+    final avgEfficiency = records.fold<double>(0, (sum, r) => sum + r.sleepEfficiency) / records.length;
+    final totalHours = records.fold<int>(0, (sum, r) => sum + r.durationMinutes) / 60;
+    final best = records.reduce((a, b) => a.sleepEfficiency > b.sleepEfficiency ? a : b);
     return {
       'avgDuration': avgDuration.toInt(),
       'avgEfficiency': avgEfficiency,
       'totalHours': totalHours,
-      'bestDay': '${bestDay.date.day}/${bestDay.date.month}',
+      'bestDay': best.date.day.toString() + '/' + best.date.month.toString(),
       'avgQuality': _getAverageQuality(records),
     };
   }
 
-  // ============================================================
-  // 🔧 دوال مساعدة (محاكاة - سيتم استبدالها بمستشعرات حقيقية)
-  // ============================================================
-  
-  void _startSensorTracking() {
-    // ✅ في الإصدار النهائي: استخدام مستشعرات الهاتف
-    // accelerometerEvents.listen((event) { ... });
-    // gyroscopeEvents.listen((event) { ... });
-    // magnetometerEvents.listen((event) { ... });
+  Future<void> _persistLive() async {
+    if (!_isTracking || _sleepStartTime == null || _auth.currentUser == null) return;
+    final minutes = DateTime.now().difference(_sleepStartTime!).inMinutes;
+    await _firestore.collection('health_metrics').doc(_auth.currentUser!.uid).set({
+      'sleep': minutes / 60.0,
+      'sleepTrackingActive': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+    _emit();
   }
 
-  void _stopSensorTracking() {
-    // إيقاف المستشعرات
-  }
-
-  void _updateSleepData() {
-    // ✅ محاكاة قراءات المستشعرات
-    _movementCount += (DateTime.now().second % 5 == 0) ? 1 : 0;
-    
-    // ✅ محاكاة معدل النبض
-    final heartRate = 60 + (DateTime.now().second % 20);
-    _heartRates.add(heartRate.toDouble());
-    _avgHeartRate = _heartRates.reduce((a, b) => a + b) / _heartRates.length;
+  void _emit() {
+    if (!_updates.isClosed) {
+      final minutes = _sleepStartTime == null ? 0 : DateTime.now().difference(_sleepStartTime!).inSeconds;
+      _updates.add(SleepSnapshot(isTracking: _isTracking, elapsedSeconds: minutes));
+    }
   }
 
   SleepQuality _calculateSleepQuality(int duration) {
-    // ✅ جودة النوم تعتمد على المدة والحركة
-    if (duration >= 480 && _movementCount < 10) return SleepQuality.excellent; // 8+ ساعات
-    if (duration >= 420 && _movementCount < 20) return SleepQuality.good;      // 7+ ساعات
-    if (duration >= 360 && _movementCount < 30) return SleepQuality.fair;      // 6+ ساعات
+    if (duration >= 480 && _movementCount < 10) return SleepQuality.excellent;
+    if (duration >= 420 && _movementCount < 20) return SleepQuality.good;
+    if (duration >= 360 && _movementCount < 30) return SleepQuality.fair;
     return SleepQuality.poor;
   }
 
-  int _calculateDeepSleep(int duration) {
-    // ✅ النوم العميق ~20-25% من إجمالي النوم
-    return (duration * 0.22).toInt();
-  }
-
-  int _calculateLightSleep(int duration) {
-    // ✅ النوم الخفيف ~50-55% من إجمالي النوم
-    return (duration * 0.52).toInt();
-  }
-
-  int _calculateRemSleep(int duration) {
-    // ✅ نوم الريم ~20-25% من إجمالي النوم
-    return (duration * 0.22).toInt();
-  }
-
-  String _generateSleepNotes(SleepQuality quality) {
+  String _notes(SleepQuality quality) {
     switch (quality) {
-      case SleepQuality.excellent:
-        return 'نوم ممتاز! استمر على هذا النمط الصحي.';
-      case SleepQuality.good:
-        return 'نوم جيد، حاول زيادة ساعة إضافية للحصول على نوم ممتاز.';
-      case SleepQuality.fair:
-        return 'نوم مقبول، حاول النوم مبكراً وتجنب المنبهات قبل النوم.';
-      case SleepQuality.poor:
-        return 'نوم غير كافٍ، حاول تحسين عادات النوم.';
+      case SleepQuality.excellent: return 'نوم ممتاز! استمر على هذا النمط الصحي.';
+      case SleepQuality.good: return 'نوم جيد، حاول زيادة ساعة إضافية للحصول على نوم ممتاز.';
+      case SleepQuality.fair: return 'نوم مقبول، حاول النوم مبكراً وتجنب المنبهات قبل النوم.';
+      case SleepQuality.poor: return 'نوم غير كافٍ، حاول تحسين عادات النوم.';
     }
   }
 
   String _getAverageQuality(List<SleepRecord> records) {
     final avg = records.fold(0, (sum, r) => sum + r.quality.index) / records.length;
-    if (avg < 0.5) return 'ممتاز';
+    if (avg < .5) return 'ممتاز';
     if (avg < 1.5) return 'جيد';
     if (avg < 2.5) return 'مقبول';
     return 'سيئ';
   }
+}
+
+class SleepSnapshot {
+  final bool isTracking;
+  final int elapsedSeconds;
+  const SleepSnapshot({required this.isTracking, required this.elapsedSeconds});
 }
