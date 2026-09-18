@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -17,9 +18,10 @@ class MessageBubble extends StatefulWidget {
   final Function(String)? onReaction;
   final VoidCallback? onPin;
   final VoidCallback? onDeleteForMe;
+  final VoidCallback? onEdit;
   final Function(String)? onCallAgain;
 
-  const MessageBubble({super.key, required this.message, required this.isMe, this.onReply, this.onDelete, this.onReaction, this.onPin, this.onDeleteForMe, this.onCallAgain});
+  const MessageBubble({super.key, required this.message, required this.isMe, this.onReply, this.onDelete, this.onReaction, this.onPin, this.onDeleteForMe, this.onEdit, this.onCallAgain});
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -98,7 +100,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     return Container(width: double.infinity, margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: widget.isMe ? Colors.white.withOpacity(.14) : (dark ? Colors.black.withOpacity(.16) : const Color(0xFFEAF5F3)), borderRadius: BorderRadius.circular(8)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(sender, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white : AppColors.primary)), const SizedBox(height: 2), Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))) ]));
   }
 
-  String _timeLabel(dynamic value) { final date = value is DateTime ? value : value?.toDate?.call(); if (date is! DateTime) return ''; final h = date.hour.toString().padLeft(2, '0'); final min = date.minute.toString().padLeft(2, '0'); return '$h:$min'; }
+  String _timeLabel(dynamic value) { final DateTime? date = value is Timestamp ? value.toDate() : value is DateTime ? value : value is String ? DateTime.tryParse(value) : null; if (date == null) return ''; final h = date.hour.toString().padLeft(2, '0'); final min = date.minute.toString().padLeft(2, '0'); return '$h:$min'; }
 
   Widget _status(Map<String, dynamic> m) {
     if (!widget.isMe) return const SizedBox.shrink();
@@ -209,6 +211,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                   widget.onReply?.call();
                 },
               ),
+            if (widget.onEdit != null && widget.message['isDeleted'] != true && (widget.message['text']?.toString().trim() ?? '').isNotEmpty)
+              ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('تعديل الرسالة'), onTap: () { Navigator.pop(context); widget.onEdit?.call(); }),
             if (widget.onPin != null)
               ListTile(leading: Icon((widget.message['isPinned'] == true) ? Icons.push_pin : Icons.push_pin_outlined), title: Text(widget.message['isPinned'] == true ? 'إلغاء تثبيت الرسالة' : 'تثبيت الرسالة'), onTap: () { Navigator.pop(context); widget.onPin?.call(); }),
             if (widget.onDeleteForMe != null)
@@ -216,7 +220,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             if (widget.onDelete != null)
               ListTile(
                 leading: const Icon(Icons.delete_outline),
-                title: const Text('حذف'),
+                title: const Text('حذف للجميع'),
                 onTap: () {
                   Navigator.pop(context);
                   widget.onDelete?.call();
