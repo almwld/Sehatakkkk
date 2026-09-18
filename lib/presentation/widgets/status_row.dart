@@ -37,12 +37,21 @@ class StatusRow extends StatelessWidget {
         itemBuilder: (_, index) {
           if (index == 0) {
             if (mine != null) {
-              return _StatusCircle(status: mine, isMine: true, onTap: () => onOpenStatus(mine));
+              return _StatusCircle(
+                status: mine,
+                isMine: true,
+                onTap: () => onOpenStatus(mine),
+                onAddStatus: onAddStatus,
+              );
             }
             return _AddStatusButton(onTap: onAddStatus);
           }
           final status = others[index - 1];
-          return _StatusCircle(status: status, isMine: false, onTap: () => onOpenStatus(status));
+          return _StatusCircle(
+            status: status,
+            isMine: false,
+            onTap: () => onOpenStatus(status),
+          );
         },
       ),
     );
@@ -50,10 +59,16 @@ class StatusRow extends StatelessWidget {
 }
 
 class _StatusCircle extends StatelessWidget {
-  const _StatusCircle({required this.status, required this.onTap, required this.isMine});
+  const _StatusCircle({
+    required this.status,
+    required this.onTap,
+    required this.isMine,
+    this.onAddStatus,
+  });
   final UserStatusModel status;
   final VoidCallback onTap;
   final bool isMine;
+  final VoidCallback? onAddStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -83,14 +98,45 @@ class _StatusCircle extends StatelessWidget {
           width: 70,
           child: Column(
             children: [
-              Container(
-                width: 68, height: 68, padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: ringColors)),
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                  child: ClipOval(child: content),
-                ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 68,
+                    height: 68,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: ringColors),
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: ClipOval(child: content),
+                    ),
+                  ),
+                  if (isMine && onAddStatus != null)
+                    Positioned(
+                      right: -1,
+                      bottom: -1,
+                      child: GestureDetector(
+                        onTap: onAddStatus,
+                        child: Container(
+                          width: 23,
+                          height: 23,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: const Icon(Icons.add, color: Colors.white, size: 15),
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 5),
               Text(isMine ? 'حالتك' : status.userName, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
