@@ -14,6 +14,7 @@ import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/call_sound_coordinator.dart';
 import 'package:sehatak/presentation/screens/chat/incoming_call_screen.dart';
+import 'package:sehatak/presentation/screens/chat/call_screen.dart';
 
 class CallService {
   static final CallService _instance = CallService._internal();
@@ -114,6 +115,35 @@ class CallService {
     final chatId=data['chatId']?.toString()??'';
     if(chatId.isEmpty)return;
     Navigator.of(context).push(MaterialPageRoute(builder:(_)=>IncomingCallScreen(callId:normalizedId,callerName:data['callerName']?.toString()??'مستخدم',callerId:data['callerId']?.toString()??'',callerImage:data['callerPhotoUrl']?.toString(),isVideo:data['isVideoCall']==true||data['callType']?.toString()=='video',chatId:chatId,onCallAnswered:(_){},)));
+  }
+
+  Future<void> answerIncomingCallById(BuildContext context, String id) async {
+    final normalizedId = id.trim();
+    if (normalizedId.isEmpty || !context.mounted) return;
+    final snap = await _retry(() => _firestore.collection('calls').doc(normalizedId).get());
+    if (!snap.exists || !context.mounted) return;
+    final data = snap.data() ?? <String, dynamic>{};
+    final receiverId = data['receiverId']?.toString();
+    if (receiverId != null && receiverId.isNotEmpty && receiverId != currentUserId) return;
+    final status = data['status']?.toString();
+    if (status != CallStatus.calling.name && status != CallStatus.ringing.name) return;
+    final chatId = data['chatId']?.toString() ?? '';
+    if (chatId.isEmpty) return;
+    await acceptCall(normalizedId);
+    if (!context.mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          callId: normalizedId,
+          chatId: chatId,
+          doctorName: data['callerName']?.toString() ?? 'مستخدم',
+          doctorId: data['callerId']?.toString() ?? '',
+          doctorImage: data['callerPhotoUrl']?.toString(),
+          isVideo: data['isVideoCall'] == true || data['callType']?.toString() == 'video',
+          isOutgoing: false,
+        ),
+      ),
+    );
   }
 
   Future<void> handleIncomingCall(BuildContext context,RemoteMessage message) async {
