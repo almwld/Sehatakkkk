@@ -348,9 +348,8 @@ class _SehatakAppState extends State<SehatakApp>
               return;
             }
             if (action == 'call_answer' && mounted) {
-              // Open the real incoming-call UI so the answer flow remains
-              // identical to an incoming call received while the app is open.
-              await _callService.handleIncomingCallById(context, callId);
+              // Answer directly from the notification action, then open the live call screen.
+              await _callService.answerIncomingCallById(context, callId);
               return;
             }
           }
