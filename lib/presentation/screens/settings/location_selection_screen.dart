@@ -348,8 +348,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
               FlutterMap(
                 mapController: _mapController,
                 options: MapOptions(
-                  center: _selectedLocation ?? _sanaaCenter,
-                  zoom: _selectedLocation != null ? 16 : 12,
+                  initialCenter: _selectedLocation ?? _sanaaCenter,
+                  initialZoom: _selectedLocation != null ? 16 : 12,
                   minZoom: 8,
                   maxZoom: 19,
                   onTap: _onMapTap,
@@ -367,7 +367,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                           width: 58,
                           height: 70,
                           alignment: Alignment.bottomCenter,
-                          builder: (context) => const Icon(Icons.location_on, color: AppColors.primary, size: 52),
+                          child: const Icon(Icons.location_on, color: AppColors.primary, size: 52),
                         ),
                       ],
                     ),
