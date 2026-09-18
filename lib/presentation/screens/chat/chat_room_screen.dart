@@ -173,6 +173,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         await ChatMediaTransferService.instance.retry(job['id'].toString());
         if (mounted) await _loadPendingMedia();
       },
+      'onCancel': () async {
+        await ChatMediaTransferService.instance.cancel(job['id'].toString());
+        if (mounted) await _loadPendingMedia();
+      },
     };
   }
 
@@ -699,7 +703,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                         progress:
                             (message['uploadProgress'] as num?)?.toDouble() ??
                                 0.0,
-                        onRetry: () => message['onRetry']?.call())
+                        onRetry: () => message['onRetry']?.call(),
+                        onCancel: () => message['onCancel']?.call())
                   ]);
                 }),
           if (_loading)
