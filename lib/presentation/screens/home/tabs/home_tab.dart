@@ -17,6 +17,7 @@ import 'package:sehatak/presentation/screens/home/widgets/quick_services_widget.
 import 'package:sehatak/presentation/widgets/home/home_health_widgets.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/home/featured_facilities_grid.dart';
+import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.dart';
 
 /// Canonical Home implementation. One screen, one navigation source, reusable sections.
@@ -393,7 +394,7 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _articles(List<dynamic> items, bool dark) => _dataCards('مقالات طبية', items, dark, 'assets/images/services/medical_articles.png', () => _go(AppRouter.articles), 'لا توجد مقالات منشورة حالياً', 'summary');
+  Widget _articles(List<dynamic> items, bool dark) => _dataCards('مقالات طبية', items, dark, 'assets/images/services/medical_articles.png', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArticlesScreen())), 'لا توجد مقالات منشورة حالياً', 'summary');
 
   Widget _tips(List<dynamic> items, bool dark) => _dataCards('نصائح يومية', items, dark, 'assets/images/services/health_tips.png', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), 'لا توجد نصائح منشورة حالياً', 'content');
 
