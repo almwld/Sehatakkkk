@@ -1,6 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/models/delivery/delivery_model.dart';
 
 class DeliveryService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Stream<DeliveryModel> watchDeliveryStatus(String orderId) {
+    return _firestore.collection('deliveries').doc(orderId).snapshots().map((snap) {
+      if (!snap.exists || snap.data() == null) {
+        return DeliveryModel(orderId: orderId, status: 'pending', currentStep: 1, estimatedTime: 'غير محدد', createdAt: DateTime.now());
+      }
+      final d = snap.data()!;
+      return DeliveryModel(orderId: orderId, status: (d['status'] ?? 'pending').toString(), currentStep: (d['currentStep'] as num?)?.toInt() ?? 1, estimatedTime: (d['estimatedTime'] ?? 'غير محدد').toString(), createdAt: d['createdAt'] is Timestamp ? (d['createdAt'] as Timestamp).toDate() : DateTime.now());
+    });
+  }
+
   // ✅ محاكاة جلب حالة التوصيل
   Future<DeliveryModel> getDeliveryStatus(String orderId) async {
     // ✅ محاكاة طلب API
@@ -44,14 +57,11 @@ class DeliveryService {
 
   // ✅ تحديث حالة التوصيل
   Future<void> updateDeliveryStatus(String orderId, String status) async {
-    // ✅ محاكاة تحديث
-    await Future.delayed(const Duration(seconds: 1));
-    print('📦 Updated delivery $orderId to $status');
+    await _firestore.collection('deliveries').doc(orderId).set({'status': status, 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
   }
 
   // ✅ إلغاء الطلب
   Future<void> cancelDelivery(String orderId) async {
-    await Future.delayed(const Duration(seconds: 1));
-    print('❌ Cancelled delivery $orderId');
+    await _firestore.collection('deliveries').doc(orderId).set({'status': 'cancelled', 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
   }
 }
