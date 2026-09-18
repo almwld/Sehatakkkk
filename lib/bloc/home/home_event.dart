@@ -14,6 +14,7 @@ abstract class HomeEvent extends Equatable {
 class HomeStarted extends HomeEvent {}
 class HomeDataFetched extends HomeEvent {}
 class HomeDataRefreshed extends HomeEvent {}
+class HomeHealthStatsRefreshed extends HomeEvent {}
 class HomeBannerChanged extends HomeEvent {
   final int index;
   const HomeBannerChanged({required this.index});
