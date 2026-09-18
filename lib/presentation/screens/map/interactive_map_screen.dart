@@ -755,7 +755,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
 
   Widget _buildMapLocationIcon({double size = 34}) {
     return Image.asset(
-      'assets/icons/settings/select_location.png',
+      'assets/icons/ic_launcher.png',
       width: size,
       height: size,
       fit: BoxFit.contain,
@@ -877,7 +877,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                       Row(
                         children: [
                           Image.asset(
-                            'assets/icons/settings/select_location.png',
+                            'assets/icons/ic_launcher.png',
                             width: 16,
                             height: 16,
                             fit: BoxFit.contain,
