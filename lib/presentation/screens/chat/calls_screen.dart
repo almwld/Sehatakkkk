@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
+import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 
 class CallsScreen extends StatefulWidget {
   const CallsScreen({super.key});
@@ -97,9 +98,17 @@ class _CallsScreenState extends State<CallsScreen> {
           ],
         ),
         trailing: TextButton(
-          onPressed: () {
+          onPressed: () async {
             if (call.chatId.isEmpty) return;
-            Navigator.of(context).pop();
+            final otherId = outgoing ? call.receiverId : call.callerId;
+            final otherName = outgoing ? call.receiverName : call.callerName;
+            final otherPhoto = outgoing ? call.receiverPhotoUrl : call.callerPhotoUrl;
+            await Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatRoomScreen(
+              chatId: call.chatId,
+              otherUserId: otherId,
+              otherUserName: otherName,
+              otherUserImage: otherPhoto,
+            )));
           },
           child: const Text('المحادثة'),
         ),
