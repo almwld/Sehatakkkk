@@ -314,20 +314,15 @@ class _SehatakAppState extends State<SehatakApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
     if (state == AppLifecycleState.resumed && mounted) {
       Provider.of<UserProvider>(context, listen: false).loadUserSafely();
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        unawaited(FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .set({
-          'isOnline': true,
-          'lastSeen': FieldValue.serverTimestamp()
-        }, SetOptions(merge: true)));
-        unawaited(_fcmTokenService.syncCurrentToken());
-      }
+      unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+      unawaited(_fcmTokenService.syncCurrentToken());
       unawaited(ChatMediaTransferService.instance.processPending());
+    } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
     }
   }
 
