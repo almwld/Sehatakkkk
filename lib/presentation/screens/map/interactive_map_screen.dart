@@ -744,12 +744,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
         AppColors.primary,
         BlendMode.srcIn,
       ),
-      errorBuilder: (_, __, ___) => Image.asset(
-        'assets/icons/settings/select_location.png',
-        width: size,
-        height: size,
-        fit: BoxFit.contain,
-      ),
     );
   }
 
