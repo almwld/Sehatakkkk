@@ -462,6 +462,18 @@ class _SehatakAppState extends State<SehatakApp>
         return;
       }
       final data = Map<String, dynamic>.from(message.data);
+      // Call payloads can also arrive through FCM launch/open handling with
+      // chatId present. Never let the chat routing branch consume a call.
+      if (type == 'incoming_call' ||
+          data['type']?.toString() == 'incoming_call' ||
+          data['callId']?.toString().trim().isNotEmpty == true) {
+        final callId = data['callId']?.toString().trim() ?? '';
+        if (callId.isNotEmpty && mounted) {
+          await _notificationService.cancelIncomingCallNotification(callId);
+          await _callService.handleIncomingCallById(context, callId);
+        }
+        return;
+      }
       if (type == 'new_message' ||
           type == 'chat_message' ||
           data['chatId'] != null) {
