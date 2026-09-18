@@ -330,6 +330,35 @@ class _SehatakAppState extends State<SehatakApp>
     if (!mounted || payload == null || payload.isEmpty) return;
     final nav = navigatorKey.currentState;
     if (nav == null) return;
+
+    // Call notification action buttons can launch the app from a
+    // terminated/background state. Resolve the action here instead of
+    // treating the action payload as a normal notification payload.
+    if (payload.startsWith('notification_action:')) {
+      final parts = payload.split(':');
+      if (parts.length >= 3) {
+        final action = parts[1];
+        final actionPayload = parts.sublist(2).join(':');
+        if (actionPayload.startsWith('incoming_call:')) {
+          final callId = actionPayload.substring('incoming_call:'.length);
+          if (callId.isNotEmpty) {
+            await _notificationService.cancelIncomingCallNotification(callId);
+            if (action == 'call_reject') {
+              await _callService.rejectCall(callId);
+              return;
+            }
+            if (action == 'call_answer' && mounted) {
+              // Open the real incoming-call UI so the answer flow remains
+              // identical to an incoming call received while the app is open.
+              await _callService.handleIncomingCallById(context, callId);
+              return;
+            }
+          }
+        }
+      }
+      return;
+    }
+
     if (payload.startsWith('incoming_call:')) {
       final callId = payload.substring('incoming_call:'.length);
       if (callId.isEmpty) return;
