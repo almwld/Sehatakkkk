@@ -126,6 +126,7 @@ class NextcloudService {
     String? fileName,
     void Function(int, int)? onProgress,
     bool createShare = true,
+    CancelToken? cancelToken,
   }) async {
     try {
       _ensureConfigured();
