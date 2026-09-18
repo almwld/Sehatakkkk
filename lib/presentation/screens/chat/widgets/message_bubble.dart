@@ -16,9 +16,10 @@ class MessageBubble extends StatefulWidget {
   final VoidCallback? onDelete;
   final Function(String)? onReaction;
   final VoidCallback? onPin;
+  final VoidCallback? onDeleteForMe;
   final Function(String)? onCallAgain;
 
-  const MessageBubble({super.key, required this.message, required this.isMe, this.onReply, this.onDelete, this.onReaction, this.onPin, this.onCallAgain});
+  const MessageBubble({super.key, required this.message, required this.isMe, this.onReply, this.onDelete, this.onReaction, this.onPin, this.onDeleteForMe, this.onCallAgain});
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -210,6 +211,8 @@ class _MessageBubbleState extends State<MessageBubble> {
               ),
             if (widget.onPin != null)
               ListTile(leading: Icon((widget.message['isPinned'] == true) ? Icons.push_pin : Icons.push_pin_outlined), title: Text(widget.message['isPinned'] == true ? 'إلغاء تثبيت الرسالة' : 'تثبيت الرسالة'), onTap: () { Navigator.pop(context); widget.onPin?.call(); }),
+            if (widget.onDeleteForMe != null)
+              ListTile(leading: const Icon(Icons.delete_sweep_outlined), title: const Text('حذف لدي فقط'), onTap: () { Navigator.pop(context); widget.onDeleteForMe?.call(); }),
             if (widget.onDelete != null)
               ListTile(
                 leading: const Icon(Icons.delete_outline),
