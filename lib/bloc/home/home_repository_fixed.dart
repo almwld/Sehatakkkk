@@ -52,29 +52,23 @@ class HomeRepositoryFixed {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getDoctors({int limit = 10}) =>
-      _query('doctors', limit, activeField: 'isAvailable');
+  Future<List<Map<String, dynamic>>> getDoctors({int limit = 10}) => _query('doctors', limit);
 
-  Future<List<Map<String, dynamic>>> getHospitals({int limit = 6}) =>
-      _query('hospitals', limit, activeField: 'isActive');
+  Future<List<Map<String, dynamic>>> getHospitals({int limit = 6}) => _query('hospitals', limit);
 
-  Future<List<Map<String, dynamic>>> getLabs({int limit = 6}) =>
-      _query('labs', limit, activeField: 'isAvailable');
+  Future<List<Map<String, dynamic>>> getLabs({int limit = 6}) => _query('labs', limit);
 
-  Future<List<Map<String, dynamic>>> getPharmacies({int limit = 6}) =>
-      _query('pharmacies', limit, activeField: 'isOpen');
+  Future<List<Map<String, dynamic>>> getPharmacies({int limit = 6}) => _query('pharmacies', limit);
 
   Future<List<Map<String, dynamic>>> _query(
     String collection,
-    int limit, {
-    required String activeField,
-  }) async {
+    int limit,
+  )) async {
     try {
       final f = firestore;
       if (f == null) return [];
       final snapshot = await f
           .collection(collection)
-          .where(activeField, isEqualTo: true)
           .limit(limit)
           .get();
       return snapshot.docs.map((d) => {'id': d.id, ...d.data()}).toList();
