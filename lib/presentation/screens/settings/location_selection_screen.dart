@@ -161,14 +161,40 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         try {
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          final firestore = FirebaseFirestore.instance;
+          final userRef = firestore.collection('users').doc(user.uid);
+          final userSnapshot = await userRef.get();
+          final userData = userSnapshot.data() ?? <String, dynamic>{};
+          final role = (userData['role'] ?? 'user').toString();
+          final pointData = GeoPoint(point.latitude, point.longitude);
+
+          await userRef.update({
             'deliveryArea': area,
             'deliveryAddress': address,
-            'location': GeoPoint(point.latitude, point.longitude),
+            'location': pointData,
             'locationUpdatedAt': FieldValue.serverTimestamp(),
           });
+
+          final facilityCategory = _facilityCategoryForRole(role);
+          if (facilityCategory != null) {
+            await firestore.collection('map_facilities').doc(user.uid).set({
+              'ownerUid': user.uid,
+              'name': (userData['name'] ?? 'مرفق صحي').toString(),
+              'phone': (userData['phone'] ?? '').toString(),
+              'address': address,
+              'area': area,
+              'role': role,
+              'category': facilityCategory,
+              'location': pointData,
+              'lat': point.latitude,
+              'lng': point.longitude,
+              'isPublished': true,
+              'updatedAt': FieldValue.serverTimestamp(),
+              'createdAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+          }
         } catch (e) {
-          debugPrint('Location profile sync skipped: ${e}');
+          debugPrint('Location profile/facility sync skipped: $e');
         }
       }
 
@@ -185,6 +211,25 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
       debugPrint('Location save error: ${e}');
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String? _facilityCategoryForRole(String role) {
+    switch (role) {
+      case 'doctor':
+      case 'nurse':
+      case 'midwife':
+      case 'physiotherapist':
+      case 'paramedic':
+        return 'clinics';
+      case 'pharmacist':
+        return 'pharmacies';
+      case 'lab':
+        return 'labs';
+      case 'service':
+        return 'other';
+      default:
+        return null;
     }
   }
 
@@ -367,7 +412,12 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                           width: 58,
                           height: 70,
                           alignment: Alignment.bottomCenter,
-                          child: const Icon(Icons.location_on, color: AppColors.primary, size: 52),
+                          child: Image.asset(
+                            'assets/icons/settings/select_location.png',
+                            width: 58,
+                            height: 70,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ],
                     ),
