@@ -48,54 +48,12 @@ class HomeHealthWidgets extends StatelessWidget {
       },
     ];
     final vitals = <Map<String, dynamic>>[
-      {
-        'label': 'ضغط الدم',
-        'value': 120.0,
-        'max': 180.0,
-        'display': '120',
-        'color': const Color(0xFF0A8F83),
-        'icon': 'assets/images/tracking/blood_pressure.png'
-      },
-      {
-        'label': 'سكر الدم',
-        'value': 98.0,
-        'max': 200.0,
-        'display': '98',
-        'color': const Color(0xFF12AFA0),
-        'icon': 'assets/images/tracking/blood_sugar.png'
-      },
-      {
-        'label': 'اللياقة',
-        'value': 85.0,
-        'max': 100.0,
-        'display': '85%',
-        'color': const Color(0xFF20B2AA),
-        'icon': 'assets/images/tracking/fitness.png'
-      },
-      {
-        'label': 'الوزن',
-        'value': 72.0,
-        'max': 120.0,
-        'display': '72',
-        'color': const Color(0xFF159A9C),
-        'icon': 'assets/images/tracking/weight_tracking.png'
-      },
-      {
-        'label': 'التغذية',
-        'value': 8.0,
-        'max': 10.0,
-        'display': '8/10',
-        'color': const Color(0xFF2BB7A9),
-        'icon': 'assets/images/tracking/nutrition.png'
-      },
-      {
-        'label': 'الصحة النفسية',
-        'value': 9.0,
-        'max': 10.0,
-        'display': '9/10',
-        'color': const Color(0xFF3AAFA9),
-        'icon': 'assets/images/tracking/mental_health.png'
-      },
+      {'label': 'ضغط الدم', 'display': 'غير متوفر', 'color': const Color(0xFF0A8F83), 'icon': 'assets/images/tracking/blood_pressure.png'},
+      {'label': 'سكر الدم', 'display': 'غير متوفر', 'color': const Color(0xFF12AFA0), 'icon': 'assets/images/tracking/blood_sugar.png'},
+      {'label': 'اللياقة', 'display': 'غير متوفر', 'color': const Color(0xFF20B2AA), 'icon': 'assets/images/tracking/fitness.png'},
+      {'label': 'الوزن', 'display': 'غير متوفر', 'color': const Color(0xFF159A9C), 'icon': 'assets/images/tracking/weight_tracking.png'},
+      {'label': 'التغذية', 'display': 'غير متوفر', 'color': const Color(0xFF2BB7A9), 'icon': 'assets/images/tracking/nutrition.png'},
+      {'label': 'الصحة النفسية', 'display': 'غير متوفر', 'color': const Color(0xFF3AAFA9), 'icon': 'assets/images/tracking/mental_health.png'},
     ];
     final score = state.healthScore.round().clamp(0, 100);
     return Column(children: [
@@ -214,7 +172,7 @@ class HomeHealthWidgets extends StatelessWidget {
                   errorBuilder: (_, __, ___) =>
                       Icon(Icons.insights_outlined, color: color, size: 22)),
               const SizedBox(height: 2),
-              Text(_number(value),
+              Text(value <= 0 ? '—' : _number(value),
                   style: TextStyle(
                       color: color, fontSize: 13, fontWeight: FontWeight.bold)),
               Text(item['name'] as String,
@@ -228,9 +186,7 @@ class HomeHealthWidgets extends StatelessWidget {
 
   Widget _vital(Map<String, dynamic> item) {
     final color = item['color'] as Color;
-    final progress =
-        ((item['value'] as num).toDouble() / (item['max'] as num).toDouble())
-            .clamp(0.0, 1.0);
+    const progress = 0.0;
     return SizedBox(
       width: 126,
       child: Material(
