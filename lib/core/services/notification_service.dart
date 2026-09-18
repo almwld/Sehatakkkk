@@ -225,18 +225,21 @@ class NotificationService {
     final channelName = _channelNameFor(family);
     final importance = _importanceFor(family);
     final resolvedSound = playSound ?? family != SehatakNotificationType.promotional;
+    final isChatMessage = type == 'new_message' || type == 'chat_message' || type == 'message';
+    final safeTitle = isChatMessage ? 'صحتك' : title;
+    final safeBody = isChatMessage ? 'لديك رسالة جديدة في الدردشة' : body;
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         channelId, channelName, channelDescription: channelName, importance: importance,
         priority: importance == Importance.high ? Priority.high : Priority.defaultPriority,
         playSound: resolvedSound,
         sound: resolvedSound ? const RawResourceAndroidNotificationSound('notification') : null,
-        category: _categoryFor(family), visibility: NotificationVisibility.public,
+        category: _categoryFor(family), visibility: isChatMessage ? NotificationVisibility.private : NotificationVisibility.public,
         styleInformation: const BigTextStyleInformation(''),
       ),
       iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: resolvedSound),
     );
-    await _notifications.show(_typedNotificationId(type, data), title, body, details, payload: payload ?? _encodePayload(type, data));
+    await _notifications.show(_typedNotificationId(type, data), safeTitle, safeBody, details, payload: payload ?? _encodePayload(type, data));
   }
 
   Future<void> showMessageNotification({required String title, required String body, String? payload}) async {
