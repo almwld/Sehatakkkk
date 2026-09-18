@@ -42,6 +42,7 @@ import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/platform/marketplace_admin_dashboard.dart';
 import 'package:sehatak/presentation/screens/search/unified_search_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
+import 'package:sehatak/presentation/screens/packages/packages_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/splash_screen.dart';
@@ -70,6 +71,7 @@ class AppRouter {
       map = '/map',
       consultation = '/consultation',
       services = '/services',
+      packages = '/packages',
       emergency = '/emergency',
       bloodDonation = '/blood-donation',
       settings = '/settings',
@@ -209,6 +211,7 @@ class AppRouter {
       GoRoute(
           path: consultation, builder: (_, __) => const ConsultationScreen()),
       GoRoute(path: services, builder: (_, __) => const ServicesScreen()),
+      GoRoute(path: packages, builder: (_, __) => const PackagesScreen()),
       GoRoute(path: emergency, builder: (_, __) => const EmergencyNumbers()),
       GoRoute(
           path: bloodDonation, builder: (_, __) => const BloodDonationScreen()),
@@ -331,6 +334,8 @@ class AppRouter {
       case services:
         return MaterialPageRoute(
             builder: (_) => const ServicesScreen(), settings: routeSettings);
+      case packages:
+        return MaterialPageRoute(builder: (_) => const PackagesScreen(), settings: routeSettings);
       case emergency:
         return MaterialPageRoute(
             builder: (_) => const EmergencyNumbers(), settings: routeSettings);
