@@ -17,7 +17,7 @@ import 'package:sehatak/presentation/screens/home/widgets/quick_services_widget.
 import 'package:sehatak/presentation/widgets/home/home_health_widgets.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/home/featured_facilities_grid.dart';
-import 'package:sehatak/presentation/widgets/home/home_create_post_fab.dart';
+import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.dart';
 
 /// Canonical Home implementation. One screen, one navigation source, reusable sections.
 class HomeTab extends StatefulWidget {
@@ -125,8 +125,8 @@ class _HomeTabState extends State<HomeTab>
                   slivers: [
                     SliverToBoxAdapter(child: _header(state)),
                     SliverToBoxAdapter(child: _banner(state, dark)),
-                    SliverToBoxAdapter(child: _quickServices(dark)),
                     SliverToBoxAdapter(child: _healthSummary(state, dark)),
+                    SliverToBoxAdapter(child: _quickServices(dark)),
                     SliverToBoxAdapter(child: _doctors(state, dark)),
                     SliverToBoxAdapter(child: _productsSection(dark)),
                     SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: 'مستشفيات مميزة', items: state.hospitals, isHospital: true, isDark: dark)),
@@ -141,13 +141,6 @@ class _HomeTabState extends State<HomeTab>
                     if (state.hasError) SliverToBoxAdapter(child: _error(state.errorMessage ?? 'حدث خطأ غير متوقع', dark)),
                     const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
-                ),
-              ),
-              Positioned(
-                right: 16,
-                bottom: 16,
-                child: HomeCreatePostFab(
-                  scrollController: widget.scrollController,
                 ),
               ),
             ],
@@ -171,17 +164,17 @@ class _HomeTabState extends State<HomeTab>
           InkWell(onTap: () => _go(AppRouter.profile), borderRadius: BorderRadius.circular(24), child: CircleAvatar(radius: 23, backgroundColor: Colors.white24, child: Text(first, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)))),
           const SizedBox(width: 12),
           Expanded(child: InkWell(onTap: () => _go(AppRouter.profile), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizedBox(height: 3), Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]))),
-          _headerAction(Icons.notifications_none_rounded, AppRouter.notifications),
+          _headerActionAsset('assets/icons/top_bar/notifications.png', AppRouter.notifications),
           const SizedBox(width: 8),
-          _headerAction(Icons.shopping_cart_outlined, AppRouter.cart),
+          _headerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart),
         ]),
         const SizedBox(height: 18),
-        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: const Row(children: [Icon(Icons.search_rounded, color: AppColors.primary, size: 25), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23)]))),
+        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: const Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء، أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
       ]),
     );
   }
 
-  Widget _headerAction(IconData icon, String route) => InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), child: Icon(icon, color: Colors.white, size: 21)));
+  Widget _headerActionAsset(String asset, String route) => InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), alignment: Alignment.center, child: Image.asset(asset, width: 22, height: 22, errorBuilder: (_, __, ___) => const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 21))));
 
   Widget _banner(HomeState state, bool dark) => state.bannerImages.isEmpty
       ? Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Container(height: 150, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, child: Text('صحتك معك كل يوم', style: TextStyle(color: dark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
