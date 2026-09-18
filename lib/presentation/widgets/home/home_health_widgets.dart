@@ -155,7 +155,7 @@ class HomeHealthWidgets extends StatelessWidget {
     return SizedBox(
       width: 112,
       child: Material(
-        color: color.withOpacity(.08),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           onTap: () {
