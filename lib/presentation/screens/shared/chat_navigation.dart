@@ -4,7 +4,7 @@ import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/models/call_model.dart';
-import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 
 class ChatNavigation {
@@ -24,12 +24,12 @@ class ChatNavigation {
       );
       if (!context.mounted) return;
       if (chatId.isEmpty) { ToastService.showError('تعذر إنشاء المحادثة'); return; }
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ChatDetailScreen(
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => ChatRoomScreen(
         chatId: chatId,
-        userName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب',
-        userId: doctorId.trim(),
-        isDoctor: false,
-        userImage: doctorImage,
+        otherUserId: doctorId.trim(),
+        otherUserName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب',
+        groupImage: doctorImage,
+        isGroup: false,
       )));
     } catch (e) { if (context.mounted) ToastService.showError('فشل فتح المحادثة: $e'); }
   }
