@@ -110,6 +110,23 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /map_facilities/{facilityId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && facilityId == request.auth.uid
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.isPublished == true
+        && request.resource.data.category in ['hospitals','pharmacies','labs','clinics','other']
+        && request.resource.data.location is latlng;
+      allow update: if isSignedIn()
+        && facilityId == request.auth.uid
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.location is latlng
+        && request.resource.data.category in ['hospitals','pharmacies','labs','clinics','other'];
+      allow delete: if isSignedIn() && facilityId == request.auth.uid;
+    }
+
     match /labs/{labId} { allow read: if true; allow write: if isAdmin(); }
     match /products/{productId} { allow read: if true; allow write: if isAdmin(); }
 
