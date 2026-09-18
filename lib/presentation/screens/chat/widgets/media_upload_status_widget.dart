@@ -9,11 +9,13 @@ class MediaUploadStatusWidget extends StatelessWidget {
     required this.status,
     this.progress = 0.0,
     this.onRetry,
+    this.onCancel,
   });
 
   final UploadStatus status;
   final double progress;
   final VoidCallback? onRetry;
+  final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +33,26 @@ class MediaUploadStatusWidget extends StatelessWidget {
           child: Stack(alignment: Alignment.center, children: [
             SizedBox(width: 34, height: 34, child: CircularProgressIndicator(value: safeProgress, strokeWidth: 3, backgroundColor: Colors.white24, valueColor: const AlwaysStoppedAnimation<Color>(Colors.white))),
             Text('${(safeProgress * 100).round()}%', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+            if (onCancel != null)
+              Positioned(
+                right: -2,
+                top: -2,
+                child: GestureDetector(
+                  onTap: onCancel,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    child: const Icon(Icons.close, color: Colors.white, size: 12),
+                  ),
+                ),
+              ),
           ]),
         );
       case UploadStatus.delivered:
         return _circle(const Color(0xFF2EAD63), Icons.check);
       case UploadStatus.pending:
-        return _circle(const Color(0xFFF39C12), Icons.schedule);
+        return GestureDetector(onTap: onCancel, child: _circle(const Color(0xFFF39C12), Icons.close));
       case UploadStatus.failed:
         return GestureDetector(onTap: onRetry, child: _circle(const Color(0xFFE53935), Icons.refresh));
     }
