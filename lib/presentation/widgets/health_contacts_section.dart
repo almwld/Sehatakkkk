@@ -22,7 +22,6 @@ class HealthContactsSection extends StatefulWidget {
 
 class _HealthContactsSectionState extends State<HealthContactsSection> {
   final StatusService _statusService = StatusService();
-  final ChatService _chatService = ChatService();
   final TextEditingController _searchController = TextEditingController();
   Stream<List<UserStatusModel>>? _statusStream;
   Future<List<_DirectoryRecord>>? _directoryFuture;
