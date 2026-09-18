@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sehatak/bloc/home/home_bloc.dart';
+import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -178,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: DoctorCommunityFab(
                   scrollController: _scrollController,
                   dark: dark,
+                  onPostPublished: () => context.read<HomeBloc>().add(HomeDataRefreshed()),
                 ),
               ),
           ],
