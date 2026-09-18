@@ -311,6 +311,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
+  Future<void> _deleteChatForMe() async { try { await _chat.deleteChat(widget.chatId); if(mounted)Navigator.of(context).pop(); } catch(e){debugPrint('delete chat: $e');} }
+
   Future<void> _togglePin() async {
     try {
       await _chat.pinChat(widget.chatId, !_pinned);
@@ -322,6 +324,42 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Future<void> _toggleMessagePin(MessageModel message) async { try { await _chat.pinMessage(widget.chatId, message.id, !message.isPinned); } catch (e) { debugPrint('pin message: $e'); } }
 
   Future<void> _deleteMessageForMe(MessageModel message) async { try { await _chat.deleteMessageForMe(widget.chatId, message.id); } catch (e) { debugPrint('delete message for me: $e'); } }
+  Future<void> _editMessage(MessageModel message) async {
+    final controller=TextEditingController(text: message.text ?? '');
+    final result=await showDialog<String>(context:context,builder:(ctx)=>AlertDialog(
+      title:const Text('تعديل الرسالة'),
+      content:TextField(controller:controller,maxLines:5,autofocus:true,decoration:const InputDecoration(hintText:'نص الرسالة')),
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(ctx,controller.text.trim()),child:const Text('حفظ'))]));
+    controller.dispose();
+    if(result==null||result.isEmpty||result==message.text?.trim())return;
+    try{await _chat.editMessage(widget.chatId,message.id,result);}catch(e){if(mounted)ToastService.showError('تعذر تعديل الرسالة.');debugPrint('edit message: $e');}
+  }
+  Future<void> _confirmDeleteMessage(MessageModel message) async {
+    final all=message.senderId==_auth.currentUser?.uid;
+    final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(
+      title:Text(all?'حذف الرسالة؟':'حذف الرسالة لديك؟'),
+      content:Text(all?'سيتم حذف الرسالة لدى جميع المشاركين.':'سيتم إخفاء الرسالة لديك فقط.'),
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('حذف'))]));
+    if(ok!=true)return;
+    if(all)await _deleteMessage(message);else await _deleteMessageForMe(message);
+  }
+  Future<void> _showPinnedMessages() async {
+    try{
+      final items=await _chat.getPinnedMessages(widget.chatId);
+      if(!mounted)return;
+      showModalBottomSheet<void>(context:context,isScrollControlled:true,builder:(ctx)=>SafeArea(child:SizedBox(
+        height:MediaQuery.of(ctx).size.height*.55,
+        child:Column(children:[
+          const Padding(padding:EdgeInsets.all(16),child:Text('الرسائل المثبتة',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
+          Expanded(child:items.isEmpty?const Center(child:Text('لا توجد رسائل مثبتة')):ListView.separated(
+            itemCount:items.length,separatorBuilder:(_,__)=>const Divider(height:1),
+            itemBuilder:(_,i){final m=items[i];return ListTile(
+              leading:const Icon(Icons.push_pin_outlined,color:AppColors.primary),
+              title:Text(m.text?.isNotEmpty==true?m.text!:'مرفق',maxLines:2,overflow:TextOverflow.ellipsis),
+              subtitle:Text(m.senderName),onTap:()=>Navigator.pop(ctx));}))
+        ]))));
+    }catch(e){if(mounted)ToastService.showError('تعذر تحميل الرسائل المثبتة.');debugPrint('pinned messages: $e');}
+  }
 
   Future<void> _deleteMessage(MessageModel message) async {
     if (message.senderId != _auth.currentUser?.uid) return;
@@ -504,17 +542,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               onSelected: (value) {
                 if (value == 'mute') _toggleMute();
                 if (value == 'pin') _togglePin();
+                if (value == 'pinned') _showPinnedMessages();
+                if (value == 'profile') _profile();
+                if (value == 'delete') _deleteChatForMe();
               },
               itemBuilder: (_) => [
-                    PopupMenuItem(
-                        value: 'mute',
-                        child: Text(
-                            _muted ? 'إلغاء كتم الإشعارات' : 'كتم الإشعارات')),
-                    PopupMenuItem(
-                        value: 'pin',
-                        child: Text(_pinned
-                            ? 'إلغاء تثبيت المحادثة'
-                            : 'تثبيت المحادثة'))
+                    const PopupMenuItem(value: 'profile', child: Text('معلومات جهة الاتصال')),
+                    const PopupMenuItem(value: 'pinned', child: Text('الرسائل المثبتة')),
+                    PopupMenuItem(value: 'mute', child: Text(_muted ? 'إلغاء كتم الإشعارات' : 'كتم الإشعارات')),
+                    PopupMenuItem(value: 'pin', child: Text(_pinned ? 'إلغاء تثبيت المحادثة' : 'تثبيت المحادثة')),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(value: 'delete', child: Text('حذف المحادثة لدي')),
                   ])
         ],
       ),
@@ -552,9 +590,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       onReply: model == null || model.id.isEmpty
                           ? null
                           : () => _startReply(model),
-                      onDelete: model == null || model.id.isEmpty || model.senderId != _auth.currentUser?.uid
-                          ? null
-                          : () => _deleteMessage(model),
+                      onDelete: model == null || model.id.isEmpty ? null : () => _confirmDeleteMessage(model),
+                      onEdit: model == null || model.id.isEmpty || model.senderId != _auth.currentUser?.uid ? null : () => _editMessage(model),
                       onDeleteForMe: model == null || model.id.isEmpty
                           ? null
                           : () => _deleteMessageForMe(model),
