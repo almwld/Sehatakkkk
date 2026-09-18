@@ -155,7 +155,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget _status(Map<String, dynamic> m) {
     if (!widget.isMe) return const SizedBox.shrink();
     if (m['isSending'] == true) return const Icon(Icons.schedule, size: 14, color: Colors.white70);
-    if (m['isRead'] == true) return Icon(Icons.done_all, size: 15, color: AppColors.primary);
+    if (m['isRead'] == true) return const Icon(Icons.done_all, size: 15, color: Colors.white);
     if (m['isDelivered'] == true) return const Icon(Icons.done_all, size: 15, color: Colors.white70);
     return const Icon(Icons.check, size: 15, color: Colors.white70);
   }
