@@ -250,44 +250,15 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     );
   }
 
-  Widget _buildSearchBar(
-    bool isDark,
-  ) {
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 16),
-      margin:
-          const EdgeInsets.fromLTRB(16, 16, 16, 10),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1A2540)
-            : Colors.grey.shade100,
-        borderRadius:
-            BorderRadius.circular(30),
-        border: Border.all(
-          color: isDark
-              ? Colors.grey.shade800
-              : Colors.grey.shade200,
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.search,
-            color: Colors.grey,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: UnifiedSearchBar(controller: _searchController, onChanged: _searchDoctors, hintText: 'ابحث عن طبيب...'),
-          ),
-          if (_searchController.text.isNotEmpty)
-            IconButton(
-              onPressed: _clearSearch,
-              icon: const Icon(
-                Icons.clear,
-              ),
-            ),
-        ],
+  Widget _buildSearchBar(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+      child: UnifiedSearchBar(
+        controller: _searchController,
+        onChanged: _searchDoctors,
+        onClear: _clearSearch,
+        hintText: 'ابحث عن طبيب...',
+        isDark: isDark,
       ),
     );
   }
