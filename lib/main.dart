@@ -377,6 +377,21 @@ class _SehatakAppState extends State<SehatakApp>
       final data = decoded!['data'] is Map
           ? Map<String, dynamic>.from(decoded!['data'])
           : <String, dynamic>{};
+      // Incoming calls must always take precedence over chat routing.
+      // Some Android launch paths return the notification as JSON payload
+      // instead of the compact `incoming_call:<callId>` payload. Since
+      // call notifications also carry chatId, checking chatId first would
+      // incorrectly open the chat room instead of IncomingCallScreen.
+      if (type == 'incoming_call' ||
+          data['type']?.toString() == 'incoming_call' ||
+          data['callId']?.toString().trim().isNotEmpty == true) {
+        final callId = data['callId']?.toString().trim() ?? '';
+        if (callId.isNotEmpty && mounted) {
+          await _notificationService.cancelIncomingCallNotification(callId);
+          await _callService.handleIncomingCallById(context, callId);
+        }
+        return;
+      }
       if (type == 'new_message' ||
           type == 'chat_message' ||
           data['chatId'] != null) {
