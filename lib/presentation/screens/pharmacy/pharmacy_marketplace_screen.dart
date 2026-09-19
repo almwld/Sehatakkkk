@@ -341,7 +341,6 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
                           '${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}\n${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}'),
-                      trailing: SvgPicture.asset('assets/icons/navigation/doctor.svg', width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
