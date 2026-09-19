@@ -336,12 +336,12 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       isThreeLine: true,
                       leading: CircleAvatar(
                           backgroundColor: AppColors.primary.withOpacity(.1),
-                          child: SvgPicture.asset(AppIcons.pharmacy, width: 28, height: 28, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn))),
+                          child: SvgPicture.asset('assets/icons/map_pins/pharmacy.svg', width: 28, height: 28, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn))),
                       title: Text('${p['name'] ?? 'صيدلية'}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
                           '${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}\n${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}'),
-                      trailing: SvgPicture.asset(AppIcons.navMore, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
+                      trailing: SvgPicture.asset('assets/icons/navigation/doctor.svg', width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
