@@ -4,6 +4,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/network_service.dart';
 import 'package:sehatak/core/services/payment_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
 
 class SubscriptionPaymentScreen extends StatefulWidget {
   final String planName, planCode;
@@ -49,7 +50,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen>{
           Row(children:[Container(width:48,height:48,decoration:BoxDecoration(color:AppColors.primary.withOpacity(.1),shape:BoxShape.circle),child:const Icon(Icons.account_balance_wallet_outlined,color:AppColors.primary)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('محفظة صحتك',style:TextStyle(fontWeight:FontWeight.w900)),Text(_loading?'جارٍ قراءة الرصيد...':'الرصيد المتاح: \${(_balance??0).toStringAsFixed(2)} ر.ي',style:TextStyle(fontSize:12,color:dark?Colors.white70:Colors.black54))]))]),
           const SizedBox(height:14),Divider(color:dark?Colors.white12:Colors.black12),const SizedBox(height:12),
           _row('قيمة الاشتراك','\${widget.price} ر.ي'),_row('الرصيد بعد الخصم',_loading?'—':'\${((_balance??0)-widget.price).clamp(0,double.infinity).toStringAsFixed(2)} ر.ي'),
-          if(!_loading&&!enough)Padding(padding:const EdgeInsets.only(top:10),child:Row(children:[const Icon(Icons.warning_amber_rounded,color:Colors.orange,size:18),const SizedBox(width:6),const Expanded(child:Text('الرصيد غير كافٍ. أضف رصيداً إلى المحفظة ثم أعد المحاولة.',style:TextStyle(color:Colors.orange,fontSize:12)))]))
+          if(!_loading&&!enough)Column(children:[Padding(padding:const EdgeInsets.only(top:10),child:Row(children:[const Icon(Icons.warning_amber_rounded,color:Colors.orange,size:18),const SizedBox(width:6),const Expanded(child:Text('الرصيد غير كافٍ. أضف رصيداً إلى المحفظة ثم أعد المحاولة.',style:TextStyle(color:Colors.orange,fontSize:12)))])),const SizedBox(height:8),SizedBox(width:double.infinity,child:OutlinedButton.icon(onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const WalletScreen())).then((_){_loadBalance();}),icon:const Icon(Icons.account_balance_wallet_outlined),label:const Text('فتح المحفظة وإضافة رصيد'))])
         ])),
         const SizedBox(height:16),Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:AppColors.primary.withOpacity(.07),borderRadius:BorderRadius.circular(16)),child:const Row(children:[Icon(Icons.lock_outline,color:AppColors.primary),SizedBox(width:9),Expanded(child:Text('يتم الخصم الذري من المحفظة على الخادم، وتُنشأ معاملة وفاتورة إلكترونية مرتبطة بالاشتراك.'))])),
         const SizedBox(height:22),SizedBox(height:54,child:ElevatedButton(onPressed:_loading||!enough||_processing?null:_pay,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(15))),child:_processing?const CircularProgressIndicator(color:Colors.white):const Text('تأكيد الدفع وتفعيل الاشتراك',style:TextStyle(fontSize:15,fontWeight:FontWeight.w800)))),
