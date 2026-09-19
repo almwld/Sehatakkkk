@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/config/imagekit_config.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/pharmacy/product_model.dart';
 
@@ -17,7 +19,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final product = widget.product;
-    final imageUrl = product.imageUrl;
+    final imageUrl = (product.imageUrl != null && product.imageUrl!.isNotEmpty) ? product.imageUrl! : ImageKitConfig.medicine1;
     final reviews = product.reviewsCount;
     final stock = product.stockQuantity;
     final pharmacyName = product.metadata?['pharmacyName']?.toString() ?? 'صيدلية صحتك';
@@ -42,13 +44,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: imageUrl == null || imageUrl.isEmpty
-                  ? const Center(child: Icon(Icons.medication, size: 60))
-                  : Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.medication, size: 60)),
-                    ),
+              child: AppImage(imageUrl: imageUrl, fit: BoxFit.contain),
             ),
           ),
           const SizedBox(height: 16),
