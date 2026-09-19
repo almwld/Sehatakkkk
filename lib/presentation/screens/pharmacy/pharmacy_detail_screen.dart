@@ -28,7 +28,7 @@ class PharmacyDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final name = _text('name', 'الصيدلية');
-    final image = _text('image', '');
+    final image = _text('image', 'https://ik.imagekit.io/fqcynk86c/images/pharmacies/pharmacy_1.png');
     final open = _bool('open');
     final delivery = _bool('delivery');
 
