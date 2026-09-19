@@ -1,4 +1,5 @@
 name: 🚀 Build Sehatak APK
+# Build verification after dependency and Dart fixes
 
 on:
   push:
