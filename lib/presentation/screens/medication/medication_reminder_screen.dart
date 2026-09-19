@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sehatak/core/constants/app_assets.dart';
+import 'medication_alerts_report_screen.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/medication_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -73,6 +76,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationAlertsReportScreen())), icon: SvgPicture.asset(AppAssets.reportIcon, width: 23, height: 23, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn))),
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -117,9 +121,9 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _stat('💊', 'الأدوية', '${all.length}'),
-                    _stat('⏰', 'التنبيهات', '$reminders'),
-                    _stat('✅', 'المتناولة', '$taken'),
+                    _stat(AppAssets.medicineIcon, 'الأدوية', '${all.length}'),
+                    _stat(AppAssets.notificationBellIcon, 'التنبيهات', '$reminders'),
+                    _stat(AppAssets.checkIcon, 'المتناولة', '$taken'),
                   ],
                 ),
               ),
@@ -172,10 +176,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         contentPadding: const EdgeInsets.all(10),
-        leading: const CircleAvatar(
-          backgroundColor: Color(0x1A0A8F83),
-          child: Icon(Icons.medication, color: AppColors.primary),
-        ),
+        leading: CircleAvatar(backgroundColor: const Color(0x1A0A8F83), child: SvgPicture.asset(AppAssets.medicineIcon, width: 27, height: 27, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn))),
         title: Text(
           dose.isEmpty ? name : '$name — $dose',
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -208,7 +209,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
   Widget _stat(String icon, String label, String value) {
     return Column(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 22)),
+        SvgPicture.asset(icon, width: 24, height: 24, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)),
         const SizedBox(height: 3),
         Text(
           value,
