@@ -79,7 +79,7 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
     Container(width:58,height:58,decoration:BoxDecoration(color:Colors.white.withOpacity(.14),shape:BoxShape.circle),child:const Icon(Icons.water_drop_outlined,color:Colors.white,size:30)),
     const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
       const Text('آخر قياس مسجل',style:TextStyle(color:Colors.white70,fontSize:13)),
-      const SizedBox(height:4),Text(r==null?'لا توجد قراءة':'\${_num(r['value'])} mg/dL',style:const TextStyle(color:Colors.white,fontSize:28,fontWeight:FontWeight.w900)),
+      const SizedBox(height:4),Text(r==null?'لا توجد قراءة':'${_num(r['value'])} mg/dL',style:const TextStyle(color:Colors.white,fontSize:28,fontWeight:FontWeight.w900)),
       if(r!=null) Text(r['meal'] as String,style:const TextStyle(color:Colors.white70,fontSize:11)),
     ]))
   ]));
@@ -87,7 +87,7 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
   Widget _readingCard(Map<String,dynamic> r,bool dark) { final c=_statusColor(r['status'] as String); return Container(margin:const EdgeInsets.only(bottom:10),padding:const EdgeInsets.all(15),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(children:[
     Container(width:44,height:44,decoration:BoxDecoration(color:c.withOpacity(.1),borderRadius:BorderRadius.circular(12)),child:Icon(Icons.water_drop_outlined,color:c)),
     const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(r['meal'] as String,style:const TextStyle(fontWeight:FontWeight.bold)),Text(_time(r['time']?.toString()??''),style:TextStyle(fontSize:11,color:dark?Colors.grey[400]:Colors.grey[600]))])),
-    Column(crossAxisAlignment:CrossAxisAlignment.end,children:[Text('\${_num(r['value'])}',style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900)),Text(r['status'] as String,style:TextStyle(fontSize:10,color:c))])
+    Column(crossAxisAlignment:CrossAxisAlignment.end,children:[Text('${_num(r['value'])}',style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900)),Text(r['status'] as String,style:TextStyle(fontSize:10,color:c))])
   ])); }
 
   Widget _empty(bool dark)=>Container(padding:const EdgeInsets.all(28),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(18)),child:const Text('لم تُدخل أي قراءة بعد. أضف القياس الفعلي من جهازك ليظهر هنا وفي المؤشرات الصحية.',textAlign:TextAlign.center));
@@ -101,6 +101,6 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
       const SizedBox(height:16),Row(children:[Expanded(child:TextButton(onPressed:()=>setState(()=>_isAdding=false),child:const Text('إلغاء'))),const SizedBox(width:10),Expanded(child:ElevatedButton(onPressed:_save,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:const Text('حفظ')))])
     ]))))));
 
-  String _time(String s){final d=DateTime.tryParse(s); return d==null?s:'\${d.day}/\${d.month} \${d.hour.toString().padLeft(2,'0')}:\${d.minute.toString().padLeft(2,'0')}';}
+  String _time(String s){final d=DateTime.tryParse(s); return d==null?s:'${d.day}/${d.month} ${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')}';}
   String _num(dynamic v){final d=v is num?v.toDouble():double.tryParse('\$v')??0; return d==d.roundToDouble()?d.toInt().toString():d.toStringAsFixed(1);}
 }
