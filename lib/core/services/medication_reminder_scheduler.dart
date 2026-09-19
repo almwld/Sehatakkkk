@@ -51,7 +51,7 @@ class MedicationReminderScheduler {
 
   Future<void> cancelMedication(String medicationId) async {
     await initialize();
-    for (var i = 0; i < 64; i++) { await _notifications.cancel(_id(medicationId, i)); }
+    for (var i = 0; i < 256; i++) { await _notifications.cancel(_id(medicationId, i)); }
     await _removeReport(medicationId);
   }
 
