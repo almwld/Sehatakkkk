@@ -808,16 +808,3 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   }
 }
 
-e: 22, fontWeight: FontWeight.bold)),
-                      if ('${data['specialty'] ?? ''}'.isNotEmpty)
-                        Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(data['specialty'].toString())),
-                      if ('${data['bio'] ?? ''}'.isNotEmpty)
-                        Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(data['bio'].toString(),
-                                textAlign: TextAlign.center))
-                    ])));
-          }));
-}
