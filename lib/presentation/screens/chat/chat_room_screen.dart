@@ -597,7 +597,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                                 ? AppColors.primary
                                 : (_online ? Colors.green : Colors.grey)))
                   ]))
-            ])),
+              ]);
+            },
+          ),
+        ),
         actions: [
           IconButton(
               onPressed: _searchMessages,
