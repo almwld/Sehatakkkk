@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sehatak/core/constants/app_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/config/imagekit_config.dart';
 import '../../../core/services/order_service.dart';
@@ -334,13 +336,12 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       isThreeLine: true,
                       leading: CircleAvatar(
                           backgroundColor: AppColors.primary.withOpacity(.1),
-                          child: const Icon(Icons.local_pharmacy_outlined,
-                              color: AppColors.primary)),
+                          child: SvgPicture.asset(AppIcons.pharmacy, width: 28, height: 28, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn))),
                       title: Text('${p['name'] ?? 'صيدلية'}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
                           '${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}\n${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}'),
-                      trailing: const Icon(Icons.chevron_left),
+                      trailing: SvgPicture.asset(AppIcons.navMore, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -383,10 +384,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       color: AppColors.primary.withOpacity(.08),
                       child: Image.network(_image(p),
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
-                              Icons.medication_outlined,
-                              color: AppColors.primary,
-                              size: 34)))),
+                          errorBuilder: (_, __, ___) => Image.asset('assets/icons/core/medicine.png', fit: BoxFit.contain, errorBuilder: (_, __, ___) => SvgPicture.asset(AppIcons.specialtyPill, width: 34, height: 34, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)))))),
               const SizedBox(width: 12),
               Expanded(
                   child: Column(
