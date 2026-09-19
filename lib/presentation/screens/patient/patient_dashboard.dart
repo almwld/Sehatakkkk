@@ -648,69 +648,33 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   Widget _buildVitalsGrid(bool isDark) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.9,
-      ),
-      itemCount: _vitals.length + _trackingVitals.length,
-      itemBuilder: (context, index) {
-        final vital = index < _vitals.length ? _vitals[index] : _trackingVitals[index - _vitals.length];
-        final color = vital['color'] as Color;
-
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => vital['screen'] as Widget));
-          },
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildIcon(vital['icon'] as String, size: 42, color: color),
-                const SizedBox(height: 6),
-                Text(
-                  vital['value'] as String,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  vital['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        );
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const SizedBox.shrink();
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('health_metrics').doc(uid).snapshots(),
+      builder: (context, snapshot) {
+        final d = snapshot.data?.data() ?? const <String, dynamic>{};
+        final values = <String, String>{
+          'ضغط الدم': d['systolic'] != null && d['diastolic'] != null ? '${d['systolic']}/${d['diastolic']}' : 'غير متوفر',
+          'سكر الدم': d['blood_sugar'] != null ? '${d['blood_sugar']}' : 'غير متوفر',
+          'اللياقة': d['steps'] != null ? '${d['steps']}' : 'غير متوفر',
+          'الوزن': d['weight'] != null ? '${d['weight']}' : 'غير متوفر',
+          'التغذية': 'غير متوفر',
+          'الصحة النفسية': 'غير متوفر',
+          'الخطوات': d['steps'] != null ? '${d['steps']}' : 'تتبع',
+          'النوم': d['sleep'] != null ? '${d['sleep']}' : 'تتبع',
+          'النبض': d['heartRate'] != null ? '${d['heartRate']}' : 'قياس',
+        };
+        final all=[..._vitals,..._trackingVitals];
+        return GridView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:3,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:.9),itemCount:all.length,itemBuilder:(context,index){
+          final vital=all[index];final label=vital['label'] as String;final value=values[label]??vital['value'] as String;final color=vital['color'] as Color;
+          return GestureDetector(onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>vital['screen'] as Widget)),child:Container(padding:const EdgeInsets.all(8),decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
+            _buildIcon(vital['icon'] as String,size:42,color:color),const SizedBox(height:6),Text(value,style:TextStyle(fontSize:14,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87),maxLines:1,overflow:TextOverflow.ellipsis),Text(label,style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[600]),maxLines:1,overflow:TextOverflow.ellipsis)
+          ])));
+        });
       },
     );
   }
-
   Widget _buildQuickAccess(bool isDark) {
     final quickServices = [
       {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'screen': const PatientAppointments()},
