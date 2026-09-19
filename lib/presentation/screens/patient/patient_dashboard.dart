@@ -559,9 +559,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildVitalStat('assets/images/services/blood_donation.png', 'الدم', _bloodType),
-                _buildVitalStat('assets/images/tracking/weight_tracking.png', 'الوزن', '72 كجم'),
-                _buildVitalStat('assets/images/tracking/fitness.png', 'الطول', '175 سم'),
-                _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الضغط', 'طبيعي'),
+                _buildVitalStat('assets/images/services/health_tips.png', 'المؤشرات', 'موحدة'),
               ],
             ),
           ],
