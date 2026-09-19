@@ -411,7 +411,7 @@ class _StoryContentState extends State<_StoryContent> {
 
   Widget _textContent(String text) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
