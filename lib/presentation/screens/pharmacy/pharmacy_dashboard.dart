@@ -79,9 +79,9 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
 
   Future<void> _pickProductImage() async {
     final source = await showModalBottomSheet<ImageSource>(context: context, builder: (_) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Icons.camera_alt), title: const Text('تصوير الصنف'), onTap: () => Navigator.pop(context, ImageSource.camera)), ListTile(leading: const Icon(Icons.photo_library), title: const Text('اختيار صورة'), onTap: () => Navigator.pop(context, ImageSource.gallery))])));
-    if (source == null) return null;
+    if (source == null) return;
     final picked = await ImagePicker().pickImage(source: source, imageQuality: 85, maxWidth: 1600);
-    if (picked == null) return null;
+    if (picked == null) return;
     _productImage = File(picked.path); if (mounted) setState(() {});
     return;
   }
