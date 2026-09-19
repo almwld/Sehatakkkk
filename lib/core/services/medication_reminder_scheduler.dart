@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -49,6 +51,18 @@ class MedicationReminderScheduler {
     }
   }
 
+  Future<void> _saveReport(Map<String, dynamic> medication, List<String> times) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('medication_alerts_report');
+    List<Map<String, dynamic>> items = [];
+    try { final decoded = raw == null ? null : jsonDecode(raw); if (decoded is List) items = decoded.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList(); } catch (_) {}
+    final id = medication['id']?.toString() ?? '';
+    items.removeWhere((e) => e['medicationId']?.toString() == id);
+    for (final time in times) items.add({'medicationId': id, 'name': medication['name']?.toString() ?? 'دواء', 'dose': medication['dose']?.toString() ?? '', 'time': time, 'enabled': medication['reminderEnabled'] != false, 'savedAt': DateTime.now().toIso8601String()});
+    if (items.length > 200) items = items.sublist(items.length - 200);
+    await prefs.setString('medication_alerts_report', jsonEncode(items));
+  }
+
   Future<void> scheduleMedication({required Map<String, dynamic> medication}) async {
     await initialize();
     final medicationId = medication['id']?.toString();
@@ -64,6 +78,7 @@ class MedicationReminderScheduler {
         : DateTime(start.year, start.month, start.day);
 
     final times = _times(medication);
+    await _saveReport(medication, times);
     var index = 0;
     for (var dayOffset = 0; dayOffset < 31; dayOffset++) {
       final day = firstDay.add(Duration(days: dayOffset));
@@ -85,7 +100,9 @@ class MedicationReminderScheduler {
               importance: Importance.max,
               priority: Priority.high,
               playSound: true,
+              sound: RawResourceAndroidNotificationSound('medication_reminder'),
               enableVibration: true,
+              fullScreenIntent: true,
             ),
             iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true, presentBadge: true),
           ),
