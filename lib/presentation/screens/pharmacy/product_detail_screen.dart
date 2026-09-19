@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/config/imagekit_config.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -51,11 +52,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Text(product.name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 4),
           Row(children: [
-            Icon(Icons.store, size: 16, color: Colors.grey[500]),
+            SvgPicture.asset('assets/icons/map_pins/pharmacy.svg', width: 16, height: 16, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
             const SizedBox(width: 4),
             Text(pharmacyName, style: TextStyle(fontSize: 14, color: isDark ? Colors.white60 : Colors.grey[600])),
             const SizedBox(width: 12),
-            const Icon(Icons.star, size: 16, color: Colors.amber),
+            SvgPicture.asset('assets/icons/mini_specialties/heart.svg', width: 16, height: 16, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
             Text(' ${product.rating.toStringAsFixed(1)} ($reviews)', style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87)),
           ]),
           const SizedBox(height: 12),
