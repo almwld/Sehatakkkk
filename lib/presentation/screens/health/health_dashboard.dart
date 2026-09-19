@@ -27,7 +27,7 @@ class _HealthDashboardState extends State<HealthDashboard>
     {
       'icon': 'assets/images/ui/doctor_avatar.png',
       'label': 'نبض القلب',
-      'value': '72',
+      'value': 'غير متوفر',
       'unit': 'نبضة/دقيقة',
       'color': Colors.red,
       'status': 'طبيعي',
@@ -39,7 +39,7 @@ class _HealthDashboardState extends State<HealthDashboard>
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
       'label': 'ضغط الدم',
-      'value': '120/80',
+      'value': 'غير متوفر',
       'unit': 'مم زئبق',
       'color': Colors.blue,
       'status': 'طبيعي',
@@ -51,7 +51,7 @@ class _HealthDashboardState extends State<HealthDashboard>
     {
       'icon': 'assets/images/tracking/blood_sugar.png',
       'label': 'سكر الدم',
-      'value': '95',
+      'value': 'غير متوفر',
       'unit': 'مجم/دل',
       'color': Colors.orange,
       'status': 'طبيعي',
@@ -63,7 +63,7 @@ class _HealthDashboardState extends State<HealthDashboard>
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
       'label': 'الوزن',
-      'value': '72',
+      'value': 'غير متوفر',
       'unit': 'كجم',
       'color': Colors.green,
       'status': 'مثالي',
