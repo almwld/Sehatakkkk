@@ -25,6 +25,6 @@ class _MedicationAlertsReportScreenState extends State<MedicationAlertsReportScr
       body: _items.isEmpty ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [SvgPicture.asset(AppAssets.notificationBellIcon, width: 64, height: 64, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)), const SizedBox(height: 12), const Text('لا توجد تنبيهات محفوظة بعد')])) : ListView.builder(
       padding: const EdgeInsets.all(14), itemCount: _items.length,
       itemBuilder: (_, i) { final item = _items[i]; return Card(child: ListTile(leading: CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.1), child: SvgPicture.asset(AppAssets.medicineIcon, width: 25, height: 25, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn))), title: Text((item['name'] ?? 'دواء').toString(), style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('${item['dose'] ?? ''} • ${item['time'] ?? ''}'), trailing: SvgPicture.asset(AppAssets.notificationBellIcon, width: 22, height: 22, colorFilter: ColorFilter.mode(item['enabled'] == false ? Colors.grey : AppColors.primary, BlendMode.srcIn)))); }
-    ),
+    );
   }
 }
