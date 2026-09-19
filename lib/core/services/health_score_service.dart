@@ -4,66 +4,59 @@ import 'package:firebase_auth/firebase_auth.dart';
 class HealthScoreService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// Calculates the account health indicator only from the unified
+  /// health_metrics/{uid} document. Missing measurements contribute nothing.
   static Future<double> calculateHealthScore() async {
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId == null) return 0.0;
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return 0;
+      final snap = await _firestore.collection('health_metrics').doc(uid).get();
+      final data = snap.data();
+      if (data == null) return 0;
 
-      final doc = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('health_metrics')
-          .doc('current')
-          .get();
+      double points = 0;
+      int available = 0;
 
-      if (!doc.exists) return 0.0;
-
-      final data = doc.data()!;
-      double score = 0.0;
-      int metrics = 0;
-
-      if (data['weight'] != null) {
-        final weight = (data['weight'] as num).toDouble();
-        if (weight >= 50 && weight <= 80) score += 20;
-        else if (weight > 80 && weight <= 100) score += 10;
-        metrics++;
+      final weight = (data['weight'] as num?)?.toDouble();
+      if (weight != null && weight > 0) {
+        available++;
+        // Weight is a measurement, not a diagnosis; without height/age,
+        // do not invent an "ideal" range. Award completeness only.
+        points += 20;
       }
 
-      if (data['systolic'] != null && data['diastolic'] != null) {
-        final systolic = (data['systolic'] as num).toInt();
-        final diastolic = (data['diastolic'] as num).toInt();
-        if (systolic >= 90 && systolic <= 120 && diastolic >= 60 && diastolic <= 80) {
-          score += 20;
-        } else if (systolic >= 121 && systolic <= 140 && diastolic >= 81 && diastolic <= 90) {
-          score += 10;
-        }
-        metrics++;
+      final systolic = (data['systolic'] as num?)?.toInt();
+      final diastolic = (data['diastolic'] as num?)?.toInt();
+      if (systolic != null && diastolic != null) {
+        available++;
+        if (systolic >= 90 && systolic <= 120 && diastolic >= 60 && diastolic <= 80) points += 20;
+        else if (systolic <= 140 && diastolic <= 90) points += 10;
       }
 
-      if (data['blood_sugar'] != null) {
-        final sugar = (data['blood_sugar'] as num).toDouble();
-        if (sugar >= 70 && sugar <= 100) score += 20;
-        else if (sugar > 100 && sugar <= 140) score += 10;
-        metrics++;
+      final sugar = (data['blood_sugar'] as num?)?.toDouble();
+      if (sugar != null && sugar > 0) {
+        available++;
+        if (sugar >= 70 && sugar <= 100) points += 20;
+        else if (sugar <= 140) points += 10;
       }
 
-      if (data['sleep_hours'] != null) {
-        final sleep = (data['sleep_hours'] as num).toDouble();
-        if (sleep >= 7 && sleep <= 9) score += 20;
-        else if (sleep >= 5 && sleep < 7) score += 10;
-        metrics++;
+      final sleep = ((data['sleep_hours'] ?? data['sleep']) as num?)?.toDouble();
+      if (sleep != null && sleep > 0) {
+        available++;
+        if (sleep >= 7 && sleep <= 9) points += 20;
+        else if (sleep >= 5 && sleep < 7) points += 10;
       }
 
-      if (data['steps'] != null) {
-        final steps = (data['steps'] as num).toInt();
-        if (steps >= 10000) score += 20;
-        else if (steps >= 5000) score += 10;
-        metrics++;
+      final steps = (data['steps'] as num?)?.toInt();
+      if (steps != null && steps > 0) {
+        available++;
+        if (steps >= 10000) points += 20;
+        else if (steps >= 5000) points += 10;
       }
 
-      return metrics > 0 ? (score / metrics) * 5 : 0.0;
-    } catch (e) {
-      return 0.0;
+      return available == 0 ? 0 : (points / (available * 20)) * 100;
+    } catch (_) {
+      return 0;
     }
   }
 }
