@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
-import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart' show ChatRoomScreen;
 
 class CallsScreen extends StatefulWidget {
   const CallsScreen({super.key});
