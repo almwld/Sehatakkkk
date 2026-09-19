@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import 'package:sehatak/core/constants/app_images.dart';
-import 'package:sehatak/core/constants/app_assets.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -63,7 +62,7 @@ class _AboutScreenState extends State<AboutScreen> {
       {'icon': AppImages.socialYoutube, 'label': 'يوتيوب', 'url': 'https://youtube.com/'},
       {'icon': AppIcons.socialLinkedin, 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
     ];
-    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('تواصل معنا', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 12), Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 12, children: socials.map((social) => GestureDetector(onTap: () => _launchUrl(social['url'] as String), child: Column(children: [Container(width: 50, height: 50, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Center(child: LocalAssetIcon(social['icon'] as String, size: social['label'] == 'لينكد إن' ? 24 : 28))), const SizedBox(height: 6), Text(social['label'] as String, style: TextStyle(fontSize: 11, color: AppColors.grey))]))).toList())]));
+    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('تواصل معنا', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 12), Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 12, children: socials.map((social) => GestureDetector(onTap: () => _launchUrl(social['url'] as String), child: Column(children: [Container(width: 50, height: 50, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)), child: Center(child: Image.asset(social['icon'] as String, width: 30, height: 30, fit: BoxFit.contain))), const SizedBox(height: 6), Text(social['label'] as String, style: TextStyle(fontSize: 11, color: AppColors.grey))]))).toList())]));
   }
 
   Future<void> _launchUrl(String url) async { try { final uri = Uri.parse(url); if (await canLaunchUrl(uri)) { await launchUrl(uri); } else { ToastService.showSuccess('لا يمكن فتح الرابط'); } } catch (e) { ToastService.showError('حدث خطأ: $e'); } }
