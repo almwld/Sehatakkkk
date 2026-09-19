@@ -241,11 +241,11 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-              icon: const Icon(Icons.notifications_none_rounded),
+              icon: Image.asset('assets/icons/top_bar/notifications.png', width: 24, height: 24),
               onPressed: () => Navigator.pushNamed(context, '/notifications')),
           Stack(children: [
             IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
+                icon: Image.asset('assets/icons/top_bar/Shopping cart.png', width: 24, height: 24),
                 onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -384,7 +384,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       color: AppColors.primary.withOpacity(.08),
                       child: Image.network(_image(p),
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Image.asset('assets/icons/core/medicine.png', fit: BoxFit.contain, errorBuilder: (_, __, ___) => SvgPicture.asset(AppIcons.specialtyPill, width: 34, height: 34, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)))))),
+                          errorBuilder: (_, __, ___) => SvgPicture.asset('assets/icons/mini_specialties/pill.svg', width: 34, height: 34, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn))))),
               const SizedBox(width: 12),
               Expanded(
                   child: Column(
@@ -434,8 +434,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                   ])),
               IconButton(
                   onPressed: available ? () => _add(p) : null,
-                  icon: Icon(Icons.add_shopping_cart_rounded,
-                      color: available ? AppColors.primary : Colors.grey)),
+                  icon: SvgPicture.asset('assets/icons/services/pharmacy.svg', width: 24, height: 24, colorFilter: ColorFilter.mode(available ? AppColors.primary : Colors.grey, BlendMode.srcIn))),
             ])));
   }
 
