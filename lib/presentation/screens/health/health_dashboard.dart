@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/health_score_service.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/screens/health/health_detail_screen.dart';
 
@@ -216,36 +217,30 @@ class _HealthDashboardState extends State<HealthDashboard>
   Future<void> _loadHealthScore() async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('health_metrics')
-            .doc('current')
-            .get();
-        if (doc.exists) {
-          final data = doc.data();
-          setState(() {
-            _healthScore = (data?['score'] ?? 0.0).toDouble();
-            _isLoading = false;
-          });
-        } else {
-          setState(() {
-            _healthScore = 78.5;
-            _isLoading = false;
-          });
-        }
-      } else {
-        setState(() {
-          _healthScore = 78.5;
-          _isLoading = false;
-        });
+      if (userId == null) {
+        if (mounted) setState(() { _healthScore = 0; _isLoading = false; });
+        return;
       }
-    } catch (e) {
+      final metrics = await FirebaseFirestore.instance.collection('health_metrics').doc(userId).get();
+      final data = metrics.data() ?? <String, dynamic>{};
+      final score = await HealthScoreService.calculateHealthScore();
+      if (!mounted) return;
       setState(() {
-        _healthScore = 78.5;
+        _healthScore = score;
         _isLoading = false;
+        final bp = (data['systolic'] != null && data['diastolic'] != null)
+            ? '${data['systolic']}/${data['diastolic']}' : 'غير متوفر';
+        final glucose = data['blood_sugar'] == null ? 'غير متوفر' : '${data['blood_sugar']}';
+        final weight = data['weight'] == null ? 'غير متوفر' : '${data['weight']}';
+        _healthMetrics.firstWhere((m) => m['label'] == 'ضغط الدم')['value'] = bp;
+        _healthMetrics.firstWhere((m) => m['label'] == 'سكر الدم')['value'] = glucose;
+        _healthMetrics.firstWhere((m) => m['label'] == 'الوزن')['value'] = weight;
+        _healthMetrics.firstWhere((m) => m['label'] == 'ضغط الدم')['status'] = bp == 'غير متوفر' ? 'غير متوفر' : 'مدخل من المستخدم';
+        _healthMetrics.firstWhere((m) => m['label'] == 'سكر الدم')['status'] = glucose == 'غير متوفر' ? 'غير متوفر' : 'مدخل من المستخدم';
+        _healthMetrics.firstWhere((m) => m['label'] == 'الوزن')['status'] = weight == 'غير متوفر' ? 'غير متوفر' : 'مدخل من المستخدم';
       });
+    } catch (_) {
+      if (mounted) setState(() { _healthScore = 0; _isLoading = false; });
     }
   }
 
@@ -436,14 +431,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      _healthScore.toStringAsFixed(0),
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: _getScoreColor(_healthScore),
-                      ),
-                    ),
+
                   ],
                 ),
               ],
