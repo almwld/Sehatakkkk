@@ -600,7 +600,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
               ]);
             },
           ),
-        ),
         actions: [
           IconButton(
               onPressed: _searchMessages,
