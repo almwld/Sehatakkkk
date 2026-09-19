@@ -85,14 +85,64 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
     );
   }
 
-  Future<void> _addSheet(bool dark) async{
-    _weight.clear();_note.clear();
-    await showModalBottomSheet(context:context,isScrollControlled:true,showDragHandle:true,builder:(_)=>Padding(padding:EdgeInsets.fromLTRB(20,10,20,20+MediaQuery.of(context).viewInsets.bottom),child:Column(mainAxisSize:MainAxisSize.min,children:[
-      const Text('إضافة قياس وزن',style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),const SizedBox(height:14),
-      TextField(controller:_weight,keyboardType:const TextInputType.numberWithOptions(decimal:true),textAlign:TextAlign.center,decoration:const InputDecoration(labelText:'الوزن بالكيلوجرام',border:OutlineInputBorder())),
-      const SizedBox(height:10),TextField(controller:_note,decoration:const InputDecoration(labelText:'ملاحظة اختيارية',border:OutlineInputBorder())),const SizedBox(height:16),
-      SizedBox(width:double.infinity,child:ElevatedButton(onPressed:(){Navigator.pop(context);_saveWeight();},style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:const Text('حفظ القياس')))
-    ]));
+  Future<void> _addSheet(bool dark) async {
+    _weight.clear();
+    _note.clear();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          10,
+          20,
+          20 + MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'إضافة قياس وزن',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _weight,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              textAlign: TextAlign.center,
+              decoration: const InputDecoration(
+                labelText: 'الوزن بالكيلوجرام',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _note,
+              decoration: const InputDecoration(
+                labelText: 'ملاحظة اختيارية',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _saveWeight();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('حفظ القياس'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
   String _time(String s){final d=DateTime.tryParse(s);return d==null?s:'${d.day}/${d.month} ${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')}';}
 }
