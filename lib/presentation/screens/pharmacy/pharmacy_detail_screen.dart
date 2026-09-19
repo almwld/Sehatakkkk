@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sehatak/core/constants/app_icons.dart';
+import 'package:sehatak/presentation/screens/pharmacy/product_request_screen.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 
@@ -50,29 +53,25 @@ class PharmacyDetailScreen extends StatelessWidget {
       const SizedBox(height: 16),
       Text(name, style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 12),
-      _row(Icons.location_on_outlined, 'العنوان', _text('address'), isDark),
-      _row(Icons.phone_outlined, 'الهاتف', _text('phone'), isDark),
-      _row(Icons.star_outline_rounded, 'التقييم', _text('rating', '--'), isDark),
-      _row(Icons.rate_review_outlined, 'التقييمات', _text('reviews', '0'), isDark),
-      _row(Icons.near_me_outlined, 'المسافة', _text('distance'), isDark),
-      _row(Icons.access_time_rounded, 'الحالة', open ? 'مفتوحة الآن' : 'مغلقة الآن', isDark),
-      _row(Icons.delivery_dining_rounded, 'التوصيل', delivery ? 'متوفر' : 'غير متوفر', isDark),
+      _row(AppIcons.navPharmacy, 'العنوان', _text('address'), isDark),
+      _row(AppIcons.serviceMedical, 'الهاتف', _text('phone'), isDark),
+      _row(AppIcons.offerHealthCheck, 'التقييم', _text('rating', '--'), isDark),
+      _row(AppIcons.socialChatModern, 'التقييمات', _text('reviews', '0'), isDark),
+      _row(AppIcons.navPharmacy, 'المسافة', _text('distance'), isDark),
+      _row(AppIcons.offerHealthCheck, 'الحالة', open ? 'مفتوحة الآن' : 'مغلقة الآن', isDark),
+      _row(AppIcons.serviceMedical, 'التوصيل', delivery ? 'متوفر' : 'غير متوفر', isDark),
       const SizedBox(height: 8),
-      OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InteractiveMapScreen(type: 'pharmacies'))), icon: const Icon(Icons.map_outlined), label: const Text('عرض الصيدليات على الخريطة')),
+      OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InteractiveMapScreen(type: 'pharmacies'))), icon: SvgPicture.asset(AppIcons.navPharmacy, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)), label: const Text('عرض الصيدليات على الخريطة')),
     ]);
   }
 
   Widget _orderTab(BuildContext context, bool isDark, String name, bool delivery) {
     return ListView(padding: const EdgeInsets.all(16), children: [
-      Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('طلب من $name', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Text(delivery ? 'يمكنك رفع الوصفة أو صورة الدواء وإرسال طلبك للصيدلية.' : 'التوصيل غير متاح لهذه الصيدلية حالياً.', style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700, height: 1.4)), const SizedBox(height: 14), SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: delivery ? () => _showOrderMessage(context) : null, icon: const Icon(Icons.upload_file_rounded), label: const Text('بدء طلب الدواء'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white)))]))),
+      Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('طلب من $name', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Text(delivery ? 'يمكنك رفع الوصفة أو صورة الدواء وإرسال طلبك للصيدلية.' : 'التوصيل غير متاح لهذه الصيدلية حالياً.', style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700, height: 1.4)), const SizedBox(height: 14), SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: delivery ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductRequestScreen(pharmacyId: '${pharmacy['id'] ?? ''}', pharmacyName: name))) : null, icon: SvgPicture.asset(AppIcons.offerDiscount, width: 22, height: 22, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)), label: const Text('رفع/تصوير الصنف وطلب مثله'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white)))]))),
     ]);
   }
 
-  void _showOrderMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سيتم فتح مسار رفع الوصفة والطلب من شاشة الصيدلية.')));
-  }
+  Widget _fallback(bool isDark) => Container(height: 180, decoration: BoxDecoration(color: isDark ? const Color(0xFF182238) : Colors.grey.shade200, borderRadius: BorderRadius.circular(16)), child: SvgPicture.asset(AppIcons.pharmacy, width: 70, height: 70, colorFilter: ColorFilter.mode(Colors.grey.shade500, BlendMode.srcIn)));
 
-  Widget _fallback(bool isDark) => Container(height: 180, decoration: BoxDecoration(color: isDark ? const Color(0xFF182238) : Colors.grey.shade200, borderRadius: BorderRadius.circular(16)), child: Icon(Icons.local_pharmacy_rounded, size: 70, color: Colors.grey.shade500));
-
-  Widget _row(IconData icon, String label, String value, bool isDark) => Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, size: 20, color: AppColors.primary), const SizedBox(width: 10), Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)), Expanded(child: Text(value, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)))]));
+  Widget _row(String icon, String label, String value, bool isDark) => Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SvgPicture.asset(icon, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)), const SizedBox(width: 10), Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)), Expanded(child: Text(value, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)))]));
 }
