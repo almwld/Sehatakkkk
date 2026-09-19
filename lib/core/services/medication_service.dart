@@ -65,10 +65,18 @@ class MedicationService {
       if (doctorId != null) 'doctorId': doctorId,
       if (consultationId != null) 'consultationId': consultationId,
     };
-    final ref = await _collection(user.uid).add(data);
-    final result = {'id': ref.id, ...data, 'startDate': startDate ?? DateTime.now()};
-    await CacheService.remove('medications_${user.uid}');
+    final localId = 'med_${DateTime.now().microsecondsSinceEpoch}';
+    final result = {'id': localId, ...data, 'startDate': startDate ?? DateTime.now()};
+    await CacheService.saveList('medications_${user.uid}', [result, ...((await CacheService.getList('medications_${user.uid}')) ?? const <Map<String, dynamic>>[])]);
     await _scheduler.scheduleMedication(medication: result);
+    try {
+      final ref = _collection(user.uid).doc(localId);
+      await ref.set(data);
+      await CacheService.remove('medications_${user.uid}');
+    } catch (_) {
+      // Firestore keeps the write queued when its local persistence is available;
+      // the local cache and alarm already make the reminder usable offline.
+    }
     return result;
   }
 
