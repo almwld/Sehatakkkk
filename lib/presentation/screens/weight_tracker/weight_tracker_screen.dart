@@ -64,5 +64,5 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
       SizedBox(width:double.infinity,child:ElevatedButton(onPressed:(){Navigator.pop(context);_saveWeight();},style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:const Text('حفظ القياس')))
     ]));
   }
-  String _time(String s){final d=DateTime.tryParse(s);return d==null?s:'\${d.day}/\${d.month} \${d.hour.toString().padLeft(2,'0')}:\${d.minute.toString().padLeft(2,'0')}';}
+  String _time(String s){final d=DateTime.tryParse(s);return d==null?s:'${d.day}/${d.month} ${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')}';}
 }
