@@ -27,12 +27,12 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen>{
       final functions=FirebaseFunctions.instanceFor(region:'us-central1');
       final result=await NetworkService.callWithRetry(()=>functions.httpsCallable('activateSubscription').call({
         'planCode':widget.planCode,'billing':widget.annual?'annual':'monthly','price':widget.price,'planName':widget.planName,
-        'idempotencyKey':'sub-\${widget.planCode}-\${widget.annual?'annual':'monthly'}-\${DateTime.now().microsecondsSinceEpoch}',
+        'idempotencyKey': 'sub-' + widget.planCode + '-' + (widget.annual ? 'annual' : 'monthly') + '-' + DateTime.now().microsecondsSinceEpoch,
       }));
       final data=Map<String,dynamic>.from(result.data as Map);
       if(!mounted)return;
       await showDialog<void>(context:context,barrierDismissible:false,builder:(_)=>AlertDialog(
-        icon:const Icon(Icons.verified_rounded,color:AppColors.primary,size:42),title:const Text('تم الدفع والتفعيل'),content:Text('تم تفعيل \${widget.planName}.\nالمبلغ المخصوم: \${widget.price} ر.ي\nرقم المعاملة: \${data['transactionId']}\nرقم الفاتورة: \${data['invoiceId']}'),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('تم'))]));
+        icon:const Icon(Icons.verified_rounded,color:AppColors.primary,size:42),title:const Text('تم الدفع والتفعيل'),content: Text('تم تفعيل ' + widget.planName + '.\nالمبلغ المخصوم: ' + widget.price.toString() + ' ر.ي\nرقم المعاملة: ' + (data['transactionId'] ?? '').toString() + '\nرقم الفاتورة: ' + (data['invoiceId'] ?? '').toString()),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('تم'))]));
       if(mounted){ToastService.showSuccess('تم تفعيل الاشتراك بنجاح');Navigator.pop(context,true);}
     }on FirebaseFunctionsException catch(e){if(mounted)ToastService.showError(_error(e.code,e.message));}
     catch(e){if(mounted)ToastService.showError('تعذر إتمام الدفع، حاول مرة أخرى');}
