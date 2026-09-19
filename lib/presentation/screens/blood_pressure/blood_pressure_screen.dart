@@ -61,11 +61,36 @@ class _BloodPressureScreenState extends State<BloodPressureScreen>{
     Text('نبض ${r['pulse']}',style:const TextStyle(fontSize:12))
   ]));
 
-  Widget _dialog(bool dark)=>GestureDetector(onTap:()=>setState(()=>_adding=false),child:Container(color:Colors.black54,child:Center(child:GestureDetector(onTap:(){},child:Container(margin:const EdgeInsets.all(24),padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(22)),child:Column(mainAxisSize:MainAxisSize.min,children:[
-    const Text('إضافة قياس ضغط',style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),const SizedBox(height:14),
-    Row(children:[Expanded(child:TextField(controller:_sys,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'الانقباضي',border:OutlineInputBorder()))),const SizedBox(width:10),Expanded(child:TextField(controller:_dia,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'الانبساطي',border:OutlineInputBorder())))]),
-    const SizedBox(height:12),TextField(controller:_pulse,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'النبض BPM (اختياري)',border:OutlineInputBorder())),
-    const SizedBox(height:16),Row(children:[Expanded(child:TextButton(onPressed:()=>setState(()=>_adding=false),child:const Text('إلغاء'))),const SizedBox(width:10),Expanded(child:ElevatedButton(onPressed:_save,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:const Text('حفظ')))])
-  ])))));
+  Widget _dialog(bool dark) {
+    return GestureDetector(
+      onTap: () => setState(() => _adding = false),
+      child: Container(color: Colors.black54, child: Center(
+        child: GestureDetector(
+          onTap: () {},
+          child: Container(
+            margin: const EdgeInsets.all(24), padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(22)),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Text('إضافة قياس ضغط', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 14),
+              Row(children: [
+                Expanded(child: TextField(controller: _sys, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الانقباضي', border: OutlineInputBorder()))),
+                const SizedBox(width: 10),
+                Expanded(child: TextField(controller: _dia, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الانبساطي', border: OutlineInputBorder()))),
+              ]),
+              const SizedBox(height: 12),
+              TextField(controller: _pulse, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'النبض BPM (اختياري)', border: OutlineInputBorder())),
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(child: TextButton(onPressed: () => setState(() => _adding = false), child: const Text('إلغاء'))),
+                const SizedBox(width: 10),
+                Expanded(child: ElevatedButton(onPressed: _save, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white), child: const Text('حفظ'))),
+              ]),
+            ]),
+          ),
+        ),
+      )),
+    );
+  }
   String _time(String s){final d=DateTime.tryParse(s);return d==null?s:'${d.day}/${d.month} ${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')}';}
 }
