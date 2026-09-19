@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sehatak/core/constants/app_assets.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
@@ -863,7 +864,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     color: AppColors.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Image.asset('assets/icons/settings/select_location.png', width: 28, height: 28, fit: BoxFit.contain),
+                  child: Image.asset(AppAssets.selectLocation, width: 28, height: 28, fit: BoxFit.contain),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -881,7 +882,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                       Row(
                         children: [
                           Image.asset(
-                            'assets/icons/settings/select_location.png',
+                            AppAssets.selectLocation,
                             width: 16,
                             height: 16,
                             fit: BoxFit.contain,
