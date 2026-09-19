@@ -50,21 +50,6 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     _subscribeToDelivery();
   }
 
-
-    setState(() => _isLoading = true);
-    try {
-      final delivery = await _deliveryService.getDeliveryStatus(widget.orderId);
-      setState(() {
-        _delivery = delivery;
-        _currentStep = delivery.currentStep;
-      });
-    } catch (e) {
-      print('❌ Error loading delivery: $e');
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
   @override
   void dispose() {
     _deliverySubscription?.cancel();
