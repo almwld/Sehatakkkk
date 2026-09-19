@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sehatak/core/config/imagekit_config.dart';
 
@@ -19,7 +20,14 @@ class ImageKitService {
   static const String _baseUrl = ImageKitConfig.baseUrl;
 
   Future<String> uploadImage({required File file, required String folder, String? fileName, Map<String, String>? customMetadata}) async {
-    throw StateError('ImageKit upload requires server-generated authentication; use the trusted backend.');
+    final bytes = await file.readAsBytes();
+    final result = await FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('uploadImageKitImage').call({
+      'fileBase64': base64Encode(bytes), 'fileName': fileName ?? 'image_${DateTime.now().millisecondsSinceEpoch}.jpg', 'folder': folder, 'customMetadata': customMetadata ?? <String, String>{},
+    });
+    final data = Map<String, dynamic>.from(result.data as Map);
+    final url = data['url']?.toString() ?? '';
+    if (url.isEmpty) throw StateError('لم يتم إرجاع رابط صورة من ImageKit');
+    return url;
   }
 
   Future<String> uploadImageFromUrl({required String imageUrl, required String folder, String? fileName}) async {
