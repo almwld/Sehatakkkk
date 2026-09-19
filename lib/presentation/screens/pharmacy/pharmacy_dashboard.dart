@@ -1,5 +1,10 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:sehatak/core/constants/app_icons.dart';
+import 'package:sehatak/core/services/image_kit_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/toast_service.dart';
 
@@ -15,6 +20,7 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
   String? _error;
+  File? _productImage;
 
   @override
   void initState() { super.initState(); _load(); }
@@ -71,6 +77,15 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     }
   }
 
+  Future<String?> _pickProductImage() async {
+    final source = await showModalBottomSheet<ImageSource>(context: context, builder: (_) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Icons.camera_alt), title: const Text('تصوير الصنف'), onTap: () => Navigator.pop(context, ImageSource.camera)), ListTile(leading: const Icon(Icons.photo_library), title: const Text('اختيار صورة'), onTap: () => Navigator.pop(context, ImageSource.gallery))])));
+    if (source == null) return null;
+    final picked = await ImagePicker().pickImage(source: source, imageQuality: 85, maxWidth: 1600);
+    if (picked == null) return null;
+    _productImage = File(picked.path); if (mounted) setState(() {});
+    return ImageKitService().uploadImage(file: _productImage!, folder: '/images/medicines');
+  }
+
   Future<void> _addProduct() async {
     if (_pharmacy == null || _pharmacy!['status'] != 'approved') return;
     final name = TextEditingController(), category = TextEditingController(text: 'أدوية'), price = TextEditingController(), stock = TextEditingController(text: '0'), drug = TextEditingController();
@@ -84,6 +99,9 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
           TextField(controller: category, decoration: const InputDecoration(labelText: 'الفئة')),
           TextField(controller: price, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'السعر ر.ي')),
           TextField(controller: stock, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'المخزون')),
+          const SizedBox(height: 10),
+          if (_productImage != null) ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(_productImage!, height: 110, width: 110, fit: BoxFit.cover)),
+          OutlinedButton.icon(onPressed: _pickProductImage, icon: SvgPicture.asset(AppIcons.specialtyPill, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)), label: const Text('رفع/تصوير صورة الصنف')),
         ])),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
@@ -93,7 +111,9 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     );
     if (ok != true) return;
     try {
-      await _functions.httpsCallable('submitPharmacyProduct').call({'pharmacyId': _pharmacy!['id'], 'name': name.text.trim(), 'category': category.text.trim(), 'price': double.tryParse(price.text) ?? 0, 'stock': int.tryParse(stock.text) ?? 0, 'drugId': drug.text.trim()});
+      final imageUrl = _productImage == null ? null : await ImageKitService().uploadImage(file: _productImage!, folder: '/images/medicines');
+      await _functions.httpsCallable('submitPharmacyProduct').call({'pharmacyId': _pharmacy!['id'], 'name': name.text.trim(), 'category': category.text.trim(), 'price': double.tryParse(price.text) ?? 0, 'stock': int.tryParse(stock.text) ?? 0, 'drugId': drug.text.trim(), 'imageUrl': imageUrl});
+      _productImage = null;
       await _load();
       if (mounted) ToastService.showSuccess('تم إرسال المنتج للمراجعة');
     } catch (e) {
