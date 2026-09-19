@@ -127,6 +127,13 @@ service cloud.firestore {
       allow delete: if isSignedIn() && facilityId == request.auth.uid;
     }
 
+    match /pharmacy_product_requests/{requestId} {
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid && request.resource.data.pharmacyId is string && request.resource.data.status == 'pending';
+      allow read: if isSignedIn() && (resource.data.patientId == request.auth.uid || (resource.data.pharmacyId is string && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.ownerId == request.auth.uid) || isAdmin());
+      allow update: if isSignedIn() && ((resource.data.patientId == request.auth.uid && request.resource.data.patientId == resource.data.patientId) || (resource.data.pharmacyId is string && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.ownerId == request.auth.uid) || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.patientId == request.auth.uid || isAdmin());
+    }
+
     match /labs/{labId} { allow read: if true; allow write: if isAdmin(); }
     match /products/{productId} { allow read: if true; allow write: if isAdmin(); }
 
