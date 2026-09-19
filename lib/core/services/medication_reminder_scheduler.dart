@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -15,10 +16,12 @@ class MedicationReminderScheduler {
   Future<void> initialize() async {
     if (_initialized) return;
     tz.initializeTimeZones();
+    try { final zone = await FlutterTimezone.getLocalTimezone(); tz.setLocalLocation(tz.getLocation(zone)); } catch (_) {}
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     await _notifications.initialize(const InitializationSettings(android: android, iOS: ios));
     final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidImpl?.createNotificationChannel(const AndroidNotificationChannel('medication_channel', 'تذكير الأدوية', description: 'تنبيهات دقيقة لمواعيد تناول الأدوية', importance: Importance.max, playSound: true, sound: RawResourceAndroidNotificationSound('medication_reminder'), enableVibration: true));
     await androidImpl?.requestNotificationsPermission();
     await androidImpl?.requestExactAlarmsPermission();
     _initialized = true;
