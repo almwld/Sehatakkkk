@@ -27,7 +27,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen>{
       final functions=FirebaseFunctions.instanceFor(region:'us-central1');
       final result=await NetworkService.callWithRetry(()=>functions.httpsCallable('activateSubscription').call({
         'planCode':widget.planCode,'billing':widget.annual?'annual':'monthly','price':widget.price,'planName':widget.planName,
-        'idempotencyKey': 'sub-' + widget.planCode + '-' + (widget.annual ? 'annual' : 'monthly') + '-' + DateTime.now().microsecondsSinceEpoch,
+        'idempotencyKey': 'sub-' + widget.planCode + '-' + (widget.annual ? 'annual' : 'monthly') + '-' + DateTime.now().microsecondsSinceEpoch.toString(),
       }));
       final data=Map<String,dynamic>.from(result.data as Map);
       if(!mounted)return;
