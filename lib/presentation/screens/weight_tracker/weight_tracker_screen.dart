@@ -40,19 +40,49 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
     c.dispose();if(v!=null){final p=await SharedPreferences.getInstance();await p.setDouble('target_weight',v);setState(()=>_target=v);}
   }
 
-  @override Widget build(BuildContext context){
-    final dark=Theme.of(context).brightness==Brightness.dark;final latest=_history.isEmpty?null:_history.first;
-    return Scaffold(backgroundColor:dark?const Color(0xFF0B1121):const Color(0xFFF7FAFA),appBar:AppBar(title:const Text('تتبع الوزن'),backgroundColor:AppColors.primary,foregroundColor:Colors.white,actions:[IconButton(onPressed:_setTarget,icon:const Icon(Icons.track_changes_outlined))]),
-      floatingActionButton:FloatingActionButton.extended(onPressed:()=>_addSheet(dark),backgroundColor:AppColors.primary,icon:const Icon(Icons.add_rounded),label:const Text('إضافة وزن')),
-      floatingActionButtonLocation:FloatingActionButtonLocation.centerFloat,
-      body:_loading?const Center(child:CircularProgressIndicator()):ListView(padding:const EdgeInsets.fromLTRB(16,16,16,100),children:[
-        Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:const LinearGradient(colors:[AppColors.primary,AppColors.primaryDark]),borderRadius:BorderRadius.circular(24)),child:Row(children:[
-          Container(width:58,height:58,decoration:BoxDecoration(color:Colors.white.withOpacity(.14),shape:BoxShape.circle),child:const Icon(Icons.monitor_weight_outlined,color:Colors.white,size:30)),
-          const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('آخر وزن مسجل',style:TextStyle(color:Colors.white70)),const SizedBox(height:4),Text(latest==null?'لا يوجد': '${latest['weight']} كجم',style:const TextStyle(color:Colors.white,fontSize:28,fontWeight:FontWeight.w900)),if(_target!=null)Text('الهدف: ${_target} كجم',style:const TextStyle(color:Colors.white70,fontSize:11))]))
-        ])),const SizedBox(height:18),const Text('السجل',style:TextStyle(fontSize:18,fontWeight:FontWeight.w900)),const SizedBox(height:10),
-        if(_history.isEmpty)Container(padding:const EdgeInsets.all(28),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(18)),child:const Text('لا توجد بيانات وزن بعد. أضف قياسك الفعلي.',textAlign:TextAlign.center))
-        else ..._history.map((r)=>Container(margin:const EdgeInsets.only(bottom:10),padding:const EdgeInsets.all(15),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(children:[const Icon(Icons.monitor_weight_outlined,color:AppColors.primary),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${r['weight']} كجم',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text(_time(r['date']?.toString()??''),style:TextStyle(fontSize:11,color:dark?Colors.grey[400]:Colors.grey[600])),if((r['note']??'').toString().isNotEmpty)Text(r['note'].toString(),style:const TextStyle(fontSize:11))]))]))
-      ]));
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final latest = _history.isEmpty ? null : _history.first;
+    return Scaffold(
+      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
+      appBar: AppBar(title: const Text('تتبع الوزن'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _setTarget, icon: const Icon(Icons.track_changes_outlined))]),
+      floatingActionButton: FloatingActionButton.extended(onPressed: () => _addSheet(dark), backgroundColor: AppColors.primary, icon: const Icon(Icons.add_rounded), label: const Text('إضافة وزن')),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: _loading ? const Center(child: CircularProgressIndicator()) : ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        children: [
+          Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(24)), child: Row(children: [
+            Container(width: 58, height: 58, decoration: BoxDecoration(color: Colors.white.withOpacity(.14), shape: BoxShape.circle), child: const Icon(Icons.monitor_weight_outlined, color: Colors.white, size: 30)),
+            const SizedBox(width: 14),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('آخر وزن مسجل', style: TextStyle(color: Colors.white70)),
+              const SizedBox(height: 4),
+              Text(latest == null ? 'لا يوجد' : '${latest['weight']} كجم', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
+              if (_target != null) Text('الهدف: $_target كجم', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+            ])),
+          ])),
+          const SizedBox(height: 18),
+          const Text('السجل', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 10),
+          if (_history.isEmpty)
+            Container(padding: const EdgeInsets.all(28), decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(18)), child: const Text('لا توجد بيانات وزن بعد. أضف قياسك الفعلي.', textAlign: TextAlign.center))
+          else
+            ..._history.map((r) => Container(
+              margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Row(children: [
+                const Icon(Icons.monitor_weight_outlined, color: AppColors.primary), const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('${r['weight']} كجم', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  Text(_time(r['date']?.toString() ?? ''), style: TextStyle(fontSize: 11, color: dark ? Colors.grey[400] : Colors.grey[600])),
+                  if ((r['note'] ?? '').toString().isNotEmpty) Text(r['note'].toString(), style: const TextStyle(fontSize: 11)),
+                ])),
+              ]),
+            )),
+        ],
+      ),
+    );
   }
 
   Future<void> _addSheet(bool dark) async{
