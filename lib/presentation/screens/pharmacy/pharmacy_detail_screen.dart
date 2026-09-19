@@ -53,10 +53,10 @@ class PharmacyDetailScreen extends StatelessWidget {
       const SizedBox(height: 16),
       Text(name, style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 12),
-      _row(AppIcons.navPharmacy, 'العنوان', _text('address'), isDark),
-      _row(AppIcons.serviceMedical, 'الهاتف', _text('phone'), isDark),
-      _row(AppIcons.offerHealthCheck, 'التقييم', _text('rating', '--'), isDark),
-      _row(AppIcons.socialChatModern, 'التقييمات', _text('reviews', '0'), isDark),
+      _row('assets/icons/map_pins/pharmacy.svg', 'العنوان', _text('address'), isDark),
+      _row('assets/icons/services/medical.svg', 'الهاتف', _text('phone'), isDark),
+      _row('assets/icons/mini_specialties/heart.svg', 'التقييم', _text('rating', '--'), isDark),
+      _row('assets/icons/social/chat_modern.svg', 'التقييمات', _text('reviews', '0'), isDark),
       _row(AppIcons.navPharmacy, 'المسافة', _text('distance'), isDark),
       _row(AppIcons.offerHealthCheck, 'الحالة', open ? 'مفتوحة الآن' : 'مغلقة الآن', isDark),
       _row(AppIcons.serviceMedical, 'التوصيل', delivery ? 'متوفر' : 'غير متوفر', isDark),
@@ -67,11 +67,11 @@ class PharmacyDetailScreen extends StatelessWidget {
 
   Widget _orderTab(BuildContext context, bool isDark, String name, bool delivery) {
     return ListView(padding: const EdgeInsets.all(16), children: [
-      Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('طلب من $name', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Text(delivery ? 'يمكنك رفع الوصفة أو صورة الدواء وإرسال طلبك للصيدلية.' : 'التوصيل غير متاح لهذه الصيدلية حالياً.', style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700, height: 1.4)), const SizedBox(height: 14), SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: delivery ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductRequestScreen(pharmacyId: '${pharmacy['id'] ?? ''}', pharmacyName: name))) : null, icon: SvgPicture.asset(AppIcons.offerDiscount, width: 22, height: 22, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)), label: const Text('رفع/تصوير الصنف وطلب مثله'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white)))]))),
+      Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('طلب من $name', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Text(delivery ? 'يمكنك رفع الوصفة أو صورة الدواء وإرسال طلبك للصيدلية.' : 'التوصيل غير متاح لهذه الصيدلية حالياً.', style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700, height: 1.4)), const SizedBox(height: 14), SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: delivery ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductRequestScreen(pharmacyId: '${pharmacy['id'] ?? ''}', pharmacyName: name))) : null, icon: SvgPicture.asset('assets/icons/mini_specialties/pill.svg', width: 22, height: 22, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)), label: const Text('رفع/تصوير الصنف وطلب مثله'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white)))]))),
     ]);
   }
 
-  Widget _fallback(bool isDark) => Container(height: 180, decoration: BoxDecoration(color: isDark ? const Color(0xFF182238) : Colors.grey.shade200, borderRadius: BorderRadius.circular(16)), child: SvgPicture.asset(AppIcons.pharmacy, width: 70, height: 70, colorFilter: ColorFilter.mode(Colors.grey.shade500, BlendMode.srcIn)));
+  Widget _fallback(bool isDark) => Container(height: 180, decoration: BoxDecoration(color: isDark ? const Color(0xFF182238) : Colors.grey.shade200, borderRadius: BorderRadius.circular(16)), child: SvgPicture.asset('assets/icons/map_pins/pharmacy.svg', width: 70, height: 70, colorFilter: ColorFilter.mode(Colors.grey.shade500, BlendMode.srcIn)));
 
   Widget _row(String icon, String label, String value, bool isDark) => Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SvgPicture.asset(icon, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)), const SizedBox(width: 10), Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)), Expanded(child: Text(value, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)))]));
 }
