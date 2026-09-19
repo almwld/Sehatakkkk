@@ -864,7 +864,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     color: AppColors.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Image.asset(AppAssets.selectLocation, width: 28, height: 28, fit: BoxFit.contain),
+                  child: Image.asset('assets/icons/settings/select_location.png', width: 28, height: 28, fit: BoxFit.contain),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
