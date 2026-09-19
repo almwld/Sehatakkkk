@@ -45,8 +45,8 @@ class _BloodPressureScreenState extends State<BloodPressureScreen>{
         ListView(padding:const EdgeInsets.fromLTRB(16,16,16,100),children:[
           Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:const LinearGradient(colors:[AppColors.primary,AppColors.primaryDark]),borderRadius:BorderRadius.circular(24)),child:Column(children:[
             const Text('آخر قياس مسجل',style:TextStyle(color:Colors.white70)),const SizedBox(height:8),
-            Text(last==null?'لا توجد قراءة':'\${last['systolic']}/\${last['diastolic']}',style:const TextStyle(color:Colors.white,fontSize:34,fontWeight:FontWeight.w900)),
-            if(last!=null)Text('نبض \${last['pulse']} BPM',style:const TextStyle(color:Colors.white70,fontSize:12))
+            Text(last==null?'لا توجد قراءة':'${last['systolic']}/${last['diastolic']}',style:const TextStyle(color:Colors.white,fontSize:34,fontWeight:FontWeight.w900)),
+            if(last!=null)Text('نبض ${last['pulse']} BPM',style:const TextStyle(color:Colors.white70,fontSize:12))
           ])),
           const SizedBox(height:16),const Text('القياسات المسجلة',style:TextStyle(fontSize:18,fontWeight:FontWeight.w900)),const SizedBox(height:10),
           if(_readings.isEmpty)Container(padding:const EdgeInsets.all(28),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(18)),child:const Text('لم تُدخل أي قراءة بعد. سجّل القياس الفعلي من جهازك ليظهر في المؤشرات الصحية.',textAlign:TextAlign.center))
@@ -57,8 +57,8 @@ class _BloodPressureScreenState extends State<BloodPressureScreen>{
 
   Widget _card(Map<String,dynamic> r,bool dark)=>Container(margin:const EdgeInsets.only(bottom:10),padding:const EdgeInsets.all(15),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(children:[
     Container(width:44,height:44,decoration:BoxDecoration(color:AppColors.primary.withOpacity(.1),borderRadius:BorderRadius.circular(12)),child:const Icon(Icons.monitor_heart_outlined,color:AppColors.primary)),
-    const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('\${r['systolic']}/\${r['diastolic']} mmHg',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text(_time(r['time']?.toString()??''),style:TextStyle(fontSize:11,color:dark?Colors.grey[400]:Colors.grey[600]))])),
-    Text('نبض \${r['pulse']}',style:const TextStyle(fontSize:12))
+    const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${r['systolic']}/${r['diastolic']} mmHg',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text(_time(r['time']?.toString()??''),style:TextStyle(fontSize:11,color:dark?Colors.grey[400]:Colors.grey[600]))])),
+    Text('نبض ${r['pulse']}',style:const TextStyle(fontSize:12))
   ]));
 
   Widget _dialog(bool dark)=>GestureDetector(onTap:()=>setState(()=>_adding=false),child:Container(color:Colors.black54,child:Center(child:GestureDetector(onTap:(){},child:Container(margin:const EdgeInsets.all(24),padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(22)),child:Column(mainAxisSize:MainAxisSize.min,children:[
@@ -67,5 +67,5 @@ class _BloodPressureScreenState extends State<BloodPressureScreen>{
     const SizedBox(height:12),TextField(controller:_pulse,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'النبض BPM (اختياري)',border:OutlineInputBorder())),
     const SizedBox(height:16),Row(children:[Expanded(child:TextButton(onPressed:()=>setState(()=>_adding=false),child:const Text('إلغاء'))),const SizedBox(width:10),Expanded(child:ElevatedButton(onPressed:_save,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:const Text('حفظ')))])
   ])))));
-  String _time(String s){final d=DateTime.tryParse(s);return d==null?s:'\${d.day}/\${d.month} \${d.hour.toString().padLeft(2,'0')}:\${d.minute.toString().padLeft(2,'0')}';}
+  String _time(String s){final d=DateTime.tryParse(s);return d==null?s:'${d.day}/${d.month} ${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')}';}
 }
