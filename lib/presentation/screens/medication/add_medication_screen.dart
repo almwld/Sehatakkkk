@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sehatak/core/constants/app_assets.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/medication_service.dart';
@@ -142,7 +144,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
-        prefixIcon: const Icon(Icons.medication_outlined),
+        prefixIcon: SvgPicture.asset(AppAssets.medicineIcon, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
       ),
     );
   }
@@ -169,13 +171,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
               color: AppColors.primary.withOpacity(.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(
-                  Icons.notifications_active,
-                  color: AppColors.primary,
-                  size: 30,
-                ),
+                SvgPicture.asset(AppAssets.notificationBellIcon, width: 30, height: 30, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -216,10 +214,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                     _doseTimes.length,
                     (index) => ListTile(
                       dense: true,
-                      leading: const Icon(
-                        Icons.access_time,
-                        color: AppColors.primary,
-                      ),
+                      leading: SvgPicture.asset(AppAssets.clockIcon, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
                       title: Text(_doseTimes[index].format(context)),
                       onTap: () => _pickTime(index: index),
                       trailing: _doseTimes.length > 1
@@ -240,7 +235,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                   ),
                   OutlinedButton.icon(
                     onPressed: _pickTime,
-                    icon: const Icon(Icons.add_alarm),
+                    icon: SvgPicture.asset(AppAssets.addIcon, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
                     label: const Text('إضافة وقت جرعة'),
                   ),
                 ],
@@ -250,10 +245,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           const SizedBox(height: 12),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(
-              Icons.calendar_today,
-              color: AppColors.primary,
-            ),
+            leading: SvgPicture.asset(AppAssets.calendarIcon, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
             title: Text(
               'تاريخ البدء: ${DateFormat('yyyy-MM-dd').format(_startDate)}',
             ),
