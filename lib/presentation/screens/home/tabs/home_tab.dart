@@ -503,6 +503,7 @@ class _HomeCommunityPost extends StatefulWidget {
   @override State<_HomeCommunityPost> createState() => _HomeCommunityPostState();
 }
 class _HomeCommunityPostState extends State<_HomeCommunityPost> {
+  static const Color _darkCard = Color(0xFF102A2A);
   late int _likes, _shares; bool _liked = false;
   @override void initState() { super.initState(); _likes = widget.post.likes; _shares = widget.post.shares; }
   Future<void> _like() async {
