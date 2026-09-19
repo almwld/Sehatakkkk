@@ -31,6 +31,7 @@ class AppAssets {
   static const String calendarIcon = '${_iconsPath}calendar.svg';
   static const String clockIcon = '${_iconsPath}clock.svg';
   static const String locationIcon = '${_iconsPath}location.svg';
+  static const String selectLocation = '${_iconsPath}settings/select_location.png';
   static const String phoneIcon = '${_iconsPath}phone.svg';
   static const String emailIcon = '${_iconsPath}email.svg';
   static const String passwordIcon = '${_iconsPath}password.svg';
