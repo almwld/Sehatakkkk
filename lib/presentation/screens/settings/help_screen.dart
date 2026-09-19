@@ -1,7 +1,6 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -45,9 +44,9 @@ class _HelpScreenState extends State<HelpScreen> {
 
   // ✅ معلومات الاتصال
   final List<Map<String, dynamic>> _contactInfo = [
-    {'icon': 'assets/images/ui/email.png', 'label': 'البريد الإلكتروني', 'value': 'support@sehatak.com', 'action': 'mailto:support@sehatak.com'},
-    {'icon': 'assets/images/ui/phone.png', 'label': 'رقم الهاتف', 'value': '+967 1 234 567', 'action': 'tel:+9671234567'},
-    {'icon': 'assets/images/ui/location.png', 'label': 'العنوان', 'value': 'صنعاء - اليمن', 'action': ''},
+    {'icon': 'assets/images/services/consultation.png', 'label': 'البريد الإلكتروني', 'value': 'support@sehatak.com', 'action': 'mailto:support@sehatak.com'},
+    {'icon': 'assets/images/chat/phone_call.png', 'label': 'رقم الهاتف', 'value': '+967 1 234 567', 'action': 'tel:+9671234567'},
+    {'icon': 'assets/images/services/map_location.png', 'label': 'العنوان', 'value': 'صنعاء - اليمن', 'action': ''},
   ];
 
   @override
