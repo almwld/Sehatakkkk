@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/bloc/home/home_state.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -105,14 +107,26 @@ class HomeHealthWidgets extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (_, i) => _stat(stats[i]))),
       _header('المؤشرات الحيوية'),
-      SizedBox(
-          height: 154,
-          child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: vitals.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (_, i) => _vital(vitals[i]))),
+      FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        future: _healthMetricsFuture(),
+        builder: (context, snapshot) {
+          final data = snapshot.data?.data() ?? const <String, dynamic>{};
+          final unified = [
+            {...vitals[0], 'display': data['systolic'] != null && data['diastolic'] != null ? '${data['systolic']}/${data['diastolic']}' : 'غير متوفر'},
+            {...vitals[1], 'display': data['blood_sugar'] != null ? '${data['blood_sugar']}' : 'غير متوفر'},
+            {...vitals[2], 'display': data['steps'] != null ? '${data['steps']} خطوة' : 'غير متوفر'},
+            {...vitals[3], 'display': data['weight'] != null ? '${data['weight']} كجم' : 'غير متوفر'},
+            ...vitals.sublist(4),
+          ];
+          return SizedBox(height: 154, child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: unified.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, i) => _vital(unified[i]),
+          ));
+        },
+      ),
     ]);
   }
 
@@ -182,6 +196,12 @@ class HomeHealthWidgets extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<DocumentSnapshot<Map<String, dynamic>>> _healthMetricsFuture() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return Future.error('not_authenticated');
+    return FirebaseFirestore.instance.collection('health_metrics').doc(uid).get();
   }
 
   Widget _vital(Map<String, dynamic> item) {
