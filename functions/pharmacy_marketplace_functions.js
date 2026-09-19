@@ -13,6 +13,28 @@ async function pharmacyRef(id) { const ref = db.collection('pharmacies').doc(id)
 async function assertPharmacyOwner(uid, id, approved = true) { const r = await pharmacyRef(id); if (r.data.ownerId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذه الصيدلية'); if (approved && r.data.status !== 'approved') throw new HttpsError('failed-precondition', 'الصيدلية لم تعتمد بعد'); return r; }
 function safeId(raw, fallback) { const id = String(raw ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 120); return id || fallback; }
 
+exports.uploadImageKitImage = onCall(async request => {
+  const uid = auth(request);
+  const fileBase64 = String(request.data.fileBase64 || '').trim();
+  const fileName = clean(request.data.fileName || 'image.jpg', 'fileName', 180);
+  const folder = clean(request.data.folder || '/images/medicines', 'folder', 200);
+  if (!fileBase64 || fileBase64.length > 8 * 1024 * 1024) throw new HttpsError('invalid-argument', 'حجم الصورة غير صالح');
+  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+  if (!privateKey) throw new HttpsError('failed-precondition', 'ImageKit غير مهيأ على الخادم');
+  const payload = JSON.stringify({file:fileBase64,fileName,folder,useUniqueFileName:true});
+  const https = require('https');
+  const response = await new Promise((resolve,reject) => {
+    const req = https.request({hostname:'upload.imagekit.io',path:'/api/v1/files/upload',method:'POST',headers:{'Authorization':'Basic '+Buffer.from(privateKey+':').toString('base64'),'Content-Type':'application/json','Content-Length':Buffer.byteLength(payload)}}, res => {
+      let body=''; res.setEncoding('utf8'); res.on('data',c=>body+=c); res.on('end',()=>resolve({status:res.statusCode||500,body}));
+    });
+    req.on('error',reject); req.write(payload); req.end();
+  });
+  if (response.status < 200 || response.status >= 300) throw new HttpsError('internal', 'فشل رفع الصورة إلى ImageKit');
+  const data = JSON.parse(response.body || '{}');
+  if (!data.url) throw new HttpsError('internal', 'ImageKit لم يُرجع رابط الصورة');
+  return {url:data.url,fileId:data.fileId||null,ownerUid:uid};
+});
+
 exports.createPharmacyProfile = onCall(async request => {
   const uid = auth(request); const user = await userData(uid);
   if (!['pharmacy','pharmacist','pharmacy_owner'].includes(String(user.role || '').toLowerCase())) throw new HttpsError('permission-denied','حساب الصيدلية يجب أن يكون من نوع صيدلية');
