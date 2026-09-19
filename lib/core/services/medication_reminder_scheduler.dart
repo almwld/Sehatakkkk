@@ -47,11 +47,12 @@ class MedicationReminderScheduler {
     return null;
   }
 
+  Future<void> _removeReport(String medicationId) async { final prefs = await SharedPreferences.getInstance(); final raw = prefs.getString('medication_alerts_report'); if (raw == null) return; try { final decoded = jsonDecode(raw); if (decoded is List) { final items = decoded.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).where((e) => e['medicationId']?.toString() != medicationId).toList(); await prefs.setString('medication_alerts_report', jsonEncode(items)); } } catch (_) {} }
+
   Future<void> cancelMedication(String medicationId) async {
     await initialize();
-    for (var i = 0; i < 8; i++) {
-      await _notifications.cancel(_id(medicationId, i));
-    }
+    for (var i = 0; i < 64; i++) { await _notifications.cancel(_id(medicationId, i)); }
+    await _removeReport(medicationId);
   }
 
   Future<void> _saveReport(Map<String, dynamic> medication, List<String> times) async {
@@ -70,7 +71,8 @@ class MedicationReminderScheduler {
     await initialize();
     final medicationId = medication['id']?.toString();
     final name = medication['name']?.toString().trim();
-    if (medicationId == null || name == null || name.isEmpty || medication['reminderEnabled'] == false || medication['active'] == false) return;
+    if (medicationId == null || name == null || name.isEmpty || medication['active'] == false) return;
+    if (medication['reminderEnabled'] == false) { await cancelMedication(medicationId); return; }
 
     await cancelMedication(medicationId);
     final start = _dateValue(medication['startDate']) ?? DateTime.now();
