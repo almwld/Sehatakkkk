@@ -104,6 +104,35 @@ exports.createAppointment = onCall(async (request) => {
     if (!doctorSnap.exists) throw new HttpsError('not-found', 'الطبيب غير موجود');
     const doctor = doctorSnap.data();
     if (doctor.userId !== doctorId || doctor.isVerified !== true) throw new HttpsError('failed-precondition', 'الطبيب غير موثق أو ارتباط الحساب غير صالح');
+    if (doctor.isAvailable === false || doctor.acceptingAppointments === false) throw new HttpsError('failed-precondition', 'الطبيب لا يستقبل مواعيد حالياً');
+    const dayNames = {6:'السبت',7:'الأحد',1:'الاثنين',2:'الثلاثاء',3:'الأربعاء',4:'الخميس',5:'الجمعة'};
+    const dayName = dayNames[date.getUTCDay() === 0 ? 7 : date.getUTCDay()];
+    const workingHours = doctor.workingHours;
+    const dayConfig = workingHours && typeof workingHours === 'object' ? workingHours[dayName] : null;
+    if (dayConfig && dayConfig.enabled === false) throw new HttpsError('failed-precondition', 'الطبيب لا يعمل في هذا اليوم');
+    const vacationList = Array.isArray(doctor.vacations) ? doctor.vacations : [];
+    for (const vacation of vacationList) {
+      const a = vacation && vacation.start ? new Date(vacation.start) : null;
+      const b = vacation && vacation.end ? new Date(vacation.end) : null;
+      if (a && b && !Number.isNaN(a.getTime()) && !Number.isNaN(b.getTime()) && date >= new Date(Date.UTC(a.getUTCFullYear(),a.getUTCMonth(),a.getUTCDate())) && date <= new Date(Date.UTC(b.getUTCFullYear(),b.getUTCMonth(),b.getUTCDate(),23,59,59))) {
+        throw new HttpsError('failed-precondition', 'الطبيب في إجازة خلال هذا التاريخ');
+      }
+    }
+    const match = /^(\\d{1,2}):(\\d{2})$/.exec(time.trim());
+    if (!match) throw new HttpsError('invalid-argument', 'وقت الموعد غير صالح');
+    const requestedMinutes = Number(match[1]) * 60 + Number(match[2]);
+    if (requestedMinutes > 1439) throw new HttpsError('invalid-argument', 'وقت الموعد غير صالح');
+    if (dayConfig && typeof dayConfig === 'object') {
+      const parseClock = value => { const m = /^(\\d{1,2}):(\\d{2})$/.exec(String(value || '')); return m ? Number(m[1])*60+Number(m[2]) : null; };
+      const start = parseClock(dayConfig.start || dayConfig.from);
+      const end = parseClock(dayConfig.end || dayConfig.to);
+      if (start != null && end != null && (requestedMinutes < start || requestedMinutes >= end)) throw new HttpsError('failed-precondition', 'وقت الموعد خارج ساعات عمل الطبيب');
+    }
+    const dayStart = new Date(date); dayStart.setUTCHours(0,0,0,0);
+    const dayEnd = new Date(date); dayEnd.setUTCHours(23,59,59,999);
+    const dailySnap = await tx.get(db.collection('appointments').where('doctorId','==',doctorId).where('date','>=',admin.firestore.Timestamp.fromDate(dayStart)).where('date','<=',admin.firestore.Timestamp.fromDate(dayEnd)).where('status','in',['pending','confirmed']).limit(200));
+    const maxDaily = Number(doctor.maxDailyAppointments || 20);
+    if (dailySnap.docs.length >= maxDaily) throw new HttpsError('resource-exhausted', 'اكتمل الحد اليومي للمواعيد الذي حدده الطبيب');
     if (existingSnap.docs.length) throw new HttpsError('already-exists', 'هذا الموعد محجوز مسبقاً');
     const now = FieldValue.serverTimestamp();
     tx.create(appointmentRef, {patientId: uid, patientName: userSnap.data().name || userSnap.data().displayName || 'مريض', doctorId, doctorName: doctor.name || '', doctorSpecialty: doctor.specialty || '', date: admin.firestore.Timestamp.fromDate(date), time, type, status: 'pending', notes: String(request.data.notes || '').trim().slice(0, 1000), clinicAddress: doctor.clinicAddress || null, clinicPhone: doctor.clinicPhone || null, createdAt: now, updatedAt: now, confirmedAt: null, cancelledAt: null, reminderSent: false});
