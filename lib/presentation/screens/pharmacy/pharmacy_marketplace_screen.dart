@@ -10,6 +10,7 @@ import '../../../core/services/unified_cart_service.dart';
 import 'cart_screen.dart';
 import 'pharmacy_detail_screen.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class PharmacyMarketplaceScreen extends StatefulWidget {
   const PharmacyMarketplaceScreen({super.key});
