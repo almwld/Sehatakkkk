@@ -9,11 +9,9 @@ import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/core/constants/medical_specialties.dart';
 import 'package:sehatak/core/models/user_model.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
-import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
-import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -463,15 +461,6 @@ class _AuthScreenState extends State<AuthScreen>
     }
   }
 
-  void _navigateToHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-    );
-  }
-
   Future<void> _loginWithGoogle() async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
@@ -562,7 +551,6 @@ class _AuthScreenState extends State<AuthScreen>
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      final role = existing.data()?['role']?.toString() ?? 'user';
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('remember_me', true);
       await prefs.setBool('is_logged_in', true);
@@ -573,14 +561,8 @@ class _AuthScreenState extends State<AuthScreen>
       await _showSuccessAnimation();
       if (!mounted) return;
 
-      if (role == 'admin' || role == 'superAdmin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PlatformDashboard()),
-        );
-      } else {
-        _navigateToHome();
-      }
+      // Firebase Auth state is the single source of truth.
+      // AppRouter performs the Auth → Home transition for every role.
     } on FirebaseAuthException catch (e) {
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
@@ -637,33 +619,8 @@ class _AuthScreenState extends State<AuthScreen>
 
       final user = FirebaseAuth.instance.currentUser;
 
-      if (user != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (doc.exists) {
-          final role = doc.data()?['role'] ?? 'user';
-
-          if (role == 'admin' || role == 'superAdmin') {
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const PlatformDashboard(),
-                ),
-              );
-            }
-
-            return;
-          }
-        }
-      }
-
-      if (mounted) {
-        _navigateToHome();
-      }
+      // Authentication state is observed by AppRouter.
+      // All authenticated users enter HomeScreen → Home Tab.
     } on FirebaseAuthException catch (e) {
       _hideLoading();
 
@@ -920,9 +877,7 @@ class _AuthScreenState extends State<AuthScreen>
         await prefs.setString('user_uid', user.uid);
         await _showSuccessAnimation();
 
-        if (mounted) {
-          _navigateToHome();
-        }
+        // AppRouter observes the authenticated session and opens HomeScreen.
       } else {
         ToastService.showError('لا توجد جلسة حساب محفوظة. سجّل الدخول مرة واحدة ثم استخدم البصمة.');
       }
