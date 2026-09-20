@@ -118,7 +118,7 @@ class _ChatLocationPickerState extends State<ChatLocationPicker> {
                         if (_location!.city.isNotEmpty) Chip(label: Text(_location!.city)),
                       ],
                     ),
-                    Text(''${_location!.latitude.toStringAsFixed(6)}, ${_location!.longitude.toStringAsFixed(6)}'', textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 11)),
+                    Text('${_location!.latitude.toStringAsFixed(6)}, ${_location!.longitude.toStringAsFixed(6)}', textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 11)),
                   ] else
                     const Text('اضغط على الخريطة أو استخدم GPS لتحديد الموقع'),
                   const SizedBox(height: 8),
