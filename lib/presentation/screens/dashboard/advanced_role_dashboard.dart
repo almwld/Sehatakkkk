@@ -278,7 +278,7 @@ class _FacilityControlCenterState extends State<_FacilityControlCenter>{
     const SizedBox(height:12),_section('نوع المنشأة',[DropdownButtonFormField<String>(value:facilityType.isEmpty?widget.role:facilityType,items:[DropdownMenuItem(value:widget.role,child:Text(title)),const DropdownMenuItem(value:'hospital',child:Text('مستشفى')),const DropdownMenuItem(value:'clinic',child:Text('عيادة')),const DropdownMenuItem(value:'medical_center',child:Text('مركز طبي')),const DropdownMenuItem(value:'dental_clinic',child:Text('عيادة أسنان')),const DropdownMenuItem(value:'eye_clinic',child:Text('مركز عيون')),const DropdownMenuItem(value:'lab',child:Text('مختبر')),].toList(),onChanged:(v){if(v!=null)setState(()=>facilityType=v);})]),
     const SizedBox(height:12),Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:Colors.orange.withOpacity(.1),borderRadius:BorderRadius.circular(14)),child:const Text('حالة المنشأة: جاري المراجعة. لن تظهر للعامة حتى تعتمدها الإدارة.')),
     const SizedBox(height:12),SizedBox(height:52,child:FilledButton.icon(onPressed:saving?null:save,icon:const Icon(Icons.save),label:Text(saving?'جارٍ الحفظ...':'حفظ وإرسال للمراجعة')))
-  ]);}
+  ]));}
   Widget field(TextEditingController c,String l)=>Padding(padding:const EdgeInsets.only(top:8),child:TextField(controller:c,decoration:InputDecoration(labelText:l,border:const OutlineInputBorder())));
   Widget _section(String t,List<Widget> c)=>Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Theme.of(context).cardColor,borderRadius:BorderRadius.circular(18)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(t,style:const TextStyle(fontWeight:FontWeight.w900)),const Divider(),...c]));
 }
