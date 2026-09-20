@@ -239,7 +239,10 @@ class NotificationService {
       ),
       iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: resolvedSound),
     );
-    await _notifications.show(_typedNotificationId(type, data), safeTitle, safeBody, details, payload: payload ?? _encodePayload(type, data));
+    final notificationId = family == SehatakNotificationType.newMessage && data?['chatId'] != null
+        ? _chatNotificationId(data!['chatId'].toString())
+        : _typedNotificationId(type, data);
+    await _notifications.show(notificationId, safeTitle, safeBody, details, payload: payload ?? _encodePayload(type, data));
   }
 
   Future<void> showMessageNotification({required String title, required String body, String? payload}) async {
@@ -314,6 +317,13 @@ class NotificationService {
     return _notifications.cancel(_callNotificationId(callId));
   }
 
+  /// Removes the visible chat notification as soon as its conversation is opened.
+  Future<void> cancelChatNotifications(String chatId) async {
+    final id = chatId.trim();
+    if (id.isEmpty) return;
+    await _notifications.cancel(_chatNotificationId(id));
+  }
+
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
   }
@@ -381,6 +391,9 @@ class NotificationService {
     final key = '$type:${data?['id'] ?? data?['notificationId'] ?? data?['messageId'] ?? data?['appointmentId'] ?? data?['orderId'] ?? data?['paymentId'] ?? DateTime.now().millisecondsSinceEpoch}';
     return key.hashCode.abs().remainder(900000000) + 100000;
   }
+
+  int _chatNotificationId(String chatId) =>
+      ('chat:$chatId').hashCode.abs().remainder(900000000) + 100000;
 
   int _notificationId() => DateTime.now().millisecondsSinceEpoch.remainder(2147483647);
   int _callNotificationId(String id) => 1000000000 + id.hashCode.abs().remainder(1000000000);
