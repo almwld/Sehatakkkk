@@ -258,7 +258,7 @@ class _HomeTabState extends State<HomeTab>
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, index) {
                   final product = products[index];
-                  final imageUrl = product.resolvedImageUrl;
+                  final image = product.imageUrl ?? '';
                   return InkWell(
                     onTap: () => _go(AppRouter.pharmacy),
                     borderRadius: BorderRadius.circular(16),
@@ -269,7 +269,7 @@ class _HomeTabState extends State<HomeTab>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Center(child: AppImage(imageUrl: imageUrl, height: 100, width: 100, fit: BoxFit.contain)),
+                          Center(child: image.isEmpty ? const Icon(Icons.medication_outlined, color: AppColors.primary, size: 48) : AppImage(imageUrl: image, height: 100, width: 100, fit: BoxFit.contain)),
                           const SizedBox(height: 6),
                           Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
                           const Spacer(),
