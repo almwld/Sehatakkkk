@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 
 class MedicationReminderScheduler {
   MedicationReminderScheduler._();
@@ -16,12 +15,7 @@ class MedicationReminderScheduler {
   Future<void> initialize() async {
     if (_initialized) return;
     tz.initializeTimeZones();
-    try {
-      final deviceTimezone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(deviceTimezone));
-    } catch (_) {
-      // Keep the timezone package default only if the OS timezone cannot be read.
-    }
+    // Use Dart's native DateTime for the device local clock. No extra timezone/device-timezone plugin is required.
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     await _notifications.initialize(const InitializationSettings(android: android, iOS: ios));
@@ -98,7 +92,7 @@ class MedicationReminderScheduler {
       for (final time in times) {
         final dateTime = _parseTime(time, day);
         if (dateTime == null || !dateTime.isAfter(now)) continue;
-        final scheduled = tz.TZDateTime.from(dateTime, tz.local);
+        final scheduled = tz.TZDateTime.from(dateTime.toUtc(), tz.UTC);
         await _notifications.zonedSchedule(
           _id(medicationId, index++),
           'حان وقت الدواء 💊',
