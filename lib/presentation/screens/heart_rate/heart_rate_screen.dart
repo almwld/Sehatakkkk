@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/services/heart_rate_service.dart';
+import 'package:sehatak/core/services/health_metrics_service.dart';
 
 class HeartRateScreen extends StatefulWidget {
   const HeartRateScreen({super.key});
@@ -138,7 +139,14 @@ class _HeartRateScreenState extends State<HeartRateScreen>
       _measuring = false;
       _status = 0;
     });
-    if (_bpm > 0) _showResult();
+    if (_bpm > 0) {
+      try {
+        await HealthMetricsService.update({'heartRate': _bpm, 'heartRate_at': DateTime.now().toIso8601String()});
+      } catch (_) {
+        // The local heart-rate database still keeps the measurement offline.
+      }
+      _showResult();
+    }
   }
 
   void _showResult() {
