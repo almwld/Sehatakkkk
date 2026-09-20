@@ -350,6 +350,8 @@ class _SehatakAppState extends State<SehatakApp>
               return;
             }
             if (action == 'call_message' && mounted) {
+              // "مراسلة لاحقاً" ends the ringing state first, then opens only the chat.
+              await _callService.rejectCall(callId);
               final snap = await FirebaseFirestore.instance.collection('calls').doc(callId).get();
               final data = snap.data() ?? <String, dynamic>{};
               final chatId = data['chatId']?.toString().trim() ?? '';
