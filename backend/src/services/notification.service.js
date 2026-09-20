@@ -236,7 +236,7 @@ async function sendNewMessageNotification({
     },
 
     android: {
-      channelId: 'sehatak_channel',
+      channelId: 'sehatak_messages_v2',
       sound: 'notification',
     },
   });
@@ -300,7 +300,7 @@ async function sendIncomingCallNotification({
     },
 
     android: {
-      channelId: 'call_channel',
+      channelId: 'sehatak_calls_v2',
       sound: 'call_ringtone',
     },
   });
