@@ -1,0 +1,6 @@
+# Release signing template — never commit the real values.
+# Place the real file at android/key.properties for local release builds.
+storeFile=sehatak-release.jks
+storePassword=CHANGE_ME
+keyAlias=CHANGE_ME
+keyPassword=CHANGE_ME
