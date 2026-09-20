@@ -20,7 +20,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return _firestore
         .collection('notifications')
         .where('userId', isEqualTo: uid)
-        .limit(100)
+        .limit(200)
         .snapshots();
   }
 
