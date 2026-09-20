@@ -76,14 +76,14 @@ exports.checkoutCart = onCall(async (request) => {
         pharmacyId: product.pharmacyId || null,
       });
 
-      tx.update(productRef, {stock: stock - quantity, isActive: stock - quantity > 0, updatedAt: FieldValue.serverTimestamp()});
       const inventoryRef = db.collection('product_inventory').doc(productId);
       const inventorySnap = await tx.get(inventoryRef);
+      const inventoryQty = inventorySnap.exists ? Number(inventorySnap.data().quantity ?? stock) : stock;
+      if (!Number.isFinite(inventoryQty) || inventoryQty < quantity) throw new HttpsError('failed-precondition', 'المخزون غير كافٍ');
+
+      tx.update(productRef, {stock: stock - quantity, isActive: stock - quantity > 0, updatedAt: FieldValue.serverTimestamp()});
       if (inventorySnap.exists) {
-        const inv = inventorySnap.data();
-        const invQty = Number(inv.quantity ?? stock);
-        if (!Number.isFinite(invQty) || invQty < quantity) throw new HttpsError('failed-precondition', 'المخزون غير كافٍ');
-        tx.update(inventoryRef, {quantity: invQty - quantity, isAvailable: invQty - quantity > 0, updatedAt: FieldValue.serverTimestamp()});
+        tx.update(inventoryRef, {quantity: inventoryQty - quantity, isAvailable: inventoryQty - quantity > 0, updatedAt: FieldValue.serverTimestamp()});
       }
     }
 
