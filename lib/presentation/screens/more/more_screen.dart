@@ -57,6 +57,7 @@ import 'package:sehatak/presentation/screens/patient/patient_medical_history.dar
 import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';
 import 'package:sehatak/presentation/screens/eye_care/eye_care_screen.dart';
 
@@ -493,23 +494,54 @@ class _MoreScreenState extends State<MoreScreen>
   }
 
   void _showLogoutDialog() {
+    bool saveAccount = true;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تسجيل الخروج'),
-        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          TextButton(onPressed: () { Navigator.pop(context); _logout(); }, style: TextButton.styleFrom(foregroundColor: Colors.red), child: const Text('تسجيل الخروج')),
-        ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('تسجيل الخروج'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+              const SizedBox(height: 12),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: saveAccount,
+                onChanged: (value) => setDialogState(() => saveAccount = value ?? true),
+                title: const Text('حفظ الحساب على هذا الجهاز'),
+                subtitle: const Text('سيظهر الحساب لاحقاً للاختيار عند تسجيل الدخول'),
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: () async {
+                try {
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (saveAccount && user != null) {
+                    await SavedAccountsService.saveCurrentAccount(user);
+                  }
+                  await FirebaseAuth.instance.signOut();
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    );
+                  }
+                } catch (e) {
+                  ToastService.showError('خطأ في تسجيل الخروج: $e');
+                }
+              },
+              child: const Text('تسجيل الخروج'),
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  void _logout() async {
-    await FirebaseAuth.instance.signOut();
-    if (mounted) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
-    }
-  }
-}
+  }}
