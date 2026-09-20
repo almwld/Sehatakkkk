@@ -132,7 +132,7 @@ class MedicalDocumentService {
 
   Future<void> saveToLibrary({required File file,required String documentId,required String title,required String chatId,required String formType}) async {
     final uid=_auth.currentUser?.uid;if(uid==null)return;
-    await _db.collection('medical_library').doc(documentId).set({'documentId':documentId,'ownerId':uid,'chatId':chatId,'title':title,'type':formType,'fileName':p.basename(file.path),'localPath':file.path,'createdAt':FieldValue.serverTimestamp()},SetOptions(merge:true));
+    await _db.collection('document_library').doc(documentId).set({'documentId':documentId,'ownerId':uid,'chatId':chatId,'title':title,'type':formType,'fileName':p.basename(file.path),'localPath':file.path,'createdAt':FieldValue.serverTimestamp()},SetOptions(merge:true));
   }
   Future<void> createServiceRequest({required String documentId,required String type,required String patientId,required String mode,String? facilityId,String? facilityName}) async {
     final ref=_db.collection('medical_requests').doc();await ref.set({'requestId':ref.id,'documentId':documentId,'type':type,'patientId':patientId,'doctorId':_auth.currentUser?.uid,'mode':mode,'facilityId':facilityId,'facilityName':facilityName,'status':'pending','createdAt':FieldValue.serverTimestamp()});
