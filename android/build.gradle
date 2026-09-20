@@ -26,13 +26,22 @@ subprojects {
         def androidExtension = extensions.findByName("android")
         if (androidExtension != null && androidExtension.namespace == null) {
             def manifestFile = file("src/main/AndroidManifest.xml")
+            def manifestPackage = null
+
             if (manifestFile.exists()) {
                 def manifest = new XmlParser().parse(manifestFile)
-                def manifestPackage = manifest.@package?.toString()
-                if (manifestPackage) {
-                    androidExtension.namespace = manifestPackage
-                }
+                manifestPackage = manifest.@package?.toString()
             }
+
+            def legacyNamespace = manifestPackage
+            if (!legacyNamespace && project.name == "blurhash") {
+                legacyNamespace = "com.raincal.blurhash"
+            }
+            if (!legacyNamespace) {
+                legacyNamespace = "com.sehatak.legacy.${project.name.replaceAll('[^A-Za-z0-9_]', '_')}"
+            }
+
+            androidExtension.namespace = legacyNamespace
         }
     }
 }
