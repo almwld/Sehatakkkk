@@ -45,6 +45,84 @@ class ChatRoomScreen extends StatefulWidget {
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
+class _SwipeToReply extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onReply;
+  const _SwipeToReply({required this.child, required this.onReply});
+
+  @override
+  State<_SwipeToReply> createState() => _SwipeToReplyState();
+}
+
+class _SwipeToReplyState extends State<_SwipeToReply> {
+  static const double _triggerDistance = 64;
+  double _dx = 0;
+
+  void _reset() {
+    if (mounted) setState(() => _dx = 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final distance = _dx.abs();
+    final progress = (distance / _triggerDistance).clamp(0.0, 1.0);
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final iconAlignment = _dx >= 0
+        ? AlignmentDirectional.centerStart
+        : AlignmentDirectional.centerEnd;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        PositionedDirectional(
+          start: isRtl ? null : 4,
+          end: isRtl ? 4 : null,
+          top: 0,
+          bottom: 0,
+          child: Align(
+            alignment: iconAlignment,
+            child: Opacity(
+              opacity: progress,
+              child: Transform.scale(
+                scale: .75 + (.25 * progress),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(Icons.reply_rounded,
+                        size: 18, color: AppColors.primary),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Transform.translate(
+          offset: Offset(_dx, 0),
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragUpdate: (details) {
+              final next = (_dx + details.delta.dx).clamp(-96.0, 96.0);
+              setState(() => _dx = next);
+            },
+            onHorizontalDragEnd: (_) {
+              if (_dx.abs() >= _triggerDistance) {
+                widget.onReply();
+              }
+              _reset();
+            },
+            onHorizontalDragCancel: _reset,
+            child: widget.child,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObserver {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
@@ -690,17 +768,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                                 child: child)),
                         child: bubble);
                   }
-                  if (status == null) return bubble;
-                  return Stack(clipBehavior: Clip.none, children: [
-                    bubble,
-                    MediaUploadStatusWidget(
-                        status: status,
-                        progress:
-                            (message['uploadProgress'] as num?)?.toDouble() ??
-                                0.0,
-                        onRetry: () => message['onRetry']?.call(),
-                        onCancel: () => message['onCancel']?.call())
-                  ]);
+                  Widget messageWidget = status == null
+                      ? bubble
+                      : Stack(clipBehavior: Clip.none, children: [
+                          bubble,
+                          MediaUploadStatusWidget(
+                              status: status,
+                              progress:
+                                  (message['uploadProgress'] as num?)?.toDouble() ??
+                                      0.0,
+                              onRetry: () => message['onRetry']?.call(),
+                              onCancel: () => message['onCancel']?.call())
+                        ]);
+                  if (model != null && model.id.isNotEmpty) {
+                    messageWidget = _SwipeToReply(
+                      onReply: () => _startReply(model),
+                      child: messageWidget,
+                    );
+                  }
+                  return messageWidget;
                 }),
           if (_loading)
             Positioned.fill(
