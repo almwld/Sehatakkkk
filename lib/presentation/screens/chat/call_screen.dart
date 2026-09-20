@@ -89,15 +89,14 @@ class _CallScreenState extends State<CallScreen> {
         const SizedBox(height: 16), Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8), Text(_connected ? _duration : (widget.isOutgoing ? 'جاري الاتصال...' : 'جاري الانضمام...'), style: const TextStyle(color: Colors.white70)),
       ])),
-      Positioned(bottom: 30, left: 12, right: 12, child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+      Positioned(bottom: 18, left: 12, right: 12, child: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (_connected) Padding(padding: const EdgeInsets.symmetric(horizontal: 28), child: Row(children: [const Icon(Icons.volume_down_rounded, color: Colors.white70, size: 18), Expanded(child: Slider(value: _volume, min: 0, max: 1, divisions: 20, onChanged: (v) { setState(() => _volume = v); _liveKit.setCallVolume(v); })), const Icon(Icons.volume_up_rounded, color: Colors.white70, size: 18)])),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
         _button(_muted ? Icons.mic_off : Icons.mic, () { setState(() => _muted = !_muted); _liveKit.toggleMicrophone(); }),
         _button(_speaker ? Icons.volume_up : Icons.hearing_rounded, () { setState(() => _speaker = !_speaker); _liveKit.setSpeakerphone(_speaker); }),
         if (widget.isVideo) _button(_camera ? Icons.videocam : Icons.videocam_off, () { setState(() => _camera = !_camera); _liveKit.toggleCamera(); }),
         _button(Icons.call_end, _end, color: Colors.red),
-        if (_connected) SizedBox(width: 150, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.volume_down_rounded, color: Colors.white70, size: 18), const SizedBox(width: 4), Text('${(_volume * 100).round()}%', style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizedBox(width: 4), Icon(Icons.volume_up_rounded, color: Colors.white70, size: 18)]),
-          Slider(value: _volume, min: 0, max: 1, divisions: 20, onChanged: (v) { setState(() => _volume = v); _liveKit.setCallVolume(v); }),
-        ])),
+
       ])),
     ])),
   );
