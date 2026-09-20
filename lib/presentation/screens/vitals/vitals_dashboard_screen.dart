@@ -9,6 +9,9 @@ import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/blood_oxygen/blood_oxygen_screen.dart';
 import 'package:sehatak/presentation/screens/temperature/temperature_screen.dart';
+import 'package:sehatak/core/services/health_metrics_service.dart';
+import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/step_tracker/step_tracker_screen.dart';
 
 class VitalsDashboardScreen extends StatefulWidget {
   const VitalsDashboardScreen({super.key});
@@ -48,10 +51,19 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
         final doc = await _firestore.collection('users').doc(user.uid).get();
         if (doc.exists) {
           final data = doc.data() as Map<String, dynamic>;
-          setState(() {
-            _vitals = data['vitals'] ?? {};
-          });
+          _vitals = Map<String, dynamic>.from(data['vitals'] is Map ? data['vitals'] : {});
         }
+        // Trackers use health_metrics as their source of truth; merge it into
+        // the dashboard so measurements survive logout/login and offline sync.
+        final metrics = await HealthMetricsService.read();
+        final aliases = <String, String>{'blood_sugar': 'glucose'};
+        for (final entry in metrics.entries) {
+          final key = aliases[entry.key] ?? entry.key;
+          if (const {'bloodPressure','glucose','heartRate','weight','bloodOxygen','temperature'}.contains(key)) {
+            _vitals[key] = entry.value;
+          }
+        }
+        if (mounted) setState(() {});
       } catch (e) {
         print('❌ Error loading vitals: $e');
       }
@@ -218,7 +230,10 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
                     },
                   ),
                   const SizedBox(height: 20),
-                  // ✅ آخر القراءات
+                  // أدوات التتبع اليومية
+                  _buildTrackingTools(),
+                  const SizedBox(height: 20),
+                  // آخر القراءات
                   _buildRecentReadings(),
                 ],
               ),
@@ -351,6 +366,36 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+
+  Widget _buildTrackingTools() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tools = [
+      ('النوم', Icons.bedtime_rounded, const SleepTrackerScreen()),
+      ('النبض', Icons.favorite_rounded, const HeartRateScreen()),
+      ('الخطوات والسعرات', Icons.directions_walk_rounded, const StepTrackerScreen()),
+    ];
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF172033) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('التتبع الصحي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        Row(children: tools.map((tool) => Expanded(child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => tool.$3)),
+            icon: Icon(tool.$2, size: 18),
+            label: Text(tool.$1, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+        ))).toList()),
+      ]),
     );
   }
 
