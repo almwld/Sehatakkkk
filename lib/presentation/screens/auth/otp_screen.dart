@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class OTPScreen extends StatefulWidget {
   final String phone;
@@ -68,11 +68,7 @@ class _OTPScreenState extends State<OTPScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen()),
-                    (route) => false,
-                  );
+                  context.go('/');
                 },
                 child: const Text('دخول'),
               ),
