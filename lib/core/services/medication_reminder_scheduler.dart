@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 
 class MedicationReminderScheduler {
   MedicationReminderScheduler._();
@@ -15,7 +16,12 @@ class MedicationReminderScheduler {
   Future<void> initialize() async {
     if (_initialized) return;
     tz.initializeTimeZones();
-    try { tz.setLocalLocation(tz.getLocation('Asia/Aden')); } catch (_) {}
+    try {
+      final deviceTimezone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(deviceTimezone));
+    } catch (_) {
+      // Keep the timezone package default only if the OS timezone cannot be read.
+    }
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     await _notifications.initialize(const InitializationSettings(android: android, iOS: ios));
@@ -84,6 +90,8 @@ class MedicationReminderScheduler {
     final times = _times(medication);
     await _saveReport(medication, times);
     var index = 0;
+    // Schedule a rolling local-device window; sync() refreshes it whenever the
+    // medication screen opens or Firestore changes, so long treatments remain covered.
     for (var dayOffset = 0; dayOffset < 90; dayOffset++) {
       final day = firstDay.add(Duration(days: dayOffset));
       if (end != null && day.isAfter(DateTime(end.year, end.month, end.day))) break;
