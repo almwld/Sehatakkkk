@@ -5,6 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
@@ -38,6 +39,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     if (_busy) return;
     setState(() => _busy = true);
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await SavedAccountsService.saveCurrentAccount(user);
+      }
       await FirebaseAuth.instance.signOut();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
@@ -68,6 +73,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
     setState(() => _busy = true);
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await SavedAccountsService.saveCurrentAccount(user);
+      }
       await FirebaseFunctions.instance.httpsCallable('revokeAllSessions').call();
       await FirebaseAuth.instance.signOut();
       if (!mounted) return;
