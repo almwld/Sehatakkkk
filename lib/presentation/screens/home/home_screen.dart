@@ -8,6 +8,7 @@ import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
@@ -43,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoggedIn = false, _backPressedOnce = false;
   Timer? _backExitTimer;
   Timer? _healthRefreshTimer;
+  static const _lastTabKey = 'sehatak_last_home_tab';
   late final Map<int, Widget> _screens;
 
   @override
@@ -60,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       6: const MoreScreen(key: ScreenKeys.more),
     };
     _checkAuth();
+    _restoreTab();
     _systemNav();
     _healthRefreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) context.read<HomeBloc>().add(HomeHealthStatsRefreshed());
@@ -74,6 +77,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       systemNavigationBarIconBrightness: Brightness.dark,
       statusBarIconBrightness: Brightness.dark,
     ));
+  }
+
+  Future<void> _restoreTab() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getInt(_lastTabKey) ?? 0;
+    if (mounted && saved >= 0 && saved <= 6) {
+      setState(() => _currentIndex = saved);
+    }
+  }
+
+  Future<void> _saveTab() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_lastTabKey, _currentIndex);
   }
 
   void _checkAuth() {
@@ -115,11 +131,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _back() {
-    if (_currentIndex != 0) {
-      setState(() => _currentIndex = 0);
-      _scrollManager.show();
-      return;
-    }
     if (_backPressedOnce) {
       _backPressedOnce = false;
       _backExitTimer?.cancel();
@@ -144,7 +155,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
     _scrollManager.show();
-    if (_currentIndex != i) setState(() => _currentIndex = i);
+    if (_currentIndex != i) {
+      setState(() => _currentIndex = i);
+      _saveTab();
+    }
     HapticFeedback.lightImpact();
   }
 
