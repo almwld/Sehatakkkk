@@ -74,6 +74,10 @@ exports.checkoutCart = onCall(async (request) => {
         quantity, unitPrice: price, lineTotal,
         requiresPrescription: product.requiresPrescription === true,
         pharmacyId: product.pharmacyId || null,
+        // Preserve prescription linkage supplied by the medication/cart UI.
+        medicationId: raw.medicationId ? String(raw.medicationId) : null,
+        prescriptionId: raw.prescriptionId ? String(raw.prescriptionId) : null,
+        doctorId: raw.doctorId ? String(raw.doctorId) : null,
       });
 
       const inventoryRef = db.collection('product_inventory').doc(productId);
