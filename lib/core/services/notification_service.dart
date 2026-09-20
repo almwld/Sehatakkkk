@@ -337,7 +337,7 @@ class NotificationService {
           AndroidNotificationAction(
             'call_message',
             'مراسلة لاحقاً',
-            icon: DrawableResourceAndroidBitmap('ic_call_open'),
+            icon: DrawableResourceAndroidBitmap('ic_call_message'),
             titleColor: const Color(0xFF00BCD4),
             showsUserInterface: true,
             cancelNotification: true,
