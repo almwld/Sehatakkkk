@@ -123,7 +123,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   }
 
   void _enableFullScreenUI() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // Keep the Android status bar visible so message/call notifications remain accessible.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
