@@ -11,4 +11,32 @@ class ImageKit {
   static const String deliverySehatak = '$baseUrl/images/delivery/delivery_1.png'; static const String deliveryNas = '$baseUrl/images/delivery/delivery_2.png'; static const String deliveryTasheel = '$baseUrl/images/delivery/delivery_3.png'; static const String deliveryOther = '$baseUrl/images/delivery/delivery_4.png';
   static const String delivery1 = deliverySehatak, delivery2 = deliveryNas, delivery3 = deliveryTasheel, delivery4 = deliveryOther;
   static const String profileAvatar = '$baseUrl/images/profile/avatar.png'; static const String notificationIcon = '$baseUrl/images/icons/notification.png'; static const String cartIcon = '$baseUrl/images/icons/cart.png';
+  // Product image fallbacks
+  static const String shapeTablet = '$baseUrl/images/medicines/medicine_1.png';
+  static const String shapeCapsule = '$baseUrl/images/medicines/medicine_2.png';
+  static const String shapeSyrup = '$baseUrl/images/medicines/medicine_3.png';
+  static const String shapeInjection = '$baseUrl/images/medicines/medicine_4.png';
+  static const String shapeTabletEff = shapeTablet;
+  static const String shapeDrops = shapeSyrup;
+  static const String shapePowder = shapeCapsule;
+  static const String shapePatch = shapeCapsule;
+  static const String medicineDefault = medicine1;
+
+  static String productImage({String? imageUrl, String? dosageForm, String? category, String? genericName}) {
+    if (imageUrl != null && imageUrl.trim().isNotEmpty) return imageUrl.trim();
+    switch ((dosageForm ?? '').trim()) {
+      case 'أقراص': return shapeTablet;
+      case 'أقراص فوارة': return shapeTabletEff;
+      case 'كبسولات': return shapeCapsule;
+      case 'شراب': return shapeSyrup;
+      case 'حقن': return shapeInjection;
+      case 'قطرات': return shapeDrops;
+      case 'بودرة': return shapePowder;
+      case 'لاصقات': return shapePatch;
+    }
+    final cat = (category ?? '').trim();
+    if (cat.contains('مسكنات') || cat.contains('ضغط') || cat.contains('سكري') || cat.contains('هضمي')) return shapeTablet;
+    if (cat.contains('مضادات') || cat.contains('فيتامينات') || cat.contains('مكملات')) return shapeCapsule;
+    return medicineDefault;
+  }
 }
