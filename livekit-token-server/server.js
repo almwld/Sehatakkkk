@@ -205,6 +205,10 @@ function buildMessagePayload(opts) {
 async function handleNewMessage(change) {
   try {
     var msg = change.doc.data() || {};
+    // Call timeline entries are not chat messages. The dedicated
+    // /call-notification endpoint already sends the incoming-call FCM, so
+    // never emit a second notification that opens the chat room.
+    if (msg.type === 'call' || (msg.metadata && msg.metadata.callId) || msg.callId) return;
     var messageId = change.doc.id;
     var parent = change.doc.ref.parent;
     var chatId = parent && parent.parent ? parent.parent.id : null;
