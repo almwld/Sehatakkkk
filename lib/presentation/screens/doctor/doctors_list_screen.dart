@@ -178,12 +178,17 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           ? const Color(0xFF0B1121)
           : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الأطباء'),
-        backgroundColor:
-            isDark ? const Color(0xFF0B1121) : Colors.white,
-        foregroundColor:
-            isDark ? Colors.white : Colors.black87,
+        title: const Text(
+          'الأطباء',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
       ),
       body: Column(
         children: [
