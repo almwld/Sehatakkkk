@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+import 'package:sehatak/core/constants/app_assets.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/models/call_model.dart';
@@ -393,16 +394,16 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _action(icon: Icons.chat_bubble_rounded, label: 'دردشة', hint: 'محادثة مباشرة', color: AppColors.primary, onTap: _openChat, dark: dark),
-          _action(icon: Icons.call_rounded, label: 'اتصال', hint: 'مكالمة صوتية', color: const Color(0xFF2E9B5F), onTap: () => _startCall(video: false), dark: dark),
-          _action(icon: Icons.videocam_rounded, label: 'فيديو', hint: 'استشارة مرئية', color: const Color(0xFF3976D8), onTap: () => _startCall(video: true), dark: dark),
-          _action(icon: Icons.calendar_month_rounded, label: 'حجز', hint: 'موعد الطبيب', color: const Color(0xFFE58A22), onTap: _bookAppointment, dark: dark),
+          _action(iconAsset: AppAssets.chatBubble, label: 'دردشة', hint: 'محادثة مباشرة', color: AppColors.primary, onTap: _openChat, dark: dark),
+          _action(iconAsset: AppAssets.chatPhoneCall, label: 'اتصال', hint: 'مكالمة صوتية', color: const Color(0xFF2E9B5F), onTap: () => _startCall(video: false), dark: dark),
+          _action(iconAsset: AppAssets.chatVideoCall, label: 'فيديو', hint: 'استشارة مرئية', color: const Color(0xFF3976D8), onTap: () => _startCall(video: true), dark: dark),
+          _action(iconAsset: AppAssets.chatCalendarBooking, label: 'حجز', hint: 'موعد الطبيب', color: const Color(0xFFE58A22), onTap: _bookAppointment, dark: dark),
         ],
       ),
     );
   }
 
-  Widget _action({required IconData icon, required String label, required String hint, required Color color, required VoidCallback onTap, required bool dark}) {
+  Widget _action({required String iconAsset, required String label, required String hint, required Color color, required VoidCallback onTap, required bool dark}) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -424,7 +425,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                     width: 45,
                     height: 45,
                     decoration: BoxDecoration(color: color.withOpacity(.10), shape: BoxShape.circle),
-                    child: Icon(icon, color: color, size: 23),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Image.asset(iconAsset, fit: BoxFit.contain),
+                    ),
                   ),
                   const SizedBox(height: 7),
                   Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
@@ -498,10 +502,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           const SizedBox(height: 14),
           _sectionTitle('إجراءات سريعة', Icons.flash_on_rounded, dark),
           _card(dark, Column(children: [
-            _listAction(Icons.chat_bubble_outline_rounded, 'فتح الدردشة', 'تواصل مباشرة مع الطبيب', _openChat, dark),
-            _listAction(Icons.calendar_month_outlined, 'حجز موعد', 'اختر الموعد المناسب لك', _bookAppointment, dark),
-            _listAction(Icons.call_outlined, 'مكالمة صوتية', 'بدء استشارة صوتية', () => _startCall(video: false), dark),
-            _listAction(Icons.videocam_outlined, 'مكالمة مرئية', 'بدء استشارة بالفيديو', () => _startCall(video: true), dark),
+            _listAction(AppAssets.chatBubble, 'فتح الدردشة', 'تواصل مباشرة مع الطبيب', _openChat, dark),
+            _listAction(AppAssets.chatCalendarBooking, 'حجز موعد', 'اختر الموعد المناسب لك', _bookAppointment, dark),
+            _listAction(AppAssets.chatPhoneCall, 'مكالمة صوتية', 'بدء استشارة صوتية', () => _startCall(video: false), dark),
+            _listAction(AppAssets.chatVideoCall, 'مكالمة مرئية', 'بدء استشارة بالفيديو', () => _startCall(video: true), dark),
           ])),
         ],
       ),
@@ -569,12 +573,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     );
   }
 
-  Widget _listAction(IconData icon, String title, String subtitle, VoidCallback onTap, bool dark) {
+  Widget _listAction(String iconAsset, String title, String subtitle, VoidCallback onTap, bool dark) {
     return InkWell(
       onTap: _busy ? null : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-        child: Row(children: [Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(11)), child: Icon(icon, color: AppColors.primary, size: 20)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: dark ? Colors.white : Colors.black87)), const SizedBox(height: 2), Text(subtitle, style: TextStyle(fontSize: 10, color: dark ? Colors.white54 : Colors.black45))])), const Icon(Icons.chevron_left_rounded, size: 20, color: Colors.grey)]),
+        child: Row(children: [Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(11)), child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Image.asset(iconAsset, fit: BoxFit.contain),
+                  )), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: dark ? Colors.white : Colors.black87)), const SizedBox(height: 2), Text(subtitle, style: TextStyle(fontSize: 10, color: dark ? Colors.white54 : Colors.black45))])), const Icon(Icons.chevron_left_rounded, size: 20, color: Colors.grey)]),
       ),
     );
   }
