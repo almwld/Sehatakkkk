@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/routes/payment_routes.dart';
+import 'package:sehatak/core/navigation/duplicate_navigation_observer.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -137,6 +138,7 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
+    observers: <NavigatorObserver>[DuplicateNavigationObserver()],
     initialLocation: splash,
     refreshListenable:
         GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
