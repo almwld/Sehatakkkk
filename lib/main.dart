@@ -349,6 +349,26 @@ class _SehatakAppState extends State<SehatakApp>
               await _callService.answerIncomingCallById(context, callId);
               return;
             }
+            if (action == 'call_message' && mounted) {
+              final snap = await FirebaseFirestore.instance.collection('calls').doc(callId).get();
+              final data = snap.data() ?? <String, dynamic>{};
+              final chatId = data['chatId']?.toString().trim() ?? '';
+              final callerId = data['callerId']?.toString() ?? '';
+              final callerName = data['callerName']?.toString() ?? 'مستخدم';
+              final callerImage = data['callerPhotoUrl']?.toString();
+              if (chatId.isNotEmpty) {
+                await Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => ChatRoomScreen(
+                    chatId: chatId,
+                    otherUserId: callerId,
+                    otherUserName: callerName,
+                    groupImage: callerImage,
+                    isGroup: false,
+                  ),
+                ));
+              }
+              return;
+            }
             if (action == 'call_open' && mounted) {
               await _callService.handleIncomingCallById(context, callId);
               return;
