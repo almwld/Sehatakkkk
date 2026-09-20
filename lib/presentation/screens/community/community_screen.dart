@@ -312,7 +312,6 @@ class _CommunityScreenState extends State<CommunityScreen>
             ),
           ),
         ),
-      ],
       PositionedDirectional(bottom: 24, end: 16, child: IgnorePointer(
         ignoring: !_fabVisible,
         child: AnimatedOpacity(
@@ -337,6 +336,7 @@ class _CommunityScreenState extends State<CommunityScreen>
         ),
         ),
       ),
+      ],
     );
   }
 }
