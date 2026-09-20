@@ -67,15 +67,25 @@ class MedicationService {
     };
     final localId = 'med_${DateTime.now().microsecondsSinceEpoch}';
     final result = {'id': localId, ...data, 'startDate': startDate ?? DateTime.now()};
-    await CacheService.saveList('medications_${user.uid}', [result, ...((await CacheService.getList('medications_${user.uid}')) ?? const <Map<String, dynamic>>[])]);
-    await _scheduler.scheduleMedication(medication: result);
+    final previous = await CacheService.getList('medications_${user.uid}') ?? const <Map<String, dynamic>>[];
+    await CacheService.saveList('medications_${user.uid}', [result, ...previous]);
+
+    // Persist the medication first. Firestore queues this write while offline;
+    // a local scheduling failure must never reject the medication itself.
     try {
       final ref = _collection(user.uid).doc(localId);
       await ref.set(data);
-      await CacheService.remove('medications_${user.uid}');
     } catch (_) {
-      // Firestore keeps the write queued when its local persistence is available;
-      // the local cache and alarm already make the reminder usable offline.
+      // Keep the local copy so the medication remains available offline.
+    }
+
+    // Schedule independently from the database write so the reminder works
+    // immediately, including when the device is offline.
+    try {
+      await _scheduler.scheduleMedication(medication: result);
+    } catch (_) {
+      // The medication is already saved locally/queued for Firestore.
+      // The next medication sync will retry the local alarm setup.
     }
     return result;
   }
