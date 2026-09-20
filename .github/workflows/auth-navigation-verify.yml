@@ -11,7 +11,6 @@ on:
       - "pubspec.yaml"
       - "pubspec.lock"
       - ".github/workflows/auth-navigation-verify.yml"
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -28,29 +27,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           echo "=== Auth → Home navigation audit ==="
           echo
           echo "[1] MaterialApp.router"
           grep -n "routerConfig: AppRouter.router" lib/main.dart
-
           echo
           echo "[2] GoRouter auth refresh"
           grep -n "authStateChanges()" lib/app_router.dart
-
           echo
           echo "[3] Home route"
           grep -n "path: home" lib/app_router.dart
-
           echo
           echo "[4] Direct post-auth navigation in main.dart"
           if grep -nE "_navigateAfterSignInFast|pushAndRemoveUntil\\(.*HomeScreen|MaterialPageRoute\\(builder:.*HomeScreen" lib/main.dart; then
             echo
             echo "❌ Direct Auth → Home navigation still exists in main.dart."
-            echo "Expected: Firebase Auth → AppRouter/GoRouter → HomeScreen."
             exit 1
           fi
-
           echo
           echo "✅ No direct post-auth Home navigation detected in main.dart."
 
@@ -65,13 +58,13 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: "17"
-          distribution: "temurin"
+          distribution: temurin
 
       - name: "💙 Setup Flutter 3.16.0"
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.16.0"
-          channel: "stable"
+          channel: stable
           cache: true
 
       - name: "📦 Flutter pub get"
@@ -80,6 +73,16 @@ jobs:
       - name: "🧪 Flutter analyze (diagnostic)"
         continue-on-error: true
         run: flutter analyze
+
+      - name: "🧹 Clean Gradle/D8 transform state"
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter clean
+          rm -rf ~/.gradle/caches/transforms-*
+          rm -rf ~/.gradle/caches/*/fileHashes
+          cd android
+          ./gradlew --stop || true
 
       - name: "🔨 Build debug APK"
         run: flutter build apk --debug --no-shrink
