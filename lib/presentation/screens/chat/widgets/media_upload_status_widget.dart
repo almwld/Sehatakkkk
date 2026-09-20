@@ -19,48 +19,44 @@ class MediaUploadStatusWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PositionedDirectional(end: 10, bottom: 10, child: _indicator());
+    return PositionedDirectional(end: -24, bottom: 5, child: _indicator());
   }
 
   Widget _indicator() {
     switch (status) {
       case UploadStatus.uploading:
         final double safeProgress = progress.clamp(0.0, 1.0).toDouble();
-        return Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(color: Colors.black.withOpacity(.62), shape: BoxShape.circle, border: Border.all(color: Colors.white24)),
-          child: Stack(alignment: Alignment.center, children: [
-            SizedBox(width: 34, height: 34, child: CircularProgressIndicator(value: safeProgress, strokeWidth: 3, backgroundColor: Colors.white24, valueColor: const AlwaysStoppedAnimation<Color>(Colors.white))),
-            Text('${(safeProgress * 100).round()}%', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-            if (onCancel != null)
-              Positioned(
-                right: -2,
-                top: -2,
-                child: GestureDetector(
-                  onTap: onCancel,
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    child: const Icon(Icons.close, color: Colors.white, size: 12),
-                  ),
+        return GestureDetector(
+          onTap: onCancel,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  value: safeProgress,
+                  strokeWidth: 2.2,
+                  backgroundColor: Colors.black26,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.grey),
                 ),
               ),
-          ]),
+              const Icon(Icons.close, color: Colors.grey, size: 12),
+            ],
+          ),
         );
       case UploadStatus.delivered:
-        return _circle(const Color(0xFF2EAD63), Icons.check);
+        return const Icon(Icons.check, color: Colors.grey, size: 15);
       case UploadStatus.pending:
-        return GestureDetector(onTap: onCancel, child: _circle(const Color(0xFFF39C12), Icons.close));
+        return GestureDetector(
+          onTap: onCancel,
+          child: const Icon(Icons.schedule, color: Colors.grey, size: 15),
+        );
       case UploadStatus.failed:
-        return GestureDetector(onTap: onRetry, child: _circle(const Color(0xFFE53935), Icons.refresh));
+        return GestureDetector(
+          onTap: onRetry,
+          child: const Icon(Icons.refresh, color: Colors.red, size: 17),
+        );
     }
   }
-
-  Widget _circle(Color color, IconData icon) => Container(
-    padding: const EdgeInsets.all(5),
-    decoration: BoxDecoration(color: color, shape: BoxShape.circle, boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)]),
-    child: Icon(icon, color: Colors.white, size: 17),
-  );
 }
