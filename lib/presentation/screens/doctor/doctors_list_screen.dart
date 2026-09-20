@@ -189,6 +189,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(34))),
       ),
       body: Column(
         children: [
