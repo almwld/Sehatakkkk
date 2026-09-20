@@ -57,3 +57,5 @@ class HealthMetricsService {
     }
     await batch.commit();
   }
+
+}
