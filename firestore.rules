@@ -11,7 +11,8 @@ service cloud.firestore {
     function userExists(userId) { return exists(/databases/$(database)/documents/users/$(userId)); }
     function userData(userId) { return get(/databases/$(database)/documents/users/$(userId)).data; }
     function userDataAfter(userId) { return getAfter(/databases/$(database)/documents/users/$(userId)).data; }
-    function isAdmin() { return isSignedIn() && userExists(request.auth.uid) && userData(request.auth.uid).role == 'admin'; }
+    function isAdmin() { return isSignedIn() && userExists(request.auth.uid) && (userData(request.auth.uid).role == 'admin' || userData(request.auth.uid).role == 'superAdmin'); }
+    function isSuperAdmin() { return isSignedIn() && userExists(request.auth.uid) && userData(request.auth.uid).role == 'superAdmin'; }
     function isDoctorUser(userId) { return userExists(userId) && userData(userId).role == 'doctor'; }
     function isVerifiedDoctor(userId) { return isDoctorUser(userId) && userData(userId).isVerified == true; }
 
@@ -153,6 +154,23 @@ service cloud.firestore {
       allow delete: if isSignedIn() 
         && resource.data.participants is list
         && request.auth.uid in resource.data.participants;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // PROFESSIONAL VERIFICATION
+    // ═══════════════════════════════════════════════════════════
+    match /verification_requests/{requestId} {
+      allow get: if isSignedIn() && (request.auth.uid == requestId || isAdmin());
+      allow list: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    match /admin_audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /admin_daily_reports/{reportId} {
+      allow read: if isSuperAdmin();
+      allow write: if false;
     }
 
     // ═══════════════════════════════════════════════════════════
