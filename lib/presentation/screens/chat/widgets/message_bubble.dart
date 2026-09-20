@@ -250,12 +250,85 @@ class _MessageBubbleState extends State<MessageBubble> {
       }
     }
 
+    Future<void> _chooseMedicalService(String formType) async {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
+      final isLab = formType == 'labs';
+      final choice = await showModalBottomSheet<String>(
+        context: context,
+        showDragHandle: true,
+        builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Padding(padding: const EdgeInsets.all(16), child: Text(
+            isLab ? 'كيف تريد تنفيذ الفحوصات؟' : 'كيف تريد صرف الوصفة؟',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+          ListTile(leading: const Icon(Icons.storefront_outlined), title: Text(isLab ? 'اختيار مختبر من منصة صحتك' : 'اختيار صيدلية من منصة صحتك'), onTap: () => Navigator.pop(ctx, 'facility')),
+          ListTile(leading: const Icon(Icons.home_work_outlined), title: Text(isLab ? 'طلب سحب العينة من المنزل' : 'طلب توصيل الدواء إلى المنزل'), onTap: () => Navigator.pop(ctx, 'home')),
+          ListTile(leading: const Icon(Icons.directions_walk_outlined), title: Text(isLab ? 'سأذهب بنفسي إلى المختبر' : 'سأستلم الدواء من الصيدلية'), onTap: () => Navigator.pop(ctx, 'self')),
+        ])),
+      );
+      if (choice == null) return;
+      String? facilityId;
+      String? facilityName;
+      if (choice == 'facility') {
+        final names = <Map<String,String>>[];
+        for (final collection in isLab ? ['labs','laboratories'] : ['pharmacies']) {
+          try {
+            final s = await FirebaseFirestore.instance.collection(collection).limit(30).get();
+            for (final d in s.docs) {
+              final data = d.data();
+              names.add({'id': d.id, 'name': (data['name'] ?? data['title'] ?? 'منشأة صحية').toString()});
+            }
+          } catch (_) {}
+          if (names.isNotEmpty) break;
+        }
+        if (!mounted) return;
+        final selected = await showModalBottomSheet<Map<String,String>>(
+          context: context, showDragHandle: true,
+          builder: (ctx) => SafeArea(child: SizedBox(height: 420, child:
+            names.isEmpty ? const Center(child: Text('لا توجد منشآت متاحة حالياً')) :
+            ListView(children: [for (final n in names)
+              ListTile(leading: Icon(isLab ? Icons.biotech : Icons.local_pharmacy), title: Text(n['name']!), onTap: () => Navigator.pop(ctx, n))]
+          ))),
+        );
+        if (selected == null) return;
+        facilityId = selected['id'];
+        facilityName = selected['name'];
+      }
+      final docs = await FirebaseFirestore.instance.collection('medical_documents')
+          .where('fileName', isEqualTo: name).limit(1).get();
+      final documentId = docs.docs.isNotEmpty ? docs.docs.first.id : '';
+      if (documentId.isEmpty) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر العثور على المستند الطبي.')));
+        return;
+      }
+      await FirebaseFirestore.instance.collection('medical_requests').add({
+        'documentId': documentId,
+        'type': isLab ? 'lab' : 'pharmacy',
+        'patientId': uid,
+        'doctorId': docs.docs.first.data()['doctorId'],
+        'mode': choice,
+        'facilityId': facilityId,
+        'facilityName': facilityName,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isLab ? 'تم إرسال طلب الفحوصات.' : 'تم إرسال الوصفة إلى خدمة الصيدلية.')),
+      );
+    }
+
     Future<void> _documentActions() async {
       if (url.isEmpty) return;
       final action = await showModalBottomSheet<String>(
         context: context,
         showDragHandle: true,
         builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          if (name.toLowerCase().contains('_rx.pdf') || name.toLowerCase().contains('_labs.pdf'))
+            ListTile(
+              leading: Icon(name.toLowerCase().contains('_labs.pdf') ? Icons.biotech_outlined : Icons.local_pharmacy_outlined),
+              title: Text(name.toLowerCase().contains('_labs.pdf') ? 'تنفيذ طلب الفحوصات' : 'تنفيذ الوصفة الطبية'),
+              onTap: () => Navigator.pop(ctx, 'service'),
+            ),
           ListTile(leading: const Icon(Icons.visibility_outlined), title: const Text('فتح المستند'), onTap: () => Navigator.pop(ctx, 'open')),
           ListTile(leading: const Icon(Icons.share_outlined), title: const Text('مشاركة / إرسال خارج التطبيق'), onTap: () => Navigator.pop(ctx, 'share')),
           ListTile(leading: const Icon(Icons.save_alt_outlined), title: const Text('حفظ في المكتبة'), onTap: () => Navigator.pop(ctx, 'library')),
@@ -266,7 +339,9 @@ class _MessageBubbleState extends State<MessageBubble> {
       if (action == null) return;
       final file = await _downloadRemote();
       if (file == null) { _showFileError(); return; }
-      if (action == 'open') {
+      if (action == 'service') {
+        await _chooseMedicalService(name.toLowerCase().contains('_labs.pdf') ? 'labs' : 'rx');
+      } else if (action == 'open') {
         if (isPdf || isOffice) {
           if (mounted) await showDialog<void>(context: context, builder: (_) => _DocumentWebViewDialog(title: name, url: url));
         } else if (isText) {
