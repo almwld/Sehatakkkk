@@ -21,7 +21,8 @@ class _CallScreenState extends State<CallScreen> {
   final _liveKit = LiveKitService();
   String? _callId;
   StreamSubscription<CallModel?>? _callSubscription;
-  bool _muted = false, _speaker = true, _camera = true, _connected = false, _ending = false;
+  bool _muted = false, _speaker = false, _camera = true, _connected = false, _ending = false;
+  double _volume = .75;
   int _seconds = 0;
   Timer? _timer;
 
@@ -46,7 +47,8 @@ class _CallScreenState extends State<CallScreen> {
         if (call.status == CallStatus.ended || call.status == CallStatus.rejected || call.status == CallStatus.cancelled || call.status == CallStatus.missed || call.status == CallStatus.busy) unawaited(_finishRemote());
       }, onError: (error) { debugPrint('CALL SCREEN STREAM ERROR id=$id error=$error'); });
       await _liveKit.connectRoom(roomName: 'call_$id', participantName: _auth.currentUser?.displayName ?? 'مستخدم');
-      await _liveKit.setSpeakerphone(true);
+      await _liveKit.setSpeakerphone(widget.isVideo);
+      _volume = await _liveKit.getCallVolume();
       if (widget.isVideo) await _liveKit.enableCamera();
       ActiveCallRegistry.instance.register(id);
       if (!mounted) return;
@@ -89,9 +91,13 @@ class _CallScreenState extends State<CallScreen> {
       ])),
       Positioned(bottom: 30, left: 12, right: 12, child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
         _button(_muted ? Icons.mic_off : Icons.mic, () { setState(() => _muted = !_muted); _liveKit.toggleMicrophone(); }),
-        _button(_speaker ? Icons.volume_up : Icons.volume_off, () { setState(() => _speaker = !_speaker); _liveKit.setSpeakerphone(_speaker); }),
+        _button(_speaker ? Icons.volume_up : Icons.hearing_rounded, () { setState(() => _speaker = !_speaker); _liveKit.setSpeakerphone(_speaker); }),
         if (widget.isVideo) _button(_camera ? Icons.videocam : Icons.videocam_off, () { setState(() => _camera = !_camera); _liveKit.toggleCamera(); }),
         _button(Icons.call_end, _end, color: Colors.red),
+        if (_connected) SizedBox(width: 150, child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.volume_down_rounded, color: Colors.white70, size: 18), const SizedBox(width: 4), Text('${(_volume * 100).round()}%', style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizedBox(width: 4), Icon(Icons.volume_up_rounded, color: Colors.white70, size: 18)]),
+          Slider(value: _volume, min: 0, max: 1, divisions: 20, onChanged: (v) { setState(() => _volume = v); _liveKit.setCallVolume(v); }),
+        ])),
       ])),
     ])),
   );
