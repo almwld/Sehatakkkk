@@ -238,14 +238,15 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildLocation(Map<String, dynamic> m, bool dark) {
-    final lat = (m['locationLatitude'] as num?)?.toDouble();
-    final lng = (m['locationLongitude'] as num?)?.toDouble();
+    final lat = (m['locationLat'] as num?)?.toDouble();
+    final lng = (m['locationLng'] as num?)?.toDouble();
     final address = (m['locationAddress']?.toString().trim().isNotEmpty == true)
         ? m['locationAddress'].toString()
         : (m['text']?.toString() ?? 'الموقع');
-    final street = m['locationStreet']?.toString() ?? '';
-    final neighborhood = m['locationNeighborhood']?.toString() ?? '';
-    final city = m['locationCity']?.toString() ?? '';
+    final meta = m['metadata'] is Map ? Map<String, dynamic>.from(m['metadata'] as Map) : <String, dynamic>{};
+    final street = meta['locationStreet']?.toString() ?? '';
+    final neighborhood = meta['locationNeighborhood']?.toString() ?? '';
+    final city = meta['locationCity']?.toString() ?? '';
     final url = m['locationUrl']?.toString() ?? '';
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
 
