@@ -18,6 +18,8 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════
     // USERS
     // ═══════════════════════════════════════════════════════════
+    match /health_metrics/{userId} { allow read, write: if isSignedIn() && request.auth.uid == userId; }
+
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSelf(userId) 
@@ -29,6 +31,8 @@ service cloud.firestore {
             && request.resource.data.uid == resource.data.uid
             && request.resource.data.role == resource.data.role);
       allow delete: if isAdmin();
+
+      match /vital_history/{historyId} { allow read, write: if isSelf(userId); }
 
       match /favorites/{doctorId} {
         allow read: if isSelf(userId);
