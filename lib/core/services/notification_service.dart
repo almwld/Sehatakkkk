@@ -106,7 +106,7 @@ class NotificationService {
   static const systemChannelId = 'sehatak_system_v1';
   static const healthChannelId = 'sehatak_health_v1';
   static const socialChannelId = 'sehatak_social_v1';
-  static const callChannelId = 'sehatak_calls_v2';
+  static const callChannelId = 'sehatak_calls_v3';
 
   static const _messageChannel = AndroidNotificationChannel(
     messageChannelId, 'صحتك - الرسائل',
@@ -249,7 +249,7 @@ class NotificationService {
         priority: importance == Importance.high ? Priority.high : Priority.defaultPriority,
         playSound: resolvedSound,
         sound: resolvedSound ? const RawResourceAndroidNotificationSound('notification') : null,
-        category: _categoryFor(family), visibility: isChatMessage ? NotificationVisibility.private : NotificationVisibility.public,
+        category: _categoryFor(family), visibility: NotificationVisibility.public,
         styleInformation: const BigTextStyleInformation(''),
       ),
       iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: resolvedSound),
@@ -297,27 +297,29 @@ class NotificationService {
         showWhen: false, ticker: 'مكالمة واردة من $callerName',
         color: const Color(0xFF2A8F83), colorized: false, icon: smallIcon,
         actions: <AndroidNotificationAction>[
-          AndroidNotificationAction(
-            'call_reject',
-            'رفض',
-            icon: DrawableResourceAndroidBitmap('ic_call_reject'),
-            titleColor: const Color(0xFFE53935),
-            showsUserInterface: true,
-            cancelNotification: true,
-          ),
+          // Android displays actions left-to-right in the notification UI.
+          // Keep the call controls explicit: answer, end, message/call later.
           AndroidNotificationAction(
             'call_answer',
-            'إجابة',
+            'الرد',
             icon: DrawableResourceAndroidBitmap('ic_call_answer'),
             titleColor: const Color(0xFF2DBE68),
             showsUserInterface: true,
             cancelNotification: true,
           ),
           AndroidNotificationAction(
-            'call_open',
-            'فتح المكالمة',
+            'call_reject',
+            'إنهاء',
+            icon: DrawableResourceAndroidBitmap('ic_call_reject'),
+            titleColor: const Color(0xFFE53935),
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+          AndroidNotificationAction(
+            'call_message',
+            'مراسلة لاحقاً',
             icon: DrawableResourceAndroidBitmap('ic_call_open'),
-            titleColor: const Color(0xFF2F80ED),
+            titleColor: const Color(0xFF00BCD4),
             showsUserInterface: true,
             cancelNotification: true,
           ),
