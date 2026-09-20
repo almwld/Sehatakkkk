@@ -91,44 +91,32 @@ class MedicationService {
   }
 
   Future<void> updateMedication(String id, Map<String, dynamic> data) async {
-    final user = _auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
-    final cacheKey = 'medications_${user.uid}';
-    final current = await CacheService.getList(cacheKey) ?? <Map<String, dynamic>>[];
-    final merged = <String, dynamic>{...data, 'id': id, 'updatedAt': DateTime.now().toIso8601String()};
-    final next = current.map((m) => m['id']?.toString() == id ? {...m, ...merged} : m).toList();
-    await CacheService.saveList(cacheKey, next);
-    try { await _collection(user.uid).doc(id).set({...data, 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true)); } catch (_) {}
-    final local = next.firstWhere((m) => m['id']?.toString() == id, orElse: () => merged);
-    if (local['reminderEnabled'] == false || local['active'] == false) {
-      await _scheduler.cancelMedication(id);
-    } else {
-      await _scheduler.scheduleMedication(medication: local);
-    }
+    final user = _auth.currentUser; if (user == null) throw Exception('User not logged in');
+    final key = 'medications_${user.uid}';
+    final current = await CacheService.getList(key) ?? <Map<String,dynamic>>[];
+    final merged = <String,dynamic>{...data,'id':id,'updatedAt':DateTime.now().toIso8601String()};
+    final next = current.map((m)=>m['id']?.toString()==id?{...m,...merged}:m).toList();
+    await CacheService.saveList(key,next);
+    try { await _collection(user.uid).doc(id).set({...data,'updatedAt':FieldValue.serverTimestamp()},SetOptions(merge:true)); } catch (_) {}
+    final local=next.firstWhere((m)=>m['id']?.toString()==id,orElse:()=>merged);
+    if(local['reminderEnabled']==false||local['active']==false) await _scheduler.cancelMedication(id);
+    else await _scheduler.scheduleMedication(medication:local);
   }
-
   Future<void> deleteMedication(String id) async {
-    final user = _auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
-    final key = 'medications_${user.uid}';
-    final current = await CacheService.getList(key) ?? <Map<String, dynamic>>[];
-    await CacheService.saveList(key, current.where((m) => m['id']?.toString() != id).toList());
-    await _scheduler.cancelMedication(id);
-    try { await _collection(user.uid).doc(id).delete(); } catch (_) {}
+    final user=_auth.currentUser; if(user==null)throw Exception('User not logged in');
+    final key='medications_${user.uid}'; final current=await CacheService.getList(key)??<Map<String,dynamic>>[];
+    await CacheService.saveList(key,current.where((m)=>m['id']?.toString()!=id).toList());
+    await _scheduler.cancelMedication(id); try{await _collection(user.uid).doc(id).delete();}catch(_){}
   }
-
   Future<void> toggleReminder(String id, bool enabled) async {
-    final user = _auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
-    final key = 'medications_${user.uid}';
-    final current = await CacheService.getList(key) ?? <Map<String, dynamic>>[];
-    final next = current.map((m) => m['id']?.toString() == id ? {...m, 'reminderEnabled': enabled} : m).toList();
-    await CacheService.saveList(key, next);
-    try { await _collection(user.uid).doc(id).set({'reminderEnabled': enabled, 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true)); } catch (_) {}
-    final local = next.firstWhere((m) => m['id']?.toString() == id, orElse: () => <String,dynamic>{'id':id});
-    if (enabled) { await _scheduler.scheduleMedication(medication: local); } else { await _scheduler.cancelMedication(id); }
+    final user=_auth.currentUser; if(user==null)throw Exception('User not logged in');
+    final key='medications_${user.uid}'; final current=await CacheService.getList(key)??<Map<String,dynamic>>[];
+    final next=current.map((m)=>m['id']?.toString()==id?{...m,'reminderEnabled':enabled}:m).toList();
+    await CacheService.saveList(key,next);
+    try{await _collection(user.uid).doc(id).set({'reminderEnabled':enabled,'updatedAt':FieldValue.serverTimestamp()},SetOptions(merge:true));}catch(_){}
+    final local=next.firstWhere((m)=>m['id']?.toString()==id,orElse:()=>{'id':id,'reminderEnabled':enabled});
+    if(enabled)await _scheduler.scheduleMedication(medication:local);else await _scheduler.cancelMedication(id);
   }
-
   Future<List<Map<String, dynamic>>> getMedicationHistory() async {
     final user = _auth.currentUser;
     if (user == null) return [];
