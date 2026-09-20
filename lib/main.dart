@@ -149,6 +149,8 @@ class _SehatakAppState extends State<SehatakApp>
   StreamSubscription<RemoteMessage>? _messageSubscription;
   StreamSubscription<RemoteMessage>? _openedMessageSubscription;
   bool _launchPayloadHandled = false;
+  String? _pendingNotificationPayload;
+  bool _routingNotificationPayload = false;
   bool _authStatePrimed = false;
   bool _fcmStarted = false;
   bool _notificationsStarted = false;
@@ -257,14 +259,34 @@ class _SehatakAppState extends State<SehatakApp>
   Future<void> _loadLaunchPayload() async {
     try {
       final payload = await _notificationService.getLaunchPayload();
-      if (!mounted ||
-          payload == null ||
-          payload.isEmpty ||
-          _launchPayloadHandled) return;
-      _launchPayloadHandled = true;
-      await _handleLocalNotificationTap(payload);
+      if (payload == null || payload.isEmpty || _launchPayloadHandled) return;
+      _pendingNotificationPayload = payload;
+      await _routePendingNotificationPayload();
     } catch (e) {
       debugPrint('launch notification payload: $e');
+    }
+  }
+
+  Future<void> _routePendingNotificationPayload() async {
+    if (_routingNotificationPayload || _launchPayloadHandled) return;
+    final payload = _pendingNotificationPayload;
+    if (payload == null || payload.isEmpty) return;
+    final nav = navigatorKey.currentState;
+    if (nav == null || !mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_routePendingNotificationPayload());
+      });
+      return;
+    }
+    _routingNotificationPayload = true;
+    try {
+      await _handleLocalNotificationTap(payload);
+      _launchPayloadHandled = true;
+      _pendingNotificationPayload = null;
+    } catch (e) {
+      debugPrint('launch notification routing error: $e');
+    } finally {
+      _routingNotificationPayload = false;
     }
   }
 
@@ -293,7 +315,14 @@ class _SehatakAppState extends State<SehatakApp>
   }
 
   Future<void> _handleLocalNotificationTap(String? payload) async {
-    if (!mounted || payload == null || payload.isEmpty) return;
+    if (payload == null || payload.isEmpty) return;
+    if (!mounted || navigatorKey.currentState == null) {
+      _pendingNotificationPayload = payload;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_routePendingNotificationPayload());
+      });
+      return;
+    }
     final nav = navigatorKey.currentState;
     if (nav == null) return;
 
