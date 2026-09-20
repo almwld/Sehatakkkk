@@ -43,6 +43,10 @@ async function sendToUser(uid,payload){
 exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{messageId}',async event=>{
   const s=event.data;if(!s)return;
   const m=s.data()||{},chatId=event.params.chatId,senderId=String(m.senderId||'');
+  // Call lifecycle entries are timeline records, not chat messages. The
+  // incoming-call FCM is sent by notifyIncomingCall and must never produce a
+  // second notification that opens the chat room.
+  if (m.type === 'call' || m.metadata?.callId || m.callId) return;
   if(!senderId)return;
   const chatSnap=await db.collection('chats').doc(chatId).get();
   if(!chatSnap.exists)return;
