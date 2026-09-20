@@ -21,6 +21,7 @@ import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/message_search_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_input_bar.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/doctor_medical_forms_sheet.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/media_upload_status_widget.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 
@@ -146,6 +147,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   bool _muted = false;
   bool _pinned = false;
   MessageModel? _replyingTo;
+  bool _isDoctor = false;
   CollectionReference<Map<String, dynamic>> get _messagesRef =>
       _firestore.collection('chats').doc(widget.chatId).collection('messages');
 
@@ -154,10 +156,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _listen();
+    _loadDoctorRole();
     _loadPendingMedia();
     _startPendingRefresh();
     unawaited(NotificationService().cancelChatNotifications(widget.chatId));
     _markRead();
+  }
+
+  Future<void> _loadDoctorRole() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final snap = await _firestore.collection('users').doc(uid).get();
+      final data = snap.data() ?? <String, dynamic>{};
+      final role = data['role']?.toString();
+      final verified = data['isVerified'];
+      if (mounted) setState(() => _isDoctor = (role == 'doctor' || role == 'طبيب') && verified != false);
+    } catch (e) {
+      debugPrint('doctor role check: $e');
+    }
   }
 
   Future<void> _setTyping(bool typing) async {
@@ -823,7 +840,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             onTyping: _setTyping,
             onSendImage: (_) {},
             onLocalMedia: _addLocalMedia,
-            onShareLocation: _shareLocation),
+            onShareLocation: _shareLocation,
+            onDoctorMedicalForms: _isDoctor
+                ? () => showDoctorMedicalForms(
+                    context: context,
+                    chatId: widget.chatId,
+                    patientId: widget.otherUserId,
+                    patientName: widget.otherUserName,
+                  )
+                : null),
       ]),
     );
   }
