@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/imagekit.dart';
+import '../../../presentation/widgets/common/app_image.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/services/unified_cart_service.dart';
@@ -60,7 +62,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5))),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(height: 80, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: const Center(child: Icon(Icons.medication, color: AppColors.primary, size: 40))),
+              ClipRRect(borderRadius: BorderRadius.circular(12), child: AppImage(imageUrl: ImageKit.productImage(imageUrl: product['imageUrl']?.toString(), dosageForm: product['dosageForm']?.toString(), category: product['category']?.toString()), height: 80, width: double.infinity, fit: BoxFit.contain)),
               const SizedBox(height: 12),
               Text(product['name'] as String, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 4),
