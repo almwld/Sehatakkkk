@@ -216,11 +216,6 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         const SnackBar(content: Text('تمت إضافة المنتج إلى السلة')));
   }
 
-  String _image(Map<String, dynamic> p) {
-    final stored = '${p['imageUrl'] ?? p['image'] ?? ''}'.trim();
-    return stored.startsWith('http') ? stored : ImageKitConfig.medicine1;
-  }
-
   double? _oldPrice(Map<String, dynamic> p) {
     final v = p['oldPrice'] ?? p['originalPrice'];
     return v is num ? v.toDouble() : double.tryParse('${v ?? ''}');
@@ -337,7 +332,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       isThreeLine: true,
                       leading: CircleAvatar(
                           backgroundColor: AppColors.primary.withOpacity(.1),
-                          child: SvgPicture.asset('assets/icons/map_pins/pharmacy.svg', width: 28, height: 28, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn))),
+                          child: SvgPicture.asset('assets/icons/map_pins/pharmacy.svg', width: 28, height: 28)),
                       title: Text('${p['name'] ?? 'صيدلية'}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
@@ -378,13 +373,24 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
             child: Row(children: [
               ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Container(
+                  child: (() {
+                    final url = ''.trim();
+                    if (!url.startsWith('http')) {
+                      return buildImageShimmer(
+                        context,
+                        width: 78,
+                        height: 78,
+                        radius: BorderRadius.circular(12),
+                      );
+                    }
+                    return AppImage(
+                      imageUrl: url,
                       width: 78,
                       height: 78,
-                      color: AppColors.primary.withOpacity(.08),
-                      child: Image.network(_image(p),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => SvgPicture.asset('assets/icons/mini_specialties/pill.svg', width: 34, height: 34, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn))))),
+                      fit: BoxFit.cover,
+                      borderRadius: BorderRadius.circular(12),
+                    );
+                  })()),
               const SizedBox(width: 12),
               Expanded(
                   child: Column(
@@ -434,7 +440,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                   ])),
               IconButton(
                   onPressed: available ? () => _add(p) : null,
-                  icon: SvgPicture.asset('assets/icons/services/pharmacy.svg', width: 24, height: 24, colorFilter: ColorFilter.mode(available ? AppColors.primary : Colors.grey, BlendMode.srcIn))),
+                  icon: SvgPicture.asset('assets/icons/services/pharmacy.svg', width: 24, height: 24)),
             ])));
   }
 
