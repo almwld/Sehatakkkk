@@ -254,7 +254,6 @@ class NotificationService {
             contentTitle: safeTitle,
             summaryText: safeBody,
             hideExpandedLargeIcon: true,
-            showBigPictureWhenCollapsed: true,
           );
         }
       } catch (e) {
