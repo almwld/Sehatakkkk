@@ -1,5 +1,6 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -804,12 +805,7 @@ class _AuthScreenState extends State<AuthScreen>
                   MaterialPageRoute(builder: (_) => VerificationScreen(userModel: userModel)),
                 );
               } else {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HomeScreen(),
-                  ),
-                );
+                context.go('/');
               }
             },
           ),
@@ -890,12 +886,7 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _guestLogin() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-    );
+    context.go('/');
   }
 
   void _showMessage(String message, bool isError) {
