@@ -25,23 +25,28 @@ class DoctorCommunityFab extends StatefulWidget {
   State<DoctorCommunityFab> createState() => _DoctorCommunityFabState();
 }
 
-class _DoctorCommunityFabState extends State<DoctorCommunityFab> {
+class _DoctorCommunityFabState extends State<DoctorCommunityFab> with SingleTickerProviderStateMixin {
   bool _doctor = false;
   bool _loadingRole = true;
   bool _openingComposer = false;
   bool _rotated = false;
   double _visibility = 1.0;
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulse;
 
   @override
   void initState() {
     super.initState();
     widget.scrollController.addListener(_onScroll);
+    _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
+    _pulse = Tween<double>(begin: .94, end: 1.0).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
     _loadRole();
   }
 
   @override
   void dispose() {
     widget.scrollController.removeListener(_onScroll);
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -77,25 +82,9 @@ class _DoctorCommunityFabState extends State<DoctorCommunityFab> {
     final position = widget.scrollController.position;
     if (!position.hasContentDimensions) return;
 
-    const edgeDistance = 180.0;
-    final pixels = position.pixels;
-    final max = position.maxScrollExtent;
-
-    double next;
-    if (max <= edgeDistance * 2) {
-      next = 1.0;
-    } else if (pixels <= edgeDistance) {
-      next = 1.0;
-    } else if (pixels >= max - edgeDistance) {
-      next = 1.0;
-    } else {
-      // اختفاء تدريجي بعد مغادرة البداية، ثم ظهور تدريجي قبل نهاية الصفحة.
-      final distanceFromStart = pixels - edgeDistance;
-      final distanceToEnd = max - edgeDistance - pixels;
-      final fadeInStart = (distanceFromStart / edgeDistance).clamp(0.0, 1.0);
-      final fadeInEnd = (distanceToEnd / edgeDistance).clamp(0.0, 1.0);
-      next = fadeInStart < fadeInEnd ? fadeInStart : fadeInEnd;
-    }
+    final atStart = position.pixels <= position.minScrollExtent + 2;
+    final atEnd = position.pixels >= position.maxScrollExtent - 2;
+    final next = (atStart || atEnd) ? 1.0 : 0.0;
 
     if ((next - _visibility).abs() > 0.01 && mounted) {
       setState(() => _visibility = next);
@@ -178,6 +167,7 @@ class _DoctorCommunityFabState extends State<DoctorCommunityFab> {
                     color: Colors.white,
                     size: 34,
                   ),
+                ),
                 ),
               ),
             ),
