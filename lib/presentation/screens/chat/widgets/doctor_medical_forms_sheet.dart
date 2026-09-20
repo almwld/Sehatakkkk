@@ -41,7 +41,25 @@ class _FormEditorState extends State<_FormEditor>{
  @override Widget build(BuildContext context){
   Widget body;
   if(widget.type=='rx')body=Column(children:[for(final m in medications)ListTile(dense:true,title:Text(m['name']!),subtitle:Text('${m['dose']} • ${m['directions']}')),OutlinedButton.icon(onPressed:addMed,icon:const Icon(Icons.add),label:const Text('إضافة دواء')),f('general','تعليمات عامة')]);
-  else if(widget.type=='labs')body=ListView(children:[for(final group in _labGroups.entries)ExpansionTile(title:Text(group.key),children:[for(final t in group.value)CheckboxListTile(value:tests.contains(t),onChanged:(v){setState(()=>v==true?tests.add(t):tests.remove(t));},title:Text(t))]),f('notes','ملاحظات')]));
+  else if (widget.type == 'labs') {
+    body = ListView(
+      children: [
+        for (final group in _labGroups.entries)
+          ExpansionTile(
+            title: Text(group.key),
+            children: [
+              for (final t in group.value)
+                CheckboxListTile(
+                  value: tests.contains(t),
+                  onChanged: (v) => setState(() => v == true ? tests.add(t) : tests.remove(t)),
+                  title: Text(t),
+                ),
+            ],
+          ),
+        f('notes', 'ملاحظات'),
+      ],
+    );
+  }
   else body=SingleChildScrollView(child:Column(children:[f(widget.type=='report'?'diagnosis':widget.type=='sick_leave'?'reason':'destination',widget.type=='report'?'التشخيص':widget.type=='sick_leave'?'سبب الإجازة':'الجهة المحال إليها'),if(widget.type=='report')...[f('history','التاريخ المرضي'),f('findings','الفحص والنتائج'),f('plan','الخطة العلاجية')]else if(widget.type=='sick_leave')...[f('from','من'),f('to','إلى'),f('days','عدد الأيام'),f('notes','ملاحظات')]else...[f('reason','سبب الإحالة'),f('details','تفاصيل الإحالة')]]));
   return AlertDialog(title:Text('${_title(widget.type)} — ${widget.patientName}'),content:SizedBox(width:500,height:MediaQuery.of(context).size.height*.62,child:body),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(context,_values()),child:const Text('إنشاء PDF'))]);
  }
