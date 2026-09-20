@@ -44,8 +44,6 @@ import 'package:sehatak/bloc/messages/messages_bloc.dart';
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 
 import 'presentation/screens/chat/chat_room_screen.dart';
-import 'presentation/screens/home/home_screen.dart';
-import 'presentation/screens/platform/dashboard/platform_dashboard.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -152,7 +150,6 @@ class _SehatakAppState extends State<SehatakApp>
   StreamSubscription<RemoteMessage>? _openedMessageSubscription;
   bool _launchPayloadHandled = false;
   bool _authStatePrimed = false;
-  bool _fastNavigationInProgress = false;
   bool _fcmStarted = false;
   bool _notificationsStarted = false;
   bool _nextcloudStarted = false;
@@ -186,8 +183,9 @@ class _SehatakAppState extends State<SehatakApp>
         return;
       }
       if (user != null) {
+        // Firebase Auth remains the source of truth for authentication.
+        // AppRouter observes authStateChanges() and owns Auth → Home routing.
         unawaited(_fcmTokenService.syncCurrentToken());
-        unawaited(_navigateAfterSignInFast(user));
       }
     });
   }
@@ -267,38 +265,6 @@ class _SehatakAppState extends State<SehatakApp>
       await _handleLocalNotificationTap(payload);
     } catch (e) {
       debugPrint('launch notification payload: $e');
-    }
-  }
-
-  Future<void> _navigateAfterSignInFast(User user) async {
-    if (!mounted || _fastNavigationInProgress) return;
-    _fastNavigationInProgress = true;
-    try {
-      final nav = navigatorKey.currentState;
-      if (nav == null) return;
-      nav.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false);
-      try {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get()
-            .timeout(const Duration(seconds: 2));
-        final role = doc.data()?['role']?.toString();
-        if (mounted && (role == 'admin' || role == 'superAdmin')) {
-          final current = navigatorKey.currentState;
-          if (current != null)
-            current.pushAndRemoveUntil(
-                MaterialPageRoute(
-                    builder: (_) => const PlatformDashboard()),
-                (route) => false);
-        }
-      } catch (e) {
-        debugPrint('⚡ Deferred role lookup skipped: $e');
-      }
-    } finally {
-      _fastNavigationInProgress = false;
     }
   }
 
