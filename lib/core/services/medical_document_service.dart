@@ -50,7 +50,7 @@ class MedicalDocumentService {
 
     pw.Widget line(String ar, String en, {bool strong=false}) => pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 3),
-      child: pw.Row(textDirection: pw.TextDirection.rtl, children:[
+      child: pw.Row(children:[
         pw.Expanded(child: pw.Text(ar, textAlign: pw.TextAlign.right, style: pw.TextStyle(font:strong?bold:regular,fontSize:10))),
         pw.SizedBox(width:12),
         pw.Expanded(child: pw.Text(en, textAlign: pw.TextAlign.left, style: pw.TextStyle(font:strong?bold:regular,fontSize:9))),
