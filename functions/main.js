@@ -23,3 +23,5 @@ Object.assign(
 
 const medicationNotifications = require('./medication_notifications');
 Object.assign(exports, medicationNotifications);
+const pharmacyOrderNotifications = require('./pharmacy_order_notifications');
+Object.assign(exports, pharmacyOrderNotifications);
