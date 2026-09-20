@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -11,7 +12,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:sehatak/core/services/chat_media_transfer_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/medical_document_service.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/audio_waveform_bubble.dart';
 
 class MessageBubble extends StatefulWidget {
@@ -231,6 +235,84 @@ class _MessageBubbleState extends State<MessageBubble> {
         mime.contains('word') || mime.contains('spreadsheet') || mime.contains('presentation');
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
 
+    Future<File?> _downloadRemote() async {
+      if (url.isEmpty || _isLocal(url)) return File(url.replaceFirst('file://', ''));
+      try {
+        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
+        if (response.statusCode < 200 || response.statusCode >= 300) return null;
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/${DateTime.now().microsecondsSinceEpoch}_$name');
+        await file.writeAsBytes(response.bodyBytes, flush: true);
+        return file;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    Future<void> _documentActions() async {
+      if (url.isEmpty) return;
+      final action = await showModalBottomSheet<String>(
+        context: context,
+        showDragHandle: true,
+        builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(leading: const Icon(Icons.visibility_outlined), title: const Text('فتح المستند'), onTap: () => Navigator.pop(ctx, 'open')),
+          ListTile(leading: const Icon(Icons.share_outlined), title: const Text('مشاركة / إرسال خارج التطبيق'), onTap: () => Navigator.pop(ctx, 'share')),
+          ListTile(leading: const Icon(Icons.save_alt_outlined), title: const Text('حفظ في المكتبة'), onTap: () => Navigator.pop(ctx, 'library')),
+          ListTile(leading: const Icon(Icons.download_outlined), title: const Text('حفظ نسخة على الهاتف'), onTap: () => Navigator.pop(ctx, 'download')),
+          ListTile(leading: const Icon(Icons.send_outlined), title: const Text('إرسال إلى دردشة أخرى'), onTap: () => Navigator.pop(ctx, 'chat')),
+        ])),
+      );
+      if (action == null) return;
+      final file = await _downloadRemote();
+      if (file == null) { _showFileError(); return; }
+      if (action == 'open') {
+        if (isPdf || isOffice) {
+          if (mounted) await showDialog<void>(context: context, builder: (_) => _DocumentWebViewDialog(title: name, url: url));
+        } else if (isText) {
+          final text = await file.readAsString();
+          if (mounted) await showDialog<void>(context: context, builder: (_) => _TextDocumentDialog(title: name, content: text));
+        }
+      } else if (action == 'share' || action == 'download') {
+        await MedicalDocumentServiceCompat.share(file, download: action == 'download');
+      } else if (action == 'library') {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) {
+          await FirebaseFirestore.instance.collection('document_library').doc().set({
+            'ownerId': uid, 'chatId': m['chatId'], 'fileName': name,
+            'fileUrl': url, 'mimeType': mime, 'savedAt': FieldValue.serverTimestamp(),
+          });
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ المستند في المكتبة.')));
+        }
+      } else if (action == 'chat') {
+        await _sendToAnotherChat(file);
+      }
+    }
+
+    Future<void> _sendToAnotherChat(File file) async {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
+      final snap = await FirebaseFirestore.instance.collection('chats').where('participants', arrayContains: uid).limit(50).get();
+      if (!mounted) return;
+      final selected = await showModalBottomSheet<String>(
+        context: context, showDragHandle: true,
+        builder: (ctx) => SafeArea(child: SizedBox(height: 420, child: ListView(
+          children: snap.docs.where((d) => d.id != m['chatId']).map((d) {
+            final data = d.data(); final parts = List<String>.from(data['participants'] ?? const []);
+            final other = parts.firstWhere((x) => x != uid, orElse: () => '');
+            final details = data['participantDetails'] is Map ? Map<String,dynamic>.from(data['participantDetails']) : <String,dynamic>{};
+            final otherData = details[other] is Map ? Map<String,dynamic>.from(details[other]) : <String,dynamic>{};
+            return ListTile(leading: const Icon(Icons.chat_bubble_outline), title: Text((otherData['name'] ?? 'محادثة').toString()), onTap: () => Navigator.pop(ctx, d.id));
+          }).toList(),
+        ))),
+      );
+      if (selected == null) return;
+      await ChatMediaTransferService.instance.enqueue(
+        chatId: selected, sourceFile: file, type: 'file', folder: 'documents',
+        preview: '📄 $name', fileName: name, fileSize: m['fileSize']?.toString(), mimeType: mime,
+      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تجهيز المستند للإرسال إلى الدردشة المحددة.')));
+    }
+
     Future<void> open() async {
       if (url.isEmpty) return;
       if (_isLocal(url)) {
@@ -257,8 +339,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         return;
       }
       if (isPdf || isOffice) {
-        if (!mounted) return;
-        await showDialog<void>(context: context, builder: (_) => _DocumentWebViewDialog(title: name, url: url));
+        await _documentActions();
         return;
       }
       final target = Uri.tryParse(url);
@@ -610,5 +691,11 @@ class _JustAudioMessagePlayerState extends State<JustAudioMessagePlayer> {
         );
       },
     );
+  }
+}
+
+class MedicalDocumentServiceCompat {
+  static Future<void> share(File file, {bool download = false}) async {
+    await Share.shareXFiles([XFile(file.path)], text: download ? 'نسخة محفوظة من مستند صحتك' : 'مستند من منصة صحتك');
   }
 }
