@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/presentation/screens/admin/super_admin_dashboard.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
@@ -15,7 +16,8 @@ class AdvancedRoleDashboardScreen extends StatelessWidget {
     if (role == 'doctor') return const _DoctorControlCenter();
     if (role == 'pharmacy' || role == 'pharmacist' || role == 'pharmacyOwner') return const PharmacyDashboard();
     if (['lab','hospital','clinic','medical_center','dental','dentist','ophthalmology','optometrist','nurse','midwife','physiotherapist','paramedic','veterinarian'].contains(role)) return _FacilityControlCenter(role: role);
-    if (role == 'admin' || role == 'superAdmin') return const _AdminControlCenter();
+    if (role == 'superAdmin') return const SuperAdminDashboard();
+    if (role == 'admin') return const _AdminControlCenter();
     return _ProviderControlCenter(role: role);
   }
 }
