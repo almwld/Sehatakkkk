@@ -22,7 +22,7 @@ class AppRoles {
     {'id': 'lab', 'name': 'مختبر', 'icon': AppIcons.labMicroscope, 'color': 0xFF9C27B0},
     {'id': 'hospital', 'name': 'مستشفى', 'icon': AppIcons.serviceMedical, 'color': 0xFF1565C0},
     {'id': 'clinic', 'name': 'عيادة', 'icon': AppIcons.serviceMedical, 'color': 0xFF00897B},
-    {'id': 'medical_center', 'name': 'مركز طبي', 'icon': AppIcons.hospital, 'color': 0xFF3949AB},
+    {'id': 'medical_center', 'name': 'مركز طبي', 'icon': AppIcons.serviceMedical, 'color': 0xFF3949AB},
     {'id': 'dentist', 'name': 'طبيب أسنان', 'icon': AppIcons.doctor, 'color': 0xFF00ACC1},
     {'id': 'dental', 'name': 'عيادة أسنان', 'icon': AppIcons.doctor, 'color': 0xFF00ACC1},
     {'id': 'ophthalmology', 'name': 'طبيب عيون', 'icon': AppIcons.doctor, 'color': 0xFF5E35B1},
@@ -35,8 +35,9 @@ class AppRoles {
   ];
 
   static final List<String> verifiedRoles = [
-    'doctor', 'nurse', 'midwife', 'physiotherapist',
-    'pharmacist', 'lab', 'paramedic', 'veterinarian'
+    'doctor', 'nurse', 'midwife', 'physiotherapist', 'pharmacist', 'pharmacy', 'pharmacyOwner',
+    'lab', 'hospital', 'clinic', 'medical_center', 'dentist', 'dental', 'ophthalmology', 'eye_clinic',
+    'optometrist', 'paramedic', 'veterinarian', 'delivery', 'service'
   ];
 
   static bool needsVerification(String roleId) {
