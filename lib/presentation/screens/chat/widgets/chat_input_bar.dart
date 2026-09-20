@@ -270,14 +270,63 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final picked = result?.files.single;
     if (picked?.path == null) return;
     final size = _formatBytes(picked!.size);
+    final ext = (picked.extension ?? '').toLowerCase();
+    final isAudio = {'mp3','m4a','aac','wav','ogg','oga','opus','amr','flac','3gp','webm'}.contains(ext);
     if (!mounted) return;
-    final send = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('معاينة الملف'),
-      content: ListTile(leading: const Icon(Icons.insert_drive_file_outlined), title: Text(picked.name, maxLines: 2, overflow: TextOverflow.ellipsis), subtitle: Text(size)),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')), FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إرسال'))],
-    ));
+    final send = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isAudio ? 'معاينة الملف الصوتي' : 'معاينة الملف'),
+        content: ListTile(
+          leading: Icon(isAudio ? Icons.audiotrack : Icons.insert_drive_file_outlined),
+          title: Text(picked.name, maxLines: 2, overflow: TextOverflow.ellipsis),
+          subtitle: Text(size),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إرسال')),
+        ],
+      ),
+    );
     if (send != true) return;
-    await _sendMedia(File(picked.path!), type: 'file', folder: 'files', preview: '📎 ${picked.name}', name: picked.name, size: size, mime: picked.extension == null ? null : _guessMime(picked.extension!));
+    if (isAudio) {
+      await _sendMedia(
+        File(picked.path!),
+        type: 'audio',
+        folder: 'audio',
+        preview: '🎤 ملف صوتي',
+        name: picked.name,
+        size: size,
+        mime: _guessAudioMime(ext),
+      );
+    } else {
+      await _sendMedia(
+        File(picked.path!),
+        type: 'file',
+        folder: 'files',
+        preview: '📎 ${picked.name}',
+        name: picked.name,
+        size: size,
+        mime: _guessMime(ext),
+      );
+    }
+  }
+
+  String _guessAudioMime(String extension) {
+    switch (extension) {
+      case 'mp3': return 'audio/mpeg';
+      case 'm4a': return 'audio/mp4';
+      case 'aac': return 'audio/aac';
+      case 'wav': return 'audio/wav';
+      case 'ogg':
+      case 'oga': return 'audio/ogg';
+      case 'opus': return 'audio/opus';
+      case 'amr': return 'audio/amr';
+      case 'flac': return 'audio/flac';
+      case '3gp': return 'audio/3gpp';
+      case 'webm': return 'audio/webm';
+      default: return 'audio/mpeg';
+    }
   }
 
   String _guessMime(String extension) {
