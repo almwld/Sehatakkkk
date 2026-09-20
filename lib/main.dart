@@ -371,8 +371,8 @@ class _SehatakAppState extends State<SehatakApp>
               }
               return;
             }
-            if (action == 'call_open' && mounted) {
-              await _callService.handleIncomingCallById(context, callId);
+            if (action == 'call_message' && mounted) {
+              await _callService.openChatForCall(context, callId);
               return;
             }
           }
