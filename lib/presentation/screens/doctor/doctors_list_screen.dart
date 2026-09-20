@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
+import 'package:sehatak/core/constants/app_assets.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/models/doctor_model.dart';
@@ -346,219 +347,164 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                DoctorDetailsScreen(
-              doctorId: doctor.id,
-            ),
+            builder: (_) => DoctorDetailsScreen(doctorId: doctor.id),
           ),
         );
       },
       child: Container(
-        margin:
-            const EdgeInsets.only(bottom: 12),
-        padding:
-            const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: isDark
-              ? const Color(0xFF1A2540)
-              : Colors.white,
-          borderRadius:
-              BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color:
-                  Colors.black.withOpacity(
-                0.04,
-              ),
-              blurRadius: 8,
-              offset:
-                  const Offset(0, 2),
-            ),
-          ],
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
+        child: Column(
           children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration:
-                  BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color:
-                      doctor.isAvailable
-                          ? Colors.green
-                          : Colors.grey,
-                  width: 2,
-                ),
-              ),
-              child: ClipOval(
-                child: AppImage(
-                  imageUrl:
-                      doctor.photoUrl ??
-                          ImageKit.doctor1,
-                  height: 60,
-                  width: 60,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    doctor.name,
-                    maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight:
-                          FontWeight.bold,
-                      color: isDark
-                          ? Colors.white
-                          : Colors.black87,
+            Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: doctor.isAvailable ? Colors.green : Colors.grey,
+                      width: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    doctor.specialty,
-                    maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade600,
+                  child: ClipOval(
+                    child: AppImage(
+                      imageUrl: doctor.photoUrl ?? ImageKit.doctor1,
+                      height: 52,
+                      width: 52,
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.star,
-                        size: 12,
-                        color: Colors.amber,
-                      ),
-                      const SizedBox(width: 2),
                       Text(
-                        '${doctor.rating ?? 0}',
+                        doctor.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        doctor.specialty,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark
-                              ? Colors.white
-                              : Colors.black87,
+                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${doctor.reviewsCount ?? 0})',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark
-                              ? Colors.grey.shade400
-                              : Colors.grey.shade600,
-                        ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          const Icon(Icons.star, size: 11, color: Colors.amber),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${doctor.rating ?? 0} (${doctor.reviewsCount ?? 0})',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(width: 7),
+                          _availabilityBadge(doctor),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      _availabilityBadge(
-                        doctor,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.payments,
-                        size: 12,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 2),
+                      const SizedBox(height: 3),
                       Text(
                         '${doctor.consultationFee ?? 0} ر.ي',
                         style: TextStyle(
-                          fontSize: 11,
-                          color: isDark
-                              ? Colors.white
-                              : Colors.black87,
+                          fontSize: 10,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      if (doctor.isOnline)
-                        Row(
-                          children: const [
-                            Icon(
-                              Icons.circle,
-                              size: 6,
-                              color: Colors.green,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'متصل',
-                              style: TextStyle(
-                                fontSize: 9,
-                                color:
-                                    Colors.green,
-                              ),
-                            ),
-                          ],
-                        ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 4),
-            Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.chat,
-                    color: AppColors.primary,
-                  ),
-                  onPressed:
-                      () => _startChatWithDoctor(
-                    doctor,
-                  ),
-                  tooltip: 'دردشة',
-                  iconSize: 20,
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.phone,
-                    color: AppColors.primary,
-                  ),
-                  onPressed:
-                      () => _startCallWithDoctor(
-                    doctor,
-                    false,
-                  ),
-                  tooltip: 'مكالمة صوتية',
-                  iconSize: 20,
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.videocam,
-                    color: AppColors.primary,
-                  ),
-                  onPressed:
-                      () => _startCallWithDoctor(
-                    doctor,
-                    true,
-                  ),
-                  tooltip: 'مكالمة فيديو',
-                  iconSize: 20,
                 ),
               ],
             ),
+            const SizedBox(height: 7),
+            _buildDoctorActions(doctor, isDark),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoctorActions(DoctorModel doctor, bool isDark) {
+    return Row(
+      children: [
+        Expanded(
+          child: _doctorAction(
+            asset: AppAssets.chatBubble,
+            label: 'دردشة',
+            onTap: () => _startChatWithDoctor(doctor),
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: _doctorAction(
+            asset: AppAssets.chatPhoneCall,
+            label: 'اتصال',
+            onTap: () => _startCallWithDoctor(doctor, false),
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: _doctorAction(
+            asset: AppAssets.chatVideoCall,
+            label: 'فيديو',
+            onTap: () => _startCallWithDoctor(doctor, true),
+            isDark: isDark,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _doctorAction({
+    required String asset,
+    required String label,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return Material(
+      color: isDark ? const Color(0xFF243252) : const Color(0xFFF4F7F8),
+      borderRadius: BorderRadius.circular(9),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(9),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(asset, width: 18, height: 18, fit: BoxFit.contain),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
