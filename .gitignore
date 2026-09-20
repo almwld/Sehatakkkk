@@ -194,3 +194,8 @@ livekit-token-server/chat-backup-*.json
 livekit-token-server/seed-backup-*.json
 livekit-token-server/*.bak
 livekit-token-server/*.backup
+
+# Android release signing secrets
+android/key.properties
+android/*.jks
+android/*.keystore
