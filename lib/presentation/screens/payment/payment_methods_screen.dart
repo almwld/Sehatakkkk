@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/core/models/payment/wallet_models.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
@@ -101,10 +102,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 child: Image.asset(
                   wallet.assetPath,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.account_balance_wallet_rounded,
-                    color: AppColors.primary,
-                  ),
+                  errorBuilder: (_, __, ___) => Image.asset(AppImages.walletJeeb, width: 42, height: 42, fit: BoxFit.contain),
                 ),
               ),
               const SizedBox(width: 14),
@@ -196,7 +194,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary),
+                Image.asset(AppImages.walletJeeb, width: 34, height: 34, fit: BoxFit.contain),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
