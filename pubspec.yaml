@@ -53,7 +53,7 @@ dependencies:
   hive_flutter: 1.1.0
   intl: 0.18.1
   timezone: 0.9.4 # compatible with Flutter 3.16
-  flutter_timezone: 3.0.1 # device OS timezone; compatible with Flutter 3.16
+  flutter_timezone: 1.0.8 # device OS timezone; compatible with Flutter 3.16
   connectivity_plus: 5.0.2
   url_launcher: 6.2.3
   share_plus: 7.2.1
