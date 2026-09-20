@@ -132,42 +132,41 @@ class _DoctorCommunityFabState extends State<DoctorCommunityFab> with SingleTick
       ignoring: !visible || _openingComposer,
       child: AnimatedOpacity(
         opacity: _visibility,
-        duration: const Duration(milliseconds: 80),
+        duration: const Duration(milliseconds: 180),
         child: AnimatedScale(
-          scale: 0.82 + (_visibility * 0.18),
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeOut,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _openComposer,
-              customBorder: const CircleBorder(),
-              child: Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(widget.dark ? .38 : .18),
-                      blurRadius: 16,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 7),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: AnimatedRotation(
-                  turns: _rotated ? 0.5 : 0.0,
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeInOutCubic,
-                  child: const Icon(
-                    Icons.add_rounded,
-                    color: Colors.white,
-                    size: 34,
+          scale: visible ? 1.0 : 0.86,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          child: AnimatedBuilder(
+            animation: _pulse,
+            builder: (_, child) => Transform.scale(scale: _pulse.value, child: child),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _openComposer,
+                customBorder: const CircleBorder(),
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(widget.dark ? .38 : .18),
+                        blurRadius: 16,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 7),
+                      ),
+                    ],
                   ),
-                ),
+                  alignment: Alignment.center,
+                  child: AnimatedRotation(
+                    turns: _rotated ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeInOutCubic,
+                    child: const Icon(Icons.add_rounded, color: Colors.white, size: 34),
+                  ),
                 ),
               ),
             ),
