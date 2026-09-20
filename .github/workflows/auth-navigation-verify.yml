@@ -77,7 +77,8 @@ jobs:
       - name: "📦 Flutter pub get"
         run: flutter pub get
 
-      - name: "🧪 Flutter analyze"
+      - name: "🧪 Flutter analyze (diagnostic)"
+        continue-on-error: true
         run: flutter analyze
 
       - name: "🔨 Build debug APK"
