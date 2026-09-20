@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -49,6 +50,7 @@ class _AuthScreenState extends State<AuthScreen>
   String? _selectedSpecialty;
   bool _showAdminTab = false;
   bool _isFirstTimeUser = false;
+  List<Map<String, dynamic>> _savedAccounts = [];
 
   String _passwordStrength = '';
   Color _passwordStrengthColor = Colors.grey;
@@ -253,6 +255,7 @@ class _AuthScreenState extends State<AuthScreen>
     _checkFirstTime();
     _checkBiometric();
     _loadSavedCredentials();
+    _loadSavedAccounts();
     _checkAdminStatus();
 
     _passwordController.addListener(() {
@@ -384,6 +387,24 @@ class _AuthScreenState extends State<AuthScreen>
         _emailController.text = email;
       }
     });
+  }
+
+  Future<void> _loadSavedAccounts() async {
+    final accounts = await SavedAccountsService.loadAccounts();
+    if (!mounted) return;
+    setState(() => _savedAccounts = accounts);
+  }
+
+  void _selectSavedAccount(Map<String, dynamic> account) {
+    setState(() {
+      _emailController.text = account['email']?.toString() ?? '';
+      _rememberMe = true;
+    });
+  }
+
+  Future<void> _removeSavedAccount(String uid) async {
+    await SavedAccountsService.removeAccount(uid);
+    await _loadSavedAccounts();
   }
 
   Future<void> _checkBiometric() async {
@@ -555,6 +576,9 @@ class _AuthScreenState extends State<AuthScreen>
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
+      await SavedAccountsService.saveCurrentAccount(user);
+      await _loadSavedAccounts();
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('remember_me', true);
       await prefs.setBool('is_logged_in', true);
@@ -625,6 +649,9 @@ class _AuthScreenState extends State<AuthScreen>
       await _showSuccessAnimation();
 
       final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await SavedAccountsService.saveCurrentAccount(user);
+      }
 
       // Always enter the Home tab after an explicit login; do not leave Auth
       // on the navigation stack and do not resume an older route here.
@@ -1125,6 +1152,56 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
+  Widget _buildSavedAccountsSection(bool isDark, Color primaryColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'الحسابات المحفوظة',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+            fontFamily: 'NotoSansArabicUI',
+          ),
+        ),
+        const SizedBox(height: 8),
+        ..._savedAccounts.map((account) {
+          final email = account['email']?.toString() ?? '';
+          final name = account['name']?.toString() ?? email;
+          final photoUrl = account['photoUrl']?.toString() ?? '';
+          final uid = account['uid']?.toString() ?? email;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF172033) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? Colors.white12 : Colors.grey.shade200,
+              ),
+            ),
+            child: ListTile(
+              dense: true,
+              leading: CircleAvatar(
+                backgroundColor: primaryColor.withOpacity(.10),
+                backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                child: photoUrl.isEmpty ? Icon(Icons.person_outline, color: primaryColor) : null,
+              ),
+              title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis),
+              trailing: IconButton(
+                tooltip: 'حذف الحساب المحفوظ',
+                icon: const Icon(Icons.close, size: 19),
+                onPressed: () => _removeSavedAccount(uid),
+              ),
+              onTap: () => _selectSavedAccount(account),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -1585,6 +1662,11 @@ class _AuthScreenState extends State<AuthScreen>
                     icon: Icons.person_outline,
                     isDark: isDark,
                   ),
+                  const SizedBox(height: 16),
+                ],
+
+                if (!isSignUp && _savedAccounts.isNotEmpty) ...[
+                  _buildSavedAccountsSection(isDark, primaryColor),
                   const SizedBox(height: 16),
                 ],
 
