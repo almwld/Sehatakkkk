@@ -183,3 +183,14 @@ livekit-token-server/clear-*.js
 livekit-token-server/firestore-backup-*.json
 livekit-token-server/users-backup-*.json
 livekit-token-server/current.json
+
+# 🧪 Local scripts and backups
+livekit-token-server/watch-*.js
+livekit-token-server/purge-*.js
+livekit-token-server/seed-*.js
+livekit-token-server/check-*.js
+livekit-token-server/test-*.js
+livekit-token-server/chat-backup-*.json
+livekit-token-server/seed-backup-*.json
+livekit-token-server/*.bak
+livekit-token-server/*.backup

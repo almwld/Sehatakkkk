@@ -1,20 +1,91 @@
 {
   "indexes": [
-    {"collectionGroup":"messages","queryScope":"COLLECTION","fields":[{"fieldPath":"senderId","order":"ASCENDING"},{"fieldPath":"isRead","order":"ASCENDING"},{"fieldPath":"timestamp","order":"DESCENDING"}]},
-    {"collectionGroup":"messages","queryScope":"COLLECTION","fields":[{"fieldPath":"senderId","order":"ASCENDING"},{"fieldPath":"isDelivered","order":"ASCENDING"},{"fieldPath":"timestamp","order":"DESCENDING"}]},
-    {"collectionGroup":"messages","queryScope":"COLLECTION","fields":[{"fieldPath":"chatId","order":"ASCENDING"},{"fieldPath":"timestamp","order":"DESCENDING"}]},
-    {"collectionGroup":"chats","queryScope":"COLLECTION","fields":[{"fieldPath":"participants","order":"ASCENDING"},{"fieldPath":"updatedAt","order":"DESCENDING"}]},
-    {"collectionGroup":"calls","queryScope":"COLLECTION","fields":[{"fieldPath":"participants","order":"ASCENDING"},{"fieldPath":"startedAt","order":"DESCENDING"}]},
-    {"collectionGroup":"appointments","queryScope":"COLLECTION","fields":[{"fieldPath":"patientId","order":"ASCENDING"},{"fieldPath":"date","order":"ASCENDING"}]},
-    {"collectionGroup":"appointments","queryScope":"COLLECTION","fields":[{"fieldPath":"doctorId","order":"ASCENDING"},{"fieldPath":"date","order":"ASCENDING"}]},
-    {"collectionGroup":"appointments","queryScope":"COLLECTION","fields":[{"fieldPath":"patientId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"date","order":"ASCENDING"}]},
-    {"collectionGroup":"pharmacy_products","queryScope":"COLLECTION","fields":[{"fieldPath":"pharmacyId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
-    {"collectionGroup":"pharmacy_products","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
-    {"collectionGroup":"pharmacies","queryScope":"COLLECTION","fields":[{"fieldPath":"ownerId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"}]},
-    {"collectionGroup":"pharmacies","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
-    {"collectionGroup":"products","queryScope":"COLLECTION","fields":[{"fieldPath":"approvalStatus","order":"ASCENDING"},{"fieldPath":"isPublished","order":"ASCENDING"},{"fieldPath":"isActive","order":"ASCENDING"}]}
+    {
+      "collectionGroup": "pharmacies",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isFeatured",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isActive",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "labs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isFeatured",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isActive",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "hospitals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isFeatured",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isActive",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "postId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "community_posts",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "isPublished",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ]
+    }
   ],
-  "fieldOverrides": [
-    {"collectionGroup":"messages","fieldPath":"timestamp","indexes":[{"order":"ASCENDING"},{"order":"DESCENDING"}]}
-  ]
+  "fieldOverrides": []
 }
