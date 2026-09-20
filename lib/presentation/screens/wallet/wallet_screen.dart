@@ -17,6 +17,7 @@ class WalletScreen extends StatefulWidget {
 class _WalletScreenState extends State<WalletScreen> {
   final PaymentService _payment = PaymentService();
   bool _hideBalance = false;
+  double _balance = 0;
 
   final List<Map<String, dynamic>> _transactions = [
     {
@@ -233,8 +234,8 @@ class _WalletScreenState extends State<WalletScreen> {
     final actions = [
       {'icon': Icons.qr_code_scanner_rounded, 'label': 'مسح QR', 'color': Colors.blue},
       {'icon': Icons.history_rounded, 'label': 'السجل', 'color': Colors.green},
-      {'icon': Icons.credit_card_rounded, 'label': 'بطاقات', 'color': Colors.purple},
-      {'icon': Icons.wallet_rounded, 'label': 'طرق الدفع', 'color': Colors.orange},
+      {'asset': AppImages.walletKremi, 'label': 'بطاقات', 'color': Colors.purple},
+      {'asset': AppImages.walletJeeb, 'label': 'طرق الدفع', 'color': Colors.orange},
     ];
 
     return Row(
@@ -253,11 +254,9 @@ class _WalletScreenState extends State<WalletScreen> {
                   color: (action['color'] as Color).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
-                  action['icon'] as IconData,
-                  color: action['color'] as Color,
-                  size: 28,
-                ),
+                child: action['asset'] != null
+                    ? Image.asset(action['asset'] as String, width: 34, height: 34, fit: BoxFit.contain)
+                    : Icon(action['icon'] as IconData, color: action['color'] as Color, size: 28),
               ),
               const SizedBox(height: 4),
               Text(
