@@ -20,3 +20,6 @@ Object.assign(
   livekitFunctions,
   subscriptionFunctions,
 );
+
+const medicationNotifications = require('./medication_notifications');
+Object.assign(exports, medicationNotifications);
