@@ -250,11 +250,14 @@ class _MessageBubbleState extends State<MessageBubble> {
     final url = m['locationUrl']?.toString() ?? '';
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
 
-    final details = <String>[
-      if (street.isNotEmpty) street,
-      if (neighborhood.isNotEmpty) neighborhood,
-      if (city.isNotEmpty) city,
-    ];
+    final details = <String>[];
+    for (final value in [street, neighborhood, city]) {
+      final clean = value.trim();
+      if (clean.isEmpty) continue;
+      if (address.contains(clean)) continue;
+      if (details.any((item) => item == clean)) continue;
+      details.add(clean);
+    }
 
     final map = lat == null || lng == null
         ? const SizedBox.shrink()
@@ -265,7 +268,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               options: MapOptions(
                 initialCenter: LatLng(lat, lng),
                 initialZoom: 16,
-                interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
+                interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
               ),
               children: [
                 TileLayer(
