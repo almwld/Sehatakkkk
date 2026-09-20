@@ -131,12 +131,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _back() {
+    // زر الرجوع داخل HomeScreen له مستويان:
+    // 1) إذا كان المستخدم داخل إحدى واجهات شريط التنقل، فالرجوع مرة واحدة
+    //    يعيده إلى الرئيسية فقط، ولا يُخرج من التطبيق.
+    // 2) الخروج من التطبيق متاح فقط عندما تكون الرئيسية هي الواجهة الحالية،
+    //    وعندها يتطلب ضغطتين متتاليتين.
+    if (_currentIndex != 0) {
+      _backPressedOnce = false;
+      _backExitTimer?.cancel();
+      if (mounted) {
+        setState(() => _currentIndex = 0);
+      }
+      unawaited(_saveTab());
+      _scrollManager.show();
+      HapticFeedback.lightImpact();
+      return;
+    }
+
     if (_backPressedOnce) {
       _backPressedOnce = false;
       _backExitTimer?.cancel();
       SystemNavigator.pop();
       return;
     }
+
     _backPressedOnce = true;
     ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');
     _backExitTimer?.cancel();
@@ -155,9 +173,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
     _scrollManager.show();
+
+    // التنقل اليدوي يلغي حالة "اضغط مرة أخرى للخروج" حتى لا تنتقل
+    // حالة الخروج من الرئيسية إلى تبويب آخر.
+    _backPressedOnce = false;
+    _backExitTimer?.cancel();
+
     if (_currentIndex != i) {
       setState(() => _currentIndex = i);
-      _saveTab();
+      unawaited(_saveTab());
     }
     HapticFeedback.lightImpact();
   }
