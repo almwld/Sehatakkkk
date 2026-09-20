@@ -176,6 +176,14 @@ class NotificationService {
       await android?.createNotificationChannel(_healthChannel);
       await android?.createNotificationChannel(_socialChannel);
       await android?.createNotificationChannel(_callChannel);
+      // Android 14+ can restrict USE_FULL_SCREEN_INTENT. Request the
+      // special full-screen notification permission so incoming calls can
+      // present the call UI over other apps and while the device is locked.
+      try {
+        await android?.requestFullScreenIntentPermission();
+      } catch (e) {
+        debugPrint('⚠️ Full-screen call permission request unavailable: $e');
+      }
       final ios = _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
       _initialized = true;
       unawaited(Future<void>(() async {
