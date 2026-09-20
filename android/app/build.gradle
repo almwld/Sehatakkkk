@@ -67,9 +67,23 @@ android {
         versionName flutterVersionName
     }
 
+    signingConfigs {
+        release {
+            if (releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            if (!(releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword)) {
+                throw new GradleException("Release signing is not configured. Provide android/key.properties locally or the SEHATAK_* signing environment variables in CI.")
+            }
+            signingConfig signingConfigs.release
         }
     }
 }
