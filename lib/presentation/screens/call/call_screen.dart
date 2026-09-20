@@ -63,6 +63,7 @@ class _CallScreenState extends State<CallScreen> {
   bool muted = false;
   bool camera = true;
   bool speaker = false;
+  double speakerVolume = 0.75;
   bool online = true;
   bool swapped = false;
 
@@ -85,6 +86,7 @@ class _CallScreenState extends State<CallScreen> {
       registry.register(id);
     }
     unawaited(watchNet());
+    unawaited(_loadSpeakerVolume());
     unawaited(connect());
   }
 
@@ -318,10 +320,64 @@ class _CallScreenState extends State<CallScreen> {
 
   Future<void> switchCamera() async => live.switchCamera();
 
+  Future<void> _loadSpeakerVolume() async {
+    final value = await live.getCallVolume();
+    if (mounted) setState(() => speakerVolume = value);
+  }
+
   Future<void> toggleSpeaker() async {
     final enabled = !speaker;
     await live.setSpeakerphone(enabled);
     if (mounted) setState(() => speaker = enabled);
+  }
+
+  Future<void> _showSpeakerVolume() async {
+    await _loadSpeakerVolume();
+    if (!mounted) return;
+    var value = speakerVolume;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 18, 22, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('مستوى صوت المكالمة', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                Text('${(value * 100).round()}%', style: const TextStyle(color: Colors.white70)),
+                Slider(
+                  value: value,
+                  min: 0.05,
+                  max: 1.0,
+                  divisions: 19,
+                  activeColor: teal,
+                  onChanged: (next) {
+                    value = next;
+                    setSheetState(() {});
+                    unawaited(live.setCallVolume(next));
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Icon(Icons.volume_mute_rounded, color: Colors.white54),
+                    Icon(Icons.volume_down_rounded, color: Colors.white70),
+                    Icon(Icons.volume_up_rounded, color: Colors.white),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (mounted) setState(() => speakerVolume = value);
   }
 
   @override
@@ -446,7 +502,27 @@ class _CallScreenState extends State<CallScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
       decoration: BoxDecoration(color: card.withOpacity(.9), border: Border.all(color: Colors.white.withOpacity(.1)), borderRadius: BorderRadius.circular(30)),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        button(Icons.volume_up, 'سماعة', card, toggleSpeaker, active: speaker),
+        GestureDetector(
+          onTap: toggleSpeaker,
+          onLongPress: _showSpeakerVolume,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: speaker ? teal.withOpacity(.22) : card.withOpacity(.8),
+                  border: Border.all(color: speaker ? teal : Colors.white24, width: 1.4),
+                ),
+                child: Icon(speaker ? Icons.volume_up_rounded : Icons.volume_down_rounded, color: Colors.white, size: 26),
+              ),
+              const SizedBox(height: 5),
+              Text('سماعة ${(speakerVolume * 100).round()}%', style: const TextStyle(color: Colors.white70, fontSize: 10)),
+            ],
+          ),
+        ),
         button(muted ? Icons.mic_off : Icons.mic, 'كتم', cyan, mute, active: muted),
         if (widget.isVideo) button(camera ? Icons.videocam : Icons.videocam_off, 'كاميرا', cyan, toggleCamera, active: !camera),
         if (widget.isVideo) button(Icons.cameraswitch_rounded, 'تبديل', teal, switchCamera),
