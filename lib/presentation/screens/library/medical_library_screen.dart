@@ -13,7 +13,7 @@ class MedicalLibraryScreen extends StatelessWidget {
     return Scaffold(
       appBar:AppBar(title:const Text('المكتبة الطبية'),foregroundColor:AppColors.primary),
       body:StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
-        stream:FirebaseFirestore.instance.collection('document_library').where('ownerId',isEqualTo:uid).orderBy('savedAt',descending:true).snapshots(),
+        stream:FirebaseFirestore.instance.collection('document_library').where('ownerId',isEqualTo:uid).snapshots(),
         builder:(context,snap){
           if(snap.hasError)return const Center(child:Text('تعذر تحميل المكتبة حالياً'));
           if(!snap.hasData)return const Center(child:CircularProgressIndicator());
