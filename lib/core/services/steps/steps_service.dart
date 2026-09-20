@@ -46,7 +46,7 @@ class StepsService {
     final prefs = await SharedPreferences.getInstance();
     _trackingUid = uid;
     final key = _dateKey(DateTime.now());
-    if (prefs.getString('steps_tracking_day') != key) {
+    if (prefs.getString('steps_${uid}_tracking_day') != key) {
       _todaySteps = 0;
       _calories = 0;
       _distance = 0;
