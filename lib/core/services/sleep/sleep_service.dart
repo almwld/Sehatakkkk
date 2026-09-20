@@ -13,6 +13,7 @@ class SleepService {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   bool _isTracking = false;
+  String? _trackingUid;
   DateTime? _sleepStartTime;
   Timer? _trackingTimer;
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
@@ -26,16 +27,26 @@ class SleepService {
   DateTime? get sleepStartTime => _sleepStartTime;
 
   Future<bool> restoreTracking() async {
-    if (_isTracking) return true;
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return false;
+    if (_isTracking && _trackingUid == uid) return true;
+    if (_isTracking && _trackingUid != uid) {
+      await _accelerometerSubscription?.cancel();
+      _trackingTimer?.cancel();
+      _isTracking = false;
+      _sleepStartTime = null;
+      _trackingUid = null;
+    }
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('sleep_tracking_start');
+    final raw = prefs.getString('sleep_${uid}_tracking_start');
     if (raw == null) return false;
     final start = DateTime.tryParse(raw);
     if (start == null) {
-      await prefs.remove('sleep_tracking_start');
+      await prefs.remove('sleep_${_trackingUid}_tracking_start');
       return false;
     }
     _sleepStartTime = start;
+    _trackingUid = uid;
     _isTracking = true;
     _startSensors();
     _startTimer();
@@ -46,12 +57,14 @@ class SleepService {
   Future<void> startSleepTracking() async {
     if (_isTracking) return;
     _sleepStartTime = DateTime.now();
+    _trackingUid = _auth.currentUser?.uid;
+    if (_trackingUid == null) return;
     _movementCount = 0;
     _heartRates.clear();
     _avgHeartRate = 0;
     _isTracking = true;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('sleep_tracking_start', _sleepStartTime!.toIso8601String());
+    await prefs.setString('sleep_${_trackingUid}_tracking_start', _sleepStartTime!.toIso8601String());
     _startSensors();
     _startTimer();
     _emit();
@@ -85,7 +98,7 @@ class SleepService {
     final quality = _calculateSleepQuality(duration);
     final record = SleepRecord(
       id: _firestore.collection('sleep_records').doc().id,
-      userId: _auth.currentUser?.uid ?? '',
+      userId: _trackingUid ?? _auth.currentUser?.uid ?? '',
       date: DateTime.now(),
       bedtime: _sleepStartTime!,
       wakeTime: endTime,
@@ -105,6 +118,7 @@ class SleepService {
       try { await HealthMetricsService.update({'sleep': duration / 60.0}); } catch (_) {}
     }
     _sleepStartTime = null;
+    _trackingUid = null;
     _emit();
     return record;
   }
@@ -158,9 +172,9 @@ class SleepService {
   }
 
   Future<void> _persistLive() async {
-    if (!_isTracking || _sleepStartTime == null || _auth.currentUser == null) return;
+    if (!_isTracking || _sleepStartTime == null || _trackingUid == null) return;
     final minutes = DateTime.now().difference(_sleepStartTime!).inMinutes;
-    await _firestore.collection('health_metrics').doc(_auth.currentUser!.uid).set({
+    await _firestore.collection('health_metrics').doc(_trackingUid!).set({
       'sleep': minutes / 60.0,
       'sleepTrackingActive': true,
       'updatedAt': FieldValue.serverTimestamp(),
