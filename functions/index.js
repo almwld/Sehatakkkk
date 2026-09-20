@@ -130,9 +130,10 @@ exports.createAppointment = onCall(async (request) => {
     }
     const dayStart = new Date(date); dayStart.setUTCHours(0,0,0,0);
     const dayEnd = new Date(date); dayEnd.setUTCHours(23,59,59,999);
-    const dailySnap = await tx.get(db.collection('appointments').where('doctorId','==',doctorId).where('date','>=',admin.firestore.Timestamp.fromDate(dayStart)).where('date','<=',admin.firestore.Timestamp.fromDate(dayEnd)).where('status','in',['pending','confirmed']).limit(200));
+    const dailySnap = await tx.get(db.collection('appointments').where('doctorId','==',doctorId).limit(500));
+    const dailyCount = dailySnap.docs.filter(d => { const value=d.data().date; const dt=value && typeof value.toDate==='function' ? value.toDate() : new Date(value); const status=String(d.data().status||''); return !Number.isNaN(dt.getTime()) && dt>=dayStart && dt<=dayEnd && ['pending','confirmed'].includes(status); }).length;
     const maxDaily = Number(doctor.maxDailyAppointments || 20);
-    if (dailySnap.docs.length >= maxDaily) throw new HttpsError('resource-exhausted', 'اكتمل الحد اليومي للمواعيد الذي حدده الطبيب');
+    if (dailyCount >= maxDaily) throw new HttpsError('resource-exhausted', 'اكتمل الحد اليومي للمواعيد الذي حدده الطبيب');
     if (existingSnap.docs.length) throw new HttpsError('already-exists', 'هذا الموعد محجوز مسبقاً');
     const now = FieldValue.serverTimestamp();
     tx.create(appointmentRef, {patientId: uid, patientName: userSnap.data().name || userSnap.data().displayName || 'مريض', doctorId, doctorName: doctor.name || '', doctorSpecialty: doctor.specialty || '', date: admin.firestore.Timestamp.fromDate(date), time, type, status: 'pending', notes: String(request.data.notes || '').trim().slice(0, 1000), clinicAddress: doctor.clinicAddress || null, clinicPhone: doctor.clinicPhone || null, createdAt: now, updatedAt: now, confirmedAt: null, cancelledAt: null, reminderSent: false});
