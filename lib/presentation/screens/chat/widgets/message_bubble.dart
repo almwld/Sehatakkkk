@@ -317,6 +317,32 @@ class _MessageBubbleState extends State<MessageBubble> {
       );
     }
 
+
+    Future<void> _sendToAnotherChat(File file) async {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
+      final snap = await FirebaseFirestore.instance.collection('chats').where('participants', arrayContains: uid).limit(50).get();
+      if (!mounted) return;
+      final selected = await showModalBottomSheet<String>(
+        context: context, showDragHandle: true,
+        builder: (ctx) => SafeArea(child: SizedBox(height: 420, child: ListView(
+          children: snap.docs.where((d) => d.id != m['chatId']).map((d) {
+            final data = d.data(); final parts = List<String>.from(data['participants'] ?? const []);
+            final other = parts.firstWhere((x) => x != uid, orElse: () => '');
+            final details = data['participantDetails'] is Map ? Map<String,dynamic>.from(data['participantDetails']) : <String,dynamic>{};
+            final otherData = details[other] is Map ? Map<String,dynamic>.from(details[other]) : <String,dynamic>{};
+            return ListTile(leading: const Icon(Icons.chat_bubble_outline), title: Text((otherData['name'] ?? 'محادثة').toString()), onTap: () => Navigator.pop(ctx, d.id));
+          }).toList(),
+        ))),
+      );
+      if (selected == null) return;
+      await ChatMediaTransferService.instance.enqueue(
+        chatId: selected, sourceFile: file, type: 'file', folder: 'documents',
+        preview: '📄 $name', fileName: name, fileSize: m['fileSize']?.toString(), mimeType: mime,
+      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تجهيز المستند للإرسال إلى الدردشة المحددة.')));
+    }
+
     Future<void> _documentActions() async {
       if (url.isEmpty) return;
       final action = await showModalBottomSheet<String>(
@@ -362,31 +388,6 @@ class _MessageBubbleState extends State<MessageBubble> {
       } else if (action == 'chat') {
         await _sendToAnotherChat(file);
       }
-    }
-
-    Future<void> _sendToAnotherChat(File file) async {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) return;
-      final snap = await FirebaseFirestore.instance.collection('chats').where('participants', arrayContains: uid).limit(50).get();
-      if (!mounted) return;
-      final selected = await showModalBottomSheet<String>(
-        context: context, showDragHandle: true,
-        builder: (ctx) => SafeArea(child: SizedBox(height: 420, child: ListView(
-          children: snap.docs.where((d) => d.id != m['chatId']).map((d) {
-            final data = d.data(); final parts = List<String>.from(data['participants'] ?? const []);
-            final other = parts.firstWhere((x) => x != uid, orElse: () => '');
-            final details = data['participantDetails'] is Map ? Map<String,dynamic>.from(data['participantDetails']) : <String,dynamic>{};
-            final otherData = details[other] is Map ? Map<String,dynamic>.from(details[other]) : <String,dynamic>{};
-            return ListTile(leading: const Icon(Icons.chat_bubble_outline), title: Text((otherData['name'] ?? 'محادثة').toString()), onTap: () => Navigator.pop(ctx, d.id));
-          }).toList(),
-        ))),
-      );
-      if (selected == null) return;
-      await ChatMediaTransferService.instance.enqueue(
-        chatId: selected, sourceFile: file, type: 'file', folder: 'documents',
-        preview: '📄 $name', fileName: name, fileSize: m['fileSize']?.toString(), mimeType: mime,
-      );
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تجهيز المستند للإرسال إلى الدردشة المحددة.')));
     }
 
     Future<void> open() async {
