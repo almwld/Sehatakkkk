@@ -16,5 +16,5 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard>{
     Card(child:ListTile(leading:const Icon(Icons.admin_panel_settings,color:AppColors.primary),title:const Text('المدير الأعلى'),subtitle:const Text('صلاحية التحكم والإشراف الأعلى على المنصة'))),
     const SizedBox(height:12),Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('تقرير اليوم',style:TextStyle(fontSize:20,fontWeight:FontWeight.bold)),const SizedBox(height:8),Text('التاريخ: '+(_report['date']?.toString()??'')),Text('إجمالي إجراءات المشرفين: '+(_report['totalActions']?.toString()??'0')),const Divider(),...Map<String,dynamic>.from((_report['actions'] as Map?)??{}).entries.map((e)=>ListTile(dense:true,title:Text(e.key),trailing:Text(e.value.toString(),style:const TextStyle(fontWeight:FontWeight.bold))))]))),
     const SizedBox(height:12),const Card(child:ListTile(leading:Icon(Icons.security),title:Text('سجل التدقيق'),subtitle:Text('تُسجل قرارات التوثيق وإجراءات الإدارة مع صاحب الإجراء والتاريخ.'))),
-  ]);}
+  ]));}
 }
