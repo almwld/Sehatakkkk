@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/pharmacy/product_model.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -11,18 +12,15 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final imageUrl = product.imageUrl;
-    final reviews = product.reviewsCount;
+        final reviews = product.reviewsCount;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Stack(children: [
-            ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(16)), child: imageUrl == null || imageUrl.isEmpty
-              ? Container(height: 140, color: isDark ? const Color(0xFF0B1121) : Colors.grey[100], child: Center(child: Icon(Icons.medication, size: 40, color: isDark ? Colors.grey[600] : Colors.grey[400])))
-              : Image.network(imageUrl, height: 140, width: double.infinity, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(height: 140, color: isDark ? const Color(0xFF0B1121) : Colors.grey[100], child: Center(child: Icon(Icons.medication, size: 40, color: isDark ? Colors.grey[600] : Colors.grey[400]))))),
-            if (product.prescriptionRequired) Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)), child: const Text('وصفة', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
+            ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(16)), child: AppImage(imageUrl: product.resolvedImageUrl, height: 140, width: double.infinity, fit: BoxFit.cover)),
+                        if (product.prescriptionRequired) Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)), child: const Text('وصفة', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
             if (product.isDiscounted) Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.orange, Colors.red]), borderRadius: BorderRadius.circular(12)), child: Text('-${product.discount!.toInt()}%', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)))),
             if (!product.inStock) Positioned(bottom: 8, left: 0, right: 0, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), color: Colors.black.withOpacity(0.7), child: const Center(child: Text('غير متوفر', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))))),
           ]),
