@@ -226,11 +226,18 @@ class NotificationService {
     final importance = _importanceFor(family);
     final resolvedSound = playSound ?? family != SehatakNotificationType.promotional;
     final isChatMessage = type == 'new_message' || type == 'chat_message' || type == 'message';
-    final safeTitle = isChatMessage ? 'صحتك' : title;
-    final safeBody = isChatMessage ? 'لديك رسالة جديدة في الدردشة' : body;
+    final safeTitle = isChatMessage
+        ? (data?['senderName']?.toString().trim().isNotEmpty == true
+            ? data!['senderName'].toString()
+            : title)
+        : title;
+    final safeBody = body.trim().isNotEmpty
+        ? body
+        : (isChatMessage ? 'لديك رسالة جديدة في الدردشة' : 'لديك إشعار جديد');
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         channelId, channelName, channelDescription: channelName, importance: importance,
+        ticker: safeBody,
         priority: importance == Importance.high ? Priority.high : Priority.defaultPriority,
         playSound: resolvedSound,
         sound: resolvedSound ? const RawResourceAndroidNotificationSound('notification') : null,
