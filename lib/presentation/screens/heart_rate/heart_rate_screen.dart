@@ -33,16 +33,99 @@ class _S extends State<HeartRateScreen> with SingleTickerProviderStateMixin {
   SizedBox(width:double.infinity,child:ElevatedButton(onPressed:()async{final v=int.tryParse(b.text);if(v==null||v<20||v>250)return;await HealthTrackingService.save({'heartRate':v,'heartRate_at':DateTime.now().toIso8601String()});if(!mounted)return;setState(()=>bpm=v);Navigator.pop(context);await _load();},child:const Text('حفظ القياس'))),
  ])));}
 
- @override Widget build(BuildContext c){final count=period==0?history.length:(period==1?7:30);final start=history.length>count?history.length-count:0;final chart=history.sublist(start);return Scaffold(backgroundColor:const Color(0xFF0A0E1A),appBar:FuturisticAppBar(title:'نبض القلب',actions:[IconButton(onPressed:_load,icon:const Icon(Icons.insights_rounded)),IconButton(onPressed:_manual,icon:const Icon(Icons.add_rounded))]),body:FuturisticBackground(glowColor:const Color(0xFFFF3366),child:SingleChildScrollView(padding:const EdgeInsets.fromLTRB(16,8,16,30),child:Column(children:[
-  GlassCard(glowColor:const Color(0xFFFF0066),child:Column(children:[Stack(alignment:Alignment.center,children:[PulseRipple(color:const Color(0xFFFF3366),size:180,duration:const Duration(milliseconds:800)),ScaleTransition(scale:Tween<double>(begin:.92,end:1.0).animate(CurvedAnimation(parent:pulse,curve:Curves.easeInOut)),child:const Icon(Icons.favorite_rounded,size:76,color:Color(0xFFFF3366)))]),const SizedBox(height:6),HolographicNumber(value:bpm==0?'--':bpm.toString(),unit:'نبضة / دقيقة',color:const Color(0xFFFF3366)),const SizedBox(height:18),GlowIconButton(icon:measuring?Icons.stop_rounded:Icons.play_arrow_rounded,color:const Color(0xFFFF3366),size:68,onPressed:measuring?_stop:_start),const SizedBox(height:10),Text(measuring?'جاري القياس...':'اضغط لبدء القياس',style:TextStyle(color:Colors.white.withOpacity(.6)))])),
-  const SizedBox(height:12),
-  Row(children:[FuturisticStatCard(icon:Icons.favorite_rounded,label:'الحالة',value:status,color:statusColor),const SizedBox(width:8),FuturisticStatCard(icon:Icons.speed_rounded,label:'آخر قراءة',value:bpm==0?'--':'$bpm BPM',color:const Color(0xFFFF3366))]),
-  const SizedBox(height:14),FuturisticPeriodSelector(selected:period,onChanged:(v)=>setState(()=>period=v),color:const Color(0xFFFF3366)),const SizedBox(height:14),
-  GlassCard(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('تاريخ النبض',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w800)),const SizedBox(height:10),chart.length<2?const SizedBox(height:120,child:Center(child:Text('أكمل قياسات فعلية لعرض الرسم',style:TextStyle(color:Colors.white54)))):FuturisticLineChart(values:chart,color:const Color(0xFFFF3366))])),
-  const SizedBox(height:12),
-  Row(children:[FuturisticStatCard(icon:Icons.arrow_downward,label:'أدنى',value:_stat(chart,true).toString(),color:const Color(0xFF4DA6FF)),const SizedBox(width:8),FuturisticStatCard(icon:Icons.arrow_upward,label:'أعلى',value:_stat(chart,false).toString(),color:const Color(0xFFFF3366)),const SizedBox(width:8),FuturisticStatCard(icon:Icons.analytics_outlined,label:'متوسط',value:_avg(chart),color:const Color(0xFF00E5A0))]),
- ])));}
-
+ @override Widget build(BuildContext c) {
+  final count = period == 0 ? history.length : (period == 1 ? 7 : 30);
+  final start = history.length > count ? history.length - count : 0;
+  final chart = history.sublist(start);
+  return Scaffold(
+    backgroundColor: const Color(0xFF0A0E1A),
+    appBar: FuturisticAppBar(
+      title: 'نبض القلب',
+      actions: [
+        IconButton(onPressed: _load, icon: const Icon(Icons.insights_rounded)),
+        IconButton(onPressed: _manual, icon: const Icon(Icons.add_rounded)),
+      ],
+    ),
+    body: FuturisticBackground(
+      glowColor: const Color(0xFFFF3366),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
+        child: Column(
+          children: [
+            GlassCard(
+              glowColor: const Color(0xFFFF0066),
+              child: Column(
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PulseRipple(
+                        color: const Color(0xFFFF3366),
+                        size: 180,
+                        duration: const Duration(milliseconds: 800),
+                      ),
+                      ScaleTransition(
+                        scale: Tween<double>(begin: .92, end: 1.0).animate(
+                          CurvedAnimation(parent: pulse, curve: Curves.easeInOut),
+                        ),
+                        child: const Icon(Icons.favorite_rounded, size: 76, color: Color(0xFFFF3366)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  HolographicNumber(
+                    value: bpm == 0 ? '--' : bpm.toString(),
+                    unit: 'نبضة / دقيقة',
+                    color: const Color(0xFFFF3366),
+                  ),
+                  const SizedBox(height: 18),
+                  GlowIconButton(
+                    icon: measuring ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                    color: const Color(0xFFFF3366),
+                    size: 68,
+                    onPressed: measuring ? _stop : _start,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(measuring ? 'جاري القياس...' : 'اضغط لبدء القياس',
+                    style: TextStyle(color: Colors.white.withOpacity(.6))),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(child: FuturisticStatCard(icon: Icons.favorite_rounded, label: 'الحالة', value: status, color: statusColor)),
+              const SizedBox(width: 8),
+              Expanded(child: FuturisticStatCard(icon: Icons.speed_rounded, label: 'آخر قراءة', value: bpm == 0 ? '--' : '$bpm BPM', color: const Color(0xFFFF3366))),
+            ]),
+            const SizedBox(height: 14),
+            FuturisticPeriodSelector(selected: period, onChanged: (v) => setState(() => period = v), color: const Color(0xFFFF3366)),
+            const SizedBox(height: 14),
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('تاريخ النبض', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 10),
+                  chart.length < 2
+                    ? const SizedBox(height: 120, child: Center(child: Text('أكمل قياسات فعلية لعرض الرسم', style: TextStyle(color: Colors.white54))))
+                    : FuturisticLineChart(values: chart, color: const Color(0xFFFF3366)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(child: FuturisticStatCard(icon: Icons.arrow_downward, label: 'أدنى', value: _stat(chart, true).toString(), color: const Color(0xFF4DA6FF))),
+              const SizedBox(width: 8),
+              Expanded(child: FuturisticStatCard(icon: Icons.arrow_upward, label: 'أعلى', value: _stat(chart, false).toString(), color: const Color(0xFFFF3366))),
+              const SizedBox(width: 8),
+              Expanded(child: FuturisticStatCard(icon: Icons.analytics_outlined, label: 'متوسط', value: _avg(chart), color: const Color(0xFF00E5A0))),
+            ]),
+          ],
+        ),
+      ),
+    ),
+  );
+}
  int _stat(List<double>x,bool min){if(x.isEmpty)return 0;final v=min?x.reduce((a,b)=>a<b?a:b):x.reduce((a,b)=>a>b?a:b);return v.round();}
  String _avg(List<double>x)=>x.isEmpty?'--':(x.reduce((a,b)=>a+b)/x.length).round().toString();
 }
