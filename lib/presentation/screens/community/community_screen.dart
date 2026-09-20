@@ -24,6 +24,7 @@ class _CommunityScreenState extends State<CommunityScreen>
   late final Animation<double> _fabScale;
   late final AnimationController _tapController;
   bool _fabVisible = true;
+  bool _headerVisible = true;
   late final ScrollController _feedController;
 
   @override
@@ -40,17 +41,25 @@ class _CommunityScreenState extends State<CommunityScreen>
       vsync: this,
       duration: const Duration(milliseconds: 320),
     );
-    _feedController = ScrollController()..addListener(_updateFabVisibility);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _updateFabVisibility());
+    _feedController = ScrollController()..addListener(_updateScrollChrome);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateScrollChrome());
   }
 
-  void _updateFabVisibility() {
+  void _updateScrollChrome() {
     if (!_feedController.hasClients || !mounted) return;
     final position = _feedController.position;
-    final atStart = position.pixels <= position.minScrollExtent + 1;
-    final atEnd = position.pixels >= position.maxScrollExtent - 1;
-    final visible = atStart || atEnd;
-    if (visible != _fabVisible) setState(() => _fabVisible = visible);
+    final atStart = position.pixels <= position.minScrollExtent + 2;
+    final atEnd = position.pixels >= position.maxScrollExtent - 2;
+    // زر إنشاء المنشور يظهر في البداية والنهاية فقط، ويختفي تدريجيًا
+    // أثناء المرور داخل المحتوى. الشريط العلوي يتبع اتجاه التمرير.
+    final fabVisible = atStart || atEnd;
+    final headerVisible = atStart || position.userScrollDirection != ScrollDirection.reverse;
+    if (fabVisible != _fabVisible || headerVisible != _headerVisible) {
+      setState(() {
+        _fabVisible = fabVisible;
+        _headerVisible = headerVisible;
+      });
+    }
   }
 
   Future<void> _handleCreatePostTap() async {
@@ -62,7 +71,7 @@ class _CommunityScreenState extends State<CommunityScreen>
 
   @override
   void dispose() {
-    _feedController.removeListener(_updateFabVisibility);
+    _feedController.removeListener(_updateScrollChrome);
     _feedController.dispose();
     _tapController.dispose();
     _fabController.dispose();
@@ -223,13 +232,10 @@ class _CommunityScreenState extends State<CommunityScreen>
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF081A1A) : const Color(0xFFF6F9F9),
-      appBar: AppBar(
-        title: const Text('مجتمع صحتك'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _posts(),
+      body: Stack(
+        children: [
+          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: _posts(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(
@@ -250,7 +256,7 @@ class _CommunityScreenState extends State<CommunityScreen>
             onRefresh: () async => setState(() {}),
             child: ListView.separated(
               controller: _feedController,
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 110),
+              padding: const EdgeInsets.fromLTRB(12, 104, 12, 120),
               itemCount: docs.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (_, index) => _PostCard(
@@ -262,9 +268,50 @@ class _CommunityScreenState extends State<CommunityScreen>
                 onShare: _share,
               ),
             ),
-          );
-        },
-      ),
+            );
+          },
+        ),
+        IgnorePointer(
+          ignoring: !_headerVisible,
+          child: AnimatedPositionedDirectional(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            top: _headerVisible ? 0 : -92,
+            start: 0,
+            end: 0,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 160),
+              opacity: _headerVisible ? 1 : 0,
+              child: Container(
+                height: 92,
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(30),
+                  ),
+                ),
+                child: const Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 10),
+                    child: Text(
+                      'مجتمع صحتك',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
       floatingActionButton: IgnorePointer(
         ignoring: !_fabVisible,
         child: AnimatedOpacity(
