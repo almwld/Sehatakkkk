@@ -237,6 +237,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(34))),
         title: const Text('صيدلية صحتك',
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
