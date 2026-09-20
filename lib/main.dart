@@ -44,6 +44,7 @@ import 'package:sehatak/bloc/messages/messages_bloc.dart';
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 
 import 'presentation/screens/chat/chat_room_screen.dart';
+import 'presentation/screens/verification/verification_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -521,6 +522,10 @@ class _SehatakAppState extends State<SehatakApp>
       case 'order_delivered':
       case 'order_cancelled':
         route = AppRouter.cart;
+        break;
+      case 'verification_required':
+      case 'verification_result':
+        route = AppRouter.notifications;
         break;
       case 'notification':
       case 'system':
