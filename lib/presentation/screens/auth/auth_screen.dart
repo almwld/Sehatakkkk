@@ -404,6 +404,9 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   String _getGreetingTitle() {
+    // في أول تثبيت لا نستخدم عبارة «مرحباً بعودتك».
+    if (_isFirstTimeUser) return 'مرحباً بك في صحتك';
+
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 12) return 'صباح الخير، مرحباً بعودتك';
     if (hour >= 12 && hour < 18) return 'مساء الخير، مرحباً بعودتك';
