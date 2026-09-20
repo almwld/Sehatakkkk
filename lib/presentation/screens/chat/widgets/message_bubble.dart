@@ -154,7 +154,9 @@ class _MessageBubbleState extends State<MessageBubble> {
         ],
       ),
     ), dark);
-    if (!widget.isMe) return bubble;
+    // Show the delivery/read state on both sides of the conversation.
+    // The status belongs to the message document itself, so the recipient can
+    // also see the same ✓ / ✓✓ / read state instead of only the sender.
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -175,7 +177,6 @@ class _MessageBubbleState extends State<MessageBubble> {
   String _timeLabel(dynamic value) { final DateTime? date = value is Timestamp ? value.toDate() : value is DateTime ? value : value is String ? DateTime.tryParse(value) : null; if (date == null) return ''; final h = date.hour.toString().padLeft(2, '0'); final min = date.minute.toString().padLeft(2, '0'); return '$h:$min'; }
 
   Widget _status(Map<String, dynamic> m) {
-    if (!widget.isMe) return const SizedBox.shrink();
     if (m['isSending'] == true) return const Icon(Icons.schedule, size: 14, color: Colors.grey);
     if (m['isRead'] == true) return const Icon(Icons.done_all, size: 15, color: AppColors.primary);
     if (m['isDelivered'] == true) return const Icon(Icons.done_all, size: 15, color: Colors.grey);
