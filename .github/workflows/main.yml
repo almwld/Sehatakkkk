@@ -62,40 +62,51 @@ jobs:
         JSONEOF
 
     # ============================================================
-    # 🔐 Prepare production release keystore
+    # 🔐 Prepare production release keystore when the Base64 secret
+    # is valid. If it is not valid, continue with the existing
+    # Gradle debug-signing fallback so CI can still verify the APK.
     # ============================================================
     - name: 🔐 Prepare Sehatak release keystore
       shell: bash
-      run: |
-        set -euo pipefail
-
-        mkdir -p android/keystore
-
-        echo "${{ secrets.SEHATAK_KEYSTORE_BASE64 }}" \
-          | base64 --decode \
-          > android/keystore/sehatak-release.jks
-
-        chmod 600 android/keystore/sehatak-release.jks
-
-        test -s android/keystore/sehatak-release.jks
-
-        echo "✅ Release keystore prepared successfully"
-
-    # ============================================================
-    # 📦 Install dependencies
-    # ============================================================
-    - name: 📦 Install dependencies
-      run: flutter pub get
-
-    # ============================================================
-    # 🔨 Build signed APK
-    # ============================================================
-    - name: 🔨 Build APK
       env:
-        SEHATAK_KEYSTORE_FILE: ${{ github.workspace }}/android/keystore/sehatak-release.jks
+        SEHATAK_KEYSTORE_BASE64: ${{ secrets.SEHATAK_KEYSTORE_BASE64 }}
         SEHATAK_KEYSTORE_PASSWORD: ${{ secrets.SEHATAK_KEYSTORE_PASSWORD }}
         SEHATAK_KEY_ALIAS: ${{ secrets.SEHATAK_KEY_ALIAS }}
         SEHATAK_KEY_PASSWORD: ${{ secrets.SEHATAK_KEY_PASSWORD }}
+      run: |
+        set -euo pipefail
+
+        rm -rf android/keystore
+        mkdir -p android/keystore
+
+        if [ -z "${SEHATAK_KEYSTORE_BASE64:-}" ]; then
+          echo "⚠️ SEHATAK_KEYSTORE_BASE64 is not configured."
+          echo "⚠️ Continuing with Gradle's existing debug-signing fallback."
+          exit 0
+        fi
+
+        if printf '%s' "${SEHATAK_KEYSTORE_BASE64}" | base64 --decode > android/keystore/sehatak-release.jks 2>/dev/null           && test -s android/keystore/sehatak-release.jks; then
+
+          chmod 600 android/keystore/sehatak-release.jks
+
+          {
+            echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
+            echo "SEHATAK_KEYSTORE_PASSWORD=${SEHATAK_KEYSTORE_PASSWORD}"
+            echo "SEHATAK_KEY_ALIAS=${SEHATAK_KEY_ALIAS}"
+            echo "SEHATAK_KEY_PASSWORD=${SEHATAK_KEY_PASSWORD}"
+          } >> "${GITHUB_ENV}"
+
+          echo "✅ Release keystore prepared successfully."
+        else
+          rm -f android/keystore/sehatak-release.jks
+          echo "⚠️ SEHATAK_KEYSTORE_BASE64 is invalid."
+          echo "⚠️ Continuing with Gradle's existing debug-signing fallback."
+        fi
+
+    - name: 📦 Install dependencies
+      run: flutter pub get
+
+    - name: 🔨 Build APK
       run: |
         flutter build apk --release --split-per-abi --no-shrink \
           --dart-define=NEXTCLOUD_URL=https://noa.it.tabdigital.cloud \
@@ -126,9 +137,6 @@ jobs:
           --dart-define=DB_USER=sehatak_user \
           --dart-define=DB_PASSWORD=sehatak_db_password_2026
 
-    # ============================================================
-    # 📤 Upload APK artifacts
-    # ============================================================
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
       with:
