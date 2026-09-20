@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -108,6 +109,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final nested = payload is Map ? Map<String, dynamic>.from(payload) : <String, dynamic>{};
     final chatId = (data['chatId'] ?? nested['chatId'])?.toString();
     if (type == 'verification_required' || type == 'verification_result') { if (mounted) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const VerificationScreen())); } return; }
+    if (type == 'medication_prescription' || type == 'medication_refill' || type == 'medication_purchased') { if (mounted) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MedicationReminderScreen())); } return; }
     if ((type == 'new_message' || type == 'chat_message' || type == 'message') && chatId != null && chatId.isNotEmpty && mounted) { Navigator.of(context).pop(chatId); }
   }
 
