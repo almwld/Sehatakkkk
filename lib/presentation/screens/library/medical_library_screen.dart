@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class MedicalLibraryScreen extends StatelessWidget {
@@ -29,7 +30,21 @@ class MedicalLibraryScreen extends StatelessWidget {
                 subtitle:Text(name,maxLines:1,overflow:TextOverflow.ellipsis),
                 onTap:()async{
                   if(path.isNotEmpty&&await File(path).exists()){await showDialog(context:context,builder:(_)=>Dialog(child:Column(mainAxisSize:MainAxisSize.min,children:[const Padding(padding:EdgeInsets.all(16),child:Text('الملف محفوظ داخل الجهاز')),Text(path,style:const TextStyle(fontSize:10),textAlign:TextAlign.center),TextButton(onPressed:()=>Navigator.pop(context),child:const Text('إغلاق'))])));return;}
-                  final uri=Uri.tryParse(url);if(uri!=null&&await canLaunchUrl(uri))await launchUrl(uri,mode:LaunchMode.externalApplication);
+                  final lower=name.toLowerCase();
+                  final isPdf=lower.endsWith('.pdf');
+                  final isOffice=['.doc','.docx','.xls','.xlsx','.ppt','.pptx'].any(lower.endsWith);
+                  if((isPdf||isOffice)&&url.isNotEmpty&&context.mounted){
+                    final viewer='https://docs.google.com/gview?embedded=1&url='+Uri.encodeComponent(url);
+                    await showDialog(context:context,builder:(_)=>Dialog(
+                      insetPadding:const EdgeInsets.all(12),
+                      child:SizedBox(width:double.infinity,height:MediaQuery.of(context).size.height*.82,
+                        child:Column(children:[
+                          Align(alignment:AlignmentDirectional.topEnd,child:IconButton(onPressed:()=>Navigator.pop(context),icon:const Icon(Icons.close))),
+                          Expanded(child:WebViewWidget(controller:WebViewController()..setJavaScriptMode(JavaScriptMode.unrestricted)..loadRequest(Uri.parse(viewer)))),
+                        ]))));
+                  } else {
+                    final uri=Uri.tryParse(url);if(uri!=null&&await canLaunchUrl(uri))await launchUrl(uri,mode:LaunchMode.externalApplication);
+                  }
                 },
               );
             });
