@@ -123,7 +123,7 @@ class HomeHealthWidgets extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: unified.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (_, i) => _vital(unified[i]),
+            itemBuilder: (_, i) => _vital(unified[i], data),
           ));
         },
       ),
@@ -204,9 +204,40 @@ class HomeHealthWidgets extends StatelessWidget {
     return FirebaseFirestore.instance.collection('health_metrics').doc(uid).get();
   }
 
-  Widget _vital(Map<String, dynamic> item) {
+  double _vitalProgress(Map<String, dynamic> item, Map<String, dynamic> data) {
+    final label = item['label'] as String;
+    num? number(String key) => data[key] is num ? data[key] as num : null;
+    switch (label) {
+      case 'ضغط الدم':
+        final s = number('systolic');
+        final d = number('diastolic');
+        if (s == null || d == null) return 0;
+        // Visual completion only: the ring indicates that a blood-pressure reading exists.
+        return 1;
+      case 'سكر الدم':
+        return number('blood_sugar') == null ? 0 : 1;
+      case 'اللياقة':
+        final steps = number('steps');
+        return steps == null ? 0 : (steps / 10000).clamp(0.0, 1.0).toDouble();
+      case 'الوزن':
+        return number('weight') == null ? 0 : 1;
+      case 'التغذية':
+        final calories = number('calories');
+        final water = number('water');
+        if (calories != null) return (calories / 2000).clamp(0.0, 1.0).toDouble();
+        if (water != null) return (water / 2.0).clamp(0.0, 1.0).toDouble();
+        return 0;
+      case 'الصحة النفسية':
+        final mood = number('moodScore');
+        return mood == null ? 0 : (mood / 10).clamp(0.0, 1.0).toDouble();
+      default:
+        return 0;
+    }
+  }
+
+  Widget _vital(Map<String, dynamic> item, Map<String, dynamic> data) {
     final color = item['color'] as Color;
-    const progress = 0.0;
+    final progress = _vitalProgress(item, data);
     return SizedBox(
       width: 126,
       child: Material(
