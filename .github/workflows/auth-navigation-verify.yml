@@ -1,0 +1,84 @@
+name: "🔎 Verify Auth → Home Navigation"
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - "lib/main.dart"
+      - "lib/app_router.dart"
+      - "lib/presentation/screens/auth/**"
+      - "lib/presentation/screens/home/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/auth-navigation-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  navigation-audit:
+    name: "🧭 Audit Auth → Home ownership"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🔍 Verify Router ownership"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== Auth → Home navigation audit ==="
+          echo
+          echo "[1] MaterialApp.router"
+          grep -n "routerConfig: AppRouter.router" lib/main.dart
+
+          echo
+          echo "[2] GoRouter auth refresh"
+          grep -n "authStateChanges()" lib/app_router.dart
+
+          echo
+          echo "[3] Home route"
+          grep -n "path: home" lib/app_router.dart
+
+          echo
+          echo "[4] Direct post-auth navigation in main.dart"
+          if grep -nE "_navigateAfterSignInFast|pushAndRemoveUntil\\(.*HomeScreen|MaterialPageRoute\\(builder:.*HomeScreen" lib/main.dart; then
+            echo
+            echo "❌ Direct Auth → Home navigation still exists in main.dart."
+            echo "Expected: Firebase Auth → AppRouter/GoRouter → HomeScreen."
+            exit 1
+          fi
+
+          echo
+          echo "✅ No direct post-auth Home navigation detected in main.dart."
+
+  flutter-verify:
+    name: "💙 Analyze + APK build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "☕ Setup Java 17"
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: "💙 Setup Flutter 3.16.0"
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.16.0"
+          channel: "stable"
+          cache: true
+
+      - name: "📦 Flutter pub get"
+        run: flutter pub get
+
+      - name: "🧪 Flutter analyze"
+        run: flutter analyze
+
+      - name: "🔨 Build debug APK"
+        run: flutter build apk --debug --no-shrink
