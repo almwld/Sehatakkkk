@@ -51,6 +51,25 @@ class BookingRepository {
   Future<BookingModel> confirmBooking({required String doctorId, required String doctorName, required DateTime date, required String time}) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('يجب تسجيل الدخول');
+    final doctorSnap = await _firestore.collection('users').doc(doctorId).get();
+    final doctor = doctorSnap.data() ?? <String,dynamic>{};
+    if (doctor['role']?.toString() == 'doctor') {
+      if (doctor['isAvailable'] == false || doctor['acceptingAppointments'] == false) throw Exception('الطبيب لا يستقبل مواعيد حاليًا');
+      final vacations = doctor['vacations'];
+      if (vacations is List) {
+        for (final item in vacations) { if (item is Map) { final a = DateTime.tryParse(item['start']?.toString() ?? ''); final b = DateTime.tryParse(item['end']?.toString() ?? ''); if (a != null && b != null && !date.isBefore(DateTime(a.year,a.month,a.day)) && !date.isAfter(DateTime(b.year,b.month,b.day,23,59,59))) throw Exception('الطبيب في إجازة خلال هذا التاريخ'); } }
+      }
+      final rawHours = doctor['workingHours'];
+      if (rawHours is Map && rawHours.isNotEmpty) {
+        const dayNames = <int,String>{6:'السبت',7:'الأحد',1:'الاثنين',2:'الثلاثاء',3:'الأربعاء',4:'الخميس',5:'الجمعة'};
+        final day = rawHours[dayNames[date.weekday]];
+        if (day is Map && day['enabled'] == false) throw Exception('الطبيب لا يعمل في هذا اليوم');
+      }
+      final max = (doctor['maxDailyAppointments'] as num?)?.toInt() ?? 20;
+      final existing = await _firestore.collection('appointments').where('doctorId',isEqualTo:doctorId).limit(500).get();
+      final count = existing.docs.where((d){ final value=d.data()['date']; DateTime? dt; if(value is Timestamp) dt=value.toDate(); else dt=DateTime.tryParse(value?.toString() ?? ''); return dt != null && dt!.year==date.year && dt!.month==date.month && dt!.day==date.day && d.data()['status']?.toString()!='cancelled'; }).length;
+      if (count >= max) throw Exception('اكتمل الحد اليومي للمواعيد الذي حدده الطبيب');
+    }
     final booking = BookingModel(id: '', patientId: user.uid, patientName: user.displayName ?? 'مريض', doctorId: doctorId, doctorName: doctorName, date: date, time: time, status: BookingStatus.pending, createdAt: DateTime.now());
     final ref = await _firestore.collection('appointments').add(booking.toFirestore());
     return booking.copyWith(id: ref.id);
