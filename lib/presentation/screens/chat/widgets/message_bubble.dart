@@ -138,11 +138,33 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
   }
 
-  Widget _buildText(Map<String, dynamic> m, bool dark) => _shell(Padding(padding: const EdgeInsets.fromLTRB(13, 9, 10, 7), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    if (m['replyPreview'] is Map) _replyPreview(m['replyPreview'] as Map, dark),
-    Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F)), fontSize: 14))), const SizedBox(width: 6), Text(_timeLabel(m['timestamp'] ?? m['clientTimestamp']), style: TextStyle(color: widget.isMe ? Colors.white70 : (dark ? Colors.white60 : const Color(0xFF6B7D7D)), fontSize: 9)), const SizedBox(width: 4), _status(m)]),
-    _reactions(m, dark),
-  ])), dark);
+  Widget _buildText(Map<String, dynamic> m, bool dark) {
+    final bubble = _shell(Padding(
+      padding: const EdgeInsets.fromLTRB(13, 9, 10, 7),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (m['replyPreview'] is Map) _replyPreview(m['replyPreview'] as Map, dark),
+          Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F)), fontSize: 14))),
+            const SizedBox(width: 6),
+            Text(_timeLabel(m['timestamp'] ?? m['clientTimestamp']), style: TextStyle(color: widget.isMe ? Colors.white70 : (dark ? Colors.white60 : const Color(0xFF6B7D7D)), fontSize: 9)),
+          ]),
+          _reactions(m, dark),
+        ],
+      ),
+    ), dark);
+    if (!widget.isMe) return bubble;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      textDirection: TextDirection.ltr,
+      children: [
+        Padding(padding: const EdgeInsets.only(right: 4, bottom: 7), child: _status(m)),
+        bubble,
+      ],
+    );
+  }
 
   Widget _replyPreview(Map preview, bool dark) {
     final sender = preview['senderName']?.toString().trim() ?? 'مستخدم';
@@ -154,25 +176,10 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _status(Map<String, dynamic> m) {
     if (!widget.isMe) return const SizedBox.shrink();
-    if (m['isSending'] == true) return const Icon(Icons.schedule, size: 14, color: Colors.white70);
-    if (m['isRead'] == true) {
-      return Container(
-        width: 19,
-        height: 17,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(9),
-        ),
-        child: const Icon(
-          Icons.done_all,
-          size: 14,
-          color: AppColors.primary,
-        ),
-      );
-    }
-    if (m['isDelivered'] == true) return const Icon(Icons.done_all, size: 15, color: Colors.white70);
-    return const Icon(Icons.check, size: 15, color: Colors.white70);
+    if (m['isSending'] == true) return const Icon(Icons.schedule, size: 14, color: Colors.grey);
+    if (m['isRead'] == true) return const Icon(Icons.done_all, size: 15, color: AppColors.primary);
+    if (m['isDelivered'] == true) return const Icon(Icons.done_all, size: 15, color: Colors.grey);
+    return const Icon(Icons.check, size: 15, color: Colors.grey);
   }
 
   Widget _reactions(Map<String, dynamic> m, bool dark) {
