@@ -1,10 +1,42 @@
 package com.sehatak.app
 
 import android.os.Bundle
+import android.media.AudioManager
 import android.view.WindowManager
+import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.android.FlutterFragmentActivity
 
 class MainActivity : FlutterFragmentActivity() {
+
+    private val callAudioChannel = "com.sehatak.app/call_audio"
+
+    override fun configureFlutterEngine(flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, callAudioChannel).setMethodCallHandler { call, result ->
+            val audio = getSystemService(AUDIO_SERVICE) as AudioManager
+            when (call.method) {
+                "setSpeakerphone" -> {
+                    val enabled = call.argument<Boolean>("enabled") ?: true
+                    audio.mode = AudioManager.MODE_IN_COMMUNICATION
+                    audio.isSpeakerphoneOn = enabled
+                    result.success(null)
+                }
+                "getCallVolume" -> {
+                    val max = audio.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL).coerceAtLeast(1)
+                    val current = audio.getStreamVolume(AudioManager.STREAM_VOICE_CALL)
+                    result.success(current.toDouble() / max.toDouble())
+                }
+                "setCallVolume" -> {
+                    val normalized = (call.argument<Double>("value") ?: 0.75).coerceIn(0.0, 1.0)
+                    val max = audio.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL).coerceAtLeast(1)
+                    val volume = kotlin.math.round(normalized * max).toInt().coerceIn(0, max)
+                    audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL, volume, 0)
+                    result.success(volume.toDouble() / max.toDouble())
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
