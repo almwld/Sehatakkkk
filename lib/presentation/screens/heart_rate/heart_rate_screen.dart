@@ -1,131 +1,394 @@
 import 'dart:async';
+
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/services/health_tracking_service.dart';
 import 'package:sehatak/services/heart_rate_service.dart';
-import 'package:sehatak/presentation/widgets/futuristic/glass_card.dart';
-import 'package:sehatak/presentation/widgets/futuristic/futuristic_background.dart';
-import 'package:sehatak/presentation/widgets/futuristic/futuristic_app_bar.dart';
-import 'package:sehatak/presentation/widgets/futuristic/holographic_number.dart';
-import 'package:sehatak/presentation/widgets/futuristic/futuristic_line_chart.dart';
-import 'package:sehatak/presentation/widgets/futuristic/futuristic_period_selector.dart';
-import 'package:sehatak/presentation/widgets/futuristic/futuristic_stat_card.dart';
-import 'package:sehatak/presentation/widgets/futuristic/glass_bottom_sheet.dart';
-import 'package:sehatak/presentation/widgets/futuristic/glow_icon_button.dart';
-import 'package:sehatak/presentation/widgets/futuristic/pulse_ripple.dart';
 
 class HeartRateScreen extends StatefulWidget {
- const HeartRateScreen({super.key});
- @override State<HeartRateScreen> createState()=>_S();
-}
-class _S extends State<HeartRateScreen> with SingleTickerProviderStateMixin {
- final service=HeartRateService(); StreamSubscription<int>? sub; late AnimationController pulse;
- int bpm=0; bool measuring=false; List<double> history=[]; int period=0;
- @override void initState(){super.initState();pulse=AnimationController(vsync:this,duration:const Duration(milliseconds:800))..repeat(reverse:true);_load();}
- @override void dispose(){sub?.cancel();pulse.dispose();service.dispose();super.dispose();}
- Future<void> _load() async {final r=await HealthTrackingService.history('heartRate',days:30);if(!mounted)return;setState((){history=r.map((e)=>(e['value'] as num?)?.toDouble()??0).where((e)=>e>0).toList().reversed.toList();if(history.isNotEmpty)bpm=history.last.round();});}
- Future<void> _start() async {try{await service.startMeasurement();sub?.cancel();sub=service.bpmStream.listen((v){if(mounted)setState(()=>bpm=v);});if(mounted)setState(()=>measuring=true);}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('تعذر بدء القياس: $e')));}}
- Future<void> _stop() async {await service.stopMeasurement();sub?.cancel();if(mounted)setState(()=>measuring=false);if(bpm>0){await HealthTrackingService.save({'heartRate':bpm,'heartRate_at':DateTime.now().toIso8601String()});await _load();}}
- String get status=>bpm<60?'بطيء':bpm<=100?'طبيعي':bpm<=140?'متسارع':'مرتفع';
- Color get statusColor=>bpm<60?const Color(0xFF4DA6FF):bpm<=100?const Color(0xFF00E5A0):bpm<=140?const Color(0xFFFF9F43):const Color(0xFFFF3366);
- void _manual(){final b=TextEditingController(text:bpm>0?bpm.toString():'');showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(_)=>GlassBottomSheet(title:'إدخال نبض يدوي',child:Column(children:[
-  TextField(controller:b,keyboardType:TextInputType.number,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'BPM',labelStyle:TextStyle(color:Colors.white54),enabledBorder:OutlineInputBorder(borderSide:BorderSide(color:Colors.white24)))),
-  const SizedBox(height:14),
-  SizedBox(width:double.infinity,child:ElevatedButton(onPressed:()async{final v=int.tryParse(b.text);if(v==null||v<20||v>250)return;await HealthTrackingService.save({'heartRate':v,'heartRate_at':DateTime.now().toIso8601String()});if(!mounted)return;setState(()=>bpm=v);Navigator.pop(context);await _load();},child:const Text('حفظ القياس'))),
- ])));}
+  const HeartRateScreen({super.key});
 
- @override Widget build(BuildContext c) {
-  final count = period == 0 ? history.length : (period == 1 ? 7 : 30);
-  final start = history.length > count ? history.length - count : 0;
-  final chart = history.sublist(start);
-  return Scaffold(
-    backgroundColor: const Color(0xFF0A0E1A),
-    appBar: FuturisticAppBar(
-      title: 'نبض القلب',
-      actions: [
-        IconButton(onPressed: _load, icon: const Icon(Icons.insights_rounded)),
-        IconButton(onPressed: _manual, icon: const Icon(Icons.add_rounded)),
-      ],
-    ),
-    body: FuturisticBackground(
-      glowColor: const Color(0xFFFF3366),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
-        child: Column(
+  @override
+  State<HeartRateScreen> createState() => _HeartRateScreenState();
+}
+
+class _HeartRateScreenState extends State<HeartRateScreen>
+    with SingleTickerProviderStateMixin {
+  final HeartRateService _service = HeartRateService();
+
+  StreamSubscription<int>? _bpmSub;
+  StreamSubscription<double>? _qualitySub;
+  StreamSubscription<List<double>>? _waveformSub;
+  StreamSubscription<int>? _statusSub;
+
+  int _bpm = 0;
+  double _quality = 0;
+  double _averageBpm = 0;
+  List<double> _waveform = <double>[];
+  bool _measuring = false;
+  bool _initializing = true;
+  int _status = -1;
+  String? _error;
+
+  late final AnimationController _pulseController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+    lowerBound: 0.92,
+    upperBound: 1.0,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      await _service.initializeCamera();
+      if (!mounted) return;
+      setState(() {
+        _initializing = false;
+        _status = 0;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _initializing = false;
+        _status = 0;
+        _error = e.toString();
+      });
+    }
+  }
+
+  void _subscribe() {
+    _bpmSub?.cancel();
+    _qualitySub?.cancel();
+    _waveformSub?.cancel();
+    _statusSub?.cancel();
+
+    _bpmSub = _service.bpmStream.listen((value) {
+      if (!mounted) return;
+      setState(() {
+        _bpm = value;
+        _averageBpm = _service.averageBPM;
+      });
+    });
+    _qualitySub = _service.signalStream.listen((value) {
+      if (!mounted) return;
+      setState(() => _quality = value);
+    });
+    _waveformSub = _service.waveformStream.listen((value) {
+      if (!mounted) return;
+      setState(() => _waveform = value);
+    });
+    _statusSub = _service.statusStream.listen((value) {
+      if (!mounted) return;
+      setState(() => _status = value);
+    });
+  }
+
+  Future<void> _toggle() async {
+    if (_measuring) {
+      await _stop();
+    } else {
+      await _start();
+    }
+  }
+
+  Future<void> _start() async {
+    if (_initializing) return;
+    try {
+      _subscribe();
+      await _service.startMeasurement();
+      if (!mounted) return;
+      setState(() {
+        _measuring = true;
+        _bpm = 0;
+        _averageBpm = 0;
+        _quality = 0;
+        _waveform = <double>[];
+        _status = 1;
+        _error = null;
+      });
+      _pulseController.repeat(reverse: true);
+    } catch (e) {
+      _bpmSub?.cancel();
+      _qualitySub?.cancel();
+      _waveformSub?.cancel();
+      _statusSub?.cancel();
+      if (!mounted) return;
+      setState(() {
+        _measuring = false;
+        _status = 0;
+        _error = e.toString();
+      });
+    }
+  }
+
+  Future<void> _stop() async {
+    await _service.stopMeasurement();
+    _bpmSub?.cancel();
+    _qualitySub?.cancel();
+    _waveformSub?.cancel();
+    _statusSub?.cancel();
+    _pulseController.stop();
+    if (!mounted) return;
+    setState(() {
+      _measuring = false;
+      _status = 0;
+    });
+    if (_bpm > 0) _showResult();
+  }
+
+  void _showResult() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('نتيجة القياس'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            GlassCard(
-              glowColor: const Color(0xFFFF0066),
-              child: Column(
-                children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      PulseRipple(
-                        color: const Color(0xFFFF3366),
-                        size: 180,
-                        duration: const Duration(milliseconds: 800),
-                      ),
-                      ScaleTransition(
-                        scale: Tween<double>(begin: .92, end: 1.0).animate(
-                          CurvedAnimation(parent: pulse, curve: Curves.easeInOut),
-                        ),
-                        child: const Icon(Icons.favorite_rounded, size: 76, color: Color(0xFFFF3366)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  HolographicNumber(
-                    value: bpm == 0 ? '--' : bpm.toString(),
-                    unit: 'نبضة / دقيقة',
-                    color: const Color(0xFFFF3366),
-                  ),
-                  const SizedBox(height: 18),
-                  GlowIconButton(
-                    icon: measuring ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                    color: const Color(0xFFFF3366),
-                    size: 68,
-                    onPressed: measuring ? _stop : _start,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(measuring ? 'جاري القياس...' : 'اضغط لبدء القياس',
-                    style: TextStyle(color: Colors.white.withOpacity(.6))),
-                ],
-              ),
-            ),
+            Text('$_bpm BPM', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            Row(children: [
-              Expanded(child: FuturisticStatCard(icon: Icons.favorite_rounded, label: 'الحالة', value: status, color: statusColor)),
-              const SizedBox(width: 8),
-              Expanded(child: FuturisticStatCard(icon: Icons.speed_rounded, label: 'آخر قراءة', value: bpm == 0 ? '--' : '$bpm BPM', color: const Color(0xFFFF3366))),
-            ]),
-            const SizedBox(height: 14),
-            FuturisticPeriodSelector(selected: period, onChanged: (v) => setState(() => period = v), color: const Color(0xFFFF3366)),
-            const SizedBox(height: 14),
-            GlassCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('تاريخ النبض', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 10),
-                  chart.length < 2
-                    ? const SizedBox(height: 120, child: Center(child: Text('أكمل قياسات فعلية لعرض الرسم', style: TextStyle(color: Colors.white54))))
-                    : FuturisticLineChart(values: chart, color: const Color(0xFFFF3366)),
-                ],
-              ),
-            ),
+            Text('متوسط القياس: ${_averageBpm.toStringAsFixed(0)} BPM'),
+            Text('جودة الإشارة: ${(_quality * 100).round()}%'),
             const SizedBox(height: 12),
-            Row(children: [
-              Expanded(child: FuturisticStatCard(icon: Icons.arrow_downward, label: 'أدنى', value: _stat(chart, true).toString(), color: const Color(0xFF4DA6FF))),
-              const SizedBox(width: 8),
-              Expanded(child: FuturisticStatCard(icon: Icons.arrow_upward, label: 'أعلى', value: _stat(chart, false).toString(), color: const Color(0xFFFF3366))),
-              const SizedBox(width: 8),
-              Expanded(child: FuturisticStatCard(icon: Icons.analytics_outlined, label: 'متوسط', value: _avg(chart), color: const Color(0xFF00E5A0))),
-            ]),
+            const Text(
+              'هذه قراءة تقديرية من كاميرا الهاتف وليست بديلاً عن جهاز طبي معتمد أو تقييم الطبيب.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إغلاق')),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showHistory() async {
+    final rows = await _service.getHistory();
+    if (!mounted) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.65,
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('سجل قياسات النبض', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              Expanded(
+                child: rows.isEmpty
+                    ? const Center(child: Text('لا توجد قياسات محفوظة بعد'))
+                    : ListView.separated(
+                        itemCount: rows.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (_, index) {
+                          final row = rows[index];
+                          final timestamp = DateTime.fromMillisecondsSinceEpoch(row['timestamp'] as int);
+                          final bpm = row['bpm'] as int;
+                          final quality = ((row['signal_quality'] as num).toDouble() * 100).round();
+                          return ListTile(
+                            leading: const Icon(Icons.favorite, color: Colors.red),
+                            title: Text('$bpm BPM'),
+                            subtitle: Text('${timestamp.day}/${timestamp.month}/${timestamp.year} • جودة $quality%'),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String get _statusText {
+    if (_error != null) return 'تعذر تشغيل الكاميرا أو القياس';
+    switch (_status) {
+      case 1:
+        return _quality < 0.35 ? 'حافظ على ثبات إصبعك وحسّن الإضاءة' : 'جاري القياس...';
+      case 2:
+        return 'إشارة مستقرة';
+      case 0:
+        return 'جاهز لبدء القياس';
+      default:
+        return 'جاري التهيئة...';
+    }
+  }
+
+  Color get _statusColor {
+    if (_error != null) return Colors.red;
+    if (_status == 2) return Colors.green;
+    if (_status == 1) return Colors.orange;
+    return Colors.grey;
+  }
+
+  Widget _buildWaveform() {
+    if (_waveform.length < 2) {
+      return const SizedBox(
+        height: 140,
+        child: Center(child: Text('ستظهر الإشارة هنا أثناء القياس', style: TextStyle(color: Colors.grey))),
+      );
+    }
+    final spots = <FlSpot>[];
+    for (var i = 0; i < _waveform.length; i++) {
+      spots.add(FlSpot(i.toDouble(), _waveform[i]));
+    }
+    return SizedBox(
+      height: 140,
+      child: LineChart(
+        LineChartData(
+          minY: -0.08,
+          maxY: 0.08,
+          gridData: const FlGridData(show: false),
+          titlesData: const FlTitlesData(show: false),
+          borderData: FlBorderData(show: false),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: false,
+              barWidth: 2,
+              color: Colors.red,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(show: false),
+            ),
           ],
         ),
       ),
-    ),
-  );
-}
- int _stat(List<double>x,bool min){if(x.isEmpty)return 0;final v=min?x.reduce((a,b)=>a<b?a:b):x.reduce((a,b)=>a>b?a:b);return v.round();}
- String _avg(List<double>x)=>x.isEmpty?'--':(x.reduce((a,b)=>a+b)/x.length).round().toString();
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('نبض القلب'),
+        actions: [
+          IconButton(onPressed: _showHistory, icon: const Icon(Icons.history), tooltip: 'السجل'),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              if (_error != null)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(_error!)),
+                        TextButton(onPressed: _initialize, child: const Text('إعادة المحاولة')),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 12),
+              ScaleTransition(
+                scale: _pulseController,
+                child: Icon(Icons.favorite, size: 86, color: _measuring ? Colors.red : Colors.grey.shade400),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _bpm == 0 ? '--' : '$_bpm',
+                style: TextStyle(fontSize: 64, fontWeight: FontWeight.bold, color: _bpm == 0 ? Colors.grey : Colors.red),
+              ),
+              const Text('BPM', style: TextStyle(fontSize: 20, color: Colors.grey)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _metric('جودة الإشارة', '${(_quality * 100).round()}%', Icons.signal_cellular_alt)),
+                  const SizedBox(width: 10),
+                  Expanded(child: _metric('المتوسط', _averageBpm == 0 ? '--' : '${_averageBpm.round()} BPM', Icons.timeline)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _statusColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _statusColor.withOpacity(0.25)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, size: 10, color: _statusColor),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_statusText)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: Padding(padding: const EdgeInsets.all(12), child: _buildWaveform()),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _initializing ? null : _toggle,
+                  icon: Icon(_measuring ? Icons.stop : Icons.play_arrow),
+                  label: Text(_measuring ? 'إيقاف القياس' : 'بدء القياس'),
+                  style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('طريقة القياس', style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8),
+                      Text('ضع طرف إصبعك برفق على عدسة الكاميرا الخلفية مع تغطية العدسة والضوء، وابقَ ثابتاً لمدة كافية للحصول على إشارة واضحة.'),
+                      SizedBox(height: 8),
+                      Text('مهم: قياس الكاميرا تقديري ولا يُستخدم لتشخيص حالة صحية أو لاتخاذ قرار علاجي.'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _metric(String label, String value, IconData icon) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        child: Column(
+          children: [
+            Icon(icon, size: 22),
+            const SizedBox(height: 5),
+            Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 3),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _bpmSub?.cancel();
+    _qualitySub?.cancel();
+    _waveformSub?.cancel();
+    _statusSub?.cancel();
+    _pulseController.dispose();
+    _service.dispose();
+    super.dispose();
+  }
 }
