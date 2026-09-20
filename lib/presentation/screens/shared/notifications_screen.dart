@@ -52,7 +52,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         });
       }
       await batch.commit();
-      await _firestore.collection('users').doc(uid).set({'unreadNotificationsCount': 0},{'merge':true});
+      await _firestore.collection('users').doc(uid).set({'unreadNotificationsCount': 0}, SetOptions(merge: true));
     } catch (e) {
       debugPrint('❌ Mark all notifications read failed: $e');
     }
