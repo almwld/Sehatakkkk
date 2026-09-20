@@ -42,7 +42,7 @@ class SleepService {
     if (raw == null) return false;
     final start = DateTime.tryParse(raw);
     if (start == null) {
-      await prefs.remove('sleep_${_trackingUid}_tracking_start');
+      await prefs.remove('sleep_${uid}_tracking_start');
       return false;
     }
     _sleepStartTime = start;
