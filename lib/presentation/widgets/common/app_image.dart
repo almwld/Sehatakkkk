@@ -108,9 +108,21 @@ class AppImage extends StatelessWidget {
     return Container(
       width: width ?? 50,
       height: height ?? 50,
-      color: dark ? const Color(0xFF172033) : const Color(0xFFF1F4F6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: dark
+              ? [const Color(0xFF1A2540), const Color(0xFF25314D)]
+              : [const Color(0xFFE9EEF2), const Color(0xFFF7FAFC)],
+        ),
+      ),
       alignment: Alignment.center,
-      child: const SizedBox.shrink(),
+      child: Icon(
+        Icons.image_outlined,
+        size: (height ?? 50) * 0.35,
+        color: dark ? Colors.white24 : Colors.black26,
+      ),
     );
   }
 }
