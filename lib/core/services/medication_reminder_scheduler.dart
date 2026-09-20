@@ -113,7 +113,6 @@ class MedicationReminderScheduler {
               priority: Priority.high,
               playSound: true,
               enableVibration: true,
-              fullScreenIntent: true,
             ),
             iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true, presentBadge: true),
           ),
