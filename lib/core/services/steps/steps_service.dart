@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/models/steps/steps_model.dart';
+import 'package:sehatak/core/services/health_metrics_service.dart';
 
 class StepsService {
   StepsService._();
@@ -180,11 +181,8 @@ class StepsService {
       {...record.toFirestore(), 'dateKey': key},
       SetOptions(merge: true),
     );
-    await _firestore.collection('health_metrics').doc(user.uid).set({
-      'steps': _todaySteps,
-      'calories': _calories,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    await _firestore.collection('health_metrics').doc(user.uid).set({'steps': _todaySteps,'calories': _calories,'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+    try { await HealthMetricsService.update({'steps': _todaySteps, 'calories': _calories}); } catch (_) {}
   }
 
   void _emit() {
