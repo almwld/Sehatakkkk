@@ -50,23 +50,89 @@ class _ChatLocationPickerState extends State<ChatLocationPicker> {
   }
   String _fallback(LatLng p)=>'الموقع: ${p.latitude.toStringAsFixed(6)}, ${p.longitude.toStringAsFixed(6)}';
   void _msg(String s){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(s)));}
-  @override Widget build(BuildContext context){
-    final dark=Theme.of(context).brightness==Brightness.dark;
-    return Scaffold(appBar:AppBar(title:const Text('تحديد الموقع'),backgroundColor:AppColors.primary,foregroundColor:Colors.white,actions:[IconButton(onPressed:_locating?null:_gps,icon:_locating?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(Icons.my_location))]),
-      body:Column(children:[
-        Expanded(child:FlutterMap(mapController:_map,options:MapOptions(initialCenter:_point??_center,initialZoom:_point==null?12:17,minZoom:5,maxZoom:19,onTap:(_,p)=>_select(p,false)),children:[
-          TileLayer(urlTemplate:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',userAgentPackageName:'com.sehatak.app'),
-          if(_point!=null)MarkerLayer(markers:[Marker(point:_point!,width:52,height:62,alignment:Alignment.bottomCenter,child:const Icon(Icons.location_pin,color:Colors.red,size:52))]),
-          const RichAttributionWidget(attributions:[TextSourceAttribution('OpenStreetMap contributors')]),
-        ])),
-        Container(padding:const EdgeInsets.fromLTRB(14,12,14,12),decoration:BoxDecoration(color:dark?const Color(0xFF121A29):Colors.white,boxShadow:const[BoxShadow(blurRadius:10,color:Colors.black12,offset:Offset(0,-2))]),child:SafeArea(top:false,child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-          if(_loading)const LinearProgressIndicator(minHeight:2) else if(_location!=null)...[
-            Text(_location!.address,maxLines:3,overflow:TextOverflow.ellipsis,style:const TextStyle(fontWeight:FontWeight.w700)),const SizedBox(height:5),
-            Wrap(spacing:6,children:[if(_location!.street.isNotEmpty)Chip(label:Text(_location!.street)),if(_location!.neighborhood.isNotEmpty)Chip(label:Text(_location!.neighborhood)),if(_location!.city.isNotEmpty)Chip(label:Text(_location!.city))]),
-            Text('${_location!.latitude.toStringAsFixed(6)}, ${_location!.longitude.toStringAsFixed(6)}',textDirection:TextDirection.ltr,style:const TextStyle(fontSize:11)),
-          ] else const Text('اضغط على الخريطة أو استخدم GPS لتحديد الموقع'),
-          const SizedBox(height:8),FilledButton.icon(onPressed:_location==null||_loading?null:()=>Navigator.pop(context,_location),icon:const Icon(Icons.location_on),label:const Text('إرسال هذا الموقع'),style:FilledButton.styleFrom(backgroundColor:AppColors.primary)),
-        ])),
-      ]));
-  }
-}
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('تحديد الموقع'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: _locating ? null : _gps,
+            icon: _locating
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.my_location),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: FlutterMap(
+              mapController: _map,
+              options: MapOptions(
+                initialCenter: _point ?? _center,
+                initialZoom: _point == null ? 12 : 17,
+                minZoom: 5,
+                maxZoom: 19,
+                onTap: (_, point) => _select(point, false),
+              ),
+              children: [
+                TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'com.sehatak.app'),
+                if (_point != null)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: _point!, width: 52, height: 62, alignment: Alignment.bottomCenter,
+                        child: const Icon(Icons.location_pin, color: Colors.red, size: 52),
+                      ),
+                    ],
+                  ),
+                const RichAttributionWidget(attributions: [TextSourceAttribution('OpenStreetMap contributors')]),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            decoration: BoxDecoration(
+              color: dark ? const Color(0xFF121A29) : Colors.white,
+              boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black12, offset: Offset(0, -2))],
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_loading)
+                    const LinearProgressIndicator(minHeight: 2)
+                  else if (_location != null) ...[
+                    Text(_location!.address, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 5),
+                    Wrap(
+                      spacing: 6,
+                      children: [
+                        if (_location!.street.isNotEmpty) Chip(label: Text(_location!.street)),
+                        if (_location!.neighborhood.isNotEmpty) Chip(label: Text(_location!.neighborhood)),
+                        if (_location!.city.isNotEmpty) Chip(label: Text(_location!.city)),
+                      ],
+                    ),
+                    Text(''${_location!.latitude.toStringAsFixed(6)}, ${_location!.longitude.toStringAsFixed(6)}'', textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 11)),
+                  ] else
+                    const Text('اضغط على الخريطة أو استخدم GPS لتحديد الموقع'),
+                  const SizedBox(height: 8),
+                  FilledButton.icon(
+                    onPressed: _location == null || _loading ? null : () => Navigator.pop(context, _location),
+                    icon: const Icon(Icons.location_on),
+                    label: const Text('إرسال هذا الموقع'),
+                    style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }}
