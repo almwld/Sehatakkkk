@@ -25,7 +25,7 @@ function text(value, field, max = 500) {
 function digest(value) { return crypto.createHash('sha256').update(value).digest('hex').slice(0, 40); }
 async function isAdmin(uid) {
   const snap = await db.collection('users').doc(uid).get();
-  return snap.exists && snap.data().role === 'admin';
+  return snap.exists && ['admin','superAdmin'].includes(snap.data().role);
 }
 
 exports.createWallet = onCall(async (request) => {
@@ -38,14 +38,45 @@ exports.createWallet = onCall(async (request) => {
   return {userId: uid, created: !snap.exists};
 });
 
+exports.ensureVerificationNotice = onCall(async (request) => {
+  const uid=requireAuth(request);
+  const userSnap=await db.collection('users').doc(uid).get();
+  if(!userSnap.exists) throw new HttpsError('not-found','حساب المستخدم غير موجود');
+  const user=userSnap.data()||{}, role=String(user.role||'user');
+  if(['user','patient','admin','superAdmin'].includes(role) || user.isVerified===true) return {shown:false};
+  const existing=await db.collection('notifications').where('userId','==',uid).where('type','==','verification_required').limit(1).get();
+  if(existing.empty) await db.collection('notifications').add({userId:uid,type:'verification_required',title:'يجب توثيق حسابك',body:'أكمل توثيق حسابك المهني ورفع مستنداتك حتى تتمكن من استخدام ميزات المنصة الخاصة بدورك.',role,isRead:false,action:'verification',createdAt:FieldValue.serverTimestamp()});
+  return {shown:true};
+});
+
 exports.submitVerificationRequest = onCall(async (request) => {
   const uid=requireAuth(request);const userRef=db.collection('users').doc(uid);const requestRef=db.collection('verification_requests').doc(uid);let role='';
-  await db.runTransaction(async(tx)=>{const [userSnap,existingSnap]=await Promise.all([tx.get(userRef),tx.get(requestRef)]);if(!userSnap.exists)throw new HttpsError('not-found','حساب المستخدم غير موجود');const user=userSnap.data();role=String(user.role||'user');if(['user','admin','superAdmin'].includes(role))throw new HttpsError('failed-precondition','هذا الحساب لا يحتاج إلى طلب توثيق مهني');if(user.isVerified===true)throw new HttpsError('failed-precondition','الحساب موثق بالفعل');if(existingSnap.exists&&existingSnap.data().status==='pending')return;const now=FieldValue.serverTimestamp();tx.set(requestRef,{requestId:uid,userId:uid,name:user.name||user.displayName||'',email:user.email||'',phone:user.phone||'',role,specialty:user.specialty||'',licenseNumber:user.licenseNumber||'',experience:user.experience||'',status:'pending',submittedAt:now,updatedAt:now},{merge:true});tx.update(userRef,{verificationStatus:'pending',isVerified:false,updatedAt:now});});
-  const admins=await db.collection('users').where('role','==','admin').get();if(!admins.empty){const batch=db.batch();admins.docs.forEach(adminDoc=>batch.set(db.collection('notifications').doc(),{userId:adminDoc.id,type:'verification_request',title:'طلب توثيق حساب جديد',body:'يوجد طلب توثيق مهني جديد يحتاج إلى المراجعة.',verificationRequestId:uid,role,isRead:false,createdAt:FieldValue.serverTimestamp()}));await batch.commit();}return {status:'pending',requestId:uid};
+  const profile=(request.data?.profile&&typeof request.data.profile==='object')?request.data.profile:{};
+  const documents=(request.data?.documents&&typeof request.data.documents==='object')?request.data.documents:{};
+  await db.runTransaction(async(tx)=>{
+    const [userSnap,existingSnap]=await Promise.all([tx.get(userRef),tx.get(requestRef)]);
+    if(!userSnap.exists)throw new HttpsError('not-found','حساب المستخدم غير موجود');
+    const user=userSnap.data();role=String(user.role||'user');
+    if(['user','admin','superAdmin'].includes(role))throw new HttpsError('failed-precondition','هذا الحساب لا يحتاج إلى طلب توثيق مهني');
+    if(user.isVerified===true)throw new HttpsError('failed-precondition','الحساب موثق بالفعل');
+    if(existingSnap.exists&&existingSnap.data().status==='pending')throw new HttpsError('failed-precondition','طلب التوثيق قيد المراجعة');
+    if(!String(profile.fullName||'').trim())throw new HttpsError('invalid-argument','الاسم الكامل مطلوب');
+    if(!Number.isInteger(Number(profile.age))||Number(profile.age)<18||Number(profile.age)>100)throw new HttpsError('invalid-argument','العمر غير صالح');
+    if(!String(profile.licenseNumber||'').trim())throw new HttpsError('invalid-argument','رقم الترخيص مطلوب');
+    if(!String(profile.experience||'').trim())throw new HttpsError('invalid-argument','الخبرة مطلوبة');
+    for(const key of ['academicRecord','certificates','professionalRecord']) if(!Array.isArray(documents[key])||documents[key].length<1) throw new HttpsError('invalid-argument','مستندات التوثيق المطلوبة غير مكتملة');
+    const now=FieldValue.serverTimestamp();
+    tx.set(requestRef,{requestId:uid,userId:uid,name:user.name||user.displayName||'',email:user.email||'',phone:user.phone||'',role,specialty:user.specialty||'',licenseNumber:String(profile.licenseNumber),experience:String(profile.experience),profile,documents,status:'pending',submittedAt:now,updatedAt:now},{merge:true});
+    tx.update(userRef,{verificationStatus:'pending',isVerified:false,updatedAt:now});
+  });
+  const admins=await db.collection('users').where('role','in',['admin','superAdmin']).get();
+  if(!admins.empty){const batch=db.batch();admins.docs.forEach(adminDoc=>batch.set(db.collection('notifications').doc(),{userId:adminDoc.id,type:'verification_request',title:'طلب توثيق حساب جديد',body:'طلب توثيق جديد لدور '+role+' يحتاج إلى المراجعة.',verificationRequestId:uid,role,isRead:false,createdAt:FieldValue.serverTimestamp()}));await batch.commit();}
+  return {status:'pending',requestId:uid};
 });
 exports.reviewVerificationRequest = onCall(async (request) => {
   const adminUid=requireAuth(request);if(!(await isAdmin(adminUid)))throw new HttpsError('permission-denied','صلاحية المدير مطلوبة');const requestId=text(request.data.requestId,'requestId',128);const decision=text(request.data.decision,'decision',20);if(!['approve','reject'].includes(decision))throw new HttpsError('invalid-argument','قرار غير صالح');const requestRef=db.collection('verification_requests').doc(requestId);const userRef=db.collection('users').doc(requestId);let status='rejected';
   await db.runTransaction(async(tx)=>{const [reqSnap,userSnap]=await Promise.all([tx.get(requestRef),tx.get(userRef)]);if(!reqSnap.exists||!userSnap.exists)throw new HttpsError('not-found','طلب التوثيق أو الحساب غير موجود');const req=reqSnap.data(),user=userSnap.data();if(req.userId!==requestId)throw new HttpsError('failed-precondition','طلب التوثيق غير صالح');if(['user','admin','superAdmin'].includes(String(user.role||'')))throw new HttpsError('failed-precondition','هذا الدور لا يدعم التوثيق المهني');if(req.status!=='pending')throw new HttpsError('failed-precondition','تمت معالجة الطلب مسبقاً');const approved=decision==='approve';status=approved?'approved':'rejected';const now=FieldValue.serverTimestamp();tx.update(requestRef,{status,reviewedBy:adminUid,reviewedAt:now,updatedAt:now});tx.update(userRef,{isVerified:approved,verificationStatus:status,isAvailable:approved,updatedAt:now});if(String(user.role||'')==='doctor'){const doctorRef=db.collection('doctors').doc(requestId);const doctorSnap=await tx.get(doctorRef);if(doctorSnap.exists)tx.update(doctorRef,{isVerified:approved,verificationStatus:status,isAvailable:approved,isOnline:false,verifiedAt:approved?now:null,verifiedBy:adminUid,updatedAt:now});}});
+  await db.collection('admin_audit_logs').add({actorId:adminUid,action:status==='approved'?'verification_approved':'verification_rejected',targetUserId:requestId,targetRole:String(user.role||''),requestId,createdAt:FieldValue.serverTimestamp()});
   await db.collection('notifications').add({userId:requestId,type:'verification_result',title:status==='approved'?'تم توثيق حسابك':'تم رفض طلب التوثيق',body:status==='approved'?'وافق مشرف المنصة على توثيق حسابك ويمكنك الآن استخدام ميزات دورك المهني.':'راجع متطلبات التوثيق وحدث بياناتك ثم أعد إرسال الطلب.',verificationStatus:status,isRead:false,createdAt:FieldValue.serverTimestamp()});return {requestId,status};
 });
 exports.submitDoctorVerification=exports.submitVerificationRequest;exports.reviewDoctorVerification=exports.reviewVerificationRequest;
@@ -209,3 +240,13 @@ exports.reviewTransaction = onCall(async (request) => {
 
 // Triggers are kept separate from the core callable functions to keep this file maintainable.
 Object.assign(exports, require('./notification_triggers'));
+
+exports.getSuperAdminDailyReport = onCall(async (request) => {
+  const uid=requireAuth(request);const me=await db.collection('users').doc(uid).get();
+  if(!me.exists || me.data().role!=='superAdmin') throw new HttpsError('permission-denied','صلاحية المدير الأعلى مطلوبة');
+  const since=new Date();since.setHours(0,0,0,0);
+  const snap=await db.collection('admin_audit_logs').where('createdAt','>=',since).get();
+  const counts={};snap.docs.forEach(d=>{const a=String(d.data().action||'unknown');counts[a]=(counts[a]||0)+1;});
+  await db.collection('admin_daily_reports').doc(since.toISOString().slice(0,10)).set({date:since.toISOString().slice(0,10),totalActions:snap.size,actions:counts,generatedBy:uid,generatedAt:FieldValue.serverTimestamp()},{merge:true});
+  return {date:since.toISOString().slice(0,10),totalActions:snap.size,actions:counts};
+});
