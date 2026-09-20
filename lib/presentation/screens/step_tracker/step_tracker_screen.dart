@@ -18,4 +18,53 @@ Future<void>_init()async{await s.startTracking();if(!mounted)return;setState(()=
 GlassCard(glowColor:const Color(0xFF00E5A0),child:Column(children:[HolographicNumber(value:steps.toString(),unit:'خطوة اليوم',color:const Color(0xFF00E5A0),fontSize:64),const SizedBox(height:8),LinearProgressIndicator(value:(steps/10000).clamp(0.0,1.0).toDouble(),minHeight:8),const SizedBox(height:8),Text((steps/10000*100).round().toString()+'% من هدف 10,000',style:TextStyle(color:Colors.white.withOpacity(.6)))])),
 const SizedBox(height:12),Row(children:[Expanded(child:FuturisticStatCard(icon:Icons.route,label:'المسافة',value:dist.toStringAsFixed(2)+' كم',color:const Color(0xFF00E5A0))),const SizedBox(width:8),Expanded(child:FuturisticStatCard(icon:Icons.local_fire_department,label:'السعرات',value:cal.toString(),color:const Color(0xFFFF9F43)))]),
 const SizedBox(height:12),GlassCard(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('تاريخ الخطوات',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w800)),const SizedBox(height:8),chart.length>1?FuturisticLineChart(values:chart,color:const Color(0xFF00E5A0)):const SizedBox(height:130,child:Center(child:Text('ستظهر القراءات بعد التتبع',style:TextStyle(color:Colors.white54))))])),const SizedBox(height:12),FuturisticPeriodSelector(selected:0,onChanged:(_){},color:const Color(0xFF00E5A0))]));}
+}@override
+Widget build(BuildContext c) {
+  return Scaffold(
+    backgroundColor: const Color(0xFF0A0E1A),
+    appBar: const FuturisticAppBar(title: 'عداد الخطوات'),
+    body: FuturisticBackground(
+      glowColor: const Color(0xFF00E5A0),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          GlassCard(
+            glowColor: const Color(0xFF00E5A0),
+            child: Column(
+              children: [
+                HolographicNumber(value: steps.toString(), unit: 'خطوة اليوم', color: const Color(0xFF00E5A0), fontSize: 64),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(value: (steps / 10000).clamp(0.0, 1.0).toDouble(), minHeight: 8),
+                const SizedBox(height: 8),
+                Text((steps / 10000 * 100).round().toString() + '% من هدف 10,000', style: TextStyle(color: Colors.white.withOpacity(.6))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: FuturisticStatCard(icon: Icons.route, label: 'المسافة', value: dist.toStringAsFixed(2) + ' كم', color: const Color(0xFF00E5A0))),
+              const SizedBox(width: 8),
+              Expanded(child: FuturisticStatCard(icon: Icons.local_fire_department, label: 'السعرات', value: cal.toString(), color: const Color(0xFFFF9F43))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          GlassCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('تاريخ الخطوات', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                chart.length > 1
+                    ? FuturisticLineChart(values: chart, color: const Color(0xFF00E5A0))
+                    : const SizedBox(height: 130, child: Center(child: Text('ستظهر القراءات بعد التتبع', style: TextStyle(color: Colors.white54)))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          FuturisticPeriodSelector(selected: 0, onChanged: (_) {}, color: const Color(0xFF00E5A0)),
+        ],
+      ),
+    ),
+  );
 }
