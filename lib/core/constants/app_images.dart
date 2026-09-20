@@ -65,6 +65,7 @@ class AppImages {
   static const String socialFacebook='assets/images/social/facebook.png';
   static const String socialInstagram='assets/images/social/instagram.png';
   static const String socialTwitter='assets/images/social/x_twitter.png';
+  static const String socialLinkedin='assets/images/social/linkedin.png';
   static const String socialYoutube='assets/images/social/youtube.png';
   static const String socialTiktok='assets/images/social/tiktok.png';
   static const String socialGoogle='assets/images/social/google.png';
