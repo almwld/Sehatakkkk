@@ -198,7 +198,39 @@ class _ProviderControlCenterState extends State<_ProviderControlCenter>{
   @override void dispose(){facility.dispose();location.dispose();limit.dispose();super.dispose();}
   Future<void> load()async{final uid=FirebaseAuth.instance.currentUser?.uid;if(uid==null)return;final s=await FirebaseFirestore.instance.collection('users').doc(uid).get();final d=s.data()??{};if(mounted)setState((){available=d['isAvailable']==true;online=d['isOnline']==true;accepting=d['acceptingPatients']!=false;appointments=d['acceptingAppointments']!=false;chat=d['acceptingChat']!=false;calls=d['acceptingCalls']!=false;presence=d['presenceMode']?.toString()??'المنشأة';facility.text=d['hospital']?.toString()??'';location.text=d['location']?.toString()??'';limit.text=(d['maxDailyRequests']??20).toString();});}
   Future<void> save()async{final uid=FirebaseAuth.instance.currentUser?.uid;if(uid==null)return;setState(()=>saving=true);try{await FirebaseFirestore.instance.collection('users').doc(uid).update({'isAvailable':available,'isOnline':online,'acceptingPatients':accepting,'acceptingAppointments':appointments,'acceptingChat':chat,'acceptingCalls':calls,'presenceMode':presence,'hospital':facility.text.trim(),'location':location.text.trim(),'maxDailyRequests':int.tryParse(limit.text)??20,'availabilityUpdatedAt':FieldValue.serverTimestamp()});if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('تم حفظ إعدادات الحساب المهني')));}finally{if(mounted)setState(()=>saving=false);}}
-  @override Widget build(BuildContext context){final title=AppRoles.getRoleName(widget.role);return Scaffold(appBar:AppBar(title:Text('لوحة تحكم '+title),backgroundColor:AppColors.primary,foregroundColor:Colors.white),body:ListView(padding:const EdgeInsets.all(16),children:[Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:AppColors.primary,borderRadius:BorderRadius.circular(22)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('لوحة '+title,style:const TextStyle(color:Colors.white,fontSize:22,fontWeight:FontWeight.w900)),const SizedBox(height:5),const Text('تحكم في التواجد واستقبال الطلبات وبيانات الحساب.',style:TextStyle(color:Colors.white70))])),const SizedBox(height:12),section('التواجد والاستقبال',[sw('متاح',available,(v)=>setState(()=>available=v)),sw('متصل الآن',online,(v)=>setState(()=>online=v)),sw('استقبال طلبات جديدة',accepting,(v)=>setState(()=>accepting=v)),sw('استقبال المواعيد',appointments,(v)=>setState(()=>appointments=v)),sw('الدردشة',chat,(v)=>setState(()=>chat=v)),sw('المكالمات',calls,(v)=>setState(()=>calls=v)),DropdownButtonFormField<String>(value:['المنشأة','عن بُعد','غير متاح'].contains(presence)?presence:'المنشأة',decoration:const InputDecoration(labelText:'مكان التواجد'),items:const ['المنشأة','عن بُعد','غير متاح'].map((e)=>DropdownMenuItem(value:e,child:Text(e))).toList(),onChanged:(v){if(v!=null)setState(()=>presence=v);})]),const SizedBox(height:12),section('البيانات الظاهرة',[TextField(controller:facility,decoration:const InputDecoration(labelText:'المنشأة / المستشفى')),TextField(controller:location,decoration:const InputDecoration(labelText:'الموقع / العنوان')),TextField(controller:limit,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'الحد الأقصى للطلبات يوميًا'))]),const SizedBox(height:12),SizedBox(height:52,child:FilledButton.icon(onPressed:saving?null:save,icon:const Icon(Icons.save),label:Text(saving?'جارٍ الحفظ...':'حفظ الإعدادات')))]) );}
+  @override
+  Widget build(BuildContext context) {
+    final title = AppRoles.getRoleName(widget.role);
+    return Scaffold(
+      appBar: AppBar(title: Text('لوحة تحكم '+title), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(22)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('لوحة '+title, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 5),
+          const Text('تحكم في التواجد واستقبال الطلبات وبيانات الحساب.', style: TextStyle(color: Colors.white70)),
+        ])),
+        const SizedBox(height: 12),
+        section('التواجد والاستقبال', [
+          sw('متاح', available, (v) => setState(() => available = v)),
+          sw('متصل الآن', online, (v) => setState(() => online = v)),
+          sw('استقبال طلبات جديدة', accepting, (v) => setState(() => accepting = v)),
+          sw('استقبال المواعيد', appointments, (v) => setState(() => appointments = v)),
+          sw('الدردشة', chat, (v) => setState(() => chat = v)),
+          sw('المكالمات', calls, (v) => setState(() => calls = v)),
+          DropdownButtonFormField<String>(value: ['المنشأة','عن بُعد','غير متاح'].contains(presence) ? presence : 'المنشأة', decoration: const InputDecoration(labelText: 'مكان التواجد'), items: const ['المنشأة','عن بُعد','غير متاح'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) { if (v != null) setState(() => presence = v); }),
+        ]),
+        const SizedBox(height: 12),
+        section('البيانات الظاهرة', [
+          TextField(controller: facility, decoration: const InputDecoration(labelText: 'المنشأة / المستشفى')),
+          TextField(controller: location, decoration: const InputDecoration(labelText: 'الموقع / العنوان')),
+          TextField(controller: limit, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الحد الأقصى للطلبات يوميًا')),
+        ]),
+        const SizedBox(height: 12),
+        SizedBox(height: 52, child: FilledButton.icon(onPressed: saving ? null : save, icon: const Icon(Icons.save), label: Text(saving ? 'جارٍ الحفظ...' : 'حفظ الإعدادات'))),
+      ]),
+    );
+  }
+
   Widget sw(String t,bool v,ValueChanged<bool> f)=>SwitchListTile(contentPadding:EdgeInsets.zero,title:Text(t),value:v,onChanged:f);
   Widget section(String t,List<Widget> c)=>Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Theme.of(context).cardColor,borderRadius:BorderRadius.circular(18)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(t,style:const TextStyle(fontWeight:FontWeight.w900)),const Divider(),...c]));
 }
