@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/chat_location_picker.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/message_model.dart';
 import 'package:sehatak/core/models/status_model.dart';
@@ -417,41 +418,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   Future<void> _shareLocation() async {
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        ToastService.showError('فعّل خدمة الموقع أولاً.');
-        return;
-      }
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied)
-        permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        ToastService.showError('يلزم السماح بالوصول إلى الموقع.');
-        return;
-      }
-      final position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      String address =
-          '${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}';
-      try {
-        final marks = await placemarkFromCoordinates(
-            position.latitude, position.longitude);
-        if (marks.isNotEmpty) {
-          final p = marks.first;
-          final parts = [p.street, p.locality, p.administrativeArea]
-              .where((x) => x != null && x!.trim().isNotEmpty)
-              .map((x) => x!.trim())
-              .toList();
-          if (parts.isNotEmpty) address = parts.join('، ');
-        }
-      } catch (_) {}
-      final url =
-          'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}';
+      final location = await Navigator.of(context).push<ChatLocationData>(
+        MaterialPageRoute(builder: (_) => const ChatLocationPicker()),
+      );
+      if (!mounted || location == null) return;
+      final url = 'https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}#map=18/${location.latitude}/${location.longitude}';
       await _chat.sendMessage(
-          chatId: widget.chatId, text: address, locationUrl: url);
+        chatId: widget.chatId,
+        text: location.address,
+        locationUrl: url,
+        locationLatitude: location.latitude,
+        locationLongitude: location.longitude,
+        locationAddress: location.address,
+        locationStreet: location.street,
+        locationNeighborhood: location.neighborhood,
+        locationCity: location.city,
+      );
     } catch (e) {
-      debugPrint('share location: $e');
-      ToastService.showError('تعذر إرسال موقعك حالياً.');
+      debugPrint('share chat location: $e');
+      ToastService.showError('تعذر إرسال الموقع حالياً.');
     }
   }
 
