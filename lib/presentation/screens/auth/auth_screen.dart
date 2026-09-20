@@ -455,7 +455,7 @@ class _AuthScreenState extends State<AuthScreen>
       ),
     );
 
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 350));
 
     if (mounted && Navigator.canPop(context)) {
       Navigator.pop(context);
@@ -562,8 +562,11 @@ class _AuthScreenState extends State<AuthScreen>
       await _showSuccessAnimation();
       if (!mounted) return;
 
-      // Firebase Auth state is the single source of truth.
-      // AppRouter performs the Auth → Home transition for every role.
+      // Login is a terminal navigation event: clear any previous resume target
+      // and replace Auth with Home immediately after the success confirmation.
+      final prefsAfterLogin = await SharedPreferences.getInstance();
+      await prefsAfterLogin.remove('sehatak_last_route');
+      if (mounted) context.go('/');
     } on FirebaseAuthException catch (e) {
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
@@ -620,8 +623,10 @@ class _AuthScreenState extends State<AuthScreen>
 
       final user = FirebaseAuth.instance.currentUser;
 
-      // Authentication state is observed by AppRouter.
-      // All authenticated users enter HomeScreen → Home Tab.
+      // Always enter the Home tab after an explicit login; do not leave Auth
+      // on the navigation stack and do not resume an older route here.
+      await prefs.remove('sehatak_last_route');
+      if (mounted) context.go('/');
     } on FirebaseAuthException catch (e) {
       _hideLoading();
 
