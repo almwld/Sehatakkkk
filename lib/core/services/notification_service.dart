@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
 import 'call_sound_coordinator.dart';
 
 typedef NotificationTapHandler = Future<void> Function(String? payload);
@@ -242,6 +243,24 @@ class NotificationService {
     final safeBody = body.trim().isNotEmpty
         ? body
         : (isChatMessage ? 'لديك رسالة جديدة في الدردشة' : 'لديك إشعار جديد');
+    AndroidNotificationStyleInformation style = const BigTextStyleInformation('');
+    final imageUrl = (data?['imageUrl'] ?? data?['mediaUrl'] ?? data?['photoUrl'])?.toString().trim() ?? '';
+    if (imageUrl.isNotEmpty) {
+      try {
+        final response = await http.get(Uri.parse(imageUrl)).timeout(const Duration(seconds: 8));
+        if (response.statusCode >= 200 && response.bodyBytes.isNotEmpty) {
+          style = BigPictureStyleInformation(
+            ByteArrayAndroidBitmap(response.bodyBytes),
+            contentTitle: safeTitle,
+            summaryText: safeBody,
+            hideExpandedLargeIcon: true,
+            showBigPictureWhenCollapsed: true,
+          );
+        }
+      } catch (e) {
+        debugPrint('notification image load failed: $e');
+      }
+    }
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         channelId, channelName, channelDescription: channelName, importance: importance,
@@ -250,7 +269,7 @@ class NotificationService {
         playSound: resolvedSound,
         sound: resolvedSound ? const RawResourceAndroidNotificationSound('notification') : null,
         category: _categoryFor(family), visibility: NotificationVisibility.public,
-        styleInformation: const BigTextStyleInformation(''),
+        styleInformation: style,
       ),
       iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: resolvedSound),
     );
