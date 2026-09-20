@@ -6,7 +6,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.2'
+        classpath 'com.android.tools.build:gradle:7.4.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.4.0'
     }
@@ -19,60 +19,10 @@ allprojects {
     }
 }
 
+rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-
-    plugins.withId("com.android.library") {
-        def androidExtension = extensions.findByName("android")
-        def manifestFile = file("src/main/AndroidManifest.xml")
-        def manifestPackage = null
-
-        if (manifestFile.exists()) {
-            def manifestText = manifestFile.getText("UTF-8")
-            def manifest = new XmlParser().parseText(manifestText)
-            manifestPackage = manifest.@package?.toString()
-
-            // AGP 8 no longer accepts package= on library source manifests.
-            // Remove it regardless of the current namespace state.
-            if (manifestPackage) {
-                manifestText = manifestText.replaceFirst(/\s+package="[^"]*"/, "")
-                manifestFile.setText(manifestText, "UTF-8")
-            }
-        }
-
-        if (androidExtension != null && androidExtension.namespace == null) {
-            def legacyNamespace = manifestPackage
-            if (!legacyNamespace && project.name == "blurhash") {
-                legacyNamespace = "com.raincal.blurhash"
-            }
-            if (!legacyNamespace) {
-                legacyNamespace = "com.sehatak.legacy.${project.name.replaceAll('[^A-Za-z0-9_]', '_')}"
-            }
-
-            androidExtension.namespace = legacyNamespace
-        }
-
-        // Some AGP 8 manifest validation happens at task execution time.
-        // Sanitize the original library manifest immediately before processing
-        // so legacy package= attributes cannot reach ProcessLibraryManifest.
-        tasks.matching {
-            it.name.startsWith("process") && it.name.endsWith("Manifest")
-        }.configureEach {
-            doFirst {
-                def sourceManifest = project.file("src/main/AndroidManifest.xml")
-                if (sourceManifest.exists()) {
-                    def sourceText = sourceManifest.getText("UTF-8")
-                    if (sourceText =~ /\s+package="[^"]*"/) {
-                        sourceText = sourceText.replaceFirst(/\s+package="[^"]*"/, "")
-                        sourceManifest.setText(sourceText, "UTF-8")
-                    }
-                }
-            }
-        }
-    }
 }
-
-rootProject.buildDir = '../build'
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
