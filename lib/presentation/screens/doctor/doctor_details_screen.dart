@@ -500,6 +500,21 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             if ((doctor.clinicAddress ?? '').isNotEmpty) _infoRow(Icons.location_on_outlined, 'العنوان', doctor.clinicAddress!, dark),
           ])),
           const SizedBox(height: 14),
+          if (doctor.workingHours != null && doctor.workingHours!.isNotEmpty) ...[
+            _sectionTitle('أوقات الدوام', Icons.schedule_rounded, dark),
+            _card(dark, Column(children: doctor.workingHours!.entries.map((entry) {
+              final value = entry.value is Map ? Map<String,dynamic>.from(entry.value) : <String,dynamic>{};
+              final enabled = value['enabled'] != false;
+              final text = enabled ? (value['start']?.toString() ?? '') + ' — ' + (value['end']?.toString() ?? '') : 'إجازة';
+              return _infoRow(Icons.access_time_rounded, entry.key.toString(), text, dark);
+            }).toList())),
+            const SizedBox(height: 14),
+          ],
+          if (doctor.services != null && doctor.services!.isNotEmpty) ...[
+            _sectionTitle('الخدمات التي يقدمها الطبيب', Icons.medical_services_outlined, dark),
+            _card(dark, Padding(padding: const EdgeInsets.all(14), child: Wrap(spacing: 7, runSpacing: 7, children: doctor.services!.map((s) => Chip(label: Text(s), visualDensity: VisualDensity.compact)).toList()))),
+            const SizedBox(height: 14),
+          ],
           _sectionTitle('إجراءات سريعة', Icons.flash_on_rounded, dark),
           _card(dark, Column(children: [
             _listAction(AppAssets.chatBubble, 'فتح الدردشة', 'تواصل مباشرة مع الطبيب', _openChat, dark),
