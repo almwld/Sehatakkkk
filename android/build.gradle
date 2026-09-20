@@ -29,8 +29,16 @@ subprojects {
             def manifestPackage = null
 
             if (manifestFile.exists()) {
-                def manifest = new XmlParser().parse(manifestFile)
+                def manifestText = manifestFile.getText("UTF-8")
+                def manifest = new XmlParser().parseText(manifestText)
                 manifestPackage = manifest.@package?.toString()
+
+                // AGP 8 no longer accepts package= on library source manifests.
+                // Keep the value as the namespace, then remove the deprecated attribute.
+                if (manifestPackage) {
+                    manifestText = manifestText.replaceFirst(/\\s+package="[^"]*"/, "")
+                    manifestFile.setText(manifestText, "UTF-8")
+                }
             }
 
             def legacyNamespace = manifestPackage
