@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/core/constants/medical_specialties.dart';
@@ -44,6 +45,7 @@ class _AuthScreenState extends State<AuthScreen>
   bool _agreeTerms = false;
   bool _rememberMe = false;
   bool _isLoading = false;
+  bool _loadingDialogShown = false;
   bool _hasBiometric = false;
   String _biometricName = 'البصمة';
   String _selectedRole = 'user';
@@ -440,7 +442,10 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _showLoading() {
+    if (_loadingDialogShown || !mounted) return;
+    _loadingDialogShown = true;
     showDialog(
+      useRootNavigator: true,
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black54,
@@ -457,9 +462,9 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _hideLoading() {
-    if (mounted && Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
+    if (!_loadingDialogShown) return;
+    _loadingDialogShown = false;
+    if (mounted) Navigator.of(context, rootNavigator: true).pop();
   }
 
   Future<void> _showSuccessAnimation() async {
@@ -493,24 +498,43 @@ class _AuthScreenState extends State<AuthScreen>
 
     try {
       final google = GoogleSignIn();
-      final GoogleSignInAccount? googleUser = await google.signIn();
+      debugPrint('[GoogleAuth] starting account picker');
+      final GoogleSignInAccount? googleUser = await google.signIn().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => throw TimeoutException('Google account picker timed out'),
+      );
+      debugPrint('[GoogleAuth] account selected');
       if (googleUser == null) {
         _hideLoading();
         if (mounted) setState(() => _isLoading = false);
         return;
       }
 
-      final googleAuth = await googleUser.authentication;
+      final googleAuth = await googleUser.authentication.timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => throw TimeoutException('Google authentication timed out'),
+      );
+      debugPrint('[GoogleAuth] credentials received');
+      if (googleAuth.idToken == null && googleAuth.accessToken == null) {
+        throw Exception('لم تُرجع Google بيانات اعتماد صالحة');
+      }
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      final result = await FirebaseAuth.instance.signInWithCredential(credential);
+      debugPrint('[GoogleAuth] signing into Firebase');
+      final result = await FirebaseAuth.instance.signInWithCredential(credential).timeout(
+        const Duration(seconds: 25),
+        onTimeout: () => throw TimeoutException('Firebase credential sign-in timed out'),
+      );
       final user = result.user;
       if (user == null) throw Exception('تعذر الحصول على حساب Google');
 
       final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
-      final existing = await userRef.get();
+      final existing = await userRef.get().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw TimeoutException('Firestore user lookup timed out'),
+      );
 
       if (widget.isSignUp) {
         if (existing.exists) {
@@ -546,7 +570,10 @@ class _AuthScreenState extends State<AuthScreen>
           'provider': 'google',
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
-        });
+        }).timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException('Firestore profile creation timed out'),
+        );
 
         await FirebaseAuth.instance.signOut();
         await google.signOut();
@@ -574,7 +601,10 @@ class _AuthScreenState extends State<AuthScreen>
         'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
         'provider': 'google',
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      }, SetOptions(merge: true)).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => throw TimeoutException('Firestore profile update timed out'),
+      );
 
       await SavedAccountsService.saveCurrentAccount(user);
       await _loadSavedAccounts();
@@ -594,6 +624,11 @@ class _AuthScreenState extends State<AuthScreen>
       final prefsAfterLogin = await SharedPreferences.getInstance();
       await prefsAfterLogin.remove('sehatak_last_route');
       if (mounted) context.go('/');
+    } on TimeoutException catch (e) {
+      _hideLoading();
+      if (mounted) setState(() => _isLoading = false);
+      debugPrint('[GoogleAuth] TIMEOUT: $e');
+      ToastService.showError('انتهت مهلة تسجيل الدخول عبر Google. تحقق من الإنترنت وإعدادات Google ثم حاول مرة أخرى.');
     } on FirebaseAuthException catch (e) {
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
