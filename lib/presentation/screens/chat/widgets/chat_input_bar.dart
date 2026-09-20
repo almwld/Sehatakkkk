@@ -20,6 +20,7 @@ class ChatInputBar extends StatefulWidget {
   final Function(Map<String, dynamic>)? onLocalMedia;
   final VoidCallback? onShareLocation;
   final Function(bool)? onTyping;
+  final VoidCallback? onDoctorMedicalForms;
 
   const ChatInputBar({
     super.key,
@@ -29,6 +30,7 @@ class ChatInputBar extends StatefulWidget {
     this.onLocalMedia,
     this.onShareLocation,
     this.onTyping,
+    this.onDoctorMedicalForms,
   });
 
   @override
@@ -631,6 +633,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
           _mediaItem(Icons.photo_library_outlined, 'المعرض', () => _pickImage(ImageSource.gallery)),
           _mediaItem(Icons.video_library, 'فيديو', _pickVideo),
           _mediaItem(Icons.attach_file, 'ملف', _pickFile),
+          _mediaItem(Icons.description_outlined, 'نماذج الطبيب', widget.onDoctorMedicalForms ?? () {}),
           _mediaItem(Icons.location_on_outlined, 'موقعي', () {
             setState(() => _attachments = false);
             widget.onShareLocation?.call();
