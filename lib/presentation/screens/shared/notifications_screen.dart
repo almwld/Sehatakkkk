@@ -27,10 +27,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _markRead(String id) async {
     try {
-      await _firestore.collection('notifications').doc(id).update({
-        'isRead': true,
-        'readAt': FieldValue.serverTimestamp(),
-      });
+      final ref = _firestore.collection('notifications').doc(id);
+      final snap = await ref.get();
+      if (snap.data()?['isRead'] == true) return;
+      await ref.update({'isRead': true, 'readAt': FieldValue.serverTimestamp()});
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        await _firestore.collection('users').doc(uid).update({'unreadNotificationsCount': FieldValue.increment(-1)});
+      }
     } catch (e) {
       debugPrint('❌ Mark notification read failed: $e');
     }
@@ -48,6 +52,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         });
       }
       await batch.commit();
+      await _firestore.collection('users').doc(uid).set({'unreadNotificationsCount': 0},{'merge':true});
     } catch (e) {
       debugPrint('❌ Mark all notifications read failed: $e');
     }
