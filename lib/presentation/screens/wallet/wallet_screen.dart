@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_images.dart';
+import 'package:sehatak/core/models/payment/wallet_models.dart';
+import 'package:sehatak/core/services/payment_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'top_up_screen.dart';
@@ -12,8 +15,8 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  double _balance = 1500.00;
-  bool _isLoading = false;
+  final PaymentService _payment = PaymentService();
+  bool _hideBalance = false;
 
   final List<Map<String, dynamic>> _transactions = [
     {
@@ -120,7 +123,12 @@ class _WalletScreenState extends State<WalletScreen> {
   // 💰 بطاقة الرصيد
   // ============================================================
   Widget _buildBalanceCard(bool isDark) {
-    return Container(
+    return StreamBuilder<WalletModel>(
+      stream: _payment.getWalletStream(),
+      builder: (context, snapshot) {
+        final balance = snapshot.data?.balance ?? 0;
+        _balance = balance;
+        return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -141,8 +149,13 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'الرصيد الحالي',
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('الرصيد الحالي', style: TextStyle(color: Colors.white70, fontSize: 14)),
+              IconButton(onPressed: () => setState(() => _hideBalance = !_hideBalance), icon: Icon(_hideBalance ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.white70)),
+            ],
+          ),
             style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
           const SizedBox(height: 8),
@@ -153,7 +166,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
               ),
               Text(
-                _balance.toStringAsFixed(2),
+                _hideBalance ? '••••' : _balance.toStringAsFixed(2),
                 style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 8),
@@ -208,6 +221,8 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         ],
       ),
+        );
+      },
     );
   }
 
