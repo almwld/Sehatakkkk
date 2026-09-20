@@ -15,6 +15,7 @@ class StepsService {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   bool _isTracking = false;
+  String? _trackingUid;
   int _todaySteps = 0, _calories = 0, _activeMinutes = 0;
   double _distance = 0;
   List<int> _hourlySteps = List.filled(24, 0);
@@ -33,20 +34,31 @@ class StepsService {
       (await Permission.activityRecognition.request()).isGranted;
 
   Future<bool> startTracking() async {
-    if (_isTracking) return true;
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return false;
+    if (_isTracking && _trackingUid == uid) return true;
+    if (_isTracking && _trackingUid != uid) {
+      await _stopSensorTracking();
+      _isTracking = false;
+      _trackingUid = null;
+    }
     if (!await requestPermissions()) return false;
     final prefs = await SharedPreferences.getInstance();
+    _trackingUid = uid;
     final key = _dateKey(DateTime.now());
     if (prefs.getString('steps_tracking_day') != key) {
       _todaySteps = 0;
       _calories = 0;
       _distance = 0;
       _hourlySteps = List.filled(24, 0);
-      await prefs.setString('steps_tracking_day', key);
+      await prefs.setString('steps_${uid}_tracking_day', key);
     } else {
-      _todaySteps = prefs.getInt('steps_today') ?? await getTodaySteps();
-      _calories = prefs.getInt('steps_calories') ?? (_todaySteps * 0.04).round();
-      _distance = prefs.getDouble('steps_distance') ?? (_todaySteps * 0.8);
+      final localStepsKey = 'steps_${uid}_today';
+      final localCaloriesKey = 'steps_${uid}_calories';
+      final localDistanceKey = 'steps_${uid}_distance';
+      _todaySteps = prefs.getInt(localStepsKey) ?? await getTodaySteps();
+      _calories = prefs.getInt(localCaloriesKey) ?? (_todaySteps * 0.04).round();
+      _distance = prefs.getDouble(localDistanceKey) ?? (_todaySteps * 0.8);
     }
     _isTracking = true;
     await _startSensorTracking();
@@ -62,6 +74,7 @@ class StepsService {
     _saveTimer?.cancel();
     await _persist();
     await _stopSensorTracking();
+    _trackingUid = null;
   }
 
   Future<int> getTodaySteps() async {
@@ -158,12 +171,17 @@ class StepsService {
   Future<void> _persist() async {
     if (_auth.currentUser == null) return;
     final prefs = await SharedPreferences.getInstance();
+    final uid = _trackingUid ?? _auth.currentUser?.uid;
+    if (uid == null) return;
     final key = _dateKey(DateTime.now());
-    await prefs.setString('steps_tracking_day', key);
-    await prefs.setInt('steps_today', _todaySteps);
-    await prefs.setInt('steps_calories', _calories);
-    await prefs.setDouble('steps_distance', _distance);
-    final user = _auth.currentUser!;
+    await prefs.setString('steps_${uid}_tracking_day', key);
+    await prefs.setInt('steps_${uid}_today', _todaySteps);
+    await prefs.setInt('steps_${uid}_calories', _calories);
+    await prefs.setDouble('steps_${uid}_distance', _distance);
+    final user = _auth.currentUser;
+    if (user == null || user.uid != uid) {
+      return;
+    }
     final day = DateTime.now();
     final start = DateTime(day.year, day.month, day.day);
     final record = StepRecord(
