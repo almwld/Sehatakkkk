@@ -20,6 +20,7 @@ import 'package:sehatak/presentation/screens/settings/security_settings_screen.d
 import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/settings/help_screen.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -321,6 +322,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () async {
               try {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user != null) {
+                  await SavedAccountsService.saveCurrentAccount(user);
+                }
                 await FirebaseAuth.instance.signOut();
                 if (context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
               } catch (e) {
