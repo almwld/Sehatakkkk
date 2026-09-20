@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/audio_waveform_bubble.dart';
 
@@ -218,9 +220,90 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _buildFile(Map<String, dynamic> m, bool dark) {
     final url = m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
-    final name = (m['fileName']?.toString().trim().isNotEmpty == true) ? m['fileName'].toString() : 'ملف';
+    final name = (m['fileName']?.toString().trim().isNotEmpty == true)
+        ? m['fileName'].toString()
+        : 'ملف';
+    final mime = (m['fileMimeType']?.toString() ?? '').toLowerCase();
+    final ext = name.contains('.') ? name.split('.').last.toLowerCase() : '';
+    final isPdf = ext == 'pdf' || mime == 'application/pdf';
+    final isText = {'txt','text','log','csv','md'}.contains(ext) || mime.startsWith('text/');
+    final isOffice = {'doc','docx','xls','xlsx','ppt','pptx'}.contains(ext) ||
+        mime.contains('word') || mime.contains('spreadsheet') || mime.contains('presentation');
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
-    return _shell(InkWell(onTap: () async { if (url.isEmpty) return; final target = _isLocal(url) ? Uri.file(url.replaceFirst('file://', '')) : Uri.tryParse(url); if (target != null && await canLaunchUrl(target)) await launchUrl(target, mode: LaunchMode.externalApplication); }, child: Padding(padding: const EdgeInsets.all(12), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.insert_drive_file, color: tc, size: 30), const SizedBox(width: 10), Flexible(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: tc, fontWeight: FontWeight.w600))), const SizedBox(width: 8), Icon(Icons.download_for_offline, color: tc)]))), dark);
+
+    Future<void> open() async {
+      if (url.isEmpty) return;
+      if (_isLocal(url)) {
+        final localUri = Uri.file(url.replaceFirst('file://', ''));
+        if (isText) {
+          try {
+            final text = await File(localUri.toFilePath()).readAsString();
+            if (mounted) await showDialog<void>(context: context, builder: (_) => _TextDocumentDialog(title: name, content: text));
+          } catch (_) { if (mounted) _showFileError(); }
+        } else if (await canLaunchUrl(localUri)) {
+          await launchUrl(localUri, mode: LaunchMode.externalApplication);
+        }
+        return;
+      }
+      if (isText) {
+        try {
+          final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
+          if (response.statusCode >= 200 && response.statusCode < 300 && mounted) {
+            await showDialog<void>(context: context, builder: (_) => _TextDocumentDialog(title: name, content: response.body));
+            return;
+          }
+        } catch (_) {}
+        if (mounted) _showFileError();
+        return;
+      }
+      if (isPdf || isOffice) {
+        if (!mounted) return;
+        await showDialog<void>(context: context, builder: (_) => _DocumentWebViewDialog(title: name, url: url));
+        return;
+      }
+      final target = Uri.tryParse(url);
+      if (target != null && await canLaunchUrl(target)) {
+        await launchUrl(target, mode: LaunchMode.externalApplication);
+      } else if (mounted) _showFileError();
+    }
+
+    return _shell(
+      InkWell(
+        onTap: open,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isPdf ? Icons.picture_as_pdf_outlined : isText ? Icons.article_outlined : isOffice ? Icons.description_outlined : Icons.insert_drive_file_outlined,
+                color: isPdf ? Colors.red : tc,
+                size: 30,
+              ),
+              const SizedBox(width: 10),
+              Flexible(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: tc, fontWeight: FontWeight.w700)),
+                  if ((m['fileSize']?.toString() ?? '').isNotEmpty)
+                    Text(m['fileSize'].toString(), style: TextStyle(color: tc.withOpacity(.65), fontSize: 10)),
+                ],
+              )),
+              const SizedBox(width: 8),
+              Icon(isPdf || isText || isOffice ? Icons.visibility_outlined : Icons.download_for_offline, color: tc),
+            ],
+          ),
+        ),
+      ),
+      dark,
+    );
+  }
+
+  void _showFileError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح الملف حالياً. حاول مرة أخرى.')));
   }
 
   Widget _buildCall(Map<String, dynamic> m, bool dark) {
@@ -420,6 +503,60 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
   }
+}
+
+class _TextDocumentDialog extends StatelessWidget {
+  final String title;
+  final String content;
+  const _TextDocumentDialog({required this.title, required this.content});
+  @override
+  Widget build(BuildContext context) => Dialog(
+    insetPadding: const EdgeInsets.all(12),
+    child: SizedBox(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * .82,
+      child: Column(children: [
+        AppBar(title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis), automaticallyImplyLeading: false,
+          actions: [IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close))]),
+        Expanded(child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: SelectableText(content, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.7)))),
+      ]),
+    ),
+  );
+}
+
+class _DocumentWebViewDialog extends StatefulWidget {
+  final String title;
+  final String url;
+  const _DocumentWebViewDialog({required this.title, required this.url});
+  @override State<_DocumentWebViewDialog> createState() => _DocumentWebViewDialogState();
+}
+
+class _DocumentWebViewDialogState extends State<_DocumentWebViewDialog> {
+  late final WebViewController _controller;
+  @override
+  void initState() {
+    super.initState();
+    final viewerUrl = 'https://docs.google.com/gview?embedded=1&url=${Uri.encodeComponent(widget.url)}';
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(viewerUrl));
+  }
+  @override
+  Widget build(BuildContext context) => Dialog(
+    insetPadding: const EdgeInsets.all(8),
+    child: SizedBox(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * .9,
+      child: Column(children: [
+        AppBar(title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis), automaticallyImplyLeading: false,
+          actions: [
+            IconButton(onPressed: () async { final uri = Uri.tryParse(widget.url); if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication); }, icon: const Icon(Icons.open_in_new)),
+            IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+          ]),
+        Expanded(child: WebViewWidget(controller: _controller)),
+      ]),
+    ),
+  );
 }
 
 class _VideoViewer extends StatefulWidget {
