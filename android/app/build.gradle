@@ -14,6 +14,28 @@ if (flutterRoot == null) {
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
 
+// Release signing is intentionally external to source control.
+// Local builds may use android/key.properties; CI injects the same values via environment variables.
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { stream ->
+        keystoreProperties.load(stream)
+    }
+}
+
+def signingValue = { String propertyName, String envName ->
+    def propertyValue = keystoreProperties.getProperty(propertyName)
+    if (propertyValue != null && !propertyValue.trim().isEmpty()) return propertyValue.trim()
+    def envValue = System.getenv(envName)
+    return envValue != null && !envValue.trim().isEmpty() ? envValue.trim() : null
+}
+
+def releaseStoreFile = signingValue('storeFile', 'SEHATAK_KEYSTORE_FILE')
+def releaseStorePassword = signingValue('storePassword', 'SEHATAK_KEYSTORE_PASSWORD')
+def releaseKeyAlias = signingValue('keyAlias', 'SEHATAK_KEY_ALIAS')
+def releaseKeyPassword = signingValue('keyPassword', 'SEHATAK_KEY_PASSWORD')
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
