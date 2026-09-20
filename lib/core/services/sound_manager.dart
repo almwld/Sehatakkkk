@@ -28,9 +28,9 @@ class SoundManager {
     try {
       await _callPlayer.stop();
       await _callPlayer.setReleaseMode(ReleaseMode.loop);
-      await _callPlayer.setVolume(1.0);
+      await _callPlayer.setVolume(0.72);
       _callPlaying = true;
-      await _callPlayer.play(AssetSource('audio/call_ringtone.mp3'));
+      await _callPlayer.play(AssetSource('audio/notification.mp3'));
       print('🔔 Incoming call ringtone playing');
     } catch (e) {
       _callPlaying = false;
@@ -42,7 +42,7 @@ class SoundManager {
     try {
       await _callPlayer.stop();
       await _callPlayer.setReleaseMode(ReleaseMode.loop);
-      await _callPlayer.setVolume(1.0);
+      await _callPlayer.setVolume(0.72);
       _callPlaying = true;
       await _callPlayer.play(AssetSource('audio/ringback.mp3'));
       print('📞 Outgoing ringback playing');
