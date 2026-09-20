@@ -12,6 +12,7 @@ import 'package:sehatak/core/services/chat_media_transfer_service.dart';
 import 'package:sehatak/core/services/chat_reply_context.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/core/services/status_service.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
@@ -76,6 +77,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     _listen();
     _loadPendingMedia();
     _startPendingRefresh();
+    unawaited(NotificationService().cancelChatNotifications(widget.chatId));
     _markRead();
   }
 
