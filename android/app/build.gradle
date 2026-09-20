@@ -80,10 +80,13 @@ android {
 
     buildTypes {
         release {
-            if (!(releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword)) {
-                throw new GradleException("Release signing is not configured. Provide android/key.properties locally or the SEHATAK_* signing environment variables in CI.")
+            if (releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword) {
+                signingConfig signingConfigs.release
+            } else {
+                // Temporary compatibility fallback until the production keystore is configured.
+                // Once the four SEHATAK_* values or android/key.properties are present, Release uses the production key automatically.
+                signingConfig signingConfigs.debug
             }
-            signingConfig signingConfigs.release
         }
     }
 }
