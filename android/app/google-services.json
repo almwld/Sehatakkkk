@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1053269106596-f5f6eupbednq1na9coja9952cugc1co7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sehatak.app",
+            "certificate_hash": "3941d39bb1cb51bf4e68deb07a76bf20b1ba924e"
+          }
+        },
+        {
           "client_id": "1053269106596-5iu2l6drfe53u39g37hdu3711nhibbmd.apps.googleusercontent.com",
           "client_type": 3
         }
