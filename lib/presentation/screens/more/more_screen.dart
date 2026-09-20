@@ -56,6 +56,7 @@ import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart
 import 'package:sehatak/presentation/screens/patient/patient_medical_history.dart';
 import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
+import 'package:sehatak/presentation/screens/library/medical_library_screen.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';
@@ -250,6 +251,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/packages.png', 'title': 'الباقات الصحية', 'subtitle': 'عرض الباقات والاشتراكات', 'screen': const PackagesScreen()},
           {'icon': 'assets/images/ui/favorites.png', 'title': 'المفضلة', 'subtitle': 'إدارة المفضلة', 'screen': const FavoritesScreen()},
           {'icon': 'assets/images/services/medical_records.png', 'title': 'السجلات الطبية', 'subtitle': 'إدارة السجلات الطبية', 'screen': const PatientMedicalHistory()},
+          {'icon': 'assets/images/services/medical_records.png', 'title': 'المكتبة الطبية', 'subtitle': 'الوصفات والتقارير وملفاتك الطبية', 'screen': const MedicalLibraryScreen()},
           {'icon': 'assets/images/services/medications.png', 'title': 'الوصفات الطبية', 'subtitle': 'عرض الوصفات الطبية', 'screen': const PatientPrescriptions()},
           {'icon': 'assets/images/services/calendar_booking.png', 'title': 'مواعيدي', 'subtitle': 'إدارة مواعيدي', 'screen': const PatientAppointments()},
         ];
