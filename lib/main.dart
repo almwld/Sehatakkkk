@@ -491,6 +491,13 @@ class _SehatakAppState extends State<SehatakApp>
       String? type, Map<String, dynamic> data) async {
     final nav = navigatorKey.currentState;
     if (nav == null) return;
+    if (type == 'verification_required' || type == 'verification_result') {
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null) {
+        await Navigator.of(ctx).push(MaterialPageRoute(builder: (_) => const VerificationScreen()));
+      }
+      return;
+    }
     String? route;
     switch (type) {
       case 'appointment':
@@ -522,10 +529,6 @@ class _SehatakAppState extends State<SehatakApp>
       case 'order_delivered':
       case 'order_cancelled':
         route = AppRouter.cart;
-        break;
-      case 'verification_required':
-      case 'verification_result':
-        route = AppRouter.notifications;
         break;
       case 'notification':
       case 'system':
