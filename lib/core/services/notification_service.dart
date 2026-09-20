@@ -243,7 +243,7 @@ class NotificationService {
     final safeBody = body.trim().isNotEmpty
         ? body
         : (isChatMessage ? 'لديك رسالة جديدة في الدردشة' : 'لديك إشعار جديد');
-    AndroidNotificationStyleInformation style = const BigTextStyleInformation('');
+    StyleInformation style = const BigTextStyleInformation('');
     final imageUrl = (data?['imageUrl'] ?? data?['mediaUrl'] ?? data?['photoUrl'])?.toString().trim() ?? '';
     if (imageUrl.isNotEmpty) {
       try {
