@@ -427,12 +427,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         chatId: widget.chatId,
         text: location.address,
         locationUrl: url,
-        locationLatitude: location.latitude,
-        locationLongitude: location.longitude,
+        locationLat: location.latitude,
+        locationLng: location.longitude,
         locationAddress: location.address,
-        locationStreet: location.street,
-        locationNeighborhood: location.neighborhood,
-        locationCity: location.city,
+        metadata: {
+          'locationStreet': location.street,
+          'locationNeighborhood': location.neighborhood,
+          'locationCity': location.city,
+          'locationState': location.state,
+          'locationCountry': location.country,
+          'osmType': location.osmType,
+          'osmId': location.osmId,
+        },
       );
     } catch (e) {
       debugPrint('share chat location: $e');
