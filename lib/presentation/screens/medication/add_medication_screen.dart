@@ -117,6 +117,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         notes: _notes.text,
         startDate: _startDate,
         endDate: _endDate,
+        remainingQuantity: int.tryParse(_remaining.text.trim()) ?? 0,
+        totalQuantity: int.tryParse(_total.text.trim()) ?? int.tryParse(_remaining.text.trim()) ?? 0,
       );
 
       if (mounted) {
