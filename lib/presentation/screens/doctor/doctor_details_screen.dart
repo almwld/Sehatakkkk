@@ -180,6 +180,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (_busy) return;
     final doctor = _doctor;
     if (doctor == null) return;
+    if (!doctor.isAvailable) {
+      ToastService.showInfo('الطبيب غير متاح حاليًا');
+      return;
+    }
 
     final user = _auth.currentUser;
     final doctorUid = doctor.userId?.trim();
@@ -237,6 +241,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   void _bookAppointment() {
     final doctor = _doctor;
     if (doctor == null) return;
+    if (!doctor.isAvailable) {
+      ToastService.showInfo('الطبيب غير متاح حاليًا للحجز');
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => BookingScreen(doctorId: doctor.id)),
