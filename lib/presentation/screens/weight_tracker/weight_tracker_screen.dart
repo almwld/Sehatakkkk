@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:sehatak/core/services/health_tracking_service.dart';
-import 'package:sehatak/core/services/health_tracking_service.dart';
 import 'package:sehatak/presentation/widgets/futuristic/futuristic_app_bar.dart';
 import 'package:sehatak/presentation/widgets/futuristic/futuristic_background.dart';
 import 'package:sehatak/presentation/widgets/futuristic/futuristic_line_chart.dart';
