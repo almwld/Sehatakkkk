@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/models/sleep/sleep_model.dart';
+import 'package:sehatak/core/services/health_metrics_service.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -100,10 +101,8 @@ class SleepService {
     );
     if (record.userId.isNotEmpty) {
       await _firestore.collection('sleep_records').doc(record.id).set(record.toFirestore());
-      await _firestore.collection('health_metrics').doc(record.userId).set({
-        'sleep': duration / 60.0,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await _firestore.collection('health_metrics').doc(record.userId).set({'sleep': duration / 60.0,'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+      try { await HealthMetricsService.update({'sleep': duration / 60.0}); } catch (_) {}
     }
     _sleepStartTime = null;
     _emit();
