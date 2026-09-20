@@ -14,7 +14,7 @@ import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/presentation/widgets/community/doctor_community_fab.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       2: const PharmacyScreen(key: ScreenKeys.pharmacy),
       3: const ChatScreen(key: ScreenKeys.chat),
       4: const LabsListScreen(key: ScreenKeys.labs),
-      5: const RoleBasedDashboardScreen(key: ScreenKeys.patient),
+      5: const PatientDashboard(key: ScreenKeys.patient),
       6: const MoreScreen(key: ScreenKeys.more),
     };
     _checkAuth();
