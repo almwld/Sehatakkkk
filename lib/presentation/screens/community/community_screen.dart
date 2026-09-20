@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -312,7 +313,7 @@ class _CommunityScreenState extends State<CommunityScreen>
           ),
         ),
       ],
-      floatingActionButton: IgnorePointer(
+      PositionedDirectional(bottom: 24, end: 16, child: IgnorePointer(
         ignoring: !_fabVisible,
         child: AnimatedOpacity(
           opacity: _fabVisible ? 1 : 0,
@@ -334,8 +335,8 @@ class _CommunityScreenState extends State<CommunityScreen>
             ),
           ),
         ),
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
