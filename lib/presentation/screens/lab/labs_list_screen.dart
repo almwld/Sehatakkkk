@@ -59,7 +59,7 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('مختبرات صحتك'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, bottom: TabBar(controller: _tabController, isScrollable: true, tabs: const [Tab(text: 'المختبرات'), Tab(text: 'الأفضل'), Tab(text: 'سحب منزلي'), Tab(text: 'حجوزاتي')], indicatorColor: Colors.white, labelColor: Colors.white, unselectedLabelColor: Colors.white70)),
+      appBar: AppBar(title: const Text('مختبرات صحتك'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(34))), bottom: TabBar(controller: _tabController, isScrollable: true, tabs: const [Tab(text: 'المختبرات'), Tab(text: 'الأفضل'), Tab(text: 'سحب منزلي'), Tab(text: 'حجوزاتي')], indicatorColor: Colors.white, labelColor: Colors.white, unselectedLabelColor: Colors.white70)),
       body: Column(children: [_searchBar(dark), _categoriesBar(dark), Expanded(child: TabBarView(controller: _tabController, children: [_labsView(_filtered(), dark), _labsView(_filtered(top: true), dark), _labsView(_filtered(home: true), dark), _bookingsView(dark)]))]),
     );
   }
