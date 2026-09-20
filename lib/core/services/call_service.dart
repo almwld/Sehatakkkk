@@ -15,6 +15,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/call_sound_coordinator.dart';
 import 'package:sehatak/presentation/screens/chat/incoming_call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/call_screen.dart';
+import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 
 class CallService {
   static final CallService _instance = CallService._internal();
@@ -144,6 +145,25 @@ class CallService {
         ),
       ),
     );
+  }
+
+  Future<void> openChatForCall(BuildContext context, String id) async {
+    final normalizedId = id.trim();
+    if (normalizedId.isEmpty || !context.mounted) return;
+    final snap = await _retry(() => _firestore.collection('calls').doc(normalizedId).get());
+    if (!snap.exists || !context.mounted) return;
+    final data = snap.data() ?? <String, dynamic>{};
+    final callerId = data['callerId']?.toString() ?? '';
+    final callerName = data['callerName']?.toString() ?? 'مستخدم';
+    final callerImage = data['callerPhotoUrl']?.toString();
+    if (callerId.isEmpty) return;
+    await _notificationCancelAndStop(normalizedId);
+    if (!context.mounted) return;
+    await ChatNavigation.openChat(context, doctorName: callerName, doctorId: callerId, doctorImage: callerImage);
+  }
+
+  Future<void> _notificationCancelAndStop(String id) async {
+    await CallSoundCoordinator.instance.stopForCall(id);
   }
 
   Future<void> handleIncomingCall(BuildContext context,RemoteMessage message) async {
