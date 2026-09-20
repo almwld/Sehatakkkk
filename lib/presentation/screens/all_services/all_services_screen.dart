@@ -31,13 +31,16 @@ import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/delivery/delivery_screen.dart';
+import 'package:sehatak/presentation/screens/delivery/delivery_company_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
 
-class AllServicesScreen extends StatefulWidget {
+void _noopDeliverySelect(dynamic _) {}\n\nclass AllServicesScreen extends StatefulWidget {
   const AllServicesScreen({super.key});
 
   @override
@@ -346,6 +349,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
       'icon': 'assets/images/tracking/sleep_tracking.png',
       'category': 'الرعاية الصحية',
       'description': 'تتبع جودة النوم',
+      'screen': const SleepTrackerScreen(),
       'color': Colors.indigo,
       'popular': false,
     },
@@ -357,6 +361,30 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
       'description': 'مراكز التبرع بالدم',
       'screen': const BloodDonationScreen(),
       'color': Colors.red,
+      'popular': false,
+    },
+
+    // ============================================================
+    // 🚚 التوصيل
+    // ============================================================
+    {
+      'id': 's33',
+      'name': 'خدمة التوصيل',
+      'icon': 'assets/images/services/delivery.png',
+      'category': 'الخدمات المالية',
+      'description': 'اختيار خدمة وشركات التوصيل المتاحة',
+      'screen': const DeliveryScreen(),
+      'color': Colors.blue,
+      'popular': false,
+    },
+    {
+      'id': 's34',
+      'name': 'شركات التوصيل',
+      'icon': 'assets/images/services/delivery.png',
+      'category': 'الخدمات المالية',
+      'description': 'عرض شركات التوصيل المتاحة حسب المنطقة والمسافة',
+      'screen': const DeliveryCompanyScreen(onSelect: _noopDeliverySelect),
+      'color': Colors.teal,
       'popular': false,
     },
 
@@ -415,16 +443,6 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
       'description': 'إدارة الإشعارات',
       'screen': const NotificationsScreen(),
       'color': Colors.orange,
-      'popular': false,
-    },
-    {
-      'id': 's32',
-      'name': 'جميع الخدمات',
-      'icon': 'assets/images/ui/all_services.png',
-      'category': 'الرعاية الصحية',
-      'description': 'استعراض جميع الخدمات',
-      'screen': const ServicesScreen(),
-      'color': AppColors.primary,
       'popular': false,
     },
   ];
