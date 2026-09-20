@@ -13,6 +13,7 @@ class AdvancedRoleDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     if (role == 'doctor') return const _DoctorControlCenter();
     if (role == 'pharmacy' || role == 'pharmacist' || role == 'pharmacyOwner') return const _PharmacyOwnerControlCenter();
+    if (['lab','hospital','clinic','medical_center','dental','dentist','ophthalmology','optometrist','nurse','midwife','physiotherapist','paramedic','veterinarian'].contains(role)) return _FacilityControlCenter(role: role);
     if (role == 'admin' || role == 'superAdmin') return const _AdminControlCenter();
     return _ProviderControlCenter(role: role);
   }
@@ -218,6 +219,31 @@ class _PharmacyOwnerControlCenterState extends State<_PharmacyOwnerControlCenter
     const SizedBox(height:12),_products(),const SizedBox(height:12),SizedBox(height:52,child:FilledButton.icon(onPressed:saving?null:save,icon:const Icon(Icons.save),label:Text(saving?'جارٍ الحفظ...':'حفظ إعدادات الصيدلية'))]));
   Widget _products()=>StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('pharmacy_products').where('ownerId',isEqualTo:FirebaseAuth.instance.currentUser?.uid).snapshots(),builder:(c,s)=>_section('منتجاتي',[(s.data?.docs.isEmpty??true)?const Text('لا توجد منتجات بعد.'):...s.data!.docs.map((d){final x=d.data();final st=x['status']=='approved'?'معتمد':x['status']=='rejected'?'مرفوض':'جاري المراجعة';return ListTile(title:Text(x['name']?.toString()??'منتج'),subtitle:Text(st+' • '+(x['price']?.toString()??'0')+' ر.ي • خصم '+(x['discountPercent']?.toString()??'0')+'%'),leading:const Icon(Icons.medication_outlined));})]));
   Widget field(TextEditingController c,String l,{bool number=false})=>Padding(padding:const EdgeInsets.only(top:8),child:TextField(controller:c,keyboardType:number?TextInputType.numberWithOptions(decimal:true):null,decoration:InputDecoration(labelText:l,border:const OutlineInputBorder())));
+  Widget _section(String t,List<Widget> c)=>Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Theme.of(context).cardColor,borderRadius:BorderRadius.circular(18)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(t,style:const TextStyle(fontWeight:FontWeight.w900)),const Divider(),...c]));
+}
+
+class _FacilityControlCenter extends StatefulWidget {
+  final String role;
+  const _FacilityControlCenter({required this.role});
+  @override State<_FacilityControlCenter> createState()=>_FacilityControlCenterState();
+}
+class _FacilityControlCenterState extends State<_FacilityControlCenter>{
+  final name=TextEditingController(),address=TextEditingController(),logo=TextEditingController(),cover=TextEditingController(),phone=TextEditingController(),services=TextEditingController();
+  bool available=true,accepting=true,saving=false;
+  String facilityType='';
+  @override void initState(){super.initState();load();}
+  @override void dispose(){for(final c in [name,address,logo,cover,phone,services])c.dispose();super.dispose();}
+  Future<void> load()async{final u=FirebaseAuth.instance.currentUser;if(u==null)return;final d=(await FirebaseFirestore.instance.collection('users').doc(u.uid).get()).data()??{};if(mounted)setState((){name.text=d['facilityName']?.toString()??d['displayName']?.toString()??'';address.text=d['address']?.toString()??'';logo.text=d['facilityLogoUrl']?.toString()??'';cover.text=d['facilityCoverUrl']?.toString()??'';phone.text=d['phone']?.toString()??'';services.text=(d['services'] is List)?List.from(d['services']).join('، '):'';facilityType=d['facilityType']?.toString()??widget.role;available=d['isAvailable']!=false;accepting=d['acceptingPatients']!=false;});}
+  Future<void> save()async{final u=FirebaseAuth.instance.currentUser;if(u==null)return;setState(()=>saving=true);try{final data={'facilityName':name.text.trim(),'facilityType':facilityType,'address':address.text.trim(),'phone':phone.text.trim(),'facilityLogoUrl':logo.text.trim(),'facilityCoverUrl':cover.text.trim(),'services':services.text.split('،').map((e)=>e.trim()).where((e)=>e.isNotEmpty).toList(),'isAvailable':available,'acceptingPatients':accepting,'facilityProfileStatus':'pending_review','updatedAt':FieldValue.serverTimestamp()};await FirebaseFirestore.instance.collection('users').doc(u.uid).set(data,SetOptions(merge:true));await FirebaseFirestore.instance.collection('health_facilities').doc(u.uid).set({...data,'ownerId':u.uid,'status':'pending_review','isPublished':false},SetOptions(merge:true));if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('تم حفظ بيانات المنشأة وإرسالها للمراجعة')));}finally{if(mounted)setState(()=>saving=false);}}
+  @override Widget build(BuildContext context){final title=AppRoles.getRoleName(widget.role);return Scaffold(appBar:AppBar(title:Text('لوحة تحكم '+title),backgroundColor:AppColors.primary,foregroundColor:Colors.white),body:ListView(padding:const EdgeInsets.all(16),children:[
+    Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:AppColors.primary,borderRadius:BorderRadius.circular(22)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name.text.isEmpty?'إدارة المنشأة':name.text,style:const TextStyle(color:Colors.white,fontSize:22,fontWeight:FontWeight.w900)),const SizedBox(height:5),Text('لوحة مخصصة لـ '+title+' بحسب نوع المنشأة',style:const TextStyle(color:Colors.white70))])),
+    const SizedBox(height:12),_section('هوية المنشأة',[field(name,'اسم المنشأة'),field(address,'العنوان'),field(phone,'رقم الهاتف'),field(logo,'رابط الشعار'),field(cover,'رابط الخلفية')]),
+    const SizedBox(height:12),_section('التشغيل',[SwitchListTile(contentPadding:EdgeInsets.zero,title:const Text('المنشأة متاحة'),value:available,onChanged:(v)=>setState(()=>available=v)),SwitchListTile(contentPadding:EdgeInsets.zero,title:const Text('استقبال المرضى/الطلبات'),value:accepting,onChanged:(v)=>setState(()=>accepting=v)),TextField(controller:services,decoration:const InputDecoration(labelText:'الخدمات — افصل بينها بـ ،'))]),
+    const SizedBox(height:12),_section('نوع المنشأة',[DropdownButtonFormField<String>(value:facilityType.isEmpty?widget.role:facilityType,items:[DropdownMenuItem(value:widget.role,child:Text(title)),const DropdownMenuItem(value:'hospital',child:Text('مستشفى')),const DropdownMenuItem(value:'clinic',child:Text('عيادة')),const DropdownMenuItem(value:'medical_center',child:Text('مركز طبي')),const DropdownMenuItem(value:'dental_clinic',child:Text('عيادة أسنان')),const DropdownMenuItem(value:'eye_clinic',child:Text('مركز عيون')),const DropdownMenuItem(value:'lab',child:Text('مختبر')),].toList(),onChanged:(v){if(v!=null)setState(()=>facilityType=v);})]),
+    const SizedBox(height:12),Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:Colors.orange.withOpacity(.1),borderRadius:BorderRadius.circular(14)),child:const Text('حالة المنشأة: جاري المراجعة. لن تظهر للعامة حتى تعتمدها الإدارة.')),
+    const SizedBox(height:12),SizedBox(height:52,child:FilledButton.icon(onPressed:saving?null:save,icon:const Icon(Icons.save),label:Text(saving?'جارٍ الحفظ...':'حفظ وإرسال للمراجعة')))
+  ]);}
+  Widget field(TextEditingController c,String l)=>Padding(padding:const EdgeInsets.only(top:8),child:TextField(controller:c,decoration:InputDecoration(labelText:l,border:const OutlineInputBorder())));
   Widget _section(String t,List<Widget> c)=>Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Theme.of(context).cardColor,borderRadius:BorderRadius.circular(18)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(t,style:const TextStyle(fontWeight:FontWeight.w900)),const Divider(),...c]));
 }
 
