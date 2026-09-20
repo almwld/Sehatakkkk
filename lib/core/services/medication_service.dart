@@ -42,6 +42,8 @@ class MedicationService {
     DateTime? startDate,
     DateTime? endDate,
     List<String>? times,
+    int? remainingQuantity,
+    int? totalQuantity,
     String? doctorId,
     String? consultationId,
   }) async {
@@ -59,6 +61,9 @@ class MedicationService {
       'active': true,
       'reminderEnabled': true,
       'taken': false,
+      'remainingQuantity': remainingQuantity ?? totalQuantity ?? 0,
+      'totalQuantity': totalQuantity ?? remainingQuantity ?? 0,
+      'remainingPills': remainingQuantity ?? totalQuantity ?? 0,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
       'userId': user.uid,
@@ -138,15 +143,24 @@ class MedicationService {
   Future<void> markAsTaken(String medicationId) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('User not logged in');
-    await _firestore.collection('users').doc(user.uid).collection('medications_history').add({
-      'medicationId': medicationId,
-      'takenAt': FieldValue.serverTimestamp(),
-      'userId': user.uid,
-    });
-    await _collection(user.uid).doc(medicationId).update({
-      'taken': true,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    final key = 'medications_${user.uid}';
+    final current = await CacheService.getList(key) ?? <Map<String, dynamic>>[];
+    final now = DateTime.now().toIso8601String();
+    final next = current.map((m) {
+      if (m['id']?.toString() != medicationId) return m;
+      final remaining = (m['remainingQuantity'] ?? m['remainingPills'] ?? 0) is num
+          ? ((m['remainingQuantity'] ?? m['remainingPills'] ?? 0) as num).toInt()
+          : 0;
+      return {...m, 'taken': true, 'lastTakenAt': now, 'remainingQuantity': remaining > 0 ? remaining - 1 : 0, 'remainingPills': remaining > 0 ? remaining - 1 : 0, 'updatedAt': now};
+    }).toList();
+    await CacheService.saveList(key, next);
+    try {
+      await _firestore.collection('users').doc(user.uid).collection('medications_history').add({'medicationId': medicationId, 'takenAt': FieldValue.serverTimestamp(), 'userId': user.uid});
+      await _collection(user.uid).doc(medicationId).set({'taken': true, 'lastTakenAt': FieldValue.serverTimestamp(), 'remainingQuantity': FieldValue.increment(-1), 'remainingPills': FieldValue.increment(-1), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+    } catch (_) {
+      // Firestore queues writes offline when possible; the cache remains the source
+      // of truth for the reminder screen until connectivity returns.
+    }
   }
 
   Stream<List<Map<String, dynamic>>> watchUpcomingMedications() {
