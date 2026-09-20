@@ -511,9 +511,11 @@ class _SehatakAppState extends State<SehatakApp>
       case 'medication_prescription':
       case 'medication_reminder':
       case 'medication_purchased':
-      case 'medication_refill':
-        route = AppRouter.health;
-        break;
+      case 'medication_refill': {
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) await Navigator.of(ctx).push(MaterialPageRoute(builder: (_) => const MedicationReminderScreen()));
+        return;
+      }
       case 'appointment':
       case 'appointment_confirmed':
       case 'appointment_reminder_24h':
