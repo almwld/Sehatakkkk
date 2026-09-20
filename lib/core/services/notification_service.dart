@@ -291,7 +291,7 @@ class NotificationService {
       android: AndroidNotificationDetails(
         callChannelId, 'صحتك - المكالمات', channelDescription: 'إشعارات المكالمات الواردة',
         importance: Importance.max, priority: Priority.max, playSound: !silent,
-        sound: silent ? null : const RawResourceAndroidNotificationSound('call_ringtone'),
+        sound: silent ? null : const RawResourceAndroidNotificationSound('notification'),
         category: AndroidNotificationCategory.call, visibility: NotificationVisibility.public,
         fullScreenIntent: true, ongoing: true, autoCancel: false, onlyAlertOnce: true,
         showWhen: false, ticker: 'مكالمة واردة من $callerName',
