@@ -20,7 +20,7 @@ class AppRoles {
     {'id': 'physiotherapist', 'name': 'علاج فيزيائي', 'icon': AppIcons.specialtyBone, 'color': 0xFFFF9800},
     {'id': 'pharmacist', 'name': 'صيدلي', 'icon': AppIcons.pharmacy, 'color': 0xFF4CAF50},
     {'id': 'lab', 'name': 'مختبر', 'icon': AppIcons.labMicroscope, 'color': 0xFF9C27B0},
-    {'id': 'hospital', 'name': 'مستشفى', 'icon': AppIcons.hospital, 'color': 0xFF1565C0},
+    {'id': 'hospital', 'name': 'مستشفى', 'icon': AppIcons.serviceMedical, 'color': 0xFF1565C0},
     {'id': 'clinic', 'name': 'عيادة', 'icon': AppIcons.serviceMedical, 'color': 0xFF00897B},
     {'id': 'medical_center', 'name': 'مركز طبي', 'icon': AppIcons.hospital, 'color': 0xFF3949AB},
     {'id': 'dentist', 'name': 'طبيب أسنان', 'icon': AppIcons.doctor, 'color': 0xFF00ACC1},
