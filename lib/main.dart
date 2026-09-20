@@ -45,6 +45,7 @@ import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 
 import 'presentation/screens/chat/chat_room_screen.dart';
 import 'presentation/screens/verification/verification_screen.dart';
+import 'presentation/screens/medication/medication_reminder_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -358,6 +359,12 @@ class _SehatakAppState extends State<SehatakApp>
       return;
     }
 
+    if (payload.startsWith('medication:')) {
+      if (mounted) {
+        await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MedicationReminderScreen()));
+      }
+      return;
+    }
     if (payload.startsWith('incoming_call:')) {
       final callId = payload.substring('incoming_call:'.length);
       if (callId.isEmpty) return;
@@ -500,6 +507,13 @@ class _SehatakAppState extends State<SehatakApp>
     }
     String? route;
     switch (type) {
+      case 'medication':
+      case 'medication_prescription':
+      case 'medication_reminder':
+      case 'medication_purchased':
+      case 'medication_refill':
+        route = AppRouter.health;
+        break;
       case 'appointment':
       case 'appointment_confirmed':
       case 'appointment_reminder_24h':
