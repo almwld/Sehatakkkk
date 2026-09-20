@@ -84,5 +84,5 @@ jobs:
           cd android
           ./gradlew --stop || true
 
-      - name: "🔨 Build debug APK"
-        run: flutter build apk --debug --no-shrink
+      - name: "🔨 Build release APK (proven Android path)"
+        run: flutter build apk --release --no-shrink
