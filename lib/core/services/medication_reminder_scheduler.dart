@@ -20,7 +20,7 @@ class MedicationReminderScheduler {
     const ios = DarwinInitializationSettings();
     await _notifications.initialize(const InitializationSettings(android: android, iOS: ios));
     final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await androidImpl?.createNotificationChannel(const AndroidNotificationChannel('medication_channel', 'تذكير الأدوية', description: 'تنبيهات دقيقة لمواعيد تناول الأدوية', importance: Importance.max, playSound: true, sound: RawResourceAndroidNotificationSound('medication_reminder'), enableVibration: true));
+    await androidImpl?.createNotificationChannel(const AndroidNotificationChannel('medication_channel', 'تذكير الأدوية', description: 'تنبيهات دقيقة لمواعيد تناول الأدوية', importance: Importance.max, playSound: true, enableVibration: true));
     await androidImpl?.requestNotificationsPermission();
     await androidImpl?.requestExactAlarmsPermission();
     _initialized = true;
@@ -84,7 +84,7 @@ class MedicationReminderScheduler {
     final times = _times(medication);
     await _saveReport(medication, times);
     var index = 0;
-    for (var dayOffset = 0; dayOffset < 31; dayOffset++) {
+    for (var dayOffset = 0; dayOffset < 90; dayOffset++) {
       final day = firstDay.add(Duration(days: dayOffset));
       if (end != null && day.isAfter(DateTime(end.year, end.month, end.day))) break;
       for (final time in times) {
@@ -104,7 +104,6 @@ class MedicationReminderScheduler {
               importance: Importance.max,
               priority: Priority.high,
               playSound: true,
-              sound: RawResourceAndroidNotificationSound('medication_reminder'),
               enableVibration: true,
               fullScreenIntent: true,
             ),
