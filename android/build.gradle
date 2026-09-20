@@ -19,10 +19,25 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+
+    plugins.withId("com.android.library") {
+        def androidExtension = extensions.findByName("android")
+        if (androidExtension != null && androidExtension.namespace == null) {
+            def manifestFile = file("src/main/AndroidManifest.xml")
+            if (manifestFile.exists()) {
+                def manifest = new XmlParser().parse(manifestFile)
+                def manifestPackage = manifest.@package?.toString()
+                if (manifestPackage) {
+                    androidExtension.namespace = manifestPackage
+                }
+            }
+        }
+    }
 }
+
+rootProject.buildDir = '../build'
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
