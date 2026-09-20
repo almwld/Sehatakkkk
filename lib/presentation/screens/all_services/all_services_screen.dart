@@ -40,7 +40,9 @@ import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
 
-void _noopDeliverySelect(dynamic _) {}\n\nclass AllServicesScreen extends StatefulWidget {
+void _noopDeliverySelect(dynamic _) {}
+
+class AllServicesScreen extends StatefulWidget {
   const AllServicesScreen({super.key});
 
   @override
