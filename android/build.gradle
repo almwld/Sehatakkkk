@@ -24,23 +24,23 @@ subprojects {
 
     plugins.withId("com.android.library") {
         def androidExtension = extensions.findByName("android")
-        if (androidExtension != null && androidExtension.namespace == null) {
-            def manifestFile = file("src/main/AndroidManifest.xml")
-            def manifestPackage = null
+        def manifestFile = file("src/main/AndroidManifest.xml")
+        def manifestPackage = null
 
-            if (manifestFile.exists()) {
-                def manifestText = manifestFile.getText("UTF-8")
-                def manifest = new XmlParser().parseText(manifestText)
-                manifestPackage = manifest.@package?.toString()
+        if (manifestFile.exists()) {
+            def manifestText = manifestFile.getText("UTF-8")
+            def manifest = new XmlParser().parseText(manifestText)
+            manifestPackage = manifest.@package?.toString()
 
-                // AGP 8 no longer accepts package= on library source manifests.
-                // Keep the value as the namespace, then remove the deprecated attribute.
-                if (manifestPackage) {
-                    manifestText = manifestText.replaceFirst(/\\s+package="[^"]*"/, "")
-                    manifestFile.setText(manifestText, "UTF-8")
-                }
+            // AGP 8 no longer accepts package= on library source manifests.
+            // Remove it regardless of the current namespace state.
+            if (manifestPackage) {
+                manifestText = manifestText.replaceFirst(/\s+package="[^"]*"/, "")
+                manifestFile.setText(manifestText, "UTF-8")
             }
+        }
 
+        if (androidExtension != null && androidExtension.namespace == null) {
             def legacyNamespace = manifestPackage
             if (!legacyNamespace && project.name == "blurhash") {
                 legacyNamespace = "com.raincal.blurhash"
