@@ -436,6 +436,15 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
+                      if ((doctor.hospital ?? '').trim().isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          doctor.hospital!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 9, color: isDark ? Colors.white54 : Colors.black45),
+                        ),
+                      ],
                     ],
                   ),
                 ),
