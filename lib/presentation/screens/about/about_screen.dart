@@ -58,9 +58,9 @@ class _AboutScreenState extends State<AboutScreen> {
     final socials = [
       {'icon': AppImages.socialFacebook, 'label': 'فيسبوك', 'url': 'https://www.facebook.com/'},
       {'icon': AppImages.socialInstagram, 'label': 'انستغرام', 'url': 'https://www.instagram.com/'},
-      {'icon': AppIcons.socialXTwitter, 'label': 'تويتر', 'url': 'https://x.com/'},
+      {'icon': AppImages.socialTwitter, 'label': 'منصة X', 'url': 'https://x.com/'},
       {'icon': AppImages.socialYoutube, 'label': 'يوتيوب', 'url': 'https://youtube.com/'},
-      {'icon': AppIcons.socialLinkedin, 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
+      {'icon': AppImages.socialLinkedin, 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
     ];
     return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('تواصل معنا', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 12), Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 12, children: socials.map((social) => GestureDetector(onTap: () => _launchUrl(social['url'] as String), child: Column(children: [Container(width: 50, height: 50, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)), child: Center(child: Image.asset(social['icon'] as String, width: 30, height: 30, fit: BoxFit.contain))), const SizedBox(height: 6), Text(social['label'] as String, style: TextStyle(fontSize: 11, color: AppColors.grey))]))).toList())]));
   }
