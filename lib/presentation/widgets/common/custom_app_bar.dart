@@ -11,6 +11,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final bool automaticallyImplyLeading;
   final PreferredSizeWidget? bottom;
+  final bool curvedBottom;
 
   const CustomAppBar({
     super.key,
@@ -23,6 +24,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.automaticallyImplyLeading = true,
     this.bottom,
+    this.curvedBottom = false,
   });
 
   @override
@@ -45,6 +47,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: automaticallyImplyLeading,
       iconTheme: IconThemeData(color: fgColor),
       bottom: bottom,
+      shape: curvedBottom
+          ? const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(34)))
+          : null,
     );
   }
 
