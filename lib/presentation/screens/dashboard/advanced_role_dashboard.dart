@@ -164,7 +164,7 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
           Row(children:[Expanded(child:TextField(controller:_service,decoration:const InputDecoration(hintText:'إضافة خدمة'))),IconButton.filled(onPressed:(){final s=_service.text.trim();if(s.isNotEmpty)setState((){if(!services.contains(s))services.add(s);_service.clear();});},icon:const Icon(Icons.add))]),
           Wrap(spacing:6,children:services.map((s)=>InputChip(label:Text(s),onDeleted:()=>setState(()=>services.remove(s)))).toList())
         ]),const SizedBox(height:12),
-        _section('الإجازات',[...vacations.asMap().entries.map((e)=>ListTile(contentPadding:EdgeInsets.zero,title:Text(vacationLabel(e.value)),trailing:IconButton(onPressed:()=>setState(()=>vacations.removeAt(e.key)),icon:const Icon(Icons.delete_outline))),),OutlinedButton.icon(onPressed:addVacation,icon:const Icon(Icons.add),label:const Text('إضافة إجازة'))],
+        _section('الإجازات',[...vacations.asMap().entries.map((e)=>ListTile(contentPadding:EdgeInsets.zero,title:Text(vacationLabel(e.value)),trailing:IconButton(onPressed:()=>setState(()=>vacations.removeAt(e.key)),icon:const Icon(Icons.delete_outline)))),OutlinedButton.icon(onPressed:addVacation,icon:const Icon(Icons.add),label:const Text('إضافة إجازة'))]),
         const SizedBox(height:12),_section('المرضى',[_patients()]),const SizedBox(height:18),
         SizedBox(height:54,child:FilledButton.icon(onPressed:saving?null:save,icon:const Icon(Icons.save),label:Text(saving?'جارٍ الحفظ...':'حفظ كل إعدادات الطبيب')))
       ])
