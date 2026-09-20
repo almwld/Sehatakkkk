@@ -2,6 +2,27 @@ const {onDocumentCreated}=require('firebase-functions/v2/firestore');
 const admin=require('firebase-admin');
 const db=admin.firestore();
 
+async function archiveNotification(uid, payload) {
+  if (!uid) return;
+  await db.collection('notifications').add({
+    userId: uid,
+    type: String(payload.data?.type || 'system'),
+    title: String(payload.data?.title || payload.data?.senderName || 'صحتك'),
+    body: String(payload.data?.body || 'لديك إشعار جديد'),
+    data: payload.data || {},
+    chatId: payload.data?.chatId || null,
+    callId: payload.data?.callId || null,
+    isRead: false,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+exports.archiveNotificationUnreadCounter=onDocumentCreated('notifications/{notificationId}', async event => {
+  const s=event.data;if(!s)return;
+  const uid=String(s.data()?.userId||'');if(!uid)return;
+  await db.collection('users').doc(uid).set({unreadNotificationsCount:admin.firestore.FieldValue.increment(1)},{merge:true});
+});
+
 async function sendToUser(uid,payload){
   if(!uid)return;
   const snap=await db.collection('users').doc(uid).get();
@@ -71,7 +92,11 @@ exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{message
     deliveredAt:delivered?admin.firestore.FieldValue.serverTimestamp():null,
   });
 
-  await Promise.all(notifyReceivers.map(uid=>sendToUser(uid,{data:{type:'new_message',chatId,messageId:event.params.messageId,senderId,senderName,body}})));
+  await Promise.all(notifyReceivers.map(async uid=>{
+    const data={type:'new_message',chatId,messageId:event.params.messageId,senderId,senderName,body,recipientId:uid,title:senderName,body};
+    await archiveNotification(uid,{data});
+    await sendToUser(uid,{data});
+  }));
 });
 
 exports.notifyIncomingCall=onDocumentCreated('calls/{callId}',async event=>{
@@ -81,5 +106,7 @@ exports.notifyIncomingCall=onDocumentCreated('calls/{callId}',async event=>{
   const isVideo=c.callType==='video'||c.isVideoCall===true;
   const callId=event.params.callId;
   const chatId=String(c.chatId||'');
-  await sendToUser(receiverId,{data:{type:'incoming_call',callId,chatId,callerId,callerName:String(c.callerName||'مستخدم'),callerPhotoUrl:String(c.callerPhotoUrl||''),isVideo:String(isVideo),callType:isVideo?'video':'audio'}});
+  const data={type:'incoming_call',callId,chatId,callerId,callerName:String(c.callerName||'مستخدم'),callerPhotoUrl:String(c.callerPhotoUrl||''),isVideo:String(isVideo),callType:isVideo?'video':'audio',recipientId:receiverId,title:'مكالمة واردة',body:`مكالمة واردة من ${String(c.callerName||'مستخدم')}`};
+  await archiveNotification(receiverId,{data});
+  await sendToUser(receiverId,{data});
 });
