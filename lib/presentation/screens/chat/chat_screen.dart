@@ -149,6 +149,9 @@ class _ChatScreenState extends State<ChatScreen> {
         title: const Text('الدردشة'),
         centerTitle: true,
         elevation: 0,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(34))),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(58),
           child: _buildTabs(isDark),
