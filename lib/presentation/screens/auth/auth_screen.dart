@@ -468,8 +468,14 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _showSuccessAnimation() async {
-    showDialog(
+    if (!mounted) return;
+
+    // مهم: ننتظر إغلاق نافذة النجاح بالكامل قبل تنفيذ أي انتقال.
+    // سابقاً كان pop غير متزامن مع context.go()/pushReplacement، فكان
+    // يستطيع أن يغلق شاشة Home بعد ظهورها ويترك طبقة زجاجية فوقها.
+    final dialogFuture = showDialog<void>(
       context: context,
+      useRootNavigator: true,
       barrierDismissible: false,
       barrierColor: Colors.black54,
       builder: (_) => PopScope(
@@ -486,9 +492,15 @@ class _AuthScreenState extends State<AuthScreen>
 
     await Future.delayed(const Duration(milliseconds: 350));
 
-    if (mounted && Navigator.canPop(context)) {
-      Navigator.pop(context);
+    if (mounted) {
+      final navigator = Navigator.of(context, rootNavigator: true);
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
     }
+
+    // لا تسمح بإجراء التنقل التالي قبل انتهاء دورة الـDialog.
+    await dialogFuture;
   }
 
   Future<void> _loginWithGoogle() async {
