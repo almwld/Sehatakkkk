@@ -154,13 +154,44 @@ class LiveKitService {
     }
   }
 
+  static const MethodChannel _callAudioChannel = MethodChannel('com.sehatak.app/call_audio');
+
   Future<void> setSpeakerphone(bool on) async {
-    try { await Helper.setSpeakerphoneOn(on); _isSpeakerOn = on; } catch (e) { debugPrint('LiveKit speaker route failed: $e'); }
+    try {
+      await Helper.setSpeakerphoneOn(on);
+      _isSpeakerOn = on;
+      try {
+        await _callAudioChannel.invokeMethod('setSpeakerphone', {'enabled': on});
+      } catch (e) {
+        debugPrint('Native speaker route sync failed: $e');
+      }
+    } catch (e) {
+      debugPrint('LiveKit speaker route failed: $e');
+    }
+  }
+
+  Future<double> getCallVolume() async {
+    try {
+      final value = await _callAudioChannel.invokeMethod<num>('getCallVolume');
+      return (value ?? 0.75).toDouble().clamp(0.0, 1.0);
+    } catch (_) {
+      return 0.75;
+    }
+  }
+
+  Future<void> setCallVolume(double normalized) async {
+    final value = normalized.clamp(0.0, 1.0);
+    try {
+      await _callAudioChannel.invokeMethod('setCallVolume', {'value': value});
+    } catch (e) {
+      debugPrint('Call volume update failed: $e');
+    }
   }
 
   Future<void> endCall() async {
     try { await _room?.disconnect(); } finally {
       try { await Helper.setSpeakerphoneOn(false); } catch (_) {}
+      try { await _callAudioChannel.invokeMethod('setSpeakerphone', {'enabled': false}); } catch (_) {}
       _room = null;
       _isConnected = false;
       _isCameraEnabled = false;
