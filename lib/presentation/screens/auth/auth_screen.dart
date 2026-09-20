@@ -695,15 +695,19 @@ class _AuthScreenState extends State<AuthScreen>
       _hideLoading();
       await _showSuccessAnimation();
 
+      // Navigation is the critical path: enter Home immediately after the
+      // success overlay closes. Non-visual persistence work must not block it.
       final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await SavedAccountsService.saveCurrentAccount(user);
+      if (mounted) {
+        context.go('/');
       }
 
-      // Always enter the Home tab after an explicit login; do not leave Auth
-      // on the navigation stack and do not resume an older route here.
-      await prefs.remove('sehatak_last_route');
-      if (mounted) context.go('/');
+      // Complete non-visual post-login preparation in the background so the
+      // first Home frame is not delayed by local persistence.
+      if (user != null) {
+        unawaited(SavedAccountsService.saveCurrentAccount(user).catchError((_) {}));
+      }
+      unawaited(prefs.remove('sehatak_last_route').catchError((_) {}));
     } on FirebaseAuthException catch (e) {
       _hideLoading();
 
