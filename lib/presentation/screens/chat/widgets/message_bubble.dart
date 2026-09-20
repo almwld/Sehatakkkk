@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -236,10 +238,112 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildLocation(Map<String, dynamic> m, bool dark) {
-    final text = m['locationAddress']?.toString() ?? m['text']?.toString() ?? 'الموقع';
+    final lat = (m['locationLatitude'] as num?)?.toDouble();
+    final lng = (m['locationLongitude'] as num?)?.toDouble();
+    final address = (m['locationAddress']?.toString().trim().isNotEmpty == true)
+        ? m['locationAddress'].toString()
+        : (m['text']?.toString() ?? 'الموقع');
+    final street = m['locationStreet']?.toString() ?? '';
+    final neighborhood = m['locationNeighborhood']?.toString() ?? '';
+    final city = m['locationCity']?.toString() ?? '';
     final url = m['locationUrl']?.toString() ?? '';
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
-    return _shell(InkWell(onTap: () async { final uri = Uri.tryParse(url); if (uri != null && await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication); }, child: Padding(padding: const EdgeInsets.all(11), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.location_on, color: Colors.redAccent), const SizedBox(width: 7), Flexible(child: Text(text, style: TextStyle(color: tc)))]))), dark);
+
+    final details = <String>[
+      if (street.isNotEmpty) street,
+      if (neighborhood.isNotEmpty) neighborhood,
+      if (city.isNotEmpty) city,
+    ];
+
+    final map = lat == null || lng == null
+        ? const SizedBox.shrink()
+        : SizedBox(
+            width: 250,
+            height: 155,
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: LatLng(lat, lng),
+                initialZoom: 16,
+                interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.sehatak.app',
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: LatLng(lat, lng),
+                      width: 42,
+                      height: 50,
+                      alignment: Alignment.bottomCenter,
+                      child: const Icon(Icons.location_pin, color: Colors.red, size: 42),
+                    ),
+                  ],
+                ),
+                const RichAttributionWidget(
+                  attributions: [TextSourceAttribution('OpenStreetMap')],
+                ),
+              ],
+            ),
+          );
+
+    return _shell(
+      InkWell(
+        onTap: url.isEmpty
+            ? null
+            : () async {
+                final uri = Uri.tryParse(url);
+                if (uri != null && await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+        borderRadius: BorderRadius.circular(14),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (lat != null && lng != null) map,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(11, 9, 11, 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.redAccent, size: 22),
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('الموقع المرسل', style: TextStyle(color: tc, fontWeight: FontWeight.w800, fontSize: 12)),
+                          const SizedBox(height: 3),
+                          Text(address, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(color: tc, fontSize: 12)),
+                          if (details.isNotEmpty) ...[
+                            const SizedBox(height: 5),
+                            Text(details.join(' • '), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: tc.withOpacity(.75), fontSize: 10)),
+                          ],
+                          if (lat != null && lng != null) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}',
+                              textDirection: TextDirection.ltr,
+                              style: TextStyle(color: tc.withOpacity(.65), fontSize: 9),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      dark,
+    );
   }
 
   Widget _buildSystem(Map<String, dynamic> m) => Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Center(child: Text(m['text']?.toString() ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF49615E)))));
