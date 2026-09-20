@@ -112,14 +112,14 @@ class StatusService {
       createShare: true,
     );
     if (!result.success || result.url == null || result.url!.isEmpty) {
-      throw StateError(result.error ?? 'تعذر رفع الحالة إلى Nextcloud.');
+      throw StateError(result.error ?? 'تعذر رفع الحالة.');
     }
 
     // Do not publish the Firestore status until the Nextcloud public URL is
     // reachable. This prevents broken media stories from becoming visible.
     final verified = await _nextcloud.verifyPublicUrl(result.url!);
     if (!verified) {
-      throw StateError('تم رفع الوسائط إلى Nextcloud لكن تعذر التحقق من رابطها.');
+      throw StateError('تعذر تجهيز الوسائط للنشر.');
     }
 
     return StoryItem(type: type, url: result.url!, duration: duration);
