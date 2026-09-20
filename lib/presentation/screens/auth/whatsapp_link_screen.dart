@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class WhatsAppLinkScreen extends StatefulWidget {
   final String userType;
@@ -18,7 +18,7 @@ class _WhatsAppLinkScreenState extends State<WhatsAppLinkScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       setState(() => _loading = false);
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const HomeScreen()), (route) => false);
+      context.go('/');
     });
   }
 
