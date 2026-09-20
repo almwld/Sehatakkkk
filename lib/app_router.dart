@@ -140,6 +140,21 @@ class AppRouter {
     navigatorKey: navigatorKey,
     observers: <NavigatorObserver>[DuplicateNavigationObserver()],
     initialLocation: splash,
+    builder: (context, state, child) {
+      // HomeScreen owns the tab-level back behavior. For every platform
+      // screen outside Home, intercept Android back here so a root-level
+      // back can never close the app accidentally.
+      if (state.matchedLocation == home) return child;
+
+      return PopScope(
+        canPop: false,
+        onPopInvoked: (didPop) async {
+          if (didPop) return;
+          await _handleBack(context);
+        },
+        child: child,
+      );
+    },
     refreshListenable:
         GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
     redirect: (_, state) {
