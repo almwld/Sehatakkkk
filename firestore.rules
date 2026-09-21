@@ -256,7 +256,39 @@ service cloud.firestore {
     match /cities/{id} { allow read: if true; allow write: if isAdmin(); }
     match /regions/{id} { allow read: if true; allow write: if isAdmin(); }
     match /specialties/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /health_contacts/{id} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /health_contacts/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSelf(id)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.role == 'paramedic'
+        && userDataAfter(id).role == 'paramedic';
+      allow update: if isAdmin()
+        || (isSelf(id)
+            && resource.data.role == 'paramedic'
+            && request.resource.data.role == 'paramedic'
+            && request.resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /ambulance_requests/{requestId} {
+      allow get: if isSignedIn()
+        && (resource.data.patientId == request.auth.uid
+            || resource.data.paramedicId == request.auth.uid
+            || isAdmin());
+      allow list: if isSignedIn()
+        && (resource.data.patientId == request.auth.uid
+            || resource.data.paramedicId == request.auth.uid
+            || isAdmin());
+      allow create: if isSignedIn()
+        && request.resource.data.patientId == request.auth.uid
+        && request.resource.data.paramedicId != null;
+      allow update: if isSignedIn()
+        && (resource.data.patientId == request.auth.uid
+            || resource.data.paramedicId == request.auth.uid
+            || isAdmin());
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource.data.patientId == request.auth.uid);
+    }
 
     // ═══════════════════════════════════════════════════════════
     // COMMUNITY
