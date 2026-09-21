@@ -292,7 +292,12 @@ class _MoreScreenState extends State<MoreScreen>
   }
 
   void _navigateTo(Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    // MoreScreen can be hosted inside the Home/GoRouter navigation tree.
+    // Always push service screens on the root navigator so they get a real
+    // full-screen route instead of being attached to a nested navigator.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(builder: (_) => screen),
+    );
   }
 
   Widget _buildIcon(String path, {double size = 44}) {
