@@ -22,13 +22,21 @@
           }
         },
         {
+          "client_id": "1053269106596-i489r72muc6nq55cv88dej68m9g8fc8p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sehatak.app",
+            "certificate_hash": "3fc33da086dc7c55a6eec1cccb94f05ffaa1a7cb"
+          }
+        },
+        {
           "client_id": "1053269106596-5iu2l6drfe53u39g37hdu3711nhibbmd.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD_frsfhn0jde9cWVUW3hXjGcnMIQmY51k"
+          "current_key": "AIzaSyD_frsfhn0jde9cWVUW3H3xjGcnMIQmY51k"
         }
       ],
       "services": {
