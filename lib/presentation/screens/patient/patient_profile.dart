@@ -158,8 +158,10 @@ class _PatientProfileState extends State<PatientProfile> {
                   _stories(name, photo, dark),
                   const SizedBox(height: 16),
                   _posts(dark),
-                  const SizedBox(height: 16),
-                  _accountSections(dark),
+                  if (_isOwnProfile) ...[
+                    const SizedBox(height: 16),
+                    _accountSections(dark),
+                  ],
                 ],
               ),
             ),
