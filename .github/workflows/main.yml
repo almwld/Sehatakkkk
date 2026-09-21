@@ -57,6 +57,31 @@ jobs:
     - name: 📦 Install dependencies
       run: flutter pub get
 
+    - name: 🩹 Patch legacy Android plugins missing namespace
+      shell: bash
+      run: |
+        set -euo pipefail
+        pub_cache="\${PUB_CACHE:-\$HOME/.pub-cache}"
+        patched=0
+        while IFS= read -r gradle_file; do
+          [ -f "$gradle_file" ] || continue
+          if grep -qE '^[[:space:]]*namespace[[:space:]]+' "$gradle_file"; then continue; fi
+          plugin_dir="$(dirname "$(dirname "$gradle_file")")"
+          manifest_file="$plugin_dir/android/src/main/AndroidManifest.xml"
+          [ -f "$manifest_file" ] || continue
+          package_name="$(sed -n 's/.*package="\([^"]*\)".*/\1/p' "$manifest_file" | head -n 1)"
+          [ -n "$package_name" ] || continue
+          python3 - "$gradle_file" "$package_name" <<'PY'
+import pathlib, re, sys
+p = pathlib.Path(sys.argv[1]); ns = sys.argv[2]; s = p.read_text()
+if not re.search(r'^\s*namespace\s+', s, re.M):
+    s = s.replace('android {', f'android {{\n    namespace "{ns}"', 1)
+    p.write_text(s)
+PY
+          echo "✅ Added namespace $package_name to $gradle_file"
+          patched=$((patched + 1))
+        done < <(find "$pub_cache" -type f -path '*/android/build.gradle' -print)
+        echo "Patched legacy Android plugins: $patched"
     - name: 🔨 Build APK
       run: |
         flutter build apk --release --split-per-abi --no-shrink \
