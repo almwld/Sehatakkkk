@@ -15,7 +15,7 @@ def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
 
 // Release signing is external to source control.
-// Local builds may use android/key.properties; CI supplies the same values via environment variables.
+// Debug builds must remain independent of release signing credentials.
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
@@ -36,17 +36,10 @@ def releaseStorePassword = signingValue('storePassword', 'SEHATAK_KEYSTORE_PASSW
 def releaseKeyAlias = signingValue('keyAlias', 'SEHATAK_KEY_ALIAS')
 def releaseKeyPassword = signingValue('keyPassword', 'SEHATAK_KEY_PASSWORD')
 
-def missingSigningValues = []
-if (!releaseStoreFile) missingSigningValues << 'storeFile/SEHATAK_KEYSTORE_FILE'
-if (!releaseStorePassword) missingSigningValues << 'storePassword/SEHATAK_KEYSTORE_PASSWORD'
-if (!releaseKeyAlias) missingSigningValues << 'keyAlias/SEHATAK_KEY_ALIAS'
-if (!releaseKeyPassword) missingSigningValues << 'keyPassword/SEHATAK_KEY_PASSWORD'
-if (!missingSigningValues.isEmpty()) {
-    throw new GradleException("Release signing is not configured. Missing: " + missingSigningValues.join(', '))
-}
+def releaseSigningConfigured = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
 
-def releaseKeystore = file(releaseStoreFile)
-if (!releaseKeystore.exists() || !releaseKeystore.isFile()) {
+def releaseKeystore = releaseSigningConfigured ? file(releaseStoreFile) : null
+if (releaseSigningConfigured && (!releaseKeystore.exists() || !releaseKeystore.isFile())) {
     throw new GradleException("Release keystore not found: " + releaseKeystore.absolutePath)
 }
 
