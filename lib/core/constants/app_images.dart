@@ -22,6 +22,8 @@ class AppImages {
   static const String trackingWeight='assets/images/tracking/weight.png';
   static const String trackingHeartRate='assets/images/tracking/heart_rate.png';
   static const String walletJeeb='assets/images/payment/jeeb.png';
+  static const String walletPayments='assets/images/wallets/payments.png';
+  static const String walletIcon='assets/images/wallets/wallet.png';
   static const String walletJawali='assets/images/payment/jawali.png';
   static const String walletKash='assets/images/payment/kash.png';
   static const String walletKashOne='assets/images/payment/kash_one.png';
