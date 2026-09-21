@@ -41,6 +41,24 @@ service cloud.firestore {
         allow delete: if isSelf(userId);
         allow update: if false;
       }
+
+      // Public social graph used by the canonical profile screen.
+      // Each user can only mutate their own following edge; the target
+      // follower edge is writable only by the follower who owns that edge.
+      match /following/{targetUserId} {
+        allow read: if isSignedIn();
+        allow create, delete: if isSelf(userId)
+          && targetUserId != userId;
+        allow update: if false;
+      }
+
+      match /followers/{followerUserId} {
+        allow read: if isSignedIn();
+        allow create, delete: if isSignedIn()
+          && followerUserId == request.auth.uid
+          && followerUserId != userId;
+        allow update: if false;
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
