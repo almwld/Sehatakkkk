@@ -337,9 +337,21 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
               prefixIcon: Icon(Icons.location_city_outlined),
               border: OutlineInputBorder(),
             ),
+            dropdownColor: dark ? const Color(0xFF1A2540) : Colors.white,
+            style: TextStyle(
+              color: dark ? Colors.white : const Color(0xFF263238),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
             items: _areas.map((area) => DropdownMenuItem<String>(
               value: area,
-              child: Text(area),
+              child: Text(
+                area,
+                style: TextStyle(
+                  color: dark ? Colors.white : const Color(0xFF263238),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             )).toList(),
             onChanged: (value) => setState(() => _selectedArea = value),
           ),
