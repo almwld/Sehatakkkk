@@ -6,6 +6,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/health_score_service.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/screens/health/health_detail_screen.dart';
+import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
 
 class HealthDashboard extends StatefulWidget {
   const HealthDashboard({super.key});
@@ -272,7 +273,13 @@ class _HealthDashboardState extends State<HealthDashboard>
           IconButton(
             icon: Icon(Icons.notifications_outlined,
                 color: isDark ? Colors.white : Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(
+                  builder: (_) => const NotificationsScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
