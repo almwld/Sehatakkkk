@@ -134,12 +134,52 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
     );
   }
 
-  Widget _statusCard()=>Card(child:Padding(padding:const EdgeInsets.all(14),child:Column(children:[
-    Row(children:[const Icon(Icons.emergency,color:Colors.red),const SizedBox(width:8),const Expanded(child:Text('حالة الاستجابة',style:TextStyle(fontWeight:FontWeight.w800))),Text(_available&&_online&&_acceptingEmergency?'متاح الآن':'غير متاح',style:TextStyle(color:_available&&_online&&_acceptingEmergency?Colors.green:Colors.grey,fontWeight:FontWeight.bold))]),
-    SwitchListTile(contentPadding:EdgeInsets.zero,title:const Text('متاح لاستقبال الطوارئ'),value:_available,onChanged:(v)=>setState(()=>_available=v)),
-    SwitchListTile(contentPadding:EdgeInsets.zero,title:const Text('متصل ميدانياً'),value:_online,onChanged:(v)=>setState(()=>_online=v)),
-    SwitchListTile(contentPadding:EdgeInsets.zero,title:const Text('أستقبل طلبات الإسعاف'),value:_acceptingEmergency,onChanged:(v)=>setState(()=>_acceptingEmergency=v)),
-  ]));
+  Widget _statusCard() {
+    final ready = _available && _online && _acceptingEmergency;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.emergency, color: Colors.red),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text('حالة الاستجابة', style: TextStyle(fontWeight: FontWeight.w800)),
+                ),
+                Text(
+                  ready ? 'متاح الآن' : 'غير متاح',
+                  style: TextStyle(
+                    color: ready ? Colors.green : Colors.grey,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('متاح لاستقبال الطوارئ'),
+              value: _available,
+              onChanged: (v) => setState(() => _available = v),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('متصل ميدانياً'),
+              value: _online,
+              onChanged: (v) => setState(() => _online = v),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('أستقبل طلبات الإسعاف'),
+              value: _acceptingEmergency,
+              onChanged: (v) => setState(() => _acceptingEmergency = v),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _paramedicCard(String id,Map<String,dynamic> d){
     final area=(d['serviceArea']??d['area']??'المنطقة غير محددة').toString();
