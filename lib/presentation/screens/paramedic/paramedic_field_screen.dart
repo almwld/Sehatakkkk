@@ -7,7 +7,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 class ParamedicFieldScreen extends StatefulWidget {
   final bool publicMode;
   const ParamedicFieldScreen({super.key, this.publicMode = false});
-  $override State<ParamedicFieldScreen> createState() => _ParamedicFieldScreenState();
+  @override State<ParamedicFieldScreen> createState() => _ParamedicFieldScreenState();
 }
 
 class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
@@ -16,8 +16,8 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
   bool _available = true, _acceptingEmergency = true, _online = true, _saving = false, _locating = false;
   GeoPoint? _location;
 
-  $override void initState() { super.initState(); if (!widget.publicMode) _loadProfile(); }
-  $override void dispose() { for (final c in [_name,_phone,_area,_address,_vehicle,_plate,_skills]) { c.dispose(); } super.dispose(); }
+  @override void initState() { super.initState(); if (!widget.publicMode) _loadProfile(); }
+  @override void dispose() { for (final c in [_name,_phone,_area,_address,_vehicle,_plate,_skills]) { c.dispose(); } super.dispose(); }
 
   Future<void> _loadProfile() async {
     final uid = FirebaseAuth.instance.currentUser?.uid; if (uid == null) return;
@@ -90,7 +90,7 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
   Future<void> _setRequestStatus(String id,String status)=>_firestore.collection('ambulance_requests').doc(id).update({'status':status,'updatedAt':FieldValue.serverTimestamp()});
   void _message(String m,{bool error=false}){if(!mounted)return;ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(m),backgroundColor:error?Colors.red:AppColors.primary));}
 
-  $override Widget build(BuildContext context)=>widget.publicMode?_publicView():_dashboardView();
+  @override Widget build(BuildContext context)=>widget.publicMode?_publicView():_dashboardView();
 
   Widget _publicView()=>Scaffold(
     appBar:AppBar(title:const Text('المسعفون الميدانيون'),backgroundColor:AppColors.primary,foregroundColor:Colors.white),
