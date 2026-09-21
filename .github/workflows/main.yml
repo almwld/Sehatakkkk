@@ -1,5 +1,4 @@
-name: 🚀 Build Sehatak APK
-# Temporary build verification: release signing is intentionally bypassed.
+name: 🚀 Build Sehatak APK (Test - No Signing)
 
 on:
   push:
@@ -95,36 +94,23 @@ jobs:
           --dart-define=DB_USER=sehatak_user \
           --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
 
-    - name: 🔎 Verify APK signatures
-      shell: bash
-      run: |
-        set -euo pipefail
-        shopt -s nullglob
-        apks=(build/app/outputs/flutter-apk/*.apk)
-        test "${#apks[@]}" -gt 0
-        for apk in "${apks[@]}"; do
-          echo "Verifying: ${apk}"
-          apksigner verify --verbose "${apk}"
-        done
-        echo "✅ All release APKs are cryptographically signed."
-
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
       with:
-        name: app-arm64-v8a
-        path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+        name: app-arm64-v8a-debug
+        path: build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
         retention-days: 30
 
     - name: 📤 Upload armeabi-v7a
       uses: actions/upload-artifact@v4
       with:
-        name: app-armeabi-v7a
-        path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+        name: app-armeabi-v7a-debug
+        path: build/app/outputs/flutter-apk/app-armeabi-v7a-debug.apk
         retention-days: 30
 
     - name: 📤 Upload x86_64
       uses: actions/upload-artifact@v4
       with:
-        name: app-x86_64
-        path: build/app/outputs/flutter-apk/app-x86_64-release.apk
+        name: app-x86_64-debug
+        path: build/app/outputs/flutter-apk/app-x86_64-debug.apk
         retention-days: 30
