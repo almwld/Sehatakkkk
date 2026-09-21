@@ -178,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
     // AppRouter is the single owner of authentication navigation.
-    context.go(AppRouter.auth);
+    AppRouter.router.go(AppRouter.auth);
   }
 
   @override
