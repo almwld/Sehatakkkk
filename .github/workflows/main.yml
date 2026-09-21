@@ -1,4 +1,4 @@
-name: 🚀 Build Sehatak APK (Test - No Signing)
+name: 🚀 Build Sehatak APK
 
 on:
   push:
@@ -32,12 +32,40 @@ jobs:
         rm -rf ~/.gradle/wrapper/dists
         flutter clean
 
+    - name: 🔐 Prepare Sehatak release keystore
+      shell: bash
+      env:
+        SEHATAK_KEYSTORE_BASE64: ${{ secrets.SEHATAK_KEYSTORE_BASE64 }}
+        SEHATAK_KEYSTORE_PASSWORD: ${{ secrets.SEHATAK_KEYSTORE_PASSWORD }}
+        SEHATAK_KEY_ALIAS: ${{ secrets.SEHATAK_KEY_ALIAS }}
+        SEHATAK_KEY_PASSWORD: ${{ secrets.SEHATAK_KEY_PASSWORD }}
+      run: |
+        set -euo pipefail
+        rm -rf android/keystore
+        mkdir -p android/keystore
+        if [ -z "${SEHATAK_KEYSTORE_BASE64:-}" ]; then
+          echo "⚠️ Release keystore secret is not configured; Gradle fallback will be used."
+          exit 0
+        fi
+        if printf '%s' "${SEHATAK_KEYSTORE_BASE64}" | base64 --decode > android/keystore/sehatak-release.jks 2>/dev/null && test -s android/keystore/sehatak-release.jks; then
+          chmod 600 android/keystore/sehatak-release.jks
+          {
+            echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
+            echo "SEHATAK_KEYSTORE_PASSWORD=${SEHATAK_KEYSTORE_PASSWORD}"
+            echo "SEHATAK_KEY_ALIAS=${SEHATAK_KEY_ALIAS}"
+            echo "SEHATAK_KEY_PASSWORD=${SEHATAK_KEY_PASSWORD}"
+          } >> "${GITHUB_ENV}"
+          echo "✅ Release keystore prepared."
+        else
+          rm -f android/keystore/sehatak-release.jks
+          echo "⚠️ Invalid keystore payload; Gradle fallback will be used."
+        fi
     - name: 📦 Install dependencies
       run: flutter pub get
 
     - name: 🔨 Build APK
       run: |
-        flutter build apk --debug --split-per-abi \
+        flutter build apk --release --split-per-abi --no-shrink \
           --dart-define=NEXTCLOUD_URL=https://noa.it.tabdigital.cloud \
           --dart-define=NEXTCLOUD_USERNAME=PlatformSehatak@gmail.com \
           --dart-define=NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }} \
@@ -69,20 +97,20 @@ jobs:
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
       with:
-        name: app-arm64-v8a-debug
-        path: build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
+        name: app-arm64-v8a-release
+        path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
         retention-days: 30
 
     - name: 📤 Upload armeabi-v7a
       uses: actions/upload-artifact@v4
       with:
-        name: app-armeabi-v7a-debug
-        path: build/app/outputs/flutter-apk/app-armeabi-v7a-debug.apk
+        name: app-armeabi-v7a-release
+        path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
         retention-days: 30
 
     - name: 📤 Upload x86_64
       uses: actions/upload-artifact@v4
       with:
-        name: app-x86_64-debug
-        path: build/app/outputs/flutter-apk/app-x86_64-debug.apk
+        name: app-x86_64-release
+        path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
