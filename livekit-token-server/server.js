@@ -124,9 +124,13 @@ app.post('/call-notification', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Receiver not found', requestId });
     }
     const receiver = receiverSnapshot.data() || {};
-    const fcmToken = typeof receiver.fcmToken === 'string' ? receiver.fcmToken.trim() : '';
-    if (!fcmToken) {
-      console.error(`❌ [${requestId}] receiver has no FCM token uid=${receiverId}`);
+    const fcmTokens = [...(Array.isArray(receiver.fcmTokens) ? receiver.fcmTokens : []), receiver.fcmToken]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean)
+      .filter((value, index, all) => all.indexOf(value) === index);
+
+    if (!fcmTokens.length) {
+      console.error(`❌ [${requestId}] receiver has no FCM token(s) uid=${receiverId}`);
       return res.status(200).json({ success: true, sent: false, reason: 'fcm_token_missing', requestId });
     }
 
@@ -134,7 +138,7 @@ app.post('/call-notification', async (req, res) => {
     const callerName = String(call.callerName || decodedToken.name || 'مستخدم');
     const callerPhotoUrl = String(call.callerPhotoUrl || '');
     const message = {
-      token: fcmToken,
+      tokens: fcmTokens,
       data: {
         type: 'incoming_call',
         callId,
@@ -151,17 +155,33 @@ app.post('/call-notification', async (req, res) => {
       },
     };
 
-    console.log(`📤 [${requestId}] sending DATA-ONLY FCM receiver=${receiverId} token=${fcmToken.slice(0, 16)}… type=incoming_call isVideo=${isVideo} chatId=${chatId}`);
+    console.log(`📤 [${requestId}] sending DATA-ONLY FCM receiver=${receiverId} tokens=${fcmTokens.length} type=incoming_call isVideo=${isVideo} chatId=${chatId}`);
     try {
-      const messageId = await admin.messaging().send(message);
-      console.log(`✅ [${requestId}] FCM accepted by Firebase messageId=${messageId}`);
-      return res.json({ success: true, sent: true, messageId, callId, receiverId, requestId, mode: 'data_only' });
+      const response = await admin.messaging().sendEachForMulticast(message);
+      const invalidTokens = [];
+      response.responses.forEach((result, index) => {
+        if (!result.success && ['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(result.error?.code)) {
+          invalidTokens.push(fcmTokens[index]);
+        }
+      });
+      if (invalidTokens.length) {
+        await db.collection('users').doc(receiverId).set({
+          fcmTokens: admin.firestore.FieldValue.arrayRemove(...invalidTokens),
+          ...(fcmTokens.every((token) => invalidTokens.includes(token))
+            ? { fcmToken: null }
+            : {}),
+          lastTokenUpdate: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+      }
+      if (response.failureCount === response.successCount + response.failureCount && response.successCount === 0) {
+        const firstError = response.responses.find((result) => !result.success)?.error;
+        console.error(`❌ [${requestId}] all FCM tokens failed code=${firstError?.code || 'unknown'} message=${firstError?.message || 'unknown'}`);
+        return res.status(502).json({ success: false, sent: false, reason: firstError?.code || 'fcm_send_failed', requestId });
+      }
+      console.log(`✅ [${requestId}] FCM accepted success=${response.successCount} failure=${response.failureCount}`);
+      return res.json({ success: true, sent: response.successCount > 0, successCount: response.successCount, failureCount: response.failureCount, callId, receiverId, requestId, mode: 'data_only_multicast' });
     } catch (error) {
       console.error(`❌ [${requestId}] Incoming call FCM error code=${error.code || 'unknown'} message=${error.message || error}`);
-      if (['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(error.code)) {
-        await db.collection('users').doc(receiverId).set({ fcmToken: null, lastTokenUpdate: null }, { merge: true });
-        console.warn(`🧹 [${requestId}] cleared invalid FCM token uid=${receiverId}`);
-      }
       return res.status(502).json({ success: false, sent: false, reason: error.code || 'fcm_send_failed', requestId });
     }
   } catch (error) {
@@ -252,31 +272,38 @@ async function handleNewMessage(change) {
       var userSnap = userSnaps[i];
       if (!userSnap.exists) continue;
       var user = userSnap.data() || {};
-      var fcmToken = typeof user.fcmToken === 'string' ? user.fcmToken.trim() : '';
-      if (!fcmToken) continue;
+      var fcmTokens = (Array.isArray(user.fcmTokens) ? user.fcmTokens : [])
+        .concat([user.fcmToken])
+        .map(function(value) { return String(value || '').trim(); })
+        .filter(Boolean)
+        .filter(function(value, index, all) { return all.indexOf(value) === index; });
+      if (!fcmTokens.length) continue;
 
-      var payload = buildMessagePayload({
-        fcmToken: fcmToken,
-        senderId: senderId,
-        senderName: senderLabel,
-        senderPhotoUrl: senderPhotoUrl,
-        chatId: chatId,
-        messageId: messageId,
-        messageText: messageText,
-        chatType: chatType
-      });
+      for (var ti = 0; ti < fcmTokens.length; ti++) {
+        var fcmToken = fcmTokens[ti];
+        var payload = buildMessagePayload({
+          fcmToken: fcmToken,
+          senderId: senderId,
+          senderName: senderLabel,
+          senderPhotoUrl: senderPhotoUrl,
+          chatId: chatId,
+          messageId: messageId,
+          messageText: messageText,
+          chatType: chatType
+        });
 
-      try {
-        var fcmId = await admin.messaging().send(payload);
-        sentCount++;
-        console.log('[msg] sent id=' + messageId + ' to=' + userSnap.id + ' fcm=' + fcmId);
-      } catch (err) {
-        console.error('[msg] FCM failed to=' + userSnap.id + ' code=' + (err.code || '?'));
-        if (err.code === 'messaging/registration-token-not-registered' ||
-            err.code === 'messaging/invalid-registration-token') {
-          await db.collection('users').doc(userSnap.id).set(
-            { fcmToken: null, lastTokenUpdate: null }, { merge: true }
-          );
+        try {
+          var fcmId = await admin.messaging().send(payload);
+          sentCount++;
+          console.log('[msg] sent id=' + messageId + ' to=' + userSnap.id + ' tokenIndex=' + ti + ' fcm=' + fcmId);
+        } catch (err) {
+          console.error('[msg] FCM failed to=' + userSnap.id + ' tokenIndex=' + ti + ' code=' + (err.code || '?'));
+          if (err.code === 'messaging/registration-token-not-registered' ||
+              err.code === 'messaging/invalid-registration-token') {
+            await db.collection('users').doc(userSnap.id).set(
+              { fcmTokens: admin.firestore.FieldValue.arrayRemove(fcmToken) }, { merge: true }
+            );
+          }
         }
       }
     }
