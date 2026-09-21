@@ -62,9 +62,6 @@ jobs:
         }
         JSONEOF
 
-    # ============================================================
-    # 🔐 Prepare production release keystore
-    # ============================================================
     - name: 🔐 Prepare Sehatak release keystore
       shell: bash
       env:
@@ -74,7 +71,6 @@ jobs:
         SEHATAK_KEY_PASSWORD: ${{ secrets.SEHATAK_KEY_PASSWORD }}
       run: |
         set -euo pipefail
-
         : "${SEHATAK_KEYSTORE_BASE64:?SEHATAK_KEYSTORE_BASE64 is missing}"
         : "${SEHATAK_KEYSTORE_PASSWORD:?SEHATAK_KEYSTORE_PASSWORD is missing}"
         : "${SEHATAK_KEY_ALIAS:?SEHATAK_KEY_ALIAS is missing}"
@@ -83,8 +79,6 @@ jobs:
         rm -rf android/keystore
         mkdir -p android/keystore
 
-        # GitHub Secrets may contain accidental line breaks/whitespace after paste.
-        # Normalize the Base64 payload before decoding, then validate the resulting JKS.
         normalized_base64="$(printf '%s' "${SEHATAK_KEYSTORE_BASE64}" | tr -d '[:space:]')"
         test -n "${normalized_base64}"
         printf '%s' "${normalized_base64}" | base64 --decode > android/keystore/sehatak-release.jks
@@ -94,11 +88,31 @@ jobs:
         echo "🔎 Keystore bytes: $(wc -c < android/keystore/sehatak-release.jks)"
         echo "🔎 Keystore SHA-256: $(sha256sum android/keystore/sehatak-release.jks | cut -d' ' -f1)"
 
-        keytool -list -v -keystore android/keystore/sehatak-release.jks \
-          -storepass "${SEHATAK_KEYSTORE_PASSWORD}" \
-          -alias "${SEHATAK_KEY_ALIAS}" >/tmp/sehatak-keytool.txt
-        grep -q "Alias name:" /tmp/sehatak-keytool.txt
-        grep -q "Entry type:" /tmp/sehatak-keytool.txt
+        # Diagnose the exact credential mismatch without printing any secret.
+        if keytool -list -keystore android/keystore/sehatak-release.jks           -storepass "${SEHATAK_KEYSTORE_PASSWORD}" >/tmp/sehatak-keystore-list.txt 2>/tmp/sehatak-keystore-error.txt; then
+          echo "✅ Keystore password accepted."
+        else
+          echo "❌ SEHATAK_KEYSTORE_PASSWORD does not unlock this keystore."
+          sed 's/.*Exception:/keytool exception:/' /tmp/sehatak-keystore-error.txt | head -n 3
+          exit 1
+        fi
+
+        if grep -Fq "Alias name: ${SEHATAK_KEY_ALIAS}" /tmp/sehatak-keystore-list.txt; then
+          echo "✅ Alias exists: ${SEHATAK_KEY_ALIAS}"
+        else
+          echo "❌ SEHATAK_KEY_ALIAS was not found in the keystore."
+          echo "Available aliases:"
+          grep -E '^([[:space:]]*)Alias name:' /tmp/sehatak-keystore-list.txt | sed 's/^[[:space:]]*//' | head -n 20
+          exit 1
+        fi
+
+        if keytool -list -keystore android/keystore/sehatak-release.jks           -storepass "${SEHATAK_KEYSTORE_PASSWORD}"           -alias "${SEHATAK_KEY_ALIAS}" >/dev/null 2>/tmp/sehatak-alias-error.txt; then
+          echo "✅ Keystore + alias validation passed."
+        else
+          echo "❌ Keystore/alias validation failed."
+          sed 's/.*Exception:/keytool exception:/' /tmp/sehatak-alias-error.txt | head -n 3
+          exit 1
+        fi
 
         {
           echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
@@ -117,19 +131,19 @@ jobs:
         flutter build apk --release --split-per-abi --no-shrink \
           --dart-define=NEXTCLOUD_URL=https://noa.it.tabdigital.cloud \
           --dart-define=NEXTCLOUD_USERNAME=PlatformSehatak@gmail.com \
-          --dart-define=NEXTCLOUD_PASSWORD=10.10.10.1010.10.10.10 \
+          --dart-define=NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }} \
           --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
-          --dart-define=FIREBASE_API_KEY=AIzaSyDSjIBY-jZR00mhNVzuy2PYN5gKzKDiq74 \
-          --dart-define=FIREBASE_APP_ID=1:642028459034:android:1a18ab80ca5a28163249fd \
-          --dart-define=FIREBASE_MESSAGING_SENDER_ID=642028459034 \
+          --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+          --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+          --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
           --dart-define=FIREBASE_AUTH_DOMAIN=sehatak-platform.firebaseapp.com \
           --dart-define=FIREBASE_STORAGE_BUCKET=sehatak-platform.appspot.com \
-          --dart-define=FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@sehatak-platform.iam.gserviceaccount.com \
+          --dart-define=FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }} \
           --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud \
-          --dart-define=LIVEKIT_API_KEY=APIJA856nkFikBG \
-          --dart-define=LIVEKIT_API_SECRET=20uYYBFoHewR7kCm3TSL89lp15jtyz7TIzdioVcYNNb \
-          --dart-define=JWT_SECRET=sehatak_super_secret_jwt_key_2026_change_me \
-          --dart-define=ENCRYPTION_KEY=sehatak_encryption_key_2026 \
+          --dart-define=LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }} \
+          --dart-define=LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }} \
+          --dart-define=JWT_SECRET=${{ secrets.JWT_SECRET }} \
+          --dart-define=ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
           --dart-define=APP_NAME=صحتك_Sehatak \
           --dart-define=APP_VERSION=2.0.0 \
           --dart-define=APP_ENV=production \
@@ -141,7 +155,7 @@ jobs:
           --dart-define=DB_PORT=5432 \
           --dart-define=DB_NAME=sehatak \
           --dart-define=DB_USER=sehatak_user \
-          --dart-define=DB_PASSWORD=sehatak_db_password_2026
+          --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
 
     - name: 🔎 Verify APK signatures
       shell: bash
