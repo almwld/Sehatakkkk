@@ -85,8 +85,8 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
     } catch(e) { _message('تعذر إرسال الطلب. تأكد من الموقع والاتصال',error:true); }
   }
 
-  Stream<QuerySnapshot<Map<String,dynamic>>> _paramedics()=>_firestore.collection('health_contacts').where('role',isEqualTo:'paramedic').where('isAvailable',isEqualTo:true).where('acceptingEmergency',isEqualTo:true).limit(50).snapshots();
-  Stream<QuerySnapshot<Map<String,dynamic>>> _requests(String uid)=>_firestore.collection('ambulance_requests').where('paramedicId',isEqualTo:uid).where('status',whereIn:const ['pending','accepted','en_route','on_scene']).orderBy('createdAt',descending:true).limit(30).snapshots();
+  Stream<QuerySnapshot<Map<String,dynamic>>> _paramedics()=>_firestore.collection('health_contacts').where('role',isEqualTo:'paramedic').where('isAvailable',isEqualTo:true).where('isOnline',isEqualTo:true).where('acceptingEmergency',isEqualTo:true).limit(50).snapshots();
+  Stream<QuerySnapshot<Map<String,dynamic>>> _requests(String uid)=>_firestore.collection('ambulance_requests').where('paramedicId',isEqualTo:uid).where('status',whereIn:const ['pending','accepted','en_route','on_scene']).limit(30).snapshots();
   Future<void> _setRequestStatus(String id,String status)=>_firestore.collection('ambulance_requests').doc(id).update({'status':status,'updatedAt':FieldValue.serverTimestamp()});
   void _message(String m,{bool error=false}){if(!mounted)return;ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(m),backgroundColor:error?Colors.red:AppColors.primary));}
 
