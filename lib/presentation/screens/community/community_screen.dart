@@ -9,6 +9,7 @@ import 'package:sehatak/core/models/community/community_post_model.dart';
 import 'package:sehatak/core/services/community_share_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/create_post_sheet.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:video_player/video_player.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -376,13 +377,22 @@ class _PostCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
             child: Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: AppColors.primary.withOpacity(.12),
-                  child: Text(
-                    post.userName.isEmpty ? 'ص' : post.userName.characters.first,
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w900,
+                GestureDetector(
+                  onTap: post.userId.trim().isEmpty
+                      ? null
+                      : () => Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                              builder: (_) => PatientProfile(userId: post.userId),
+                            ),
+                          ),
+                  child: CircleAvatar(
+                    backgroundColor: AppColors.primary.withOpacity(.12),
+                    child: Text(
+                      post.userName.isEmpty ? 'ص' : post.userName.characters.first,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
