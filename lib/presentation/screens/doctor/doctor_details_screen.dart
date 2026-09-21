@@ -15,6 +15,7 @@ import 'package:sehatak/presentation/screens/booking/booking_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
@@ -317,6 +318,17 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       centerTitle: true,
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
       actions: [
+        if (_doctor?.userId?.trim().isNotEmpty == true)
+          IconButton(
+            tooltip: 'الملف الشخصي',
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () {
+              final uid = _doctor!.userId!.trim();
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(builder: (_) => PatientProfile(userId: uid)),
+              );
+            },
+          ),
         IconButton(
           tooltip: _isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة',
           onPressed: _doctor == null ? null : _toggleFavorite,
