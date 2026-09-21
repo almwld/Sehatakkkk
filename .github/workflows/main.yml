@@ -26,12 +26,6 @@ jobs:
         channel: 'stable'
         cache: true
 
-    - name: 🧹 Clean Gradle transform cache
-      run: |
-        rm -rf ~/.gradle/caches
-        rm -rf ~/.gradle/wrapper/dists
-        flutter clean
-
     - name: 🔐 Prepare Sehatak release keystore
       shell: bash
       env:
