@@ -15,7 +15,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const _lastShownKey = 'sehatak_splash_last_shown_ms';
-  static const _lastRouteKey = 'sehatak_last_route';
   static const _interval = Duration(hours: 12);
   static const _duration = Duration(seconds: 9);
 
@@ -75,14 +74,9 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
 
-    final savedRoute = prefs.getString(_lastRouteKey);
-    final route = savedRoute != null &&
-            savedRoute.isNotEmpty &&
-            savedRoute != '/splash' &&
-            savedRoute != '/auth'
-        ? savedRoute
-        : '/';
-    context.go(route);
+    // The home screen is the application's gateway. A fresh app launch
+    // must always start from Home, never from the last internal screen.
+    context.go('/');
   }
 
   @override
