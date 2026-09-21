@@ -14,8 +14,8 @@ if (flutterRoot == null) {
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
 
-// Release signing is intentionally external to source control.
-// Local builds may use android/key.properties; CI injects the same values via environment variables.
+// Release signing is external to source control.
+// Local builds may use android/key.properties; CI supplies the same values via environment variables.
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
@@ -35,6 +35,20 @@ def releaseStoreFile = signingValue('storeFile', 'SEHATAK_KEYSTORE_FILE')
 def releaseStorePassword = signingValue('storePassword', 'SEHATAK_KEYSTORE_PASSWORD')
 def releaseKeyAlias = signingValue('keyAlias', 'SEHATAK_KEY_ALIAS')
 def releaseKeyPassword = signingValue('keyPassword', 'SEHATAK_KEY_PASSWORD')
+
+def missingSigningValues = []
+if (!releaseStoreFile) missingSigningValues << 'storeFile/SEHATAK_KEYSTORE_FILE'
+if (!releaseStorePassword) missingSigningValues << 'storePassword/SEHATAK_KEYSTORE_PASSWORD'
+if (!releaseKeyAlias) missingSigningValues << 'keyAlias/SEHATAK_KEY_ALIAS'
+if (!releaseKeyPassword) missingSigningValues << 'keyPassword/SEHATAK_KEY_PASSWORD'
+if (!missingSigningValues.isEmpty()) {
+    throw new GradleException("Release signing is not configured. Missing: " + missingSigningValues.join(', '))
+}
+
+def releaseKeystore = file(releaseStoreFile)
+if (!releaseKeystore.exists() || !releaseKeystore.isFile()) {
+    throw new GradleException("Release keystore not found: " + releaseKeystore.absolutePath)
+}
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
@@ -69,24 +83,16 @@ android {
 
     signingConfigs {
         release {
-            if (releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword) {
-                storeFile file(releaseStoreFile)
-                storePassword releaseStorePassword
-                keyAlias releaseKeyAlias
-                keyPassword releaseKeyPassword
-            }
+            storeFile releaseKeystore
+            storePassword releaseStorePassword
+            keyAlias releaseKeyAlias
+            keyPassword releaseKeyPassword
         }
     }
 
     buildTypes {
         release {
-            if (releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword) {
-                signingConfig signingConfigs.release
-            } else {
-                // Temporary compatibility fallback until the production keystore is configured.
-                // Once the four SEHATAK_* values or android/key.properties are present, Release uses the production key automatically.
-                signingConfig signingConfigs.debug
-            }
+            signingConfig signingConfigs.release
         }
     }
 }
