@@ -115,6 +115,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _back() {
+    // Imperative pages (chat room, notification detail, calls, etc.) may be
+    // pushed over Home without changing the GoRouter location. Close that
+    // transient page first so Back never exits the app from an internal screen.
+    final rootNavigator = AppRouter.navigatorKey.currentState;
+    if (rootNavigator?.canPop() == true) {
+      rootNavigator!.pop();
+      _backPressedOnce = false;
+      _backExitTimer?.cancel();
+      return;
+    }
+
     // زر الرجوع داخل HomeScreen له مستويان:
     // 1) إذا كان المستخدم داخل إحدى واجهات شريط التنقل، فالرجوع مرة واحدة
     //    يعيده إلى الرئيسية فقط، ولا يُخرج من التطبيق.
