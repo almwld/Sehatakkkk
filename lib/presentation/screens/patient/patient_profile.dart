@@ -26,6 +26,8 @@ class _PatientProfileState extends State<PatientProfile> {
   final _statusService = StatusService();
   Map<String, dynamic> _userData = {};
   bool _loading = true;
+  bool _following = false;
+  bool _followBusy = false;
 
   String get _profileId => widget.userId?.trim().isNotEmpty == true
       ? widget.userId!.trim()
@@ -53,6 +55,7 @@ class _PatientProfileState extends State<PatientProfile> {
         data.addAll({'name': user.displayName ?? 'مستخدم', 'email': user.email ?? '', 'photoUrl': user.photoURL});
       }
       if (mounted) setState(() { _userData = data; _loading = false; });
+      await _loadFollowState();
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
@@ -67,6 +70,46 @@ class _PatientProfileState extends State<PatientProfile> {
     final value = _userData[key];
     if (value is num) return value.toInt();
     return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<void> _loadFollowState() async {
+    if (_isOwnProfile || _auth.currentUser == null || _profileId.isEmpty) return;
+    try {
+      final snap = await _firestore.collection('users').doc(_auth.currentUser!.uid)
+          .collection('following').doc(_profileId).get();
+      if (mounted) setState(() => _following = snap.exists);
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFollow() async {
+    final me = _auth.currentUser;
+    if (me == null) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سجّل الدخول أولاً للمتابعة')));
+      return;
+    }
+    if (_profileId.isEmpty || _profileId == me.uid || _followBusy) return;
+    setState(() => _followBusy = true);
+    final followingRef = _firestore.collection('users').doc(me.uid).collection('following').doc(_profileId);
+    final followerRef = _firestore.collection('users').doc(_profileId).collection('followers').doc(me.uid);
+    try {
+      if (_following) {
+        await followingRef.delete();
+        await followerRef.delete();
+      } else {
+        await followingRef.set({'userId': _profileId, 'createdAt': FieldValue.serverTimestamp()});
+        await followerRef.set({
+          'userId': me.uid,
+          'name': me.displayName ?? 'مستخدم',
+          'photoUrl': me.photoURL,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      if (mounted) setState(() => _following = !_following);
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر تحديث المتابعة')));
+    } finally {
+      if (mounted) setState(() => _followBusy = false);
+    }
   }
 
   Future<void> _edit() async {
@@ -87,7 +130,7 @@ class _PatientProfileState extends State<PatientProfile> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('ملفي الشخصي'),
+        title: Text(_isOwnProfile ? 'ملفي الشخصي' : 'الملف الشخصي'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -107,6 +150,10 @@ class _PatientProfileState extends State<PatientProfile> {
                   _header(name, email, photo, dark),
                   const SizedBox(height: 14),
                   _stats(dark),
+                  if (!_isOwnProfile) ...[
+                    const SizedBox(height: 12),
+                    _followButton(dark),
+                  ],
                   const SizedBox(height: 16),
                   _stories(name, photo, dark),
                   const SizedBox(height: 16),
@@ -127,7 +174,7 @@ class _PatientProfileState extends State<PatientProfile> {
         _storyAvatar(name, photo, 48),
         const SizedBox(height: 10),
         Text(name, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, color: dark ? Colors.white : Colors.black87)),
-        if (email.isNotEmpty) ...[
+        if (_isOwnProfile && email.isNotEmpty) ...[
           const SizedBox(height: 4),
           Text(email, style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.grey[600])),
         ],
@@ -167,13 +214,50 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _stats(bool dark) {
-    return Row(children: [
-      Expanded(child: _stat('المنشورات', _count('postsCount'), dark)),
-      const SizedBox(width: 8),
-      Expanded(child: _stat('المتابعون', _count('followersCount'), dark)),
-      const SizedBox(width: 8),
-      Expanded(child: _stat('يتابع', _count('followingCount'), dark)),
-    ]);
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _firestore.collection('community_posts')
+          .where('userId', isEqualTo: _profileId)
+          .where('isPublished', isEqualTo: true)
+          .limit(50).snapshots(),
+      builder: (context, postsSnap) {
+        final posts = postsSnap.data?.docs ?? const [];
+        final likes = posts.fold<int>(0, (sum, doc) => sum + ((doc.data()['likes'] as num?)?.toInt() ?? 0));
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _firestore.collection('users').doc(_profileId).collection('followers').snapshots(),
+          builder: (context, followersSnap) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: _firestore.collection('users').doc(_profileId).collection('following').snapshots(),
+            builder: (context, followingSnap) => Row(children: [
+              Expanded(child: _stat('المنشورات', posts.length, dark)),
+              const SizedBox(width: 6),
+              Expanded(child: _stat('الإعجابات', likes, dark)),
+              const SizedBox(width: 6),
+              Expanded(child: _stat('المتابعون', followersSnap.data?.docs.length ?? 0, dark)),
+              const SizedBox(width: 6),
+              Expanded(child: _stat('يتابع', followingSnap.data?.docs.length ?? 0, dark)),
+            ]),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _followButton(bool dark) {
+    return SizedBox(
+      height: 44,
+      child: ElevatedButton.icon(
+        onPressed: _followBusy ? null : _toggleFollow,
+        icon: _followBusy
+            ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : Icon(_following ? Icons.person_remove_outlined : Icons.person_add_alt_1_outlined),
+        label: Text(_following ? 'إلغاء المتابعة' : 'متابعة'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _following ? (dark ? const Color(0xFF263552) : const Color(0xFFE9EFF0)) : AppColors.primary,
+          foregroundColor: _following ? (dark ? Colors.white : const Color(0xFF263238)) : Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+        ),
+      ),
+    );
   }
 
   Widget _stat(String label, int? value, bool dark) {
