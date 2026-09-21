@@ -1,12 +1,12 @@
 buildscript {
-    ext.kotlin_version = '1.9.10'
+    ext.kotlin_version = '1.9.22'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.2'
+        classpath 'com.android.tools.build:gradle:7.4.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.4.0'
     }
@@ -22,13 +22,6 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-
-    // AGP 8+ requires a namespace for older Flutter plugins.
-    afterEvaluate {
-        if (project.name == "blurhash" && project.hasProperty("android")) {
-            project.android { namespace "com.raincal.blurhash" }
-        }
-    }
 }
 
 tasks.register("clean", Delete) {
