@@ -71,7 +71,17 @@ class MedicationService {
       if (consultationId != null) 'consultationId': consultationId,
     };
     final localId = 'med_${DateTime.now().microsecondsSinceEpoch}';
-    final result = {'id': localId, ...data, 'startDate': startDate ?? DateTime.now()};
+    // Firestore FieldValue.serverTimestamp() is not JSON serializable.
+    // Keep a cache-safe representation separate from the Firestore payload.
+    final now = DateTime.now();
+    final result = <String, dynamic>{
+      'id': localId,
+      ...data,
+      'startDate': (startDate ?? now).toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
+      'createdAt': now.toIso8601String(),
+      'updatedAt': now.toIso8601String(),
+    };
     final previous = await CacheService.getList('medications_${user.uid}') ?? const <Map<String, dynamic>>[];
     await CacheService.saveList('medications_${user.uid}', [result, ...previous]);
 
