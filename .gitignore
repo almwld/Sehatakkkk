@@ -199,3 +199,14 @@ livekit-token-server/*.backup
 android/key.properties
 android/*.jks
 android/*.keystore
+
+# 🔴 Android signing — NEVER commit
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+android/*.jks
+android/*.keystore
+android/local.properties
+google-services.json
+android/app/google-services.json
+firebase-adminsdk-*.json
