@@ -1,5 +1,6 @@
 name: 🚀 Build Sehatak APK
-# Build verification after dependency and Dart fixes
+# Build verification after dependency, Dart, and release-signing fixes
+# Release keystore normalization is validated before Flutter build.
 
 on:
   push:
