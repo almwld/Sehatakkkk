@@ -63,7 +63,8 @@ class FirstAidScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Expanded(child: ListView.builder(
+            Expanded(
+              child: ListView.builder(
           itemCount: firstAidTips.length,
           itemBuilder: (context, index) {
             final tip = firstAidTips[index];
@@ -97,8 +98,9 @@ class FirstAidScreen extends StatelessWidget {
               ),
             );
           },
-          ),
-        ],
+              ),
+            ),
+          ],
         ),
       ),
     );
