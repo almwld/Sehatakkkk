@@ -400,7 +400,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   }
 
   void _call(bool video) {
-    Navigator.of(context).push(MaterialPageRoute(
+    Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(
         builder: (_) => CallScreen(
             chatId: widget.chatId,
             doctorName: widget.otherUserName,
