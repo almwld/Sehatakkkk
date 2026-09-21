@@ -92,18 +92,23 @@ class _PatientProfileState extends State<PatientProfile> {
     final followingRef = _firestore.collection('users').doc(me.uid).collection('following').doc(_profileId);
     final followerRef = _firestore.collection('users').doc(_profileId).collection('followers').doc(me.uid);
     try {
+      final batch = _firestore.batch();
       if (_following) {
-        await followingRef.delete();
-        await followerRef.delete();
+        batch.delete(followingRef);
+        batch.delete(followerRef);
       } else {
-        await followingRef.set({'userId': _profileId, 'createdAt': FieldValue.serverTimestamp()});
-        await followerRef.set({
+        batch.set(followingRef, {
+          'userId': _profileId,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        batch.set(followerRef, {
           'userId': me.uid,
           'name': me.displayName ?? 'مستخدم',
           'photoUrl': me.photoURL,
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
+      await batch.commit();
       if (mounted) setState(() => _following = !_following);
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر تحديث المتابعة')));
