@@ -269,6 +269,7 @@ class _HealthDashboardState extends State<HealthDashboard>
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
+        curvedBottom: true,
         actions: [
           IconButton(
             icon: Icon(Icons.notifications_outlined,
