@@ -38,6 +38,8 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
     DateTime? date;
     DateTime? nextDate;
     String status = 'مكتمل';
+    String beneficiaryType = 'self';
+    final beneficiaryName = TextEditingController();
 
     final saved = await showDialog<bool>(
       context: context,
@@ -48,6 +50,26 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                DropdownButtonFormField<String>(
+                  value: beneficiaryType,
+                  decoration: const InputDecoration(labelText: 'المستفيد من التطعيم'),
+                  items: const [
+                    DropdownMenuItem(value: 'self', child: Text('صاحب الحساب')),
+                    DropdownMenuItem(value: 'child', child: Text('طفل')),
+                    DropdownMenuItem(value: 'woman', child: Text('امرأة')),
+                  ],
+                  onChanged: (v) { if (v != null) setDialogState(() => beneficiaryType = v); },
+                ),
+                if (beneficiaryType != 'self') ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: beneficiaryName,
+                    decoration: InputDecoration(
+                      labelText: beneficiaryType == 'child' ? 'اسم الطفل *' : 'اسم المرأة *',
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 TextField(
                   controller: name,
                   decoration: const InputDecoration(labelText: 'اسم اللقاح *'),
@@ -114,9 +136,15 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                   _msg('أدخل اسم اللقاح');
                   return;
                 }
+                if (beneficiaryType != 'self' && beneficiaryName.text.trim().isEmpty) {
+                  _msg(beneficiaryType == 'child' ? 'أدخل اسم الطفل' : 'أدخل اسم المرأة');
+                  return;
+                }
                 try {
                   await _items(uid).add({
                     'name': name.text.trim(),
+                    'beneficiaryType': beneficiaryType,
+                    'beneficiaryName': beneficiaryType == 'self' ? null : beneficiaryName.text.trim(),
                     'status': status,
                     'date': date == null ? null : Timestamp.fromDate(date!),
                     'nextDate': nextDate == null
@@ -146,6 +174,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
     );
     name.dispose();
     location.dispose();
+    beneficiaryName.dispose();
     if (saved == true) _msg('تم حفظ التطعيم');
   }
 
@@ -228,6 +257,8 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
               final doc = docs[index];
               final data = doc.data();
               final status = data['status']?.toString() ?? 'قادم';
+              final beneficiaryType = data['beneficiaryType']?.toString() ?? 'self';
+              final beneficiary = data['beneficiaryName']?.toString();
               final date = _date(data['date']);
               final next = _date(data['nextDate']);
               final color = status == 'مكتمل'
@@ -265,8 +296,8 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 onDismissed: (_) => _delete(doc.id),
                 child: Card(
                   child: ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.vaccines_outlined),
+                    leading: CircleAvatar(
+                      child: Icon(beneficiaryType == 'child' ? Icons.child_care : beneficiaryType == 'woman' ? Icons.female : Icons.vaccines_outlined),
                     ),
                     title: Text(
                       data['name']?.toString() ?? 'تطعيم',
@@ -275,6 +306,8 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (beneficiaryType != 'self' && beneficiary != null && beneficiary.trim().isNotEmpty)
+                          Text(beneficiaryType == 'child' ? 'الطفل: $beneficiary' : 'المرأة: $beneficiary'),
                         if (date != null) Text('تاريخ التطعيم: ' + _fmt(date)),
                         if (next != null)
                           Text('الجرعة القادمة: ' + _fmt(next)),
