@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/presentation/screens/paramedic/paramedic_field_screen.dart';
 
 class FirstAidScreen extends StatelessWidget {
   const FirstAidScreen({Key? key}) : super(key: key);
@@ -47,7 +48,22 @@ class FirstAidScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
+        child: Column(
+          children: [
+            Card(
+              color: Colors.red.withOpacity(.06),
+              child: ListTile(
+                leading: const Icon(Icons.emergency, color: Colors.red, size: 32),
+                title: const Text('المسعفون الميدانيون', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('اعرض المسعفين المتاحين الآن حسب مناطق تواجدهم واطلب الاستجابة للطوارئ.'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () => Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(builder: (_) => const ParamedicFieldScreen(publicMode: true)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(child: ListView.builder(
           itemCount: firstAidTips.length,
           itemBuilder: (context, index) {
             final tip = firstAidTips[index];
@@ -81,6 +97,8 @@ class FirstAidScreen extends StatelessWidget {
               ),
             );
           },
+          ),
+        ],
         ),
       ),
     );
