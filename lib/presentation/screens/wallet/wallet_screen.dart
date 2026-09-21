@@ -103,8 +103,8 @@ class _WalletScreenState extends State<WalletScreen> {
     final actions=[
       {'icon':Icons.qr_code_scanner_rounded,'label':'مسح QR','color':Colors.blue},
       {'icon':Icons.history_rounded,'label':'السجل','color':Colors.green},
-      {'asset':AppImages.walletKremi,'label':'بطاقات','color':Colors.purple},
-      {'asset':AppImages.walletJeeb,'label':'طرق الدفع','color':Colors.orange},
+      {'asset':AppImages.walletPayments,'label':'بطاقات','color':Colors.purple},
+      {'asset':AppImages.walletIcon,'label':'طرق الدفع','color':Colors.orange},
     ];
     return Row(mainAxisAlignment:MainAxisAlignment.spaceEvenly,children:actions.map((action){
       return GestureDetector(
