@@ -173,7 +173,12 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       if (userId.isEmpty || userId == self) return;
       final name = (data['name'] ?? data['displayName'] ?? data['title'] ?? 'حساب صحي').toString().trim();
       final image = (data['photoUrl'] ?? data['imageUrl'] ?? data['logoUrl'] ?? data['photo'] ?? '').toString();
-      final subtitle = (data['specialty'] ?? data['description'] ?? data['address'] ?? data['location'] ?? category).toString().trim();
+      final availability = data['role'] == 'paramedic'
+          ? (data['isAvailable'] == true && data['isOnline'] == true && data['acceptingEmergency'] == true ? 'متاح الآن' : 'غير متاح')
+          : '';
+      final area = (data['serviceArea'] ?? data['area'] ?? data['address'] ?? data['location'] ?? '').toString().trim();
+      final baseSubtitle = (data['specialty'] ?? data['description'] ?? area ?? category).toString().trim();
+      final subtitle = availability.isEmpty ? baseSubtitle : '$availability • $baseSubtitle';
       records.add(_DirectoryRecord(category: category, userId: userId, name: name.isEmpty ? 'حساب صحي' : name, image: image, subtitle: subtitle.isEmpty ? category : subtitle, icon: icon, data: data));
     }
 
