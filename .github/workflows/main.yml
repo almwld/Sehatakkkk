@@ -57,6 +57,37 @@ jobs:
     - name: 📦 Install dependencies
       run: flutter pub get
 
+    - name: 🩹 Patch legacy flutter_app_badger namespace
+      shell: bash
+      run: |
+        set -euo pipefail
+        plugin_dir="$(find "${PUB_CACHE:-$HOME/.pub-cache}" -type d -path '*/flutter_app_badger-1.5.0' -print -quit)"
+        if [ -z "${plugin_dir}" ]; then
+          echo "❌ flutter_app_badger 1.5.0 was not found in Pub cache."
+          exit 1
+        fi
+        gradle_file="${plugin_dir}/android/build.gradle"
+        manifest_file="${plugin_dir}/android/src/main/AndroidManifest.xml"
+        if grep -qE '^[[:space:]]*namespace[[:space:]]+' "${gradle_file}"; then
+          echo "✅ flutter_app_badger already declares a namespace."
+          exit 0
+        fi
+        package_name="$(sed -n 's/.*package="\([^" ]*\)".*/\1/p' "${manifest_file}" | head -n 1)"
+        if [ -z "${package_name}" ]; then
+          echo "❌ Could not derive flutter_app_badger namespace from AndroidManifest.xml."
+          exit 1
+        fi
+        python3 - "${gradle_file}" "${package_name}" <<'PY'
+import pathlib, sys
+p = pathlib.Path(sys.argv[1])
+ns = sys.argv[2]
+s = p.read_text()
+if 'namespace ' not in s:
+    s = s.replace('android {', f'android {{\n    namespace "{ns}"', 1)
+p.write_text(s)
+PY
+        echo "✅ Patched legacy flutter_app_badger namespace: ${package_name}"
+
     - name: 🔨 Build APK
       run: |
         flutter build apk --release --split-per-abi --no-shrink \
