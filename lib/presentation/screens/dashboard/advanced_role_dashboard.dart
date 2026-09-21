@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/screens/paramedic/paramedic_field_screen.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,7 +17,8 @@ class AdvancedRoleDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     if (role == 'doctor') return const _DoctorControlCenter();
     if (role == 'pharmacy' || role == 'pharmacist' || role == 'pharmacyOwner') return const PharmacyDashboard();
-    if (['lab','hospital','clinic','medical_center','dental','dentist','ophthalmology','optometrist','nurse','midwife','physiotherapist','paramedic','veterinarian'].contains(role)) return _FacilityControlCenter(role: role);
+    if (role == 'paramedic') return const ParamedicFieldScreen();
+    if (['lab','hospital','clinic','medical_center','dental','dentist','ophthalmology','optometrist','nurse','midwife','physiotherapist','veterinarian'].contains(role)) return _FacilityControlCenter(role: role);
     if (role == 'superAdmin') return const SuperAdminDashboard();
     if (role == 'admin') return const _AdminControlCenter();
     return _ProviderControlCenter(role: role);
