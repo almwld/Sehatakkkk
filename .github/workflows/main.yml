@@ -37,9 +37,10 @@ jobs:
         set -euo pipefail
         rm -rf android/keystore
         mkdir -p android/keystore
-        if [ -z "${SEHATAK_KEYSTORE_BASE64:-}" ]; then
-          echo "⚠️ Release keystore secret is not configured; Gradle fallback will be used."
-          exit 0
+        if [ -z "${SEHATAK_KEYSTORE_BASE64:-}" ] || [ -z "${SEHATAK_KEYSTORE_PASSWORD:-}" ] || [ -z "${SEHATAK_KEY_ALIAS:-}" ] || [ -z "${SEHATAK_KEY_PASSWORD:-}" ]; then
+          echo "❌ Production release signing secrets are incomplete."
+          echo "Required: SEHATAK_KEYSTORE_BASE64, SEHATAK_KEYSTORE_PASSWORD, SEHATAK_KEY_ALIAS, SEHATAK_KEY_PASSWORD"
+          exit 1
         fi
         if printf '%s' "${SEHATAK_KEYSTORE_BASE64}" | base64 --decode > android/keystore/sehatak-release.jks 2>/dev/null && test -s android/keystore/sehatak-release.jks; then
           chmod 600 android/keystore/sehatak-release.jks
@@ -62,11 +63,13 @@ jobs:
             echo "✅ Release keystore and signing credentials validated."
           else
             rm -f android/keystore/sehatak-release.jks android/keystore/.signing-validation.csr
-            echo "⚠️ Release keystore credentials are invalid; Gradle debug-signing fallback will be used."
+            echo "❌ Release keystore credentials are invalid."
+            exit 1
           fi
         else
           rm -f android/keystore/sehatak-release.jks
-          echo "⚠️ Invalid keystore payload; Gradle fallback will be used."
+          echo "❌ Invalid release keystore payload."
+          exit 1
         fi
     - name: 📦 Install dependencies
       run: flutter pub get
@@ -101,6 +104,21 @@ jobs:
           --dart-define=DB_NAME=sehatak \
           --dart-define=DB_USER=sehatak_user \
           --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+
+    - name: 🔎 Verify production APK signing
+      shell: bash
+      run: |
+        set -euo pipefail
+        apk="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
+        test -s "$apk"
+        echo "=== Production signing certificate ==="
+        apksigner verify --verbose --print-certs "$apk"
+        certs="$(apksigner verify --verbose --print-certs "$apk")"
+        if printf '%s\n' "$certs" | grep -q 'Signer #1 certificate DN: C=US, O=Android, CN=Android Debug'; then
+          echo "❌ Release APK is debug-signed."
+          exit 1
+        fi
+        echo "✅ Release APK is not debug-signed."
 
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
