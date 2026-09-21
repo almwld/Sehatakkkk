@@ -88,25 +88,38 @@ jobs:
         echo "🔎 Keystore bytes: $(wc -c < android/keystore/sehatak-release.jks)"
         echo "🔎 Keystore SHA-256: $(sha256sum android/keystore/sehatak-release.jks | cut -d' ' -f1)"
 
-        # Diagnose the exact credential mismatch without printing any secret.
-        if keytool -list -keystore android/keystore/sehatak-release.jks           -storepass "${SEHATAK_KEYSTORE_PASSWORD}" >/tmp/sehatak-keystore-list.txt 2>/tmp/sehatak-keystore-error.txt; then
+        # Diagnose the credential/alias mismatch without printing any secret.
+        # Some JKS files use the same value for store and key password. If the
+        # dedicated store-password secret is wrong but the key-password secret
+        # is the actual JKS store password, accept it as a safe fallback.
+        STORE_PASSWORD="${SEHATAK_KEYSTORE_PASSWORD}"
+        if keytool -list -keystore android/keystore/sehatak-release.jks -storepass "${STORE_PASSWORD}" >/tmp/sehatak-keystore-list.txt 2>/tmp/sehatak-keystore-error.txt; then
           echo "✅ Keystore password accepted."
+        elif keytool -list -keystore android/keystore/sehatak-release.jks -storepass "${SEHATAK_KEY_PASSWORD}" >/tmp/sehatak-keystore-list.txt 2>/tmp/sehatak-keystore-error.txt; then
+          STORE_PASSWORD="${SEHATAK_KEY_PASSWORD}"
+          echo "✅ Keystore unlocked using the key-password secret."
         else
-          echo "❌ SEHATAK_KEYSTORE_PASSWORD does not unlock this keystore."
+          echo "❌ Neither signing password secret unlocks this keystore."
           sed 's/.*Exception:/keytool exception:/' /tmp/sehatak-keystore-error.txt | head -n 3
           exit 1
         fi
 
         if grep -Fq "Alias name: ${SEHATAK_KEY_ALIAS}" /tmp/sehatak-keystore-list.txt; then
-          echo "✅ Alias exists: ${SEHATAK_KEY_ALIAS}"
+          EFFECTIVE_ALIAS="${SEHATAK_KEY_ALIAS}"
+          echo "✅ Configured alias exists."
         else
-          echo "❌ SEHATAK_KEY_ALIAS was not found in the keystore."
-          echo "Available aliases:"
-          grep -E '^([[:space:]]*)Alias name:' /tmp/sehatak-keystore-list.txt | sed 's/^[[:space:]]*//' | head -n 20
-          exit 1
+          aliases="$(grep -E '^([[:space:]]*)Alias name:' /tmp/sehatak-keystore-list.txt | sed 's/^[[:space:]]*Alias name: //' | sed 's/^[[:space:]]*//' | head -n 2)"
+          alias_count="$(printf '%s\n' "${aliases}" | sed '/^$/d' | wc -l)"
+          if [ "${alias_count}" -eq 1 ]; then
+            EFFECTIVE_ALIAS="$(printf '%s\n' "${aliases}" | sed -n '1p')"
+            echo "⚠️ Configured alias was not found; using the only alias in the keystore."
+          else
+            echo "❌ SEHATAK_KEY_ALIAS was not found and the keystore does not have exactly one alias."
+            exit 1
+          fi
         fi
 
-        if keytool -list -keystore android/keystore/sehatak-release.jks           -storepass "${SEHATAK_KEYSTORE_PASSWORD}"           -alias "${SEHATAK_KEY_ALIAS}" >/dev/null 2>/tmp/sehatak-alias-error.txt; then
+        if keytool -list -keystore android/keystore/sehatak-release.jks           -storepass "${STORE_PASSWORD}"           -alias "${EFFECTIVE_ALIAS}" >/dev/null 2>/tmp/sehatak-alias-error.txt; then
           echo "✅ Keystore + alias validation passed."
         else
           echo "❌ Keystore/alias validation failed."
@@ -116,8 +129,8 @@ jobs:
 
         {
           echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
-          echo "SEHATAK_KEYSTORE_PASSWORD=${SEHATAK_KEYSTORE_PASSWORD}"
-          echo "SEHATAK_KEY_ALIAS=${SEHATAK_KEY_ALIAS}"
+          echo "SEHATAK_KEYSTORE_PASSWORD=${STORE_PASSWORD}"
+          echo "SEHATAK_KEY_ALIAS=${EFFECTIVE_ALIAS}"
           echo "SEHATAK_KEY_PASSWORD=${SEHATAK_KEY_PASSWORD}"
         } >> "${GITHUB_ENV}"
 
