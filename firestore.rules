@@ -27,10 +27,15 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && (request.resource.data.role != 'doctor' 
             || request.resource.data.doctorId == request.auth.uid);
-      allow update: if isAdmin() 
-        || (isSelf(userId) 
+      allow update: if isAdmin()
+        || (isSelf(userId)
             && request.resource.data.uid == resource.data.uid
-            && request.resource.data.role == resource.data.role);
+            && request.resource.data.role == resource.data.role)
+        // FCM token lifecycle may update only these fields even when an
+        // older user document does not contain a role field.
+        || (isSelf(userId)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['fcmToken', 'fcmTokens', 'lastTokenUpdate']));
       allow delete: if isAdmin();
 
       match /vital_history/{historyId} { allow read, write: if isSelf(userId); }
