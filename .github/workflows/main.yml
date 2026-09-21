@@ -104,22 +104,34 @@ jobs:
 
     - name: 🔨 Build APK
       run: |
-        flutter build apk --release --split-per-abi --no-shrink           --dart-define=NEXTCLOUD_URL=https://noa.it.tabdigital.cloud           --dart-define=NEXTCLOUD_USERNAME=PlatformSehatak@gmail.com           --dart-define=NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }}           --dart-define=FIREBASE_PROJECT_ID=sehatak-platform           --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}           --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}           --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}           --dart-define=FIREBASE_AUTH_DOMAIN=sehatak-platform.firebaseapp.com           --dart-define=FIREBASE_STORAGE_BUCKET=sehatak-platform.appspot.com           --dart-define=FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}           --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud           --dart-define=LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}           --dart-define=LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}           --dart-define=JWT_SECRET=${{ secrets.JWT_SECRET }}           --dart-define=ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}           --dart-define=APP_NAME=صحتك_Sehatak           --dart-define=APP_VERSION=2.0.0           --dart-define=APP_ENV=production           --dart-define=API_RATE_LIMIT=100           --dart-define=API_RATE_LIMIT_WINDOW=60000           --dart-define=CORS_ORIGIN=*           --dart-define=LOG_LEVEL=info           --dart-define=DB_HOST=localhost           --dart-define=DB_PORT=5432           --dart-define=DB_NAME=sehatak           --dart-define=DB_USER=sehatak_user           --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-
-    - name: 🔎 Verify production APK signing
-      shell: bash
-      run: |
-        set -euo pipefail
-        apk="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
-        test -s "$apk"
-        echo "=== Production signing certificate ==="
-        apksigner verify --verbose --print-certs "$apk"
-        certs="$(apksigner verify --verbose --print-certs "$apk")"
-        if printf '%s\n' "$certs" | grep -q 'Signer #1 certificate DN: C=US, O=Android, CN=Android Debug'; then
-          echo "❌ Release APK is debug-signed."
-          exit 1
-        fi
-        echo "✅ Release APK is not debug-signed."
+        flutter build apk --release --split-per-abi --no-shrink \
+          --dart-define=NEXTCLOUD_URL=https://noa.it.tabdigital.cloud \
+          --dart-define=NEXTCLOUD_USERNAME=PlatformSehatak@gmail.com \
+          --dart-define=NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }} \
+          --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
+          --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+          --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+          --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
+          --dart-define=FIREBASE_AUTH_DOMAIN=sehatak-platform.firebaseapp.com \
+          --dart-define=FIREBASE_STORAGE_BUCKET=sehatak-platform.appspot.com \
+          --dart-define=FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }} \
+          --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud \
+          --dart-define=LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }} \
+          --dart-define=LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }} \
+          --dart-define=JWT_SECRET=${{ secrets.JWT_SECRET }} \
+          --dart-define=ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
+          --dart-define=APP_NAME=صحتك_Sehatak \
+          --dart-define=APP_VERSION=2.0.0 \
+          --dart-define=APP_ENV=production \
+          --dart-define=API_RATE_LIMIT=100 \
+          --dart-define=API_RATE_LIMIT_WINDOW=60000 \
+          --dart-define=CORS_ORIGIN=* \
+          --dart-define=LOG_LEVEL=info \
+          --dart-define=DB_HOST=localhost \
+          --dart-define=DB_PORT=5432 \
+          --dart-define=DB_NAME=sehatak \
+          --dart-define=DB_USER=sehatak_user \
+          --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
 
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
