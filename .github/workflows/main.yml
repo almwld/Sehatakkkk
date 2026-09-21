@@ -43,13 +43,27 @@ jobs:
         fi
         if printf '%s' "${SEHATAK_KEYSTORE_BASE64}" | base64 --decode > android/keystore/sehatak-release.jks 2>/dev/null && test -s android/keystore/sehatak-release.jks; then
           chmod 600 android/keystore/sehatak-release.jks
-          {
-            echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
-            echo "SEHATAK_KEYSTORE_PASSWORD=${SEHATAK_KEYSTORE_PASSWORD}"
-            echo "SEHATAK_KEY_ALIAS=${SEHATAK_KEY_ALIAS}"
-            echo "SEHATAK_KEY_PASSWORD=${SEHATAK_KEY_PASSWORD}"
-          } >> "${GITHUB_ENV}"
-          echo "✅ Release keystore prepared."
+
+          # Validate BOTH the keystore password and the private-key password before
+          # exporting signing values. Invalid credentials must never reach Gradle.
+          validation_alias="${SEHATAK_KEY_ALIAS}"
+          if [ -z "${validation_alias}" ]; then
+            validation_alias="$(keytool -list -keystore android/keystore/sehatak-release.jks -storepass "${SEHATAK_KEYSTORE_PASSWORD}" 2>/dev/null | awk -F, 'NR==2 {gsub(/^ +| +$/, "", $1); print $1}')"
+          fi
+
+          if [ -n "${validation_alias}" ] &&              keytool -list -keystore android/keystore/sehatak-release.jks -storepass "${SEHATAK_KEYSTORE_PASSWORD}" >/dev/null 2>&1 &&              keytool -certreq -alias "${validation_alias}"                -keystore android/keystore/sehatak-release.jks                -storepass "${SEHATAK_KEYSTORE_PASSWORD}"                -keypass "${SEHATAK_KEY_PASSWORD}"                -file android/keystore/.signing-validation.csr >/dev/null 2>&1; then
+            rm -f android/keystore/.signing-validation.csr
+            {
+              echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
+              echo "SEHATAK_KEYSTORE_PASSWORD=${SEHATAK_KEYSTORE_PASSWORD}"
+              echo "SEHATAK_KEY_ALIAS=${validation_alias}"
+              echo "SEHATAK_KEY_PASSWORD=${SEHATAK_KEY_PASSWORD}"
+            } >> "${GITHUB_ENV}"
+            echo "✅ Release keystore and signing credentials validated."
+          else
+            rm -f android/keystore/sehatak-release.jks android/keystore/.signing-validation.csr
+            echo "⚠️ Release keystore credentials are invalid; Gradle debug-signing fallback will be used."
+          fi
         else
           rm -f android/keystore/sehatak-release.jks
           echo "⚠️ Invalid keystore payload; Gradle fallback will be used."
