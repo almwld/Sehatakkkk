@@ -8,8 +8,7 @@ import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/app_router.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
@@ -44,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoggedIn = false, _backPressedOnce = false;
   Timer? _backExitTimer;
   Timer? _healthRefreshTimer;
-  static const _lastTabKey = 'sehatak_last_home_tab';
   late final Map<int, Widget> _screens;
 
   @override
@@ -62,7 +60,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       6: const MoreScreen(key: ScreenKeys.more),
     };
     _checkAuth();
-    _restoreTab();
     _systemNav();
     _healthRefreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) context.read<HomeBloc>().add(HomeHealthStatsRefreshed());
@@ -77,19 +74,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       systemNavigationBarIconBrightness: Brightness.dark,
       statusBarIconBrightness: Brightness.dark,
     ));
-  }
-
-  Future<void> _restoreTab() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getInt(_lastTabKey) ?? 0;
-    if (mounted && saved >= 0 && saved <= 6) {
-      setState(() => _currentIndex = saved);
-    }
-  }
-
-  Future<void> _saveTab() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_lastTabKey, _currentIndex);
   }
 
   void _checkAuth() {
@@ -142,7 +126,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (mounted) {
         setState(() => _currentIndex = 0);
       }
-      unawaited(_saveTab());
       _scrollManager.show();
       HapticFeedback.lightImpact();
       return;
@@ -156,7 +139,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     _backPressedOnce = true;
-    ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');
+    ToastService.showToast(
+      message: 'اضغط مرة أخرى للخروج من التطبيق',
+      type: ToastType.info,
+      duration: const Duration(seconds: 2),
+    );
     _backExitTimer?.cancel();
     _backExitTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) setState(() => _backPressedOnce = false);
@@ -181,7 +168,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     if (_currentIndex != i) {
       setState(() => _currentIndex = i);
-      unawaited(_saveTab());
     }
     HapticFeedback.lightImpact();
   }
@@ -191,9 +177,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _checkAuth();
       return;
     }
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const AuthScreen()))
-        .then((_) => _checkAuth());
+    // AppRouter is the single owner of authentication navigation.
+    context.go(AppRouter.auth);
   }
 
   @override
