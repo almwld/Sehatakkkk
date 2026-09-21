@@ -52,7 +52,7 @@ class _ConsultationScreenState extends State<ConsultationScreen>
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        onPressed: () => Navigator.push(context,
+        onPressed: () => Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(builder: (_) => const DoctorsListScreen())),
         icon: const Icon(Icons.add_comment_outlined),
         label: const Text('استشارة جديدة'),
@@ -104,8 +104,7 @@ class _ConsultationScreenState extends State<ConsultationScreen>
                   trailing: const Icon(Icons.chevron_left),
                   onTap: other.isEmpty
                       ? null
-                      : () => Navigator.push(
-                          context,
+                      : () => Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
                               builder: (_) => ChatRoomScreen(
                                   chatId: c.id,
