@@ -1,4 +1,5 @@
 name: 🚀 Build Sehatak APK
+# Release build with signing + Firebase config from secrets.
 
 on:
   push:
@@ -26,6 +27,20 @@ jobs:
         channel: 'stable'
         cache: true
 
+    - name: 🔑 Add google-services.json
+      env:
+        GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      run: |
+        set -euo pipefail
+        if [ -z "${GOOGLE_SERVICES_JSON:-}" ]; then
+          echo "❌ GOOGLE_SERVICES_JSON secret is missing."
+          exit 1
+        fi
+        printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+        echo "✅ google-services.json created: $(wc -c < android/app/google-services.json) bytes"
+        echo "SHA-1 fingerprints found:"
+        grep -o '"certificate_hash": "[^"]*"' android/app/google-services.json || echo "(none)"
+
     - name: 🔐 Prepare Sehatak release keystore
       shell: bash
       env:
@@ -37,67 +52,43 @@ jobs:
         set -euo pipefail
         rm -rf android/keystore
         mkdir -p android/keystore
-
         if [ -z "${SEHATAK_KEYSTORE_BASE64:-}" ] || [ -z "${SEHATAK_KEYSTORE_PASSWORD:-}" ] || [ -z "${SEHATAK_KEY_ALIAS:-}" ] || [ -z "${SEHATAK_KEY_PASSWORD:-}" ]; then
           echo "❌ Production release signing secrets are incomplete."
-          echo "Required: SEHATAK_KEYSTORE_BASE64, SEHATAK_KEYSTORE_PASSWORD, SEHATAK_KEY_ALIAS, SEHATAK_KEY_PASSWORD"
           exit 1
         fi
-
         if ! printf '%s' "${SEHATAK_KEYSTORE_BASE64}" | base64 --decode > android/keystore/sehatak-release.jks 2>/dev/null || ! test -s android/keystore/sehatak-release.jks; then
           rm -f android/keystore/sehatak-release.jks
           echo "❌ Invalid release keystore payload."
           exit 1
         fi
         chmod 600 android/keystore/sehatak-release.jks
-
         validation_alias="${SEHATAK_KEY_ALIAS}"
-
-        # Safe diagnostics: identify the decoded keystore without exposing any
-        # password, base64 payload, or private-key material.
-        echo "Decoded keystore size: $(wc -c < android/keystore/sehatak-release.jks) bytes"
         echo "Decoded keystore SHA-256: $(sha256sum android/keystore/sehatak-release.jks | awk '{print $1}')"
-
-        # Validate the STORE password independently of the alias. This avoids
-        # conflating a wrong store password with a wrong alias.
-        if ! keytool -list \
-          -keystore android/keystore/sehatak-release.jks \
-          -storepass "${SEHATAK_KEYSTORE_PASSWORD}" \
-          >/tmp/sehatak-keystore-list.txt 2>/tmp/sehatak-keystore-list.err; then
+        if ! keytool -list -keystore android/keystore/sehatak-release.jks -storepass "${SEHATAK_KEYSTORE_PASSWORD}" >/tmp/ks.txt 2>/tmp/ks.err; then
           echo "❌ Keystore password is invalid."
-          echo "Diagnostic: keytool could not open the decoded keystore with SEHATAK_KEYSTORE_PASSWORD."
-          rm -f android/keystore/sehatak-release.jks /tmp/sehatak-keystore-list.txt /tmp/sehatak-keystore-list.err
+          rm -f android/keystore/sehatak-release.jks /tmp/ks.txt /tmp/ks.err
           exit 1
         fi
         echo "✅ Keystore password validated."
-
-        # Now validate the requested alias independently.
-        if ! grep -Eq "^[[:space:]]*${validation_alias}[[:space:]]*(,|$)" /tmp/sehatak-keystore-list.txt; then
-          echo "❌ Keystore alias is invalid or not present."
-          echo "Diagnostic: the store password is valid, but SEHATAK_KEY_ALIAS was not found."
-          echo "Aliases present (names only):"
-          awk '/^[[:space:]]*[A-Za-z0-9_.-]+,/{gsub(/^[[:space:]]+|,.*/, ""); print " - " $0}' /tmp/sehatak-keystore-list.txt
-          rm -f android/keystore/sehatak-release.jks /tmp/sehatak-keystore-list.txt /tmp/sehatak-keystore-list.err
+        if ! grep -Eq "^[[:space:]]*${validation_alias}[[:space:]]*(,|$)" /tmp/ks.txt; then
+          echo "❌ Keystore alias is invalid."
+          rm -f android/keystore/sehatak-release.jks /tmp/ks.txt /tmp/ks.err
           exit 1
         fi
         echo "✅ Keystore alias validated: ${validation_alias}"
-
-        # Check the private-key password separately.
-        if ! keytool -certreq           -alias "${validation_alias}"           -keystore android/keystore/sehatak-release.jks           -storepass "${SEHATAK_KEYSTORE_PASSWORD}"           -keypass "${SEHATAK_KEY_PASSWORD}"           -file android/keystore/.signing-validation.csr >/dev/null 2>&1; then
-          rm -f android/keystore/sehatak-release.jks android/keystore/.signing-validation.csr
-          echo "❌ Private-key password is invalid for the supplied keystore."
-          echo "Diagnostic: keystore password and alias are valid; the key password does not unlock alias '${validation_alias}'."
+        if ! keytool -certreq -alias "${validation_alias}" -keystore android/keystore/sehatak-release.jks -storepass "${SEHATAK_KEYSTORE_PASSWORD}" -keypass "${SEHATAK_KEY_PASSWORD}" -file android/keystore/.csr >/dev/null 2>&1; then
+          rm -f android/keystore/sehatak-release.jks android/keystore/.csr
+          echo "❌ Private-key password is invalid."
           exit 1
         fi
-
-        rm -f android/keystore/.signing-validation.csr
+        rm -f android/keystore/.csr
         {
           echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
           echo "SEHATAK_KEYSTORE_PASSWORD=${SEHATAK_KEYSTORE_PASSWORD}"
           echo "SEHATAK_KEY_ALIAS=${validation_alias}"
           echo "SEHATAK_KEY_PASSWORD=${SEHATAK_KEY_PASSWORD}"
         } >> "${GITHUB_ENV}"
-        echo "✅ Release keystore and signing credentials validated."
+        echo "✅ Release keystore validated."
 
     - name: 📦 Install dependencies
       run: flutter pub get
@@ -132,6 +123,21 @@ jobs:
           --dart-define=DB_NAME=sehatak \
           --dart-define=DB_USER=sehatak_user \
           --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+
+    - name: 🔎 Verify production APK signing
+      shell: bash
+      run: |
+        set -euo pipefail
+        apk="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
+        test -s "$apk"
+        echo "=== Production signing certificate ==="
+        apksigner verify --verbose --print-certs "$apk"
+        certs="$(apksigner verify --verbose --print-certs "$apk")"
+        if printf '%s\n' "$certs" | grep -q 'Signer #1 certificate DN: C=US, O=Android, CN=Android Debug'; then
+          echo "❌ Release APK is debug-signed."
+          exit 1
+        fi
+        echo "✅ Release APK is not debug-signed."
 
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
