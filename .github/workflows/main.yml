@@ -37,73 +37,55 @@ jobs:
         set -euo pipefail
         rm -rf android/keystore
         mkdir -p android/keystore
+
         if [ -z "${SEHATAK_KEYSTORE_BASE64:-}" ] || [ -z "${SEHATAK_KEYSTORE_PASSWORD:-}" ] || [ -z "${SEHATAK_KEY_ALIAS:-}" ] || [ -z "${SEHATAK_KEY_PASSWORD:-}" ]; then
           echo "❌ Production release signing secrets are incomplete."
           echo "Required: SEHATAK_KEYSTORE_BASE64, SEHATAK_KEYSTORE_PASSWORD, SEHATAK_KEY_ALIAS, SEHATAK_KEY_PASSWORD"
           exit 1
         fi
-        if printf '%s' "${SEHATAK_KEYSTORE_BASE64}" | base64 --decode > android/keystore/sehatak-release.jks 2>/dev/null && test -s android/keystore/sehatak-release.jks; then
-          chmod 600 android/keystore/sehatak-release.jks
 
-          # Validate BOTH the keystore password and the private-key password before
-          # exporting signing values. Invalid credentials must never reach Gradle.
-          validation_alias="${SEHATAK_KEY_ALIAS}"
-          if [ -z "${validation_alias}" ]; then
-            validation_alias="$(keytool -list -keystore android/keystore/sehatak-release.jks -storepass "${SEHATAK_KEYSTORE_PASSWORD}" 2>/dev/null | awk -F, 'NR==2 {gsub(/^ +| +$/, "", $1); print $1}')"
-          fi
-
-          if [ -n "${validation_alias}" ] &&              keytool -list -keystore android/keystore/sehatak-release.jks -storepass "${SEHATAK_KEYSTORE_PASSWORD}" >/dev/null 2>&1 &&              keytool -certreq -alias "${validation_alias}"                -keystore android/keystore/sehatak-release.jks                -storepass "${SEHATAK_KEYSTORE_PASSWORD}"                -keypass "${SEHATAK_KEY_PASSWORD}"                -file android/keystore/.signing-validation.csr >/dev/null 2>&1; then
-            rm -f android/keystore/.signing-validation.csr
-            {
-              echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
-              echo "SEHATAK_KEYSTORE_PASSWORD=${SEHATAK_KEYSTORE_PASSWORD}"
-              echo "SEHATAK_KEY_ALIAS=${validation_alias}"
-              echo "SEHATAK_KEY_PASSWORD=${SEHATAK_KEY_PASSWORD}"
-            } >> "${GITHUB_ENV}"
-            echo "✅ Release keystore and signing credentials validated."
-          else
-            rm -f android/keystore/sehatak-release.jks android/keystore/.signing-validation.csr
-            echo "❌ Release keystore credentials are invalid."
-            exit 1
-          fi
-        else
+        if ! printf '%s' "${SEHATAK_KEYSTORE_BASE64}" | base64 --decode > android/keystore/sehatak-release.jks 2>/dev/null || ! test -s android/keystore/sehatak-release.jks; then
           rm -f android/keystore/sehatak-release.jks
           echo "❌ Invalid release keystore payload."
           exit 1
         fi
+        chmod 600 android/keystore/sehatak-release.jks
+
+        validation_alias="${SEHATAK_KEY_ALIAS}"
+
+        # Check the store password separately so a key-password failure
+        # cannot be mistaken for a keystore-password failure.
+        if ! keytool -list           -keystore android/keystore/sehatak-release.jks           -storepass "${SEHATAK_KEYSTORE_PASSWORD}"           -alias "${validation_alias}" >/dev/null 2>&1; then
+          rm -f android/keystore/sehatak-release.jks
+          echo "❌ Keystore password or alias is invalid."
+          echo "Diagnostic: the decoded keystore was readable, but keytool could not open the requested alias with the supplied store password."
+          exit 1
+        fi
+        echo "✅ Keystore password and alias validated."
+
+        # Check the private-key password separately.
+        if ! keytool -certreq           -alias "${validation_alias}"           -keystore android/keystore/sehatak-release.jks           -storepass "${SEHATAK_KEYSTORE_PASSWORD}"           -keypass "${SEHATAK_KEY_PASSWORD}"           -file android/keystore/.signing-validation.csr >/dev/null 2>&1; then
+          rm -f android/keystore/sehatak-release.jks android/keystore/.signing-validation.csr
+          echo "❌ Private-key password is invalid for the supplied keystore."
+          echo "Diagnostic: keystore password and alias are valid; the key password does not unlock alias '${validation_alias}'."
+          exit 1
+        fi
+
+        rm -f android/keystore/.signing-validation.csr
+        {
+          echo "SEHATAK_KEYSTORE_FILE=${GITHUB_WORKSPACE}/android/keystore/sehatak-release.jks"
+          echo "SEHATAK_KEYSTORE_PASSWORD=${SEHATAK_KEYSTORE_PASSWORD}"
+          echo "SEHATAK_KEY_ALIAS=${validation_alias}"
+          echo "SEHATAK_KEY_PASSWORD=${SEHATAK_KEY_PASSWORD}"
+        } >> "${GITHUB_ENV}"
+        echo "✅ Release keystore and signing credentials validated."
+
     - name: 📦 Install dependencies
       run: flutter pub get
 
     - name: 🔨 Build APK
       run: |
-        flutter build apk --release --split-per-abi --no-shrink \
-          --dart-define=NEXTCLOUD_URL=https://noa.it.tabdigital.cloud \
-          --dart-define=NEXTCLOUD_USERNAME=PlatformSehatak@gmail.com \
-          --dart-define=NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }} \
-          --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
-          --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
-          --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
-          --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
-          --dart-define=FIREBASE_AUTH_DOMAIN=sehatak-platform.firebaseapp.com \
-          --dart-define=FIREBASE_STORAGE_BUCKET=sehatak-platform.appspot.com \
-          --dart-define=FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }} \
-          --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud \
-          --dart-define=LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }} \
-          --dart-define=LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }} \
-          --dart-define=JWT_SECRET=${{ secrets.JWT_SECRET }} \
-          --dart-define=ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
-          --dart-define=APP_NAME=صحتك_Sehatak \
-          --dart-define=APP_VERSION=2.0.0 \
-          --dart-define=APP_ENV=production \
-          --dart-define=API_RATE_LIMIT=100 \
-          --dart-define=API_RATE_LIMIT_WINDOW=60000 \
-          --dart-define=CORS_ORIGIN=* \
-          --dart-define=LOG_LEVEL=info \
-          --dart-define=DB_HOST=localhost \
-          --dart-define=DB_PORT=5432 \
-          --dart-define=DB_NAME=sehatak \
-          --dart-define=DB_USER=sehatak_user \
-          --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        flutter build apk --release --split-per-abi --no-shrink           --dart-define=NEXTCLOUD_URL=https://noa.it.tabdigital.cloud           --dart-define=NEXTCLOUD_USERNAME=PlatformSehatak@gmail.com           --dart-define=NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }}           --dart-define=FIREBASE_PROJECT_ID=sehatak-platform           --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}           --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}           --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}           --dart-define=FIREBASE_AUTH_DOMAIN=sehatak-platform.firebaseapp.com           --dart-define=FIREBASE_STORAGE_BUCKET=sehatak-platform.appspot.com           --dart-define=FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}           --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud           --dart-define=LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}           --dart-define=LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}           --dart-define=JWT_SECRET=${{ secrets.JWT_SECRET }}           --dart-define=ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}           --dart-define=APP_NAME=صحتك_Sehatak           --dart-define=APP_VERSION=2.0.0           --dart-define=APP_ENV=production           --dart-define=API_RATE_LIMIT=100           --dart-define=API_RATE_LIMIT_WINDOW=60000           --dart-define=CORS_ORIGIN=*           --dart-define=LOG_LEVEL=info           --dart-define=DB_HOST=localhost           --dart-define=DB_PORT=5432           --dart-define=DB_NAME=sehatak           --dart-define=DB_USER=sehatak_user           --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
 
     - name: 🔎 Verify production APK signing
       shell: bash
