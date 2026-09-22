@@ -655,27 +655,12 @@ class _SehatakAppState extends State<SehatakApp>
               Locale('ar', 'SA'),
               Locale('en', 'US')
             ],
-            builder: (context, child) => PopScope(
-              canPop: false,
-              onPopInvoked: (didPop) {
-                if (didPop) return;
-                final location =
-                    AppRouter.router.routerDelegate.currentConfiguration.uri
-                        .toString();
-                // Any internal screen is a leaf from the user's perspective:
-                // Back returns directly to the Home gateway instead of walking
-                // backward through a stack of previously visited screens.
-                if (location != AppRouter.home) {
-                  AppRouter.router.go(AppRouter.home);
-                }
-              },
-              child: MediaQuery(
-                data: MediaQuery.of(context)
-                    .copyWith(textScaleFactor: fontProvider.fontScale),
-                child: Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: child!,
-                ),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaleFactor: fontProvider.fontScale),
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
               ),
             ),
             routerConfig: AppRouter.router,

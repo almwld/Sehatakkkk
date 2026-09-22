@@ -115,9 +115,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _back() {
-    // Imperative pages (chat room, notification detail, calls, etc.) may be
-    // pushed over Home without changing the GoRouter location. Close that
-    // transient page first so Back never exits the app from an internal screen.
+    // 1) If we are on a GoRouter leaf other than Home (e.g. doctor details,
+    //    pharmacy, lab), go back to Home first. This handles the case where
+    //    the internal screen was opened via AppRouter.router.go(...).
+    final location =
+        AppRouter.router.routerDelegate.currentConfiguration.uri.toString();
+    if (location != AppRouter.home) {
+      AppRouter.router.go(AppRouter.home);
+      _backPressedOnce = false;
+      _backExitTimer?.cancel();
+      return;
+    }
+
+    // 2) Imperative pages (chat room, notification detail, calls, etc.) may
+    //    be pushed over Home without changing the GoRouter location. Close
+    //    that transient page first so Back never exits the app from an
+    //    internal screen.
     final rootNavigator = navigatorKey.currentState;
     if (rootNavigator?.canPop() == true) {
       rootNavigator!.pop();
