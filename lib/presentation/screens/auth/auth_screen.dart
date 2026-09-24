@@ -509,14 +509,16 @@ class _AuthScreenState extends State<AuthScreen>
     setState(() => _isLoading = true);
     _showLoading();
 
+    GoogleSignIn? google;
+    bool firebaseAuthenticated = false;
+
     try {
-      final google = GoogleSignIn();
+      google = GoogleSignIn();
       debugPrint('[GoogleAuth] starting account picker');
       final GoogleSignInAccount? googleUser = await google.signIn().timeout(
         const Duration(seconds: 30),
         onTimeout: () => throw TimeoutException('Google account picker timed out'),
       );
-      debugPrint('[GoogleAuth] account selected');
       if (googleUser == null) {
         _hideLoading();
         if (mounted) setState(() => _isLoading = false);
@@ -527,39 +529,56 @@ class _AuthScreenState extends State<AuthScreen>
         const Duration(seconds: 20),
         onTimeout: () => throw TimeoutException('Google authentication timed out'),
       );
-      debugPrint('[GoogleAuth] credentials received');
       if (googleAuth.idToken == null && googleAuth.accessToken == null) {
         throw Exception('لم تُرجع Google بيانات اعتماد صالحة');
       }
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+
       debugPrint('[GoogleAuth] signing into Firebase');
-      final result = await FirebaseAuth.instance.signInWithCredential(credential).timeout(
-        const Duration(seconds: 25),
-        onTimeout: () => throw TimeoutException('Firebase credential sign-in timed out'),
-      );
+      final result = await FirebaseAuth.instance
+          .signInWithCredential(credential)
+          .timeout(
+            const Duration(seconds: 25),
+            onTimeout: () =>
+                throw TimeoutException('Firebase credential sign-in timed out'),
+          );
       final user = result.user;
       if (user == null) throw Exception('تعذر الحصول على حساب Google');
 
-      final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
-      final existing = await userRef.get().timeout(
-        const Duration(seconds: 15),
-        onTimeout: () => throw TimeoutException('Firestore user lookup timed out'),
-      );
+      // From this point Firebase authentication has succeeded. Post-login
+      // profile/persistence work must never turn a successful login into an
+      // error toast or leave the user on the authentication screen.
+      firebaseAuthenticated = true;
+      debugPrint('[GoogleAuth] Firebase authentication succeeded: ${user.uid}');
 
       if (widget.isSignUp) {
+        final userRef =
+            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        final existing = await userRef.get().timeout(
+          const Duration(seconds: 15),
+          onTimeout: () =>
+              throw TimeoutException('Firestore user lookup timed out'),
+        );
+
         if (existing.exists) {
           await FirebaseAuth.instance.signOut();
           await google.signOut();
+          firebaseAuthenticated = false;
           _hideLoading();
           if (mounted) {
             setState(() => _isLoading = false);
-            ToastService.showError('حساب Google هذا مسجل مسبقاً. سجّل الدخول من صفحة الدخول.');
+            ToastService.showError(
+              'حساب Google هذا مسجل مسبقاً. سجّل الدخول من صفحة الدخول.',
+            );
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const AuthScreen(isSignUp: false)),
+              MaterialPageRoute(
+                builder: (_) => const AuthScreen(isSignUp: false),
+              ),
             );
           }
           return;
@@ -585,7 +604,8 @@ class _AuthScreenState extends State<AuthScreen>
           'updatedAt': FieldValue.serverTimestamp(),
         }).timeout(
           const Duration(seconds: 20),
-          onTimeout: () => throw TimeoutException('Firestore profile creation timed out'),
+          onTimeout: () =>
+              throw TimeoutException('Firestore profile creation timed out'),
         );
 
         await FirebaseAuth.instance.signOut();
@@ -598,73 +618,96 @@ class _AuthScreenState extends State<AuthScreen>
         _hideLoading();
         if (mounted) {
           setState(() => _isLoading = false);
-          ToastService.showSuccess('تم إنشاء حساب Google بنجاح. اضغط Google في صفحة الدخول للمتابعة.');
+          ToastService.showSuccess(
+            'تم إنشاء حساب Google بنجاح. اضغط Google في صفحة الدخول للمتابعة.',
+          );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const AuthScreen(isSignUp: false)),
+            MaterialPageRoute(
+              builder: (_) => const AuthScreen(isSignUp: false),
+            ),
           );
         }
         return;
       }
 
-      await userRef.set({
-        'uid': user.uid,
-        'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
-        'email': user.email ?? googleUser.email,
-        'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
-        'provider': 'google',
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true)).timeout(
-        const Duration(seconds: 20),
-        onTimeout: () => throw TimeoutException('Firestore profile update timed out'),
-      );
-
-      await SavedAccountsService.saveCurrentAccount(user);
-      await _loadSavedAccounts();
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('remember_me', true);
-      await prefs.setBool('is_logged_in', true);
-      await prefs.setString('user_uid', user.uid);
-
+      // Successful Google login: finish the visible authentication flow first.
+      // Firestore/local persistence is intentionally best-effort and cannot
+      // produce a false "Google login failed" message after Firebase success.
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
-      await _showSuccessAnimation();
+
+      if (mounted) {
+        await _showSuccessAnimation();
+      }
       if (!mounted) return;
 
-      // Login is a terminal navigation event: clear any previous resume target
-      // and replace Auth with Home immediately after the success confirmation.
-      final prefsAfterLogin = await SharedPreferences.getInstance();
-      await prefsAfterLogin.remove('sehatak_last_route');
-      if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) AppRouter.router.go(AppRouter.home);
-        });
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) AppRouter.router.go(AppRouter.home);
+      });
+
+      unawaited(() async {
+        try {
+          final userRef =
+              FirebaseFirestore.instance.collection('users').doc(user.uid);
+          await userRef.set({
+            'uid': user.uid,
+            'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
+            'email': user.email ?? googleUser.email,
+            'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
+            'provider': 'google',
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+
+          await SavedAccountsService.saveCurrentAccount(user);
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('remember_me', true);
+          await prefs.setBool('is_logged_in', true);
+          await prefs.setString('user_uid', user.uid);
+          await prefs.remove('sehatak_last_route');
+
+          if (mounted) await _loadSavedAccounts();
+        } catch (e) {
+          // Authentication already succeeded; persistence failure is not a
+          // login failure and must not show an error toast over Home.
+          debugPrint('[GoogleAuth] post-login persistence failed: $e');
+        }
+      }());
     } on TimeoutException catch (e) {
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
       debugPrint('[GoogleAuth] TIMEOUT: $e');
-      ToastService.showError('انتهت مهلة تسجيل الدخول عبر Google. تحقق من الإنترنت وإعدادات Google ثم حاول مرة أخرى.');
+      if (!firebaseAuthenticated) {
+        ToastService.showError(
+          'انتهت مهلة تسجيل الدخول عبر Google. تحقق من الإنترنت وإعدادات Google ثم حاول مرة أخرى.',
+        );
+      }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
-      var message = 'حدث خطأ أثناء تسجيل الدخول عبر Google';
-      if (e.code == 'account-exists-with-different-credential') {
-        message = 'هذا البريد مرتبط بطريقة تسجيل دخول أخرى. استخدم طريقة التسجيل الأصلية.';
-      } else if (e.code == 'invalid-credential') {
-        message = 'بيانات اعتماد Google غير صالحة';
-      } else if (e.code == 'network-request-failed') {
-        message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
+      debugPrint('[GoogleAuth] Firebase error: ${e.code} / ${e.message}');
+      if (!firebaseAuthenticated) {
+        var message = 'حدث خطأ أثناء تسجيل الدخول عبر Google';
+        if (e.code == 'account-exists-with-different-credential') {
+          message =
+              'هذا البريد مرتبط بطريقة تسجيل دخول أخرى. استخدم طريقة التسجيل الأصلية.';
+        } else if (e.code == 'invalid-credential') {
+          message = 'بيانات اعتماد Google غير صالحة';
+        } else if (e.code == 'network-request-failed') {
+          message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
+        }
+        ToastService.showError(message);
       }
-      ToastService.showError(message);
     } catch (e) {
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
-      ToastService.showError('تعذر إكمال عملية Google: $e');
+      debugPrint('[GoogleAuth] error: $e');
+      if (!firebaseAuthenticated) {
+        ToastService.showError('تعذر إكمال عملية Google: $e');
+      }
     }
   }
-
   Future<void> _login() async {
     if (_emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
