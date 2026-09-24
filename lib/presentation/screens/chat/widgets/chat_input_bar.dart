@@ -15,6 +15,10 @@ import 'package:sehatak/core/services/toast_service.dart';
 
 class ChatInputBar extends StatefulWidget {
   final String chatId;
+  /// Explicit reply target supplied by ChatRoomScreen. Keeping this in the
+  /// input widget prevents the reply context from being lost between the UI
+  /// and the actual Firestore write.
+  final String? replyToId;
   final Function(String) onSendMessage;
   final Function(String)? onSendImage;
   final Function(Map<String, dynamic>)? onLocalMedia;
@@ -25,6 +29,7 @@ class ChatInputBar extends StatefulWidget {
   const ChatInputBar({
     super.key,
     required this.chatId,
+    this.replyToId,
     required this.onSendMessage,
     this.onSendImage,
     this.onLocalMedia,
@@ -152,7 +157,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     if (text.isEmpty || _sending || _recording || _hasRecording) return;
     setState(() => _sending = true);
     try {
-      await ReliableMessageService.sendText(chatId: widget.chatId, text: text);
+      await ReliableMessageService.sendText(chatId: widget.chatId, text: text, replyToId: widget.replyToId);
       widget.onSendMessage(text);
       _controller.clear();
     } catch (e) {
