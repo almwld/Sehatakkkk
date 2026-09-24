@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class HospitalBookingScreen extends StatelessWidget {
@@ -9,14 +10,13 @@ class HospitalBookingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final hospitals = [
-      {'name': 'مستشفى 22 مايو', 'address': 'صنعاء', 'rating': 4.9, 'specialty': 'عام'},
-      {'name': 'مستشفى الجمهورية', 'address': 'صنعاء', 'rating': 4.8, 'specialty': 'عام'},
-      {'name': 'مستشفى السبعين', 'address': 'صنعاء', 'rating': 4.7, 'specialty': 'أطفال وولادة'},
-      {'name': 'مستشفى الثورة العام', 'address': 'صنعاء', 'rating': 4.6, 'specialty': 'عام'},
-    ];
-
-    return Scaffold(
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('hospitals').where('isActive', isEqualTo: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return const Scaffold(body: Center(child: Text('تعذر تحميل المستشفيات حالياً')));
+        if (!snapshot.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        final hospitals = snapshot.data!.docs;
+        return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
         title: 'حجز مستشفى',
@@ -28,7 +28,7 @@ class HospitalBookingScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         itemCount: hospitals.length,
         itemBuilder: (context, index) {
-          final hospital = hospitals[index];
+          final hospital = hospitals[index].data();
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
@@ -60,7 +60,7 @@ class HospitalBookingScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        hospital['name'] as String,
+                        hospital['name']?.toString() ?? 'مستشفى',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -69,7 +69,7 @@ class HospitalBookingScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        hospital['address'] as String,
+                        hospital['address']?.toString() ?? '',
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -83,7 +83,7 @@ class HospitalBookingScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          hospital['specialty'] as String,
+                          hospital['specialty']?.toString() ?? hospital['type']?.toString() ?? 'خدمات طبية',
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.primary,
@@ -99,6 +99,8 @@ class HospitalBookingScreen extends StatelessWidget {
           );
         },
       ),
+    );
+      },
     );
   }
 }

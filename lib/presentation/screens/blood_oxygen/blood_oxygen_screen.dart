@@ -1,68 +1,46 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/health_metrics_service.dart';
 
-class BloodOxygenScreen extends StatelessWidget {
+class BloodOxygenScreen extends StatefulWidget {
   const BloodOxygenScreen({super.key});
+  @override State<BloodOxygenScreen> createState() => _BloodOxygenScreenState();
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+class _BloodOxygenScreenState extends State<BloodOxygenScreen> {
+  final _controller = TextEditingController();
+  bool _saving = false;
+  @override void dispose() { _controller.dispose(); super.dispose(); }
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: CustomAppBar(
-        title: const Text('نسبة الأكسجين', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.purple.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.bloodtype_rounded,
-                size: 60,
-                color: AppColors.purple,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'نسبة الأكسجين في الدم',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'سيتم إضافة هذه الميزة قريباً',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.grey,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back_rounded),
-              label: const Text('العودة'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _save() async {
+    final value = int.tryParse(_controller.text.trim());
+    if (value == null || value < 50 || value > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أدخل نسبة أكسجين مقاسة بين 50% و100%.')));
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await HealthMetricsService.update({'bloodOxygen': value});
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ القراءة المقاسة.')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر الحفظ: $e')));
+    } finally { if (mounted) setState(() => _saving = false); }
   }
+
+  @override Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFFF8FAFC),
+    appBar: CustomAppBar(title: const Text('نسبة الأكسجين'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+    body: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
+      const Icon(Icons.bloodtype_rounded, size: 80, color: AppColors.purple),
+      const SizedBox(height: 16),
+      const Text('إدخال قراءة حقيقية', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      const Text('استخدم جهاز قياس أكسجين معتمداً ثم أدخل القراءة هنا. لا يستخدم التطبيق الكاميرا لتخمين SpO₂.', textAlign: TextAlign.center),
+      const SizedBox(height: 24),
+      TextField(controller: _controller, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'SpO₂ %', border: OutlineInputBorder(), suffixText: '%')),
+      const SizedBox(height: 16),
+      SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _saving ? null : _save, child: Text(_saving ? 'جاري الحفظ...' : 'حفظ القراءة'))),
+    ])),
+  );
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -177,21 +178,14 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
 
           final facilityCategory = _facilityCategoryForRole(role);
           if (facilityCategory != null) {
-            await firestore.collection('map_facilities').doc(user.uid).set({
-              'ownerUid': user.uid,
-              'name': (userData['name'] ?? 'مرفق صحي').toString(),
-              'phone': (userData['phone'] ?? '').toString(),
-              'address': address,
-              'area': area,
-              'role': role,
-              'category': facilityCategory,
-              'location': pointData,
+            await FirebaseFunctions.instanceFor(region: 'us-central1')
+                .httpsCallable('syncMapFacility')
+                .call({
               'lat': point.latitude,
               'lng': point.longitude,
-              'isPublished': true,
-              'updatedAt': FieldValue.serverTimestamp(),
-              'createdAt': FieldValue.serverTimestamp(),
-            }, SetOptions(merge: true));
+              'address': address,
+              'area': area,
+            });
           } else {
             await firestore.collection('map_facilities').doc(user.uid).delete();
           }
@@ -217,18 +211,30 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
   }
 
   String? _facilityCategoryForRole(String role) {
-    switch (role) {
+    switch (role.trim().toLowerCase()) {
+      case 'hospital':
+      case 'hospital_owner':
+      case 'hospitaladmin':
+        return 'hospitals';
       case 'doctor':
       case 'nurse':
       case 'midwife':
       case 'physiotherapist':
       case 'paramedic':
+      case 'dentist':
+      case 'ophthalmologist':
+      case 'eye_doctor':
         return 'clinics';
       case 'pharmacist':
+      case 'pharmacy':
+      case 'pharmacy_owner':
         return 'pharmacies';
       case 'lab':
+      case 'laboratory':
+      case 'laboratory_owner':
         return 'labs';
       case 'service':
+      case 'health_facility':
         return 'other';
       default:
         return null;

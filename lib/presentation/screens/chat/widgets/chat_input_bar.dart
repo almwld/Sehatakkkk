@@ -87,12 +87,19 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _toggleAttachments() async {
     if (_sending) return;
-    _focus.unfocus();
-    FocusManager.instance.primaryFocus?.unfocus();
     if (_attachments) {
       setState(() => _attachments = false);
       return;
     }
+
+    // Close the IME first, then reveal the attachment panel in the space
+    // previously occupied by the keyboard. This avoids the panel jumping
+    // above the keyboard while the keyboard is still animating away.
+    _focus.unfocus(disposition: UnfocusDisposition.scope);
+    FocusScope.of(context).unfocus(disposition: UnfocusDisposition.scope);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await Future<void>.delayed(const Duration(milliseconds: 280));
+    if (!mounted) return;
     setState(() => _attachments = true);
     await _loadRecentGallery();
   }
@@ -597,7 +604,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
         ),
       );
 
-  Widget _mediaMenu(bool dark) => Material(
+  Widget _mediaMenu(bool dark) => GestureDetector(
+        onVerticalDragEnd: (details) {
+          if ((details.primaryVelocity ?? 0) > 180 && mounted) {
+            setState(() => _attachments = false);
+          }
+        },
+        child: Material(
         key: const ValueKey('attachments'),
         color: Colors.transparent,
         child: Container(
@@ -624,6 +637,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
             ],
           ),
         ),
+      ),
       );
 
   Widget get _mediaItemPlaceholder => Row(

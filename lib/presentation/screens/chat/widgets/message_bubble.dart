@@ -29,8 +29,10 @@ class MessageBubble extends StatefulWidget {
   final VoidCallback? onDeleteForMe;
   final VoidCallback? onEdit;
   final Function(String)? onCallAgain;
+  final bool isFirstInChat;
+  final VoidCallback? onReplyPreviewTap;
 
-  const MessageBubble({super.key, required this.message, required this.isMe, this.onReply, this.onDelete, this.onReaction, this.onPin, this.onDeleteForMe, this.onEdit, this.onCallAgain});
+  const MessageBubble({super.key, required this.message, required this.isMe, this.onReply, this.onDelete, this.onReaction, this.onPin, this.onDeleteForMe, this.onEdit, this.onCallAgain, this.isFirstInChat = false, this.onReplyPreviewTap});
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -117,7 +119,9 @@ class _MessageBubbleState extends State<MessageBubble> {
               color: widget.isMe
                   ? AppColors.primary
                   : (dark ? const Color(0xFF1A2540) : const Color(0xFFF9FCFB)),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: widget.isFirstInChat
+                  ? BorderRadius.circular(18)
+                  : BorderRadius.circular(14),
               border: !widget.isMe && !dark
                   ? Border.all(color: const Color(0xFFC8DEDA), width: .8)
                   : null,
@@ -153,6 +157,8 @@ class _MessageBubbleState extends State<MessageBubble> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (m['isPinned'] == true) _pinnedMarker(dark),
+          if (m['isEdited'] == true) _editedMarker(dark),
           if (m['replyPreview'] is Map) _replyPreview(m['replyPreview'] as Map, dark),
           Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
             Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F)), fontSize: 14))),
@@ -177,11 +183,87 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
+  Widget _editedMarker(bool dark) => Padding(
+    padding: const EdgeInsets.only(bottom: 3),
+    child: Text('معدلة', style: TextStyle(fontSize: 9, color: widget.isMe ? Colors.white60 : (dark ? Colors.white54 : Colors.grey))),
+  );
+
+  Widget _pinnedMarker(bool dark) => Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.push_pin_rounded, size: 13, color: widget.isMe ? Colors.white70 : AppColors.primary),
+        const SizedBox(width: 4),
+        Text('مثبتة', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))),
+      ],
+    ),
+  );
+
+
   Widget _replyPreview(Map preview, bool dark) {
     final sender = preview['senderName']?.toString().trim() ?? 'مستخدم';
-    final text = preview['text']?.toString().trim() ?? 'مرفق';
-    return Container(width: double.infinity, margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: widget.isMe ? Colors.white.withOpacity(.14) : (dark ? Colors.black.withOpacity(.16) : const Color(0xFFEAF5F3)), borderRadius: BorderRadius.circular(8)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(sender, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white : AppColors.primary)), const SizedBox(height: 2), Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))) ]));
+    final rawText =
+        preview['text'] ?? preview['content'] ?? preview['message'] ?? preview['body'];
+    final text = rawText?.toString().trim().isNotEmpty == true
+        ? rawText.toString().trim()
+        : _replyAttachmentPreview(preview);
+
+    return GestureDetector(
+      onTap: widget.onReplyPreviewTap,
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.all(7),
+        decoration: BoxDecoration(
+          color: widget.isMe
+              ? Colors.white.withOpacity(.14)
+              : (dark ? Colors.black.withOpacity(.16) : const Color(0xFFEAF5F3)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              sender,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: widget.isMe ? Colors.white : AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                color: widget.isMe
+                    ? Colors.white70
+                    : (dark ? Colors.white70 : const Color(0xFF49615E)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+
+  String _replyAttachmentPreview(Map preview) {
+    switch (preview['type']?.toString()) {
+      case 'image': return '📷 صورة';
+      case 'video': return '🎬 فيديو';
+      case 'audio': return '🎤 رسالة صوتية';
+      case 'file': return '📎 ملف';
+      case 'location': return '📍 موقع';
+      case 'call': return '📞 مكالمة';
+      default: return 'مرفق';
+    }
+  }
+
 
   String _timeLabel(dynamic value) { final DateTime? date = value is Timestamp ? value.toDate() : value is DateTime ? value : value is String ? DateTime.tryParse(value) : null; if (date == null) return ''; final h = date.hour.toString().padLeft(2, '0'); final min = date.minute.toString().padLeft(2, '0'); return '$h:$min'; }
 

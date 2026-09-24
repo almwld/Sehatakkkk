@@ -29,6 +29,7 @@ import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/fcm_token_service.dart';
 import 'core/services/call_service.dart';
+import 'core/services/call_sound_coordinator.dart';
 import 'core/services/chat_media_transfer_service.dart';
 import 'core/services/nextcloud_service.dart';
 import 'core/services/toast_service.dart';
@@ -41,6 +42,7 @@ import 'package:sehatak/bloc/home/home_bloc.dart';
 import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:sehatak/bloc/chat/chat_bloc.dart';
 import 'package:sehatak/bloc/messages/messages_bloc.dart';
+import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 
 import 'presentation/screens/chat/chat_room_screen.dart';
@@ -52,7 +54,21 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final notificationService = NotificationService();
   await notificationService.initialize(startCallCoordinator: false);
-  final type = message.data['type']?.toString();
+  final type = message.data['type']?.toString() ?? 'system';
+  await notificationService.persistIncomingNotification(
+    type: type,
+    title: message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? 'صحتك',
+    body: message.data['body']?.toString() ?? 'لديك إشعار جديد',
+    data: Map<String, dynamic>.from(message.data),
+    messageId: message.messageId,
+  );
+  if (type == 'new_message' || type == 'chat_message' || type == 'message') {
+    final chatId = message.data['chatId']?.toString() ?? '';
+    final messageId = message.data['messageId']?.toString() ?? '';
+    if (chatId.isNotEmpty && messageId.isNotEmpty) {
+      try { await ChatService().markDelivered(chatId); } catch (e) { debugPrint('message delivery ack failed: $e'); }
+    }
+  }
   if (type == 'incoming_call') {
     final callId = (message.data['callId'] ?? message.data['id'])?.toString();
     if (callId != null && callId.isNotEmpty) {
@@ -157,6 +173,8 @@ class _SehatakAppState extends State<SehatakApp>
   bool _fcmStarted = false;
   bool _notificationsStarted = false;
   bool _nextcloudStarted = false;
+  final MethodChannel _platformNavigationChannel =
+      const MethodChannel('com.sehatak.app/navigation');
 
   @override
   void initState() {
@@ -437,7 +455,21 @@ class _SehatakAppState extends State<SehatakApp>
   }
 
   Future<void> _handleMessage(RemoteMessage message) async {
-    final type = message.data['type']?.toString();
+    final type = message.data['type']?.toString() ?? 'system';
+    await _notificationService.persistIncomingNotification(
+      type: type,
+      title: message.notification?.title ?? message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? 'صحتك',
+      body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك إشعار جديد',
+      data: Map<String, dynamic>.from(message.data),
+      messageId: message.messageId,
+    );
+    if (type == 'new_message' || type == 'chat_message' || type == 'message') {
+      final chatId = message.data['chatId']?.toString() ?? '';
+      final messageId = message.data['messageId']?.toString() ?? '';
+      if (chatId.isNotEmpty && messageId.isNotEmpty) {
+        try { await ChatService().markDelivered(chatId); } catch (e) { debugPrint('message delivery ack failed: $e'); }
+      }
+    }
     if (type == 'incoming_call') {
       final callId =
           (message.data['callId'] ?? message.data['id'])?.toString();
@@ -450,8 +482,11 @@ class _SehatakAppState extends State<SehatakApp>
             isVideo: message.data['isVideo']?.toString() == 'true' ||
                 message.data['callType']?.toString() == 'video',
             silent: true);
+        // Firestore CallSoundCoordinator is the single foreground routing
+        // authority. It opens IncomingCallScreen over the current route, so
+        // calls never fall back to the chat screen or duplicate dialogs.
         if (mounted) {
-          await _callService.handleIncomingCall(context, message);
+          CallSoundCoordinator.instance.start();
         }
       }
       return;
@@ -478,7 +513,14 @@ class _SehatakAppState extends State<SehatakApp>
 
   Future<void> _handleMessageOpened(RemoteMessage message) async {
     try {
-      final type = message.data['type']?.toString();
+      final type = message.data['type']?.toString() ?? 'system';
+      await _notificationService.persistIncomingNotification(
+        type: type,
+        title: message.notification?.title ?? message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? 'صحتك',
+        body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك إشعار جديد',
+        data: Map<String, dynamic>.from(message.data),
+        messageId: message.messageId,
+      );
       if (type == 'incoming_call') {
         final callId =
             (message.data['callId'] ?? message.data['id'])?.toString();

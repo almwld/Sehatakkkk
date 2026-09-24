@@ -27,6 +27,8 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   bool _measuring = false;
   bool _initializing = true;
   int _status = -1;
+  List<Map<String, dynamic>> _history = <Map<String, dynamic>>[];
+  int _analyticsDays = 7;
   String? _error;
 
   late final AnimationController _pulseController = AnimationController(
@@ -40,6 +42,15 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   void initState() {
     super.initState();
     _initialize();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    try {
+      final rows = await _service.getHistory(limit: 30);
+      if (!mounted) return;
+      setState(() => _history = rows);
+    } catch (_) {}
   }
 
   Future<void> _initialize() async {
@@ -138,6 +149,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
       _measuring = false;
       _status = 0;
     });
+    await _loadHistory();
     if (_bpm > 0) _showResult();
   }
 
@@ -205,6 +217,138 @@ class _HeartRateScreenState extends State<HeartRateScreen>
           ),
         ),
       ),
+    );
+  }
+
+
+  Widget _buildAnalytics() {
+    final now = DateTime.now();
+    final periodStart = now.subtract(Duration(days: _analyticsDays - 1));
+    final periodRows = _history.where((row) {
+      final raw = row['timestamp'];
+      if (raw is! int) return false;
+      return DateTime.fromMillisecondsSinceEpoch(raw).isAfter(periodStart);
+    }).toList();
+    final values = periodRows.map((r) => (r['bpm'] as num?)?.toDouble() ?? 0).where((v) => v > 0).toList();
+    if (values.isEmpty) {
+      return Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+        Text('تحليل النبض', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        SizedBox(height: 8), Text('بعد أول قياس محفوظ ستظهر هنا الاتجاهات والإحصاءات وجودة الإشارة.'),
+      ])));
+    }
+    final avg = values.reduce((a, b) => a + b) / values.length;
+    final minValue = values.reduce((a, b) => a < b ? a : b);
+    final maxValue = values.reduce((a, b) => a > b ? a : b);
+    final qualityValues = periodRows.map((r) => (r['signal_quality'] as num?)?.toDouble() ?? 0).where((v) => v >= 0).toList();
+    final avgQuality = qualityValues.isEmpty ? 0.0 : qualityValues.reduce((a, b) => a + b) / qualityValues.length;
+    final recent = periodRows.reversed.take(20).toList();
+    final spots = <FlSpot>[];
+    final movingSpots = <FlSpot>[];
+    for (var i = 0; i < recent.length; i++) {
+      final bpm = (recent[i]['bpm'] as num?)?.toDouble() ?? avg;
+      spots.add(FlSpot(i.toDouble(), bpm));
+      final from = i > 2 ? i - 2 : 0;
+      final window = recent.sublist(from, i + 1).map((r) => (r['bpm'] as num?)?.toDouble() ?? bpm).toList();
+      movingSpots.add(FlSpot(i.toDouble(), window.reduce((a, b) => a + b) / window.length));
+    }
+    final low = (minValue - 8).clamp(35, 180).toDouble();
+    final high = (maxValue + 8).clamp(50, 220).toDouble();
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1), duration: const Duration(milliseconds: 700), curve: Curves.easeOutCubic,
+      builder: (context, value, child) => Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 18 * (1 - value)), child: child)),
+      child: Column(children: [
+        Card(child: Padding(padding: const EdgeInsets.fromLTRB(14, 16, 14, 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            const Expanded(child: Text('اتجاه النبض', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            Text('${values.length} قياس', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ]),
+          const SizedBox(height: 10),
+          SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [7, 14, 30].map((days) {
+            final selected = _analyticsDays == days;
+            return Padding(padding: const EdgeInsetsDirectional.only(end: 8), child: ChoiceChip(
+              label: Text(days == 7 ? '7 أيام' : '$days يوم'), selected: selected,
+              onSelected: (_) => setState(() => _analyticsDays = days),
+            ));
+          }).toList())),
+          const SizedBox(height: 14),
+          SizedBox(height: 205, child: LineChart(LineChartData(
+            minY: low, maxY: high,
+            gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: ((high - low) / 4).clamp(1, 50)),
+            titlesData: const FlTitlesData(show: false), borderData: FlBorderData(show: false),
+            lineTouchData: LineTouchData(enabled: true, touchTooltipData: LineTouchTooltipData(
+              getTooltipItems: (touched) => touched.map((spot) => LineTooltipItem('${spot.y.round()} BPM', const TextStyle(fontWeight: FontWeight.bold))).toList(),
+            )),
+            lineBarsData: [
+              LineChartBarData(spots: spots, isCurved: true, curveSmoothness: 0.25, barWidth: 3, color: Colors.red,
+                dotData: FlDotData(show: spots.length <= 10), belowBarData: BarAreaData(show: true, color: Colors.red.withOpacity(0.08))),
+              LineChartBarData(spots: movingSpots, isCurved: true, barWidth: 2, color: Colors.orange,
+                dotData: const FlDotData(show: false), dashArray: [6, 4]),
+            ],
+          ))),
+          const SizedBox(height: 4),
+          const Text('الخط البرتقالي = متوسط متحرك لآخر 3 قياسات', style: TextStyle(fontSize: 11, color: Colors.grey)),
+        ]))),
+        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(child: _analysisMetric('المتوسط', '${avg.round()} BPM', Icons.analytics_outlined)),
+          const SizedBox(width: 8), Expanded(child: _analysisMetric('الأعلى', '${maxValue.round()} BPM', Icons.arrow_upward_rounded)),
+          const SizedBox(width: 8), Expanded(child: _analysisMetric('الأدنى', '${minValue.round()} BPM', Icons.arrow_downward_rounded)),
+        ]),
+        const SizedBox(height: 12),
+        Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('جودة الإشارة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 10),
+          TweenAnimationBuilder<double>(tween: Tween(begin: 0, end: avgQuality.clamp(0, 1)), duration: const Duration(milliseconds: 900),
+            builder: (_, value, __) => ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: value, minHeight: 10))),
+          const SizedBox(height: 7), Text('${(avgQuality * 100).round()}% متوسط جودة الإشارة • ${qualityValues.length} قياس'),
+          if (avgQuality < 0.5) const Padding(padding: EdgeInsets.only(top: 6), child: Text('حاول تثبيت الإصبع وتحسين الإضاءة للحصول على قراءة أوضح.', style: TextStyle(fontSize: 12, color: Colors.grey))),
+        ]))),
+        const SizedBox(height: 12), _buildTimeDistribution(periodRows),
+        const SizedBox(height: 12),
+        Card(child: Padding(padding: const EdgeInsets.all(14), child: Row(children: [
+          AnimatedBuilder(animation: _pulseController, builder: (_, child) => Transform.scale(scale: _measuring ? 1 + ((_pulseController.value - 0.92) * 1.8) : 1, child: child),
+          child: const Icon(Icons.favorite_rounded, color: Colors.red, size: 30)),
+          const SizedBox(width: 12), Expanded(child: Text(_measuring
+            ? 'يتم تحديث التحليل أثناء القياس. ثبّت إصبعك للحصول على إشارة أكثر استقراراً.'
+            : 'يُبنى التحليل من القياسات المحفوظة على الجهاز، ويمكنك متابعة التغيرات مع الوقت.',
+            style: const TextStyle(fontSize: 13, height: 1.5))),
+        ]))),
+      ]),
+    );
+  }
+
+  Widget _buildTimeDistribution(List<Map<String, dynamic>> rows) {
+    final buckets = List<int>.filled(4, 0);
+    for (final row in rows) {
+      final raw = row['timestamp'];
+      if (raw is! int) continue;
+      final hour = DateTime.fromMillisecondsSinceEpoch(raw).hour;
+      if (hour < 6) { buckets[3]++; } else if (hour < 12) { buckets[0]++; } else if (hour < 18) { buckets[1]++; } else { buckets[2]++; }
+    }
+    final labels = ['صباح', 'ظهر', 'مساء', 'ليل'];
+    final maxCount = buckets.reduce((a, b) => a > b ? a : b);
+    return Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('توزيع القياسات خلال اليوم', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 14),
+      Row(crossAxisAlignment: CrossAxisAlignment.end, children: List.generate(4, (index) {
+        final fraction = maxCount == 0 ? 0.0 : buckets[index] / maxCount;
+        return Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: Column(children: [
+          Text('${buckets[index]}', style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 6),
+          TweenAnimationBuilder<double>(tween: Tween(begin: 0, end: fraction), duration: Duration(milliseconds: 500 + index * 100), curve: Curves.easeOutCubic,
+            builder: (_, value, __) => Container(height: 70 * value + 4, decoration: BoxDecoration(color: Colors.red.withOpacity(0.75), borderRadius: BorderRadius.circular(8)))),
+          const SizedBox(height: 7), Text(labels[index], style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        ])));
+      })),
+    ])));
+  }
+
+  Widget _analysisMetric(String label, String value, IconData icon) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.75, end: 1), duration: const Duration(milliseconds: 550), curve: Curves.easeOutBack,
+      builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+      child: Card(child: Padding(padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4), child: Column(children: [
+        Icon(icon, size: 20, color: Colors.red), const SizedBox(height: 5),
+        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)), const SizedBox(height: 3),
+        FittedBox(child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+      ]))),
     );
   }
 
@@ -357,6 +501,8 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                   ),
                 ),
               ),
+              const SizedBox(height: 22),
+              _buildAnalytics(),
             ],
           ),
         ),

@@ -28,23 +28,9 @@ class _ShareHealthScreenState extends State<ShareHealthScreen> {
   String _selectedHospital = '';
   String _shareNotes = '';
 
-  final List<Map<String, String>> _doctors = [
-    {'id': '1', 'name': 'د. أحمد المولد'},
-    {'id': '2', 'name': 'د. فاطمة صديقي'},
-    {'id': '3', 'name': 'د. خالد النخلاني'},
-  ];
-
-  final List<Map<String, String>> _familyMembers = [
-    {'id': '1', 'name': 'أم محمد'},
-    {'id': '2', 'name': 'أبو محمد'},
-    {'id': '3', 'name': 'سارة محمد'},
-  ];
-
-  final List<Map<String, String>> _hospitals = [
-    {'id': '1', 'name': 'مستشفى الثورة العام'},
-    {'id': '2', 'name': 'مستشفى المتحدون التخصصي'},
-    {'id': '3', 'name': 'مستشفى الأطفال التخصصي'},
-  ];
+  List<Map<String, String>> _doctors = [];
+  List<Map<String, String>> _familyMembers = [];
+  List<Map<String, String>> _hospitals = [];
 
   Map<String, dynamic> _patientData = {};
   List<Map<String, dynamic>> _medicalRecords = [];
@@ -74,7 +60,33 @@ class _ShareHealthScreenState extends State<ShareHealthScreen> {
       }
     }
 
-    setState(() => _isLoading = false);
+    try {
+      final results = await Future.wait([
+        _firestore.collection('doctors').limit(50).get(),
+        _firestore.collection('family_members').limit(50).get(),
+        _firestore.collection('hospitals').limit(50).get(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _doctors = results[0].docs.map((d) => {
+                'id': d.id,
+                'name': (d.data()['name'] ?? d.data()['displayName'] ?? 'طبيب').toString(),
+              }).toList();
+          _familyMembers = results[1].docs.map((d) => {
+                'id': d.id,
+                'name': (d.data()['name'] ?? d.data()['displayName'] ?? 'فرد من العائلة').toString(),
+              }).toList();
+          _hospitals = results[2].docs.map((d) => {
+                'id': d.id,
+                'name': (d.data()['name'] ?? d.data()['displayName'] ?? 'مستشفى').toString(),
+              }).toList();
+        });
+      }
+    } catch (_) {
+      // عدم وجود بيانات حقيقية يبقي القوائم فارغة.
+    }
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   void _shareHealthData() {

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +12,7 @@ class MedicationReminderScheduler {
   static final MedicationReminderScheduler instance = MedicationReminderScheduler._();
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  static const MethodChannel _androidChannel = MethodChannel('com.sehatak.app/medication_alarms');
   bool _initialized = false;
 
   Future<void> initialize() async {
@@ -19,8 +22,12 @@ class MedicationReminderScheduler {
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     await _notifications.initialize(const InitializationSettings(android: android, iOS: ios));
-    final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await androidImpl?.createNotificationChannel(const AndroidNotificationChannel('medication_channel', 'تذكير الأدوية', description: 'تنبيهات دقيقة لمواعيد تناول الأدوية', importance: Importance.max, playSound: true, enableVibration: true));
+    final androidImpl =
+        _notifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    // Android medication alarms are posted by the native AlarmManager receiver.
+    // Let that receiver create the channel so the alarm sound/vibration is
+    // configured with Android's real alarm audio attributes.
     await androidImpl?.requestNotificationsPermission();
     await androidImpl?.requestExactAlarmsPermission();
     _initialized = true;
@@ -50,7 +57,22 @@ class MedicationReminderScheduler {
 
   Future<void> cancelMedication(String medicationId) async {
     await initialize();
-    for (var i = 0; i < 256; i++) { await _notifications.cancel(_id(medicationId, i)); }
+    if (Platform.isAndroid) {
+      // Android uses the native AlarmManager receiver as the source of truth.
+      // Avoid cancelling hundreds of Flutter-local IDs on every save.
+      for (var i = 0; i < 16; i++) {
+        try {
+          await _androidChannel.invokeMethod<void>(
+            'cancelMedicationAlarm',
+            {'id': _id(medicationId, i)},
+          );
+        } catch (_) {}
+      }
+    } else {
+      for (var i = 0; i < 512; i++) {
+        await _notifications.cancel(_id(medicationId, i));
+      }
+    }
     await _removeReport(medicationId);
   }
 
@@ -64,6 +86,24 @@ class MedicationReminderScheduler {
     for (final time in times) items.add({'medicationId': id, 'name': medication['name']?.toString() ?? 'دواء', 'dose': medication['dose']?.toString() ?? '', 'time': time, 'enabled': medication['reminderEnabled'] != false, 'savedAt': DateTime.now().toIso8601String()});
     if (items.length > 200) items = items.sublist(items.length - 200);
     await prefs.setString('medication_alerts_report', jsonEncode(items));
+  }
+
+  DateTime? _nextOccurrence({required DateTime firstDay, required String time, required DateTime now, DateTime? end}) {
+    final parsed = _parseTime(time, firstDay);
+    if (parsed == null) return null;
+    var candidate = parsed;
+    if (!candidate.isAfter(now)) {
+      final tomorrow = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+      candidate = _parseTime(time, tomorrow)!;
+    }
+    if (candidate.isBefore(firstDay)) {
+      candidate = _parseTime(time, firstDay)!;
+      if (!candidate.isAfter(now)) {
+        candidate = _parseTime(time, firstDay.add(const Duration(days: 1)))!;
+      }
+    }
+    if (end != null && candidate.isAfter(DateTime(end.year, end.month, end.day, 23, 59, 59))) return null;
+    return candidate;
   }
 
   Future<void> scheduleMedication({required Map<String, dynamic> medication}) async {
@@ -80,41 +120,51 @@ class MedicationReminderScheduler {
     final firstDay = DateTime(start.year, start.month, start.day).isBefore(DateTime(now.year, now.month, now.day))
         ? DateTime(now.year, now.month, now.day)
         : DateTime(start.year, start.month, start.day);
-
     final times = _times(medication);
     await _saveReport(medication, times);
+
     var index = 0;
-    // Schedule a rolling local-device window; sync() refreshes it whenever the
-    // medication screen opens or Firestore changes, so long treatments remain covered.
-    for (var dayOffset = 0; dayOffset < 90; dayOffset++) {
-      final day = firstDay.add(Duration(days: dayOffset));
-      if (end != null && day.isAfter(DateTime(end.year, end.month, end.day))) break;
-      for (final time in times) {
-        final dateTime = _parseTime(time, day);
-        if (dateTime == null || !dateTime.isAfter(now)) continue;
-        final scheduled = tz.TZDateTime.from(dateTime.toUtc(), tz.UTC);
-        await _notifications.zonedSchedule(
-          _id(medicationId, index++),
-          'حان وقت الدواء 💊',
-          '$name${medication['dose'] != null && medication['dose'].toString().isNotEmpty ? ' — ${medication['dose']}' : ''}',
-          scheduled,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'medication_channel',
-              'تذكير الأدوية',
-              channelDescription: 'تنبيهات دقيقة لمواعيد تناول الأدوية',
-              importance: Importance.max,
-              priority: Priority.high,
-              playSound: true,
-              enableVibration: true,
-            ),
-            iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true, presentBadge: true),
-          ),
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-          payload: 'medication:$medicationId',
-        );
+    for (final time in times) {
+      final next = _nextOccurrence(firstDay: firstDay, time: time, now: now, end: end);
+      if (next == null) continue;
+      final id = _id(medicationId, index++);
+      final dose = medication['dose']?.toString().trim() ?? '';
+
+      if (Platform.isAndroid) {
+        await _androidChannel.invokeMethod<void>('scheduleMedicationAlarm', {
+          'id': id,
+          'medicationId': medicationId,
+          'name': name,
+          'dose': dose,
+          'triggerAtMillis': next.millisecondsSinceEpoch,
+          'endAtMillis': end?.millisecondsSinceEpoch,
+        });
+        continue;
       }
+
+      final scheduled = tz.TZDateTime.from(next, tz.local);
+      await _notifications.zonedSchedule(
+        id,
+        'حان وقت الدواء 💊',
+        '$name${dose.isNotEmpty ? ' — $dose' : ''}',
+        scheduled,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'sehatak_medications_v3',
+            'صحتك - تذكير الأدوية',
+            channelDescription: 'تنبيهات دقيقة لمواعيد تناول الأدوية',
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            sound: RawResourceAndroidNotificationSound('notification'),
+          ),
+          iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true, presentBadge: true),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        payload: 'medication:$medicationId',
+      );
     }
   }
 

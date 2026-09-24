@@ -92,7 +92,7 @@ class _MoreScreenState extends State<MoreScreen>
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
       'label': 'ضغط الدم',
-      'value': '120/80',
+      'value': '--',
       'unit': 'مم زئبق',
       'color': Colors.blue,
       'screen': const BloodPressureScreen()
@@ -100,7 +100,7 @@ class _MoreScreenState extends State<MoreScreen>
     {
       'icon': 'assets/images/tracking/blood_sugar.png',
       'label': 'سكر الدم',
-      'value': '98',
+      'value': '--',
       'unit': 'مجم/دل',
       'color': Colors.orange,
       'screen': const GlucoseTrackerScreen()
@@ -108,7 +108,7 @@ class _MoreScreenState extends State<MoreScreen>
     {
       'icon': 'assets/icons/health/step_tracking.png',
       'label': 'اللياقة',
-      'value': '85',
+      'value': '--',
       'unit': '%',
       'color': Colors.green,
       'screen': const StepTrackerScreen(),
@@ -116,7 +116,7 @@ class _MoreScreenState extends State<MoreScreen>
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
       'label': 'الوزن',
-      'value': '72',
+      'value': '--',
       'unit': 'كجم',
       'color': Colors.purple,
       'screen': const WeightTrackerScreen()

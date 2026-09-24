@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/core/models/payment/wallet_models.dart';
@@ -18,14 +20,7 @@ class _WalletScreenState extends State<WalletScreen> {
   bool _hideBalance = false;
   double _balance = 0;
 
-  final List<Map<String, dynamic>> _transactions = [
-    {'icon':'assets/images/payment/jeeb.png','title':'إيداع عبر جيب','amount':'+500.00','type':'credit','date':'اليوم، 10:30 ص'},
-    {'icon':'assets/images/payment/jawali.png','title':'دفع استشارة','amount':'-150.00','type':'debit','date':'اليوم، 09:15 ص'},
-    {'icon':'assets/images/payment/kash.png','title':'إيداع عبر كاش','amount':'+300.00','type':'credit','date':'أمس، 08:00 م'},
-    {'icon':'assets/images/payment/easy.png','title':'دفع فحص مخبري','amount':'-75.00','type':'debit','date':'أمس، 02:30 م'},
-    {'icon':'assets/images/payment/floosak.png','title':'إيداع عبر فلوسك','amount':'+200.00','type':'credit','date':'الجمعة، 11:00 ص'},
-    {'icon':'assets/images/payment/kremi.png','title':'دفع مكالمة استشارية','amount':'-50.00','type':'debit','date':'الخميس، 04:20 م'},
-  ];
+
 
   final List<Map<String, dynamic>> _wallets = [
     {'name':'جيب','icon':'assets/images/payment/jeeb.png','account':'536396'},
@@ -142,32 +137,33 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildTransactionsSection(bool isDark) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const SizedBox.shrink();
+    final stream = FirebaseFirestore.instance.collection('transactions')
+      .where('userId', isEqualTo: uid).orderBy('createdAt', descending: true).limit(20).snapshots();
     return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[
-        const Text('المعاملات الأخيرة',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
-        TextButton(onPressed:()=>ToastService.showInfo('عرض جميع المعاملات'),child:const Text('عرض الكل')),
-      ]),
+      const Text('المعاملات الأخيرة',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
       const SizedBox(height:8),
-      ListView.builder(
-        shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),itemCount:_transactions.length,
-        itemBuilder:(context,index){
-          final transaction=_transactions[index];
-          final isCredit=transaction['type']=='credit';
-          final amountColor=isCredit?Colors.green:Colors.red;
-          return Container(
-            margin:const EdgeInsets.only(bottom:8),padding:const EdgeInsets.all(12),
-            decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(12),boxShadow:[BoxShadow(color:Colors.black.withOpacity(0.04),blurRadius:4,offset:const Offset(0,2))]),
-            child:Row(children:[
-              Container(width:44,height:44,decoration:BoxDecoration(color:isCredit?Colors.green.withOpacity(0.1):Colors.red.withOpacity(0.1),borderRadius:BorderRadius.circular(12)),
-                child:Image.asset(transaction['icon'] as String,width:28,height:28,fit:BoxFit.contain,errorBuilder:(context,error,stackTrace)=>Icon(isCredit?Icons.arrow_downward_rounded:Icons.arrow_upward_rounded,color:isCredit?Colors.green:Colors.red,size:24))),
-              const SizedBox(width:12),
-              Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                Text(transaction['title'] as String,style:TextStyle(fontWeight:FontWeight.w600,fontSize:14,color:isDark?Colors.white:Colors.black87)),
-                Text(transaction['date'] as String,style:TextStyle(fontSize:11,color:isDark?Colors.grey[400]:Colors.grey[600])),
-              ])),
-              Text(transaction['amount'] as String,style:TextStyle(fontWeight:FontWeight.bold,fontSize:16,color:amountColor)),
-            ]),
-          );
+      StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
+        stream: stream,
+        builder:(context,snapshot){
+          if (snapshot.hasError) return const Text('تعذر تحميل سجل المعاملات.');
+          final docs=snapshot.data?.docs ?? const [];
+          if (docs.isEmpty) return const Padding(padding:EdgeInsets.symmetric(vertical:20),child:Center(child:Text('لا توجد معاملات حتى الآن.')));
+          return ListView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),itemCount:docs.length,itemBuilder:(context,index){
+            final data=docs[index].data();
+            final amount=(data['amount'] as num?)?.toDouble() ?? 0;
+            final isCredit=data['type']=='credit' || amount >= 0;
+            final created=data['createdAt'];
+            final date=created is Timestamp ? created.toDate() : null;
+            final title=data['title']?.toString() ?? data['description']?.toString() ?? 'معاملة';
+            return ListTile(
+              leading:Icon(isCredit?Icons.arrow_downward_rounded:Icons.arrow_upward_rounded,color:isCredit?Colors.green:Colors.red),
+              title:Text(title),
+              subtitle:Text(date == null ? 'التاريخ غير متوفر' : date.toLocal().toString().split('.').first),
+              trailing:Text((isCredit?'+':'') + amount.toStringAsFixed(2) + ' ر.ي',style:TextStyle(fontWeight:FontWeight.bold,color:isCredit?Colors.green:Colors.red)),
+            );
+          });
         },
       ),
     ]);

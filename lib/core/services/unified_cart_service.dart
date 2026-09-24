@@ -6,6 +6,9 @@ class CartItem {
   final double unitPrice;
   int quantity;
   final bool requiresPrescription;
+  final String? pharmacyId;
+  final String? providerName;
+  final String? prescriptionId;
 
   CartItem({
     required this.productId,
@@ -13,6 +16,9 @@ class CartItem {
     required this.unitPrice,
     this.quantity = 1,
     this.requiresPrescription = false,
+    this.pharmacyId,
+    this.providerName,
+    this.prescriptionId,
   });
 
   double get total => unitPrice * quantity;
@@ -23,6 +29,9 @@ class CartItem {
         'unitPrice': unitPrice,
         'quantity': quantity,
         'requiresPrescription': requiresPrescription,
+        'pharmacyId': pharmacyId,
+        'providerName': providerName,
+        'prescriptionId': prescriptionId,
       };
 }
 
@@ -42,6 +51,9 @@ class UnifiedCartService {
     required String name,
     required double unitPrice,
     bool requiresPrescription = false,
+    String? pharmacyId,
+    String? providerName,
+    String? prescriptionId,
   }) {
     final index = _items.indexWhere((item) => item.productId == productId);
     if (index >= 0) {
@@ -52,6 +64,9 @@ class UnifiedCartService {
         name: name,
         unitPrice: unitPrice,
         requiresPrescription: requiresPrescription,
+        pharmacyId: pharmacyId,
+        providerName: providerName,
+        prescriptionId: prescriptionId,
       ));
     }
     _checkoutIdempotencyKey ??= 'cart-${DateTime.now().microsecondsSinceEpoch}';
@@ -91,6 +106,7 @@ class UnifiedCartService {
   Future<Map<String, dynamic>> checkout({
     double deliveryFee = 0,
     String? deliveryAddress,
+    bool deliveryRequired = true,
   }) async {
     if (_items.isEmpty) throw Exception('السلة فارغة');
     _checkoutIdempotencyKey ??= 'cart-${DateTime.now().microsecondsSinceEpoch}';
@@ -100,10 +116,13 @@ class UnifiedCartService {
       'items': _items.map((item) => {
             'productId': item.productId,
             'quantity': item.quantity,
+            'pharmacyId': item.pharmacyId,
+            'prescriptionId': item.prescriptionId,
           }).toList(),
       // The trusted backend calculates the actual delivery fee.
       'deliveryFee': deliveryFee,
       'deliveryAddress': deliveryAddress,
+      'deliveryRequired': deliveryRequired,
       'idempotencyKey': _checkoutIdempotencyKey,
     });
     final data = Map<String, dynamic>.from(result.data as Map);

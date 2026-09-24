@@ -386,7 +386,7 @@ class ChatBot {
   // 🤖 استجابة ChatBot
   // ============================================================
   Map<String, dynamic> respond(String message) {
-    final lowerMessage = message.toLowerCase().trim();
+    final lowerMessage = _normalizeArabic(message);
     
     // ✅ البحث في قاعدة المعرفة
     for (final entry in _knowledgeBase.entries) {
@@ -437,10 +437,19 @@ class ChatBot {
     // ✅ ردود عشوائية
     final randomIndex = DateTime.now().millisecondsSinceEpoch % _defaultResponses.length;
     return {
-      'response': _defaultResponses[randomIndex],
-      'type': 'general',
-      'category': 'ترحيب',
+      'response': 'أفهم سؤالك، وسأساعدك في الوصول إلى المعلومة المناسبة. اذكر لي ما الذي تريد معرفته مع أي تفاصيل متاحة لديك، مثل العمر، مدة الأعراض، شدتها، والأعراض المصاحبة. وإذا كان طلبك متعلقاً بخدمة داخل تطبيق صحتك، اذكر اسم الخدمة أو ما تريد إنجازه وسأوجهك مباشرة إلى الشاشة المناسبة.',
+      'type': 'clarification',
+      'category': 'استفسار عام',
     };
+  }
+
+  String _normalizeArabic(String value) {
+    return value.toLowerCase().trim()
+        .replaceAll('أ', 'ا').replaceAll('إ', 'ا').replaceAll('آ', 'ا')
+        .replaceAll('ٱ', 'ا').replaceAll('ة', 'ه').replaceAll('ى', 'ي')
+        .replaceAll('ؤ', 'و').replaceAll('ئ', 'ي').replaceAll('ـ', '')
+        .replaceAll('كحه', 'سعال').replaceAll('كحة', 'سعال')
+        .replaceAll('راس', 'رأس').replaceAll('مغص', 'الم');
   }
 
   // ============================================================

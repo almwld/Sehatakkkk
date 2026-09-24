@@ -103,6 +103,7 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Future<void> connect() async {
+    if (widget.isOutgoing) ToastService.showInfo('جاري الاتصال...');
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw StateError('يجب تسجيل الدخول');
@@ -175,9 +176,9 @@ class _CallScreenState extends State<CallScreen> {
       if (mounted) {
         setState(() {
           connecting = false;
-          error = e.toString().replaceFirst('Exception: ', '');
+          error = 'تعذر بدء الاتصال. حاول مرة أخرى';
         });
-        ToastService.showError('فشل تجهيز المكالمة');
+        ToastService.showError('تعذر بدء الاتصال. حاول مرة أخرى');
       }
     }
   }
@@ -398,7 +399,7 @@ class _CallScreenState extends State<CallScreen> {
     final local = swapped ? remoteTrack : localTrack;
     final status = error ??
         (!online ? 'لا يوجد اتصال بالإنترنت' : connecting
-            ? (widget.isOutgoing ? 'جاري تجهيز المكالمة...' : 'جاري الاتصال...')
+            ? 'جاري الاتصال...'
             : !joined ? 'في انتظار قبول المكالمة...' : fmt(seconds));
     return Scaffold(
       backgroundColor: Colors.black,

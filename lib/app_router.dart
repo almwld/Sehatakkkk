@@ -29,8 +29,10 @@ import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_scr
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
 import 'package:sehatak/presentation/screens/diet_plan/diet_plan_screen.dart';
+import 'package:sehatak/presentation/screens/nutrition/nutrition_health_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
@@ -92,6 +94,8 @@ class AppRouter {
       weightTracker = '/weight-tracker',
       mentalHealth = '/mental-health',
       dietPlan = '/diet-plan',
+      nutrition = '/nutrition',
+      health = '/health',
       delivery = '/delivery',
       deliveryCompanies = '/delivery/companies',
       deliveryTracking = '/delivery/tracking';
@@ -99,27 +103,42 @@ class AppRouter {
   static bool _backPressedOnce = false;
   static Timer? _backExitTimer;
 
+  static Future<void> handlePlatformBack(BuildContext context) async {
+    await _handleBack(context);
+  }
+
   static Future<bool> _handleBack(BuildContext context) async {
     final router = GoRouter.of(context);
 
-    // HomeScreen owns its tab-level back behavior and double-press handling.
-    if (router.routerDelegate.currentConfiguration.uri.toString() == home)
+    // Home is a page-backed GoRouter route, so its PopScope cannot be relied
+    // upon as the sole Android back interceptor. Delegate root-back handling
+    // to the actual HomeScreen state so tabs return to Home and only a second
+    // press exits.
+    if (router.routerDelegate.currentConfiguration.uri.toString() == home) {
+      HomeScreen.navigatorKey.currentState?.handleSystemBack();
       return false;
+    }
 
-    // First close any imperatively pushed page/dialog on the root navigator.
+    // Any routed page is an internal destination: Android Back must return
+    // directly to the Home root instead of walking through the GoRouter stack.
+    // This also prevents nested route history from exposing a blank/previous
+    // page before Home.
+    if (router.routerDelegate.currentConfiguration.uri.toString() != home) {
+      _backPressedOnce = false;
+      _backExitTimer?.cancel();
+      router.go(home);
+      return false;
+    }
+
+    // Home is the only place where Android Back can exit the application.
+    // It is handled by HomeScreen, which also handles returning from tabs.
     final nav = navigatorKey.currentState;
     if (nav?.canPop() == true) {
       nav!.pop();
       return true;
     }
 
-    // Then pop the GoRouter page stack when a previous route exists.
-    if (router.canPop()) {
-      router.pop();
-      return true;
-    }
-
-    // We are at an application root: require two presses to exit.
+    // We are at the Home root: require two consecutive presses to exit.
     if (_backPressedOnce) {
       _backPressedOnce = false;
       _backExitTimer?.cancel();
@@ -136,6 +155,16 @@ class AppRouter {
     return true;
   }
 
+  /// Back from any routed internal screen always returns to the Home root.
+  /// HomeScreen itself owns the two-press exit behavior via PopScope.
+  static FutureOr<bool> _returnToHome(BuildContext context) {
+    _backPressedOnce = false;
+    _backExitTimer?.cancel();
+    if (GoRouter.of(context).routerDelegate.currentConfiguration.uri.toString() == home) return true;
+    context.go(home);
+    return false;
+  }
+
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     observers: <NavigatorObserver>[DuplicateNavigationObserver()],
@@ -149,35 +178,47 @@ class AppRouter {
     },
     routes: [
       GoRoute(path: splash, builder: (_, __) => const SplashScreen()),
-      GoRoute(path: home, builder: (_, __) => const HomeScreen()),
       GoRoute(
-          path: auth,
+          path: home,
+          onExit: _handleBack,
+          builder: (_, __) => HomeScreen(key: HomeScreen.navigatorKey)),
+      GoRoute(
+                    path: auth,
           redirect: (_, __) =>
               FirebaseAuth.instance.currentUser != null ? home : null,
           builder: (_, __) => const AuthScreen()),
       GoRoute(
+          onExit: _returnToHome,
           path: doctors,
           builder: (_, __) =>
               ScreenTours.wrapDoctors(const DoctorsListScreen())),
       GoRoute(
+          onExit: _returnToHome,
           path: doctorDetails,
           builder: (_, s) =>
               DoctorDetailsScreen(doctorId: s.pathParameters['id'] ?? '')),
       GoRoute(
+          onExit: _returnToHome,
           path: pharmacy,
           builder: (_, __) => ScreenTours.wrapPharmacy(const PharmacyScreen())),
       GoRoute(
+          onExit: _returnToHome,
           path: pharmacyDashboard,
           builder: (_, __) => const PharmacyDashboard()),
       GoRoute(
+          onExit: _returnToHome,
           path: marketplaceAdmin,
           builder: (_, __) => const MarketplaceAdminDashboard()),
       GoRoute(
+          onExit: _returnToHome,
           path: labs,
           builder: (_, __) => ScreenTours.wrapLabs(const LabsListScreen())),
-      GoRoute(path: hospitals, builder: (_, __) => const HospitalScreen()),
-      GoRoute(path: chat, builder: (_, __) => const ChatScreen()),
       GoRoute(
+          onExit: _returnToHome,path: hospitals, builder: (_, __) => const HospitalScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: chat, builder: (_, __) => const ChatScreen()),
+      GoRoute(
+          onExit: _returnToHome,
           path: chatRoom,
           builder: (_, s) {
             final e = (s.extra as Map?)?.cast<String, dynamic>() ??
@@ -190,51 +231,94 @@ class AppRouter {
                 groupImage: e['groupImage'] as String?,
                 isGroup: e['isGroup'] == true);
           }),
-      GoRoute(path: addStatus, builder: (_, __) => const AddStatusScreen()),
       GoRoute(
+          onExit: _returnToHome,path: addStatus, builder: (_, __) => const AddStatusScreen()),
+      GoRoute(
+          onExit: _returnToHome,
           path: storyViewer,
           builder: (_, s) => StoryViewerScreen(status: s.extra as dynamic)),
       GoRoute(
+          onExit: _returnToHome,
           path: more,
           builder: (_, __) => ScreenTours.wrapMore(const MoreScreen())),
       GoRoute(
+          onExit: _returnToHome,
           path: dashboard,
           builder: (_, __) => const RoleBasedDashboardScreen()),
       GoRoute(
+          onExit: _returnToHome,
           path: profile,
           builder: (_, __) => ScreenTours.wrapProfile(const PatientProfile())),
       GoRoute(
+          onExit: _returnToHome,
           path: appointments, builder: (_, __) => const PatientAppointments()),
       GoRoute(
+          onExit: _returnToHome,
           path: notifications, builder: (_, __) => const NotificationsScreen()),
-      GoRoute(path: cart, builder: (_, __) => const CartScreen()),
-      GoRoute(path: wallet, builder: (_, __) => const WalletScreen()),
-      GoRoute(path: map, builder: (_, __) => const InteractiveMapScreen()),
       GoRoute(
+          onExit: _returnToHome,path: cart, builder: (_, __) => const CartScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: wallet, builder: (_, __) => const WalletScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: map, builder: (_, __) => const InteractiveMapScreen()),
+      GoRoute(
+          onExit: _returnToHome,
           path: consultation, builder: (_, __) => const ConsultationScreen()),
-      GoRoute(path: services, builder: (_, __) => const ServicesScreen()),
-      GoRoute(path: packages, builder: (_, __) => const PackagesScreen()),
-      GoRoute(path: emergency, builder: (_, __) => const EmergencyNumbers()),
       GoRoute(
+          onExit: _returnToHome,path: services, builder: (_, __) => const ServicesScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: packages, builder: (_, __) => const PackagesScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: emergency, builder: (_, __) => const EmergencyNumbers()),
+      GoRoute(
+          onExit: _returnToHome,
           path: bloodDonation, builder: (_, __) => const BloodDonationScreen()),
-      GoRoute(path: settings, builder: (_, __) => const SettingsScreen()),
       GoRoute(
+          onExit: _returnToHome,path: settings, builder: (_, __) => const SettingsScreen()),
+      GoRoute(
+          onExit: _returnToHome,
           path: search,
           builder: (_, s) =>
               AdvancedSearchScreen(initialQuery: s.uri.queryParameters['q'])),
-      GoRoute(path: articles, builder: (_, __) => const ArticlesScreen()),
-      GoRoute(path: community, builder: (_, __) => const CommunityScreen()),
       GoRoute(
+          onExit: _returnToHome,path: articles, builder: (_, __) => const ArticlesScreen()),
+      GoRoute(
+          onExit: _returnToHome,
+          path: community,
+          pageBuilder: (_, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: const CommunityScreen(),
+            opaque: true,
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+          ),
+        ),
+      GoRoute(
+          onExit: _returnToHome,
           path: sleepTracker, builder: (_, __) => const SleepTrackerScreen()),
-      GoRoute(path: stepTracker, builder: (_, __) => const StepTrackerScreen()),
-      GoRoute(path: heartRate, builder: (_, __) => const HeartRateScreen()),
-      GoRoute(path: bloodPressure, builder: (_, __) => const BloodPressureScreen()),
-      GoRoute(path: glucoseTracker, builder: (_, __) => const GlucoseTrackerScreen()),
-      GoRoute(path: weightTracker, builder: (_, __) => const WeightTrackerScreen()),
-      GoRoute(path: mentalHealth, builder: (_, __) => const MentalHealthScreen()),
-      GoRoute(path: dietPlan, builder: (_, __) => const DietPlanScreen()),
-      GoRoute(path: delivery, builder: (_, __) => const DeliveryScreen()),
       GoRoute(
+          onExit: _returnToHome,path: stepTracker, builder: (_, __) => const StepTrackerScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: heartRate, builder: (_, __) => const HeartRateScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: bloodPressure, builder: (_, __) => const BloodPressureScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: glucoseTracker, builder: (_, __) => const GlucoseTrackerScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: weightTracker, builder: (_, __) => const WeightTrackerScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: mentalHealth, builder: (_, __) => const MentalHealthScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: dietPlan, builder: (_, __) => const DietPlanScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: nutrition, builder: (_, __) => const NutritionHealthScreen()),
+      GoRoute(
+          onExit: _returnToHome,path: health, builder: (_, __) => const HealthDashboard()),
+      GoRoute(
+          onExit: _returnToHome,path: delivery, builder: (_, __) => const DeliveryScreen()),
+      GoRoute(
+          onExit: _returnToHome,
           path: deliveryCompanies,
           builder: (context, state) {
             final extra = (state.extra as Map?)?.cast<String, dynamic>() ??
@@ -246,6 +330,7 @@ class AppRouter {
                 onSelect: (company) => context.pop(company));
           }),
       GoRoute(
+          onExit: _returnToHome,
           path: deliveryTracking,
           builder: (_, state) {
             final orderId = state.uri.queryParameters['orderId'] ??
@@ -386,6 +471,12 @@ class AppRouter {
       case dietPlan:
         return MaterialPageRoute(
             builder: (_) => const DietPlanScreen(), settings: routeSettings);
+      case nutrition:
+        return MaterialPageRoute(
+            builder: (_) => const NutritionHealthScreen(), settings: routeSettings);
+      case health:
+        return MaterialPageRoute(
+            builder: (_) => const HealthDashboard(), settings: routeSettings);
       case delivery:
         return MaterialPageRoute(
             builder: (_) => const DeliveryScreen(), settings: routeSettings);

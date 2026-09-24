@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'package:sehatak/core/services/local_ai/local_intent_engine.dart';
+import 'package:sehatak/core/services/local_ai/medical_safety_engine.dart';
 
 /// Conservative natural-language symptom interpreter. It identifies symptoms and urgency; it does not diagnose.
 class SymptomInterpreter {
@@ -33,7 +34,7 @@ class SymptomInterpreter {
     final found = <String>[];
     for (final entry in _lexicon.entries) { if (entry.value.any((p) => text.contains(_normalize(p)))) found.add(entry.key); }
     if (found.isEmpty) return null;
-    final emergency = _isEmergency(text);
+    final emergency = MedicalSafetyIntent.isEmergencyText(text);
     final specialties = found.map((s) => _specialties[s]).whereType<String>().toSet().take(2).toList();
     final duration = _extractDuration(text);
     return {'symptoms': found, 'urgency': emergency ? 'عاجل' : (found.length >= 3 ? 'يحتاج متابعة' : 'غير طارئ غالباً'), 'emergency': emergency, 'specialties': specialties, 'duration': duration, 'response': _buildResponse(found, emergency, specialties, duration)};

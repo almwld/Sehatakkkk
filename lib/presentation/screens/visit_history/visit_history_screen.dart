@@ -40,66 +40,17 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
           final visits = List<Map<String, dynamic>>.from(data['visits'] ?? []);
           setState(() => _visits = visits);
         } else {
-          _loadMockVisits();
+          _visits = [];
         }
       } catch (e) {
-        print('❌ Error loading visits: $e');
-        _loadMockVisits();
+        debugPrint('Error loading visits: $e');
+        _visits = [];
       }
     } else {
-      _loadMockVisits();
+      _visits = [];
     }
 
-    setState(() => _isLoading = false);
-  }
-
-  void _loadMockVisits() {
-    _visits = [
-      {
-        'id': '1',
-        'doctor': 'د. أحمد المولد',
-        'specialty': 'باطنية',
-        'date': '2026-07-01',
-        'time': '10:00 ص',
-        'status': 'مكتملة',
-        'notes': 'متابعة ضغط الدم - تحسن ملحوظ',
-        'prescription': ['أملوديبين 5mg', 'هيدروكلوروتيازيد 25mg'],
-        'hospital': 'مستشفى الثورة العام',
-      },
-      {
-        'id': '2',
-        'doctor': 'د. فاطمة صديقي',
-        'specialty': 'أطفال',
-        'date': '2026-06-25',
-        'time': '2:30 م',
-        'status': 'مكتملة',
-        'notes': 'تطعيمات دورية - الحالة جيدة',
-        'prescription': ['فيتامين د 1000IU'],
-        'hospital': 'مستشفى المتحدون التخصصي',
-      },
-      {
-        'id': '3',
-        'doctor': 'د. خالد النخلاني',
-        'specialty': 'قلب',
-        'date': '2026-07-10',
-        'time': '11:00 ص',
-        'status': 'قادمة',
-        'notes': 'متابعة قلبية',
-        'prescription': [],
-        'hospital': 'مركز قلب العاصمة',
-      },
-      {
-        'id': '4',
-        'doctor': 'د. علي البراشي',
-        'specialty': 'جلدية',
-        'date': '2026-06-20',
-        'time': '9:00 ص',
-        'status': 'ملغاة',
-        'notes': 'تم الإلغاء بسبب الظروف',
-        'prescription': [],
-        'hospital': 'مركز البراشي للجلدية',
-      },
-    ];
+    if (mounted) setState(() => _isLoading = false);
   }
 
   List<Map<String, dynamic>> get _filteredVisits {

@@ -16,12 +16,13 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   final _db = FirebaseFirestore.instance;
   final _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
   final _notes = TextEditingController();
+  final _collectionAddress = TextEditingController();
   Map<String, dynamic>? _lab;
   List<Map<String, dynamic>> _tests = [];
   final Set<String> _selected = {};
   DateTime? _date;
   TimeOfDay? _time;
-  bool _loading = true, _saving = false;
+  bool _loading = true, _saving = false, _homeCollection = false;
   String? _error;
 
   String _s(dynamic v) => v?.toString().trim() ?? '';
@@ -31,7 +32,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   @override
   void initState() { super.initState(); _load(); }
   @override
-  void dispose() { _notes.dispose(); super.dispose(); }
+  void dispose() { _notes.dispose(); _collectionAddress.dispose(); super.dispose(); }
 
   Future<void> _load() async {
     try {
@@ -59,6 +60,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   Future<void> _bookAndPay() async {
     if (FirebaseAuth.instance.currentUser == null) { _show('يجب تسجيل الدخول أولاً', false); return; }
     if (_selected.isEmpty || _date == null || _time == null) { _show('اختر الفحوصات والتاريخ والوقت.', false); return; }
+    if (_homeCollection && _collectionAddress.text.trim().isEmpty) { _show('أدخل عنوان سحب العينة المنزلي.', false); return; }
     final d = _date!, t = _time!;
     final appointment = DateTime(d.year, d.month, d.day, t.hour, t.minute);
     if (!appointment.isAfter(DateTime.now())) { _show('اختر موعداً مستقبلياً.', false); return; }
@@ -73,15 +75,20 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
         'date': date,
         'time': time,
         'notes': notes.length > 1000 ? notes.substring(0, 1000) : notes,
+        'homeCollection': _homeCollection,
+        'collectionAddress': _homeCollection ? _collectionAddress.text.trim() : null,
       });
       final map = Map<String, dynamic>.from(create.data as Map);
       final bookingId = map['bookingId']?.toString() ?? '';
       if (bookingId.isEmpty) throw Exception('لم يتم إنشاء الحجز');
+      String? invoiceId;
       if (_total > 0) {
-        await _functions.httpsCallable('payLabBooking').call({'bookingId': bookingId, 'idempotencyKey': 'lab-$bookingId'});
+        final payment = await _functions.httpsCallable('payLabBooking').call({'bookingId': bookingId, 'idempotencyKey': 'lab-$bookingId'});
+        final paymentData = Map<String, dynamic>.from(payment.data as Map);
+        invoiceId = paymentData['invoiceId']?.toString();
       }
       if (!mounted) return;
-      _show('تم الحجز والدفع بنجاح. رقم الحجز: $bookingId', true);
+      _show('تم الحجز والدفع بنجاح. رقم الحجز: $bookingId${invoiceId == null || invoiceId.isEmpty ? '' : ' • الفاتورة: $invoiceId'}', true);
       Navigator.pop(context, bookingId);
     } on FirebaseFunctionsException catch (e) {
       if (mounted) _show(e.message ?? 'تعذر إتمام الحجز والدفع.', false);
@@ -140,6 +147,16 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
           }),
           ListTile(leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: const Text('التاريخ'), subtitle: Text(_date == null ? 'اختر التاريخ' : '${_date!.year}/${_date!.month}/${_date!.day}'), onTap: _pickDate),
           ListTile(leading: const Icon(Icons.access_time, color: AppColors.primary), title: const Text('الوقت'), subtitle: Text(_time == null ? 'اختر الوقت' : _time!.format(context)), onTap: _pickTime),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            activeColor: AppColors.primary,
+            title: const Text('سحب العينة من المنزل'),
+            subtitle: const Text('يضاف رسم التوصيل ويُنشأ طلب سحب قابل للتتبع'),
+            value: _homeCollection,
+            onChanged: _saving ? null : (v) => setState(() => _homeCollection = v),
+          ),
+          if (_homeCollection)
+            TextField(controller: _collectionAddress, maxLines: 2, decoration: const InputDecoration(labelText: 'عنوان سحب العينة', border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
           TextField(controller: _notes, maxLines: 3, maxLength: 1000, decoration: const InputDecoration(labelText: 'ملاحظات', border: OutlineInputBorder())),
           const SizedBox(height: 12),
           Card(child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('الإجمالي', style: TextStyle(fontWeight: FontWeight.bold)), Text('${_total.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary))]))),

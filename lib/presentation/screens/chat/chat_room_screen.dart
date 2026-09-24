@@ -139,6 +139,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   final List<Map<String, dynamic>> _localMedia = [];
   final Set<String> _knownMessageIds = <String>{};
   final Map<String, GlobalKey> _messageKeys = <String, GlobalKey>{};
+  final ScrollController _scrollController = ScrollController();
+  bool _showNewMessages = false;
+  bool _loadingMoreMessages = false;
+  DocumentSnapshot<Object?>? _oldestMessageDocument;
+  bool _hasMoreMessages = false;
+  final List<MessageModel> _olderMessages = <MessageModel>[];
   Set<String> _newMessageIds = <String>{};
   bool _hasInitialMessageSnapshot = false;
   bool _loading = true;
@@ -155,6 +161,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _scrollController.addListener(_onChatScroll);
     _listen();
     _loadDoctorRole();
     _loadPendingMedia();
@@ -225,9 +232,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       final jobs =
           await ChatMediaTransferService.instance.pendingForChat(widget.chatId);
       if (!mounted) return;
-      setState(() => _localMedia
-        ..clear()
-        ..addAll(jobs.map(_pendingMap)));
+      final pending = jobs.map(_pendingMap).toList();
+      // Keep optimistic media visible until its Firestore message is observed.
+      // The outbox can become sent before the messages listener receives the
+      // new snapshot; clearing it here makes media disappear and reappear.
+      final pendingIds = pending
+          .map((m) => m['outboxId']?.toString())
+          .whereType<String>()
+          .toSet();
+      final retained = _localMedia.where((m) {
+        final id = m['outboxId']?.toString();
+        return id != null && !pendingIds.contains(id);
+      }).toList();
+      setState(() {
+        _localMedia
+          ..clear()
+          ..addAll(retained)
+          ..addAll(pending);
+      });
     } catch (e) {
       debugPrint('pending media load: $e');
     }
@@ -337,11 +359,22 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         .snapshots()
         .listen((snapshot) {
       if (!mounted) return;
-      final messages = snapshot.docs
+      _oldestMessageDocument = snapshot.docs.isNotEmpty ? snapshot.docs.last : _oldestMessageDocument;
+      _hasMoreMessages = snapshot.docs.length >= 100;
+      final liveMessages = snapshot.docs
           .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
           .where((m) => !_hiddenForCurrentUser(m.toFirestore()))
           .toList();
+      final liveIds = liveMessages.map((m) => m.id).toSet();
+      final messages = <MessageModel>[...liveMessages, ..._olderMessages.where((m) => !liveIds.contains(m.id))];
+      messages.sort((a, b) => (b.timestamp ?? Timestamp(0, 0)).compareTo(a.timestamp ?? Timestamp(0, 0)));
       final remoteIds = messages.map((m) => m.id).toSet();
+      final remoteMediaKeys = messages
+          .map((m) => m.idempotencyKey)
+          .whereType<String>()
+          .where((key) => key.startsWith('media_'))
+          .map((key) => key.substring('media_'.length))
+          .toSet();
       final currentIds = remoteIds;
       final newIds = _hasInitialMessageSnapshot
           ? currentIds.difference(_knownMessageIds)
@@ -351,11 +384,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         ..addAll(currentIds);
       _newMessageIds = newIds;
       _hasInitialMessageSnapshot = true;
+      final wasAwayFromLatest = _scrollController.hasClients && _scrollController.position.pixels > 140;
       setState(() {
         _messages = messages;
-        _localMedia.removeWhere((m) => remoteIds.contains(m['id']));
+        _localMedia.removeWhere((m) {
+          final outboxId = m['outboxId']?.toString();
+          return remoteIds.contains(m['id']) ||
+              (outboxId != null && remoteMediaKeys.contains(outboxId));
+        });
         _loading = false;
+        if (!wasAwayFromLatest) _showNewMessages = false;
+        else if (newIds.isNotEmpty) _showNewMessages = true;
       });
+      if (newIds.isNotEmpty && !wasAwayFromLatest) WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToLatest());
       unawaited(_markDeliveryAndRead());
       unawaited(_loadPendingMedia());
     }, onError: (error) {
@@ -420,6 +461,62 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   }
 
   Future<void> _openOtherUserStatus(UserStatusModel status) async { if (!mounted || status.stories.isEmpty) return; await Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status))); }
+
+  void _onChatScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels > 140 && !_showNewMessages && mounted) {
+      setState(() => _showNewMessages = true);
+    } else if (_scrollController.position.pixels <= 40 && _showNewMessages && mounted) {
+      setState(() => _showNewMessages = false);
+    }
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 180 &&
+        !_loadingMoreMessages && _hasMoreMessages) {
+      unawaited(_loadOlderMessages());
+    }
+  }
+
+  Future<void> _jumpToMessage(String id) async {
+    if (id.isEmpty) return;
+    final key = _messageKeys[id];
+    final target = key?.currentContext;
+    if (target != null) {
+      await Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 350), curve: Curves.easeOut, alignment: .45);
+      return;
+    }
+    if (mounted) ToastService.showError('الرسالة ليست ضمن الرسائل المحمّلة حالياً.');
+  }
+
+  void _scrollToLatest() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
+    if (mounted) setState(() => _showNewMessages = false);
+  }
+
+  Future<void> _loadOlderMessages() async {
+    if (_loadingMoreMessages || !_hasMoreMessages || _oldestMessageDocument == null) return;
+    setState(() => _loadingMoreMessages = true);
+    try {
+      final page = await _chat.getMoreMessages(chatId: widget.chatId, limit: 30, startAfter: _oldestMessageDocument);
+      if (!mounted) return;
+      final existing = _messages.map((m) => m.id).toSet();
+      final merged = <MessageModel>[..._messages];
+      for (final m in page.messages) {
+        if (!existing.contains(m.id)) merged.add(m);
+      }
+      merged.sort((a, b) => (b.timestamp ?? Timestamp(0, 0)).compareTo(a.timestamp ?? Timestamp(0, 0)));
+      setState(() {
+        final knownOlder = _olderMessages.map((m) => m.id).toSet();
+        _olderMessages.addAll(page.messages.where((m) => !knownOlder.contains(m.id)));
+        _messages = merged;
+        _oldestMessageDocument = page.lastDocument ?? _oldestMessageDocument;
+        _hasMoreMessages = page.hasMore;
+        _loadingMoreMessages = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _loadingMoreMessages = false);
+      debugPrint('load older messages: $e');
+    }
+  }
 
   Future<void> _searchMessages() async {
     final id = await Navigator.of(context).push<String>(MaterialPageRoute(
@@ -588,6 +685,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     _messagesSub?.cancel();
     _chatSub?.cancel();
     _userSub?.cancel();
+    _scrollController.removeListener(_onChatScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -738,8 +837,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                 reverse: true,
                 padding: const EdgeInsets.all(8),
                 itemCount: all.length,
+                controller: _scrollController,
                 itemBuilder: (_, index) {
                   final message = all[index];
+                  final older = index + 1 < all.length ? all[index + 1] : null;
+                  final currentDate = _messageTime(message['timestamp']);
+                  final olderDate = older == null ? null : _messageTime(older['timestamp']);
+                  final showDate = older == null || currentDate.year != olderDate!.year || currentDate.month != olderDate.month || currentDate.day != olderDate.day;
                   final remote = message['isLocal'] != true;
                   final rawMessageId = message['id']?.toString();
                   final model = remote && rawMessageId != null
@@ -754,11 +858,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                   Widget bubble = MessageBubble(
                       key: ValueKey(messageId),
                       message: message,
+                      isFirstInChat: index == all.length - 1,
                       isMe: message['senderId'] == _auth.currentUser?.uid ||
                           message['isLocal'] == true,
                       onReply: model == null || model.id.isEmpty
                           ? null
                           : () => _startReply(model),
+                      onReplyPreviewTap: () {
+                        final preview = message['replyPreview'];
+                        final replyId = message['replyToId']?.toString() ?? (preview is Map ? preview['id']?.toString() : null);
+                        if (replyId != null && replyId.isNotEmpty) unawaited(_jumpToMessage(replyId));
+                      },
                       onDelete: model == null || model.id.isEmpty || model.senderId != _auth.currentUser?.uid ? null : () => _confirmDeleteMessage(model),
                       onEdit: model == null || model.id.isEmpty || model.senderId != _auth.currentUser?.uid ? null : () => _editMessage(model),
                       onDeleteForMe: model == null || model.id.isEmpty
@@ -803,8 +913,46 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                       child: messageWidget,
                     );
                   }
-                  return messageWidget;
+                  return Column(
+                    children: [
+                      if (showDate) Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(color: dark ? Colors.white10 : Colors.white.withOpacity(.72), borderRadius: BorderRadius.circular(14)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            child: Text('${currentDate.day.toString().padLeft(2, '0')}/${currentDate.month.toString().padLeft(2, '0')}/${currentDate.year}', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : const Color(0xFF49615E), fontWeight: FontWeight.w700)),
+                          ),
+                        ),
+                      ),
+                      messageWidget,
+                    ],
+                  );
                 }),
+          if (_showNewMessages)
+            Positioned(
+              right: 14,
+              bottom: 14,
+              child: Material(
+                color: AppColors.primary,
+                elevation: 5,
+                borderRadius: BorderRadius.circular(22),
+                child: InkWell(
+                  onTap: _scrollToLatest,
+                  borderRadius: BorderRadius.circular(22),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.white, size: 18),
+                      SizedBox(width: 5),
+                      Text('رسائل جديدة', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
+          if (_loadingMoreMessages)
+            const Positioned(top: 8, left: 0, right: 0, child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),),
           if (_loading)
             Positioned.fill(
                 child: IgnorePointer(

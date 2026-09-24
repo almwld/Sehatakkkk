@@ -258,7 +258,15 @@ class CallSoundCoordinator {
   void _showIncomingCall(Map<String, dynamic> data, String callId) {
     final nav = navigatorKey.currentState;
     if (nav == null) {
-      debugPrint('❌ CALL SHOW: navigator is null; UI cannot be opened from current execution context callId=$callId');
+      // The Firestore snapshot can arrive before Flutter's root Navigator is
+      // mounted (especially during cold start). Do not lose the incoming call;
+      // retry briefly while keeping the call document as the source of truth.
+      debugPrint('⏳ CALL SHOW: navigator not ready; scheduling retry callId=$callId');
+      Future<void>.delayed(const Duration(milliseconds: 250), () {
+        if (_activeCallId == callId && _incomingUiCallId != callId) {
+          _showIncomingCall(data, callId);
+        }
+      });
       return;
     }
     if (_incomingUiCallId == callId) {

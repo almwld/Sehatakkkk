@@ -49,10 +49,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String _userRole = 'مريض';
   String _userId = '';
   String _userPhone = '';
-  String _patientNumber = 'SH-2024-0012';
+  String _patientNumber = '';
   String _userAvatar = '';
   String _subscriptionType = 'مجانية';
-  String _bloodType = 'O+';
+  String _bloodType = 'غير محدد';
   bool _isLoading = true;
   bool _isSharing = false;
   bool _isOffline = false;
@@ -66,7 +66,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
       'label': 'ضغط الدم',
-      'value': '120/80',
+      'value': '--',
       'unit': 'مم زئبق',
       'color': Colors.red,
       'screen': const BloodPressureScreen(),
@@ -74,7 +74,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {
       'icon': 'assets/images/tracking/blood_sugar.png',
       'label': 'سكر الدم',
-      'value': '98',
+      'value': '--',
       'unit': 'مجم/دل',
       'color': Colors.orange,
       'screen': const GlucoseTrackerScreen(),
@@ -82,7 +82,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {
       'icon': 'assets/images/tracking/fitness.png',
       'label': 'اللياقة',
-      'value': '85',
+      'value': '--',
       'unit': '%',
       'color': Colors.green,
       'screen': const HealthDashboard(),
@@ -90,7 +90,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
       'label': 'الوزن',
-      'value': '72',
+      'value': '--',
       'unit': 'كجم',
       'color': Colors.purple,
       'screen': const WeightTrackerScreen(),
@@ -98,7 +98,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {
       'icon': 'assets/images/tracking/nutrition.png',
       'label': 'التغذية',
-      'value': 'جيد',
+      'value': '--',
       'unit': '',
       'color': Colors.teal,
       'screen': const HealthDashboard(),
@@ -106,7 +106,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {
       'icon': 'assets/images/tracking/mental_health.png',
       'label': 'الصحة النفسية',
-      'value': 'ممتاز',
+      'value': '--',
       'unit': '',
       'color': Colors.indigo,
       'screen': const HealthDashboard(),
@@ -394,6 +394,12 @@ class _PatientDashboardState extends State<PatientDashboard> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(26),
+            bottomRight: Radius.circular(26),
+          ),
+        ),
         actions: [
           if (_isOffline)
             Container(

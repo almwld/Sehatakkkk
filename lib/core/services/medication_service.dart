@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/services/cache_service.dart';
@@ -20,15 +22,34 @@ class MedicationService {
   Future<List<Map<String, dynamic>>> getUpcomingMedications() async {
     final user = _auth.currentUser;
     if (user == null) return [];
+
+    final cacheKey = 'medications_${user.uid}';
+    final cached = await CacheService.getList(cacheKey);
+
+    // Local-first: cached medication data is immediately usable offline and
+    // its alarms are restored before waiting for Firestore/network.
+    if (cached != null && cached.isNotEmpty) {
+      await _scheduler.sync(cached);
+      unawaited(_refreshFromFirestore(user.uid));
+      return cached.where((m) => m['active'] != false).toList();
+    }
+
+    return _refreshFromFirestore(user.uid);
+  }
+
+  Future<List<Map<String, dynamic>>> _refreshFromFirestore(String uid) async {
     try {
-      final snapshot = await _collection(user.uid).where('active', isEqualTo: true).get();
-      final medications = snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
-      await CacheService.saveList('medications_${user.uid}', medications);
+      final snapshot = await _collection(uid).where('active', isEqualTo: true).get();
+      final medications = snapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data()})
+          .toList();
+      await CacheService.saveList('medications_$uid', medications);
       await _scheduler.sync(medications);
       return medications;
     } catch (e) {
-      print('⚠️ Error getting medications: $e');
-      final cached = await CacheService.getList('medications_${user.uid}');
+      print('⚠️ Error syncing medications: $e');
+      final cached = await CacheService.getList('medications_$uid');
+      if (cached != null) await _scheduler.sync(cached);
       return cached ?? [];
     }
   }

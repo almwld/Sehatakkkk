@@ -14,11 +14,7 @@ class _PharmacyReviewScreenState extends State<PharmacyReviewScreen> {
   int _rating = 0;
   final TextEditingController _reviewController = TextEditingController();
 
-  final List<Map<String, dynamic>> _reviews = [
-    {'user': 'أحمد محمد', 'rating': 5, 'comment': 'صيدلية ممتازة وأسعار مناسبة', 'date': 'منذ يومين', 'avatar': 'أ'},
-    {'user': 'سارة علي', 'rating': 4, 'comment': 'خدمة سريعة وتوصيل ممتاز', 'date': 'منذ 5 أيام', 'avatar': 'س'},
-    {'user': 'خالد حسن', 'rating': 5, 'comment': 'صيدلي محترف ونصائح مفيدة', 'date': 'منذ أسبوع', 'avatar': 'خ'},
-  ];
+  final List<Map<String, dynamic>> _reviews = [];
 
   @override
   Widget build(BuildContext context) {

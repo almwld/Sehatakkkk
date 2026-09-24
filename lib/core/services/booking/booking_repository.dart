@@ -16,11 +16,7 @@ class BookingRepository {
         return snapshot.docs.map((doc) => SpecialtyModel.fromMap(doc.data())).toList();
       }
     } catch (e) { print('⚠️ Error loading specialties: $e'); }
-    return const [
-      SpecialtyModel(id: '1', name: 'باطنية', icon: '🫀', doctorCount: 12),
-      SpecialtyModel(id: '2', name: 'قلبية', icon: '❤️', doctorCount: 8),
-      SpecialtyModel(id: '3', name: 'عظام', icon: '🦴', doctorCount: 10),
-    ];
+    return const [];
   }
 
   Future<List<DoctorBookingModel>> getDoctors({String? specialtyId}) async {
@@ -30,10 +26,7 @@ class BookingRepository {
       final snapshot = await query.get();
       if (snapshot.docs.isNotEmpty) return snapshot.docs.map((doc) => DoctorBookingModel.fromMap(doc.data())).toList();
     } catch (e) { print('⚠️ Error loading doctors: $e'); }
-    return const [
-      DoctorBookingModel(id: '1', name: 'د. أحمد المولد', specialty: 'باطنية', specialtyId: '1', rating: 4.9, reviewsCount: 328),
-      DoctorBookingModel(id: '2', name: 'د. خالد النخلاني', specialty: 'قلبية', specialtyId: '2', rating: 4.8, reviewsCount: 256),
-    ];
+    return const [];
   }
 
   Future<List<TimeSlotModel>> getTimeSlots({String? doctorId}) async {
@@ -41,11 +34,7 @@ class BookingRepository {
       final snapshot = await _firestore.collection('time_slots').where('doctorId', isEqualTo: doctorId ?? '').get();
       if (snapshot.docs.isNotEmpty) return snapshot.docs.map((doc) => TimeSlotModel.fromMap(doc.data())).toList();
     } catch (e) { print('⚠️ Error loading time slots: $e'); }
-    return const [
-      TimeSlotModel(id: '1', date: 'السبت 10 يوليو', time: '09:00 - 09:30'),
-      TimeSlotModel(id: '2', date: 'السبت 10 يوليو', time: '10:00 - 10:30'),
-      TimeSlotModel(id: '3', date: 'السبت 10 يوليو', time: '11:00 - 11:30', isBooked: true),
-    ];
+    return const [];
   }
 
   Future<BookingModel> confirmBooking({required String doctorId, required String doctorName, required DateTime date, required String time}) async {

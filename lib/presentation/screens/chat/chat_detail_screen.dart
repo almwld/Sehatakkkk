@@ -8,6 +8,7 @@ import '../../../bloc/messages/messages_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/chat_service.dart';
 import '../../../core/services/message_delivery_service.dart';
+import 'package:sehatak/core/services/chat_reply_context.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_bubble.dart';
 
@@ -117,7 +118,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 itemBuilder: (context, index) {
                   if (index == messages.length) return const Padding(padding: EdgeInsets.all(8), child: Center(child: CircularProgressIndicator()));
                   final message = messages[index];
-                  return MessageBubble(message: message.toFirestore(), isMe: message.senderId == currentUserId);
+                  return MessageBubble(
+                    message: message.toFirestore(),
+                    isMe: message.senderId == currentUserId,
+                    onReply: () {
+                      ChatReplyContext.instance.set(widget.chatId, message);
+                      if (mounted) setState(() {});
+                    },
+                  );
                 },
               );
             }

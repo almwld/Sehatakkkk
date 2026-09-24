@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/models/steps/steps_model.dart';
 import 'package:sehatak/core/services/health_metrics_service.dart';
 
+// Sensor tracking is initialized automatically when the tracker screen opens.
 class StepsService {
   StepsService._();
   static final StepsService instance = StepsService._();
@@ -24,6 +25,7 @@ class StepsService {
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   Timer? _saveTimer;
   int? _lastSensorSteps;
+  int? _sensorDayBaseline;
   final StreamController<StepsSnapshot> _updates = StreamController<StepsSnapshot>.broadcast();
 
   Stream<StepsSnapshot> get updates => _updates.stream;
@@ -51,7 +53,10 @@ class StepsService {
       _calories = 0;
       _distance = 0;
       _hourlySteps = List.filled(24, 0);
+      _sensorDayBaseline = null;
       await prefs.setString('steps_${uid}_tracking_day', key);
+      await prefs.remove('steps_${uid}_sensor_baseline');
+      await prefs.remove('steps_${uid}_last_sensor');
     } else {
       final localStepsKey = 'steps_${uid}_today';
       final localCaloriesKey = 'steps_${uid}_calories';
@@ -59,6 +64,8 @@ class StepsService {
       _todaySteps = prefs.getInt(localStepsKey) ?? await getTodaySteps();
       _calories = prefs.getInt(localCaloriesKey) ?? (_todaySteps * 0.04).round();
       _distance = prefs.getDouble(localDistanceKey) ?? (_todaySteps * 0.8);
+      _sensorDayBaseline = prefs.getInt('steps_${uid}_sensor_baseline');
+      _lastSensorSteps = prefs.getInt('steps_${uid}_last_sensor');
     }
     _isTracking = true;
     await _startSensorTracking();
@@ -125,27 +132,60 @@ class StepsService {
 
   Future<void> _startSensorTracking() async {
     await _stepCountSubscription?.cancel();
-    _lastSensorSteps = null;
+    await _pedestrianStatusSubscription?.cancel();
+    await _accelerometerSubscription?.cancel();
+    final uid = _trackingUid;
+    if (uid == null) return;
+    final prefs = await SharedPreferences.getInstance();
+
     try {
-      _stepCountSubscription = Pedometer.stepCountStream.listen((event) {
-        final previous = _lastSensorSteps;
-        _lastSensorSteps = event.steps;
-        if (previous == null) return;
-        final delta = event.steps - previous;
-        if (delta > 0 && delta < 100) _addSteps(delta);
-      }, onError: (_) => _startFallbackTracking(), cancelOnError: true);
+      _stepCountSubscription = Pedometer.stepCountStream.listen(
+        (event) async {
+          if (!_isTracking || _trackingUid != uid) return;
+          _sensorDayBaseline ??= event.steps;
+          final previous = _lastSensorSteps;
+          _lastSensorSteps = event.steps;
+
+          if (previous == null) {
+            await prefs.setInt('steps_${uid}_sensor_baseline', _sensorDayBaseline!);
+            await prefs.setInt('steps_${uid}_last_sensor', event.steps);
+            return;
+          }
+
+          final delta = event.steps - previous;
+          if (delta > 0 && delta < 100) {
+            _addSteps(delta);
+            await prefs.setInt('steps_${uid}_last_sensor', event.steps);
+          }
+        },
+        onError: (_) => _startFallbackTracking(),
+        cancelOnError: true,
+      );
       _pedestrianStatusSubscription =
           Pedometer.pedestrianStatusStream.listen((_) {}, onError: (_) {});
     } catch (_) {
-      _startFallbackTracking();
+      await _startFallbackTracking();
     }
   }
 
-  void _startFallbackTracking() {
-    _accelerometerSubscription?.cancel();
+  Future<void> _startFallbackTracking() async {
+    await _accelerometerSubscription?.cancel();
+    DateTime? lastStepAt;
+    double previousMagnitude = 9.81;
     _accelerometerSubscription = accelerometerEvents.listen((event) {
-      final magnitude = math.sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
-      if (magnitude > 12 && magnitude < 20) _addSteps(1);
+      if (!_isTracking) return;
+      final magnitude = math.sqrt(
+        event.x * event.x + event.y * event.y + event.z * event.z,
+      );
+      final now = DateTime.now();
+      final risingPeak = magnitude > 11.5 && magnitude > previousMagnitude + 1.2;
+      if (risingPeak &&
+          (lastStepAt == null ||
+              now.difference(lastStepAt!).inMilliseconds > 280)) {
+        lastStepAt = now;
+        _addSteps(1);
+      }
+      previousMagnitude = magnitude;
     });
   }
 
@@ -178,6 +218,12 @@ class StepsService {
     await prefs.setInt('steps_${uid}_today', _todaySteps);
     await prefs.setInt('steps_${uid}_calories', _calories);
     await prefs.setDouble('steps_${uid}_distance', _distance);
+    if (_sensorDayBaseline != null) {
+      await prefs.setInt('steps_${uid}_sensor_baseline', _sensorDayBaseline!);
+    }
+    if (_lastSensorSteps != null) {
+      await prefs.setInt('steps_${uid}_last_sensor', _lastSensorSteps!);
+    }
     final user = _auth.currentUser;
     if (user == null || user.uid != uid) {
       return;

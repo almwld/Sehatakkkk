@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'call_sound_coordinator.dart';
@@ -221,6 +223,62 @@ class NotificationService {
     final details = await _notifications.getNotificationAppLaunchDetails();
     if (details?.didNotificationLaunchApp != true) return null;
     return details?.notificationResponse?.payload;
+  }
+
+  /// Persists every remote FCM notification in the user's notification feed.
+  /// The deterministic document id prevents duplicates across FCM handlers.
+  Future<void> persistIncomingNotification({
+    required String type,
+    required String title,
+    required String body,
+    Map<String, dynamic>? data,
+    String? messageId,
+  }) async {
+    try {
+      final payload = data ?? const <String, dynamic>{};
+      // Background FCM runs in a separate isolate where FirebaseAuth.currentUser
+      // may be null. Prefer the recipient encoded by the trusted sender.
+      final recipientId = (payload['userId'] ??
+              payload['recipientId'] ??
+              payload['receiverId'])
+          ?.toString()
+          .trim();
+      final authUid = FirebaseAuth.instance.currentUser?.uid;
+      final uid = (recipientId != null && recipientId.isNotEmpty)
+          ? recipientId
+          : authUid;
+      if (uid == null || uid.isEmpty) return;
+
+      final rawId = (payload['notificationId'] ?? payload['id'] ?? messageId)
+              ?.toString()
+              .trim() ??
+          '';
+      final normalizedId = rawId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+      final safeId = normalizedId.length > 120
+          ? normalizedId.substring(0, 120)
+          : normalizedId;
+      final docId = 'fcm_' +
+          (safeId.isEmpty
+              ? DateTime.now().millisecondsSinceEpoch.toString()
+              : safeId);
+
+      await FirebaseFirestore.instance
+          .collection('notifications')
+          .doc(docId)
+          .set({
+        'userId': uid,
+        'type': type.isEmpty ? 'system' : type,
+        'title': title.isEmpty ? 'صحتك' : title,
+        'body': body,
+        'data': payload,
+        'messageId': messageId,
+        'source': 'fcm',
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('❌ Persist FCM notification failed: $e');
+    }
   }
 
   Future<void> showTypedNotification({required String type, required String title, required String body, Map<String, dynamic>? data, String? payload, bool? playSound}) async {

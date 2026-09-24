@@ -6,6 +6,7 @@ import 'package:sehatak/core/services/active_call_registry.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/models/call_model.dart';
+import 'package:sehatak/core/services/notification_service.dart';
 
 class CallScreen extends StatefulWidget {
   final String chatId, doctorName, doctorId;
@@ -55,10 +56,23 @@ class _CallScreenState extends State<CallScreen> {
       setState(() => _connected = true);
       _timer = Timer.periodic(const Duration(seconds: 1), (_) { if (mounted && _connected && !_ending) setState(() => _seconds++); });
     } catch (e) {
-      ActiveCallRegistry.instance.unregister(_callId);
+      final failedCallId = _callId;
+      ActiveCallRegistry.instance.unregister(failedCallId);
       await _callSubscription?.cancel();
       _callSubscription = null;
-      if (mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الاتصال: $e'))); Navigator.pop(context); }
+      if (failedCallId != null && failedCallId.isNotEmpty) {
+        try {
+          final current = await _calls.streamCall(failedCallId).first;
+          if (current != null && (current.status == CallStatus.calling || current.status == CallStatus.ringing || current.status == CallStatus.connected)) {
+            await _calls.endCall(failedCallId);
+          }
+        } catch (_) {}
+        await NotificationService().cancelIncomingCallNotification(failedCallId);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر الاتصال بالمكالمة. حاول مرة أخرى.')));
+        Navigator.pop(context);
+      }
     }
   }
 

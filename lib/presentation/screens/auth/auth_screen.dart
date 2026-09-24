@@ -17,6 +17,7 @@ import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.d
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 
+import 'package:sehatak/app_router.dart';
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
 
@@ -635,7 +636,11 @@ class _AuthScreenState extends State<AuthScreen>
       // and replace Auth with Home immediately after the success confirmation.
       final prefsAfterLogin = await SharedPreferences.getInstance();
       await prefsAfterLogin.remove('sehatak_last_route');
-      if (mounted) context.go('/');
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) AppRouter.router.go(AppRouter.home);
+        });
+      }
     } on TimeoutException catch (e) {
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
@@ -699,7 +704,9 @@ class _AuthScreenState extends State<AuthScreen>
       // success overlay closes. Non-visual persistence work must not block it.
       final user = FirebaseAuth.instance.currentUser;
       if (mounted) {
-        context.go('/');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) AppRouter.router.go(AppRouter.home);
+        });
       }
 
       // Complete non-visual post-login preparation in the background so the
@@ -891,7 +898,9 @@ class _AuthScreenState extends State<AuthScreen>
                   MaterialPageRoute(builder: (_) => VerificationScreen(userModel: userModel)),
                 );
               } else {
-                context.go('/');
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) AppRouter.router.go(AppRouter.home);
+                });
               }
             },
           ),

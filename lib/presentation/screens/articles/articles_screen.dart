@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -22,13 +23,35 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
     'الكل', 'صحة عامة', 'تغذية', 'صحة نفسية', 'جلدية', 'أطفال', 'رياضة'
   ];
 
-  final List<Map<String, dynamic>> _articles = [
-    {'id': '1', 'title': 'فوائد المشي اليومي للصحة العامة', 'category': 'صحة عامة', 'author': 'د. أحمد المولد', 'date': '2024-01-15', 'image': ImageKit.morningWalk, 'likes': 328, 'comments': 45, 'readTime': '5 دقائق'},
-    {'id': '2', 'title': 'نصائح لتقوية المناعة في الشتاء', 'category': 'تغذية', 'author': 'د. أسماء الهندي', 'date': '2024-01-12', 'image': ImageKit.immuneBoost, 'likes': 256, 'comments': 32, 'readTime': '4 دقائق'},
-    {'id': '3', 'title': 'أهمية النوم الصحي للجسم والعقل', 'category': 'صحة نفسية', 'author': 'د. خالد النخلاني', 'date': '2024-01-10', 'image': ImageKit.sleepTips, 'likes': 189, 'comments': 28, 'readTime': '6 دقائق'},
-    {'id': '4', 'title': 'العناية بالبشرة في فصل الصيف', 'category': 'جلدية', 'author': 'د. فاطمة صديقي', 'date': '2024-01-08', 'image': ImageKit.skinCare, 'likes': 145, 'comments': 19, 'readTime': '4 دقائق'},
-    {'id': '5', 'title': 'تغذية الأطفال في مرحلة النمو', 'category': 'أطفال', 'author': 'د. محمد العلاي', 'date': '2024-01-05', 'image': ImageKit.nutritionTips, 'likes': 98, 'comments': 12, 'readTime': '7 دقائق'},
-  ];
+  List<Map<String, dynamic>> _articles = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadArticles();
+  }
+
+  Future<void> _loadArticles() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('articles')
+          .where('isPublished', isEqualTo: true)
+          .limit(50)
+          .get();
+      if (!mounted) return;
+      setState(() {
+        _articles = snap.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _articles = [];
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -117,7 +140,9 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
             ),
           ),
           Expanded(
-            child: filtered.isEmpty
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : filtered.isEmpty
                 ? _buildEmptyState(isDark)
                 : ListView.builder(
                     padding: const EdgeInsets.all(12),

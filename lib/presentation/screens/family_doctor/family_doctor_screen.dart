@@ -5,21 +5,16 @@ import 'package:sehatak/core/constants/app_colors.dart';
 class FamilyDoctorScreen extends StatelessWidget {
   const FamilyDoctorScreen({super.key});
 
-  final List<Map<String, dynamic>> _members = const [
-    {'name': 'أحمد محمد', 'relation': 'الأب', 'age': '45', 'blood': 'O+', 'conditions': 'ضغط، سكري', 'icon': '👨', 'color': AppColors.info},
-    {'name': 'فاطمة علي', 'relation': 'الأم', 'age': '42', 'blood': 'A+', 'conditions': 'لا يوجد', 'icon': '👩', 'color': AppColors.pink},
-    {'name': 'سارة أحمد', 'relation': 'ابنة', 'age': '12', 'blood': 'O+', 'conditions': 'حساسية', 'icon': '👧', 'color': AppColors.success},
-    {'name': 'عمر أحمد', 'relation': 'ابن', 'age': '8', 'blood': 'O-', 'conditions': 'ربو', 'icon': '👦', 'color': AppColors.purple},
-    {'name': 'مريم أحمد', 'relation': 'جدة', 'age': '70', 'blood': 'B+', 'conditions': 'قلب، عظام', 'icon': '👵', 'color': AppColors.warning},
-  ];
+  final List<Map<String, dynamic>> _members = const [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: const Text('طبيب العائلة', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.add), onPressed: () {})]),
       body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(16)), child: const Row(children: [Icon(Icons.family_restroom, color: Colors.white, size: 40), SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('عائلة محمد', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text('5 أفراد', style: TextStyle(color: Colors.white70))]))])),
+        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(16)), child: const Row(children: [Icon(Icons.family_restroom, color: Colors.white, size: 40), SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('عائلتي', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text('لا توجد بيانات عائلية محفوظة', style: TextStyle(color: Colors.white70))]))])),
         const SizedBox(height: 16),
+        if (_members.isEmpty) const Padding(padding: EdgeInsets.symmetric(vertical: 32), child: Center(child: Text('لا توجد بيانات أفراد عائلة محفوظة حالياً'))),
         ..._members.map((m) => Container(
           margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),

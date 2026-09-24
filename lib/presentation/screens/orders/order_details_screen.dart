@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/orders/order_tracking_screen.dart';
 
@@ -20,26 +21,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Map<String, dynamic> _orderData = {};
   bool _isLoading = true;
 
-  // ✅ بيانات وهمية للطلب
-  final Map<String, dynamic> _mockOrder = {
-    'id': 'ORD-2024-001',
-    'date': '2024-01-15',
-    'time': '10:30 ص',
-    'status': 'shipping',
-    'total': 250.00,
-    'subtotal': 200.00,
-    'delivery_fee': 15.00,
-    'tax': 35.00,
-    'payment_method': 'wallet',
-    'delivery_method': 'sehatak',
-    'address': 'صنعاء - شارع حدة - بجوار مستشفى الثورة',
-    'notes': 'الرجاء الاتصال قبل الوصول',
-    'items': [
-      {'name': 'باراسيتامول 500mg', 'quantity': 2, 'price': 50.00, 'total': 100.00, 'image': 'assets/images/medicines/medicine1.png'},
-      {'name': 'فيتامين د 1000IU', 'quantity': 1, 'price': 75.00, 'total': 75.00, 'image': 'assets/images/medicines/medicine2.png'},
-      {'name': 'جهاز قياس ضغط', 'quantity': 1, 'price': 25.00, 'total': 25.00, 'image': 'assets/images/medicines/medicine3.png'},
-    ],
-  };
 
   @override
   void initState() {
@@ -47,14 +28,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     _loadOrderData();
   }
 
-  void _loadOrderData() {
+  Future<void> _loadOrderData() async {
     setState(() => _isLoading = true);
-    Future.delayed(const Duration(milliseconds: 500), () {
+    try {
+      final snap = await FirebaseFirestore.instance.collection('orders').doc(widget.orderId).get();
+      if (!mounted) return;
       setState(() {
-        _orderData = widget.orderData ?? _mockOrder;
+        _orderData = snap.exists ? (snap.data() ?? {}) : {};
         _isLoading = false;
       });
-    });
+    } catch (e) {
+      debugPrint('Error loading order: $e');
+      if (!mounted) return;
+      setState(() {
+        _orderData = {};
+        _isLoading = false;
+      });
+    }
   }
 
   String _getStatusText(String status) {

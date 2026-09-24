@@ -16,13 +16,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
   int _rating = 0;
   final TextEditingController _reviewController = TextEditingController();
 
-  // ✅ بيانات تجريبية للتقييمات
-  final List<Map<String, dynamic>> _reviews = [
-    {'user': 'أحمد محمد', 'rating': 5, 'comment': 'مختبر ممتاز ودقة عالية في النتائج', 'date': 'منذ يومين', 'avatar': 'أ'},
-    {'user': 'سارة علي', 'rating': 4, 'comment': 'خدمة جيدة وسرعة في الإنجاز', 'date': 'منذ 5 أيام', 'avatar': 'س'},
-    {'user': 'خالد حسن', 'rating': 5, 'comment': 'كادر محترف وأجهزة حديثة', 'date': 'منذ أسبوع', 'avatar': 'خ'},
-    {'user': 'فاطمة صالح', 'rating': 3, 'comment': 'جيد لكن وقت الانتظار طويل', 'date': 'منذ أسبوعين', 'avatar': 'ف'},
-  ];
+  final List<Map<String, dynamic>> _reviews = [];
 
   @override
   Widget build(BuildContext context) {

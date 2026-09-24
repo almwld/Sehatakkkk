@@ -6,7 +6,6 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
 import 'package:livekit_client/livekit_client.dart';
 import 'package:sehatak/core/config/livekit_config.dart';
-import 'package:sehatak/core/services/toast_service.dart';
 
 class LiveKitService {
   static final LiveKitService _instance = LiveKitService._internal();
@@ -58,9 +57,10 @@ class LiveKitService {
       await enableMicrophone();
       await setSpeakerphone(true);
       return _room!;
-    } catch (_) {
+    } catch (e, st) {
       _isConnected = false;
-      ToastService.showError('❌ فشل الاتصال بالمكالمة');
+      debugPrint('LIVEKIT CONNECT ERROR: $e');
+      debugPrintStack(stackTrace: st);
       rethrow;
     }
   }
@@ -92,7 +92,6 @@ class LiveKitService {
     } catch (e) {
       _isCameraEnabled = false;
       debugPrint('LIVEKIT CAMERA ERROR: $e');
-      ToastService.showError('❌ تعذر تشغيل الكاميرا: $e');
       rethrow;
     }
   }
@@ -107,7 +106,6 @@ class LiveKitService {
     } catch (e) {
       _isMicrophoneEnabled = false;
       debugPrint('LIVEKIT MICROPHONE ERROR: $e');
-      ToastService.showError('❌ فشل تشغيل الميكروفون: $e');
       rethrow;
     }
   }
@@ -123,7 +121,6 @@ class LiveKitService {
       return state;
     } catch (e) {
       debugPrint('LIVEKIT CAMERA TOGGLE ERROR: $e');
-      ToastService.showError('❌ تعذر تغيير حالة الكاميرا');
       return _isCameraEnabled;
     }
   }

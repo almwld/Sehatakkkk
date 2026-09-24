@@ -3,10 +3,10 @@
 // 🏃 شاشة خطة التمارين - الإصدار النهائي
 // ============================================================
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
-import 'package:sehatak/core/services/toast_service.dart';
 
 class ExercisePlanScreen extends StatefulWidget {
   const ExercisePlanScreen({super.key});
@@ -17,6 +17,9 @@ class ExercisePlanScreen extends StatefulWidget {
 
 class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
   int _selectedLevel = 0;
+  Timer? _timer;
+  int _remainingSeconds = 0;
+  bool _running = false;
   final List<String> _levels = ['مبتدئ', 'متوسط', 'متقدم'];
 
   final List<Map<String, dynamic>> _exercises = [
@@ -47,9 +50,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
               color: Colors.white,
               errorBuilder: (_, __, ___) => const Icon(Icons.timer),
             ),
-            onPressed: () {
-              ToastService.showSuccess('⏱ سيتم إضافة مؤقت التمارين قريباً');
-            },
+            onPressed: _openTimer,
           ),
         ],
       ),
@@ -128,9 +129,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  ToastService.showSuccess('🚀 بدء التمرين...');
-                },
+                onPressed: _openTimer,
                 icon: Image.asset(
                   'assets/images/tracking/fitness.png',
                   width: 20,
@@ -160,6 +159,42 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
     );
   }
 
+  void _openTimer() {
+    final exercise = _exercises[_selectedLevel.clamp(0, _exercises.length - 1)];
+    final match = RegExp(r'(\d+)').firstMatch(exercise['time'].toString());
+    final minutes = int.tryParse(match?.group(1) ?? '5') ?? 5;
+    _remainingSeconds = minutes * 60;
+    _running = false;
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          String fmt(int s) => '${(s ~/ 60).toString().padLeft(2, '0')}:${(s % 60).toString().padLeft(2, '0')}';
+          void start() {
+            if (_running) return;
+            _running = true;
+            _timer?.cancel();
+            _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+              if (_remainingSeconds <= 1) { t.cancel(); _running = false; } else { _remainingSeconds--; }
+              if (sheetContext.mounted) setSheetState(() {});
+            });
+            setSheetState(() {});
+          }
+          void pause() { _timer?.cancel(); _running = false; setSheetState(() {}); }
+          return Padding(padding: const EdgeInsets.fromLTRB(24, 8, 24, 28), child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(exercise['name'].toString(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20), Text(fmt(_remainingSeconds), style: const TextStyle(fontSize: 54, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 18), Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              IconButton.filled(onPressed: _running ? pause : start, icon: Icon(_running ? Icons.pause : Icons.play_arrow), iconSize: 28),
+              const SizedBox(width: 12),
+              OutlinedButton(onPressed: () { _timer?.cancel(); _running = false; _remainingSeconds = minutes * 60; setSheetState(() {}); }, child: const Text('إعادة')),
+            ])
+          ]));
+        },
+      ),
+    ).whenComplete(() { _timer?.cancel(); _running = false; });
+  }
   Widget _buildExerciseCard(Map<String, dynamic> exercise, bool isDark) {
     final color = exercise['color'] as Color;
     final icon = exercise['icon'] as String;

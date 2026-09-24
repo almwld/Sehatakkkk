@@ -156,6 +156,7 @@ class HomeHealthWidgets extends StatelessWidget {
       case 'الوزن': return AppRouter.weightTracker;
       case 'التغذية': return AppRouter.dietPlan;
       case 'الصحة النفسية': return AppRouter.mentalHealth;
+      case 'السعرات': return AppRouter.nutrition;
       case 'الخطوات': return AppRouter.stepTracker;
       case 'النوم': return AppRouter.sleepTracker;
       case 'النبض': return AppRouter.heartRate;

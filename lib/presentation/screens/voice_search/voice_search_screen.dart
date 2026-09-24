@@ -19,7 +19,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> with SingleTicker
   void _toggle() {
     setState(() {
       _listening = !_listening;
-      if (_listening) { _anim.repeat(reverse: true); _result = ''; Future.delayed(const Duration(seconds: 3), () { if (mounted) setState(() { _listening = false; _anim.stop(); _result = 'طبيب قلب في صنعاء'; }); }); }
+      if (_listening) { _anim.repeat(reverse: true); _result = ''; }
       else { _anim.stop(); }
     });
   }

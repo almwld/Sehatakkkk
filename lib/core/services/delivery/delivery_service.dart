@@ -14,44 +14,25 @@ class DeliveryService {
     });
   }
 
-  // ✅ محاكاة جلب حالة التوصيل
-  Future<DeliveryModel> getDeliveryStatus(String orderId) async {
-    // ✅ محاكاة طلب API
-    await Future.delayed(const Duration(seconds: 1));
-
-    // ✅ بيانات تجريبية
+  Future<DeliveryModel?> getDeliveryStatus(String orderId) async {
+    final snap = await _firestore.collection('deliveries').doc(orderId).get();
+    if (!snap.exists || snap.data() == null) return null;
+    final d = snap.data()!;
     return DeliveryModel(
       orderId: orderId,
-      status: 'shipping',
-      currentStep: 3,
-      estimatedTime: '18 دقيقة',
-      courier: CourierModel(
-        id: 'courier_1',
-        name: 'أحمد علي',
-        phone: '+967777000000',
-        rating: 4.9,
-        vehicleType: 'سيارة',
-        plateNumber: 'ص ن ع 1234',
-        isOnline: true,
-      ),
-      history: [
-        DeliveryHistory(
-          status: 'تم الطلب',
-          description: 'تم استلام طلبك بنجاح',
-          time: DateTime.now().subtract(const Duration(hours: 2)),
-        ),
-        DeliveryHistory(
-          status: 'تم التجهيز',
-          description: 'تم تجهيز طلبك في الصيدلية',
-          time: DateTime.now().subtract(const Duration(hours: 1)),
-        ),
-        DeliveryHistory(
-          status: 'في الطريق',
-          description: 'المندوب في الطريق إليك',
-          time: DateTime.now().subtract(const Duration(minutes: 30)),
-        ),
-      ],
-      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+      status: (d['status'] ?? 'pending').toString(),
+      currentStep: (d['currentStep'] as num?)?.toInt() ?? 1,
+      estimatedTime: (d['estimatedTime'] ?? 'غير محدد').toString(),
+      courier: d['courier'] is Map<String, dynamic> ? CourierModel(
+        id: d['courier']['id']?.toString() ?? '',
+        name: d['courier']['name']?.toString() ?? '',
+        phone: d['courier']['phone']?.toString() ?? '',
+        rating: (d['courier']['rating'] as num?)?.toDouble() ?? 0,
+        vehicleType: d['courier']['vehicleType']?.toString() ?? '',
+        plateNumber: d['courier']['plateNumber']?.toString() ?? '',
+        isOnline: d['courier']['isOnline'] != false,
+      ) : null,
+      createdAt: d['createdAt'] is Timestamp ? (d['createdAt'] as Timestamp).toDate() : DateTime.now(),
     );
   }
 

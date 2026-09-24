@@ -211,7 +211,10 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         productId: id,
         name: '${p['name'] ?? 'منتج'}',
         unitPrice: price,
-        requiresPrescription: p['requiresPrescription'] == true);
+        requiresPrescription: p['requiresPrescription'] == true,
+        pharmacyId: '${p['pharmacyId'] ?? p['sellerId'] ?? ''}'.trim().isEmpty ? null : '${p['pharmacyId'] ?? p['sellerId'] ?? ''}'.trim(),
+        providerName: '${p['pharmacyName'] ?? p['sellerName'] ?? ''}'.trim().isEmpty ? null : '${p['pharmacyName'] ?? p['sellerName'] ?? ''}'.trim(),
+        prescriptionId: p['prescriptionId']?.toString());
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تمت إضافة المنتج إلى السلة')));
@@ -314,8 +317,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
   Widget _storesTab() {
     final stores = _visiblePharmacies;
     if (stores.isEmpty)
-      return const Center(
-          child: Text('لا توجد صيدليات منشورة تطابق البحث حالياً'));
+      return const Center(child: Text('لا توجد صيدليات منشورة تطابق البحث حالياً'));
     return RefreshIndicator(
         onRefresh: _loadAll,
         child: ListView.builder(
@@ -325,27 +327,36 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
               final p = stores[i];
               final open = p['isOpen'] == true || p['openNow'] == true;
               final delivery = p['deliveryAvailable'] == true ||
-                  p['hasDelivery'] == true ||
-                  p['delivery'] == true;
+                  p['hasDelivery'] == true || p['delivery'] == true;
+              final image = '${p['imageUrl'] ?? p['image'] ?? p['logoUrl'] ?? p['logo'] ?? ''}'.trim();
               return Card(
                   margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                      isThreeLine: true,
-                      leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withOpacity(.1),
-                          child: SvgPicture.asset('assets/icons/map_pins/pharmacy.svg', width: 28, height: 28)),
-                      title: Text('${p['name'] ?? 'صيدلية'}',
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(
-                          '${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}\n${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}'),
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  PharmacyDetailScreen(pharmacy: p)))));
+                  child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PharmacyDetailScreen(pharmacy: p))),
+                      child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(children: [
+                            SizedBox(
+                                width: 82, height: 82,
+                                child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: image.isNotEmpty
+                                        ? AppImage(imageUrl: image, width: 82, height: 82, fit: BoxFit.cover)
+                                        : Container(
+                                            color: AppColors.primary.withOpacity(.1),
+                                            child: const Icon(Icons.local_pharmacy, color: AppColors.primary, size: 36)))),
+                            const SizedBox(width: 12),
+                            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text('${p['name'] ?? 'صيدلية'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text('${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.grey)),
+                              const SizedBox(height: 6),
+                              Text('${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                            ])),
+                          ]))));
             }));
   }
-
   Widget _productsTab() => _productList(
       _visibleProducts, 'لا توجد منتجات منشورة تطابق البحث حالياً');
   Widget _offersTab() => _productList(_offers, 'لا توجد عروض منشورة حالياً');

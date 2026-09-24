@@ -61,7 +61,7 @@ class PharmacyDetailScreen extends StatelessWidget {
       _row(AppIcons.offerHealthCheck, 'الحالة', open ? 'مفتوحة الآن' : 'مغلقة الآن', isDark),
       _row(AppIcons.serviceMedical, 'التوصيل', delivery ? 'متوفر' : 'غير متوفر', isDark),
       const SizedBox(height: 8),
-      OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InteractiveMapScreen(type: 'pharmacies'))), icon: SvgPicture.asset(AppIcons.navPharmacy, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)), label: const Text('عرض الصيدليات على الخريطة')),
+      OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InteractiveMapScreen(type: 'pharmacies'))), icon: SvgPicture.asset(AppIcons.navPharmacy, width: 22, height: 22), label: const Text('عرض الصيدليات على الخريطة')),
     ]);
   }
 
@@ -73,5 +73,5 @@ class PharmacyDetailScreen extends StatelessWidget {
 
   Widget _fallback(bool isDark) => Container(height: 180, decoration: BoxDecoration(color: isDark ? const Color(0xFF182238) : Colors.grey.shade200, borderRadius: BorderRadius.circular(16)), child: SvgPicture.asset('assets/icons/map_pins/pharmacy.svg', width: 70, height: 70, colorFilter: ColorFilter.mode(Colors.grey.shade500, BlendMode.srcIn)));
 
-  Widget _row(String icon, String label, String value, bool isDark) => Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SvgPicture.asset(icon, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)), const SizedBox(width: 10), Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)), Expanded(child: Text(value, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)))]));
+  Widget _row(String icon, String label, String value, bool isDark) => Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SvgPicture.asset(icon, width: 20, height: 20), const SizedBox(width: 10), Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)), Expanded(child: Text(value, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)))]));
 }

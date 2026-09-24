@@ -122,7 +122,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       );
 
       if (mounted) {
-        ToastService.showSuccess('تم حفظ الدواء وتفعيل جميع التنبيهات');
         Navigator.pop(context, true);
       }
     } catch (_) {

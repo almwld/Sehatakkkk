@@ -30,13 +30,15 @@ class ScreenKeys {
 }
 
 class HomeScreen extends StatefulWidget {
+  static final GlobalKey<HomeScreenState> navigatorKey = GlobalKey<HomeScreenState>();
+
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final _scrollController = ScrollController();
   late final GlobalScrollManager _scrollManager;
@@ -114,6 +116,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return false;
   }
 
+  bool handleSystemBack() {
+    _back();
+    return true;
+  }
+
   void _back() {
     // 1) If we are on a GoRouter leaf other than Home (e.g. doctor details,
     //    pharmacy, lab), go back to Home first. This handles the case where
@@ -164,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     _backPressedOnce = true;
     ToastService.showToast(
-      message: 'اضغط مرة أخرى للخروج من التطبيق',
+      message: 'انقر مرتين للخروج النهائي',
       type: ToastType.info,
       duration: const Duration(seconds: 2),
     );

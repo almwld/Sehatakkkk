@@ -78,11 +78,16 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
         actions: [
           IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationAlertsReportScreen())), icon: SvgPicture.asset(AppAssets.reportIcon, width: 23, height: 23, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn))),
           IconButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final saved = await Navigator.push<bool>(
                 context,
                 MaterialPageRoute(builder: (_) => const AddMedicationScreen()),
               );
+              if (saved == true && mounted) {
+                ToastService.showSuccess(
+                  'تم حفظ تذكير الدواء وتفعيل التنبيهات الصوتية والاهتزاز',
+                );
+              }
             },
             icon: const Icon(Icons.add),
           ),

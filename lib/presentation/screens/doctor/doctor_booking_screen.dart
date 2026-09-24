@@ -1,8 +1,8 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class DoctorBookingScreen extends StatefulWidget {
@@ -17,7 +17,8 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   String _selectedType = 'استشارة عامة';
-  bool _isLoading = false;
+  bool _isLoading = true;
+  Map<String, dynamic> _doctor = {};
 
   final List<String> _consultationTypes = [
     'استشارة عامة',
@@ -26,27 +27,33 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     'فحص دوري',
   ];
 
-  Map<String, dynamic> _getDoctorData(String doctorId) {
-    switch (doctorId) {
-      case 'd1':
-        return {'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'image': ImageKit.doctor1};
-      case 'd2':
-        return {'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'image': ImageKit.doctor2};
-      case 'd3':
-        return {'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'image': ImageKit.doctor3};
-      case 'd4':
-        return {'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'image': ImageKit.doctor4};
-      case 'd5':
-        return {'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'image': ImageKit.doctor5};
-      default:
-        return {'name': 'د. غير معروف', 'specialty': 'عام', 'image': ImageKit.doctor1};
+  @override
+  void initState() {
+    super.initState();
+    _loadDoctor();
+  }
+
+  Future<void> _loadDoctor() async {
+    try {
+      final snap = await FirebaseFirestore.instance.collection('doctors').doc(widget.doctorId).get();
+      if (!mounted) return;
+      setState(() {
+        _doctor = snap.exists ? (snap.data() ?? {}) : {};
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _doctor = {};
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final doctor = _getDoctorData(widget.doctorId);
+    final doctor = _doctor;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),

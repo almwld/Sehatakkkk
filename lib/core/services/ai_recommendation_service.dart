@@ -33,15 +33,13 @@ class AIRecommendationService {
       final user = _auth.currentUser;
       if (user == null) return {};
 
-      final doc = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      if (doc.exists) {
-        return doc.data() ?? {};
-      }
-      return {};
+      final results = await Future.wait([
+        _firestore.collection('users').doc(user.uid).get(),
+        _firestore.collection('health_metrics').doc(user.uid).get(),
+      ]);
+      final userData = results[0].data() ?? <String, dynamic>{};
+      final metrics = results[1].data() ?? <String, dynamic>{};
+      return {...userData, 'health_metrics': metrics};
     } catch (e) {
       print('⚠️ Error getting user health data: $e');
       return {};
@@ -49,108 +47,40 @@ class AIRecommendationService {
   }
 
   Map<String, dynamic> _generateRecommendation(Map<String, dynamic> userData) {
-    // تحليل بسيط لتوليد توصيات (يمكن استخدام AI حقيقي هنا)
-    final recommendations = [
-      {
-        'title': 'تحسين جودة النوم',
-        'description': 'بناءً على نمط نومك، نوصي بالنوم 7-8 ساعات يومياً والابتعاد عن الشاشات قبل النوم بساعة.',
-        'category': 'النوم',
-        'priority': 'عالية',
-        'actions': [
-          'حدد موعد نوم ثابت',
-          'تجنب الكافيين بعد الساعة 4 م',
-          'مارس تمارين الاسترخاء',
-        ],
-      },
-      {
-        'title': 'نظام غذائي صحي',
-        'description': 'نوصي بتناول 5 حصص من الفواكه والخضار يومياً، وشرب 8 أكواب من الماء، وتقليل السكريات.',
-        'category': 'التغذية',
-        'priority': 'عالية',
-        'actions': [
-          'تناول وجبات متوازنة',
-          'اشرب الماء بانتظام',
-          'قلل من الوجبات السريعة',
-        ],
-      },
-      {
-        'title': 'تمارين يومية',
-        'description': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري. جرب صعود الدرج بدلاً من المصعد.',
-        'category': 'اللياقة',
-        'priority': 'متوسطة',
-        'actions': [
-          'امشِ 30 دقيقة يومياً',
-          'استخدم الدرج بدلاً من المصعد',
-          'مارس تمارين التمدد',
-        ],
-      },
-      {
-        'title': 'إدارة التوتر',
-        'description': 'ممارسة التأمل والتنفس العميق 10 دقائق يومياً يساعد في تقليل التوتر وتحسين الصحة النفسية.',
-        'category': 'الصحة النفسية',
-        'priority': 'متوسطة',
-        'actions': [
-          'مارس التأمل يومياً',
-          'خذ فترات راحة من العمل',
-          'تواصل مع الأصدقاء والعائلة',
-        ],
-      },
-    ];
-
-    // اختيار توصية عشوائية
-    final index = DateTime.now().second % recommendations.length;
-    return recommendations[index];
+    final metrics = Map<String, dynamic>.from(
+      userData['health_metrics'] is Map ? userData['health_metrics'] as Map : const {},
+    );
+    final sleep = (metrics['sleep'] as num?)?.toDouble();
+    final steps = (metrics['steps'] as num?)?.toDouble();
+    final oxygen = (metrics['bloodOxygen'] as num?)?.toDouble();
+    if (oxygen != null && oxygen < 95) {
+      return {'title':'مراجعة قراءة الأكسجين','description':'القراءة المسجلة أقل من 95%. أعد القياس بجهاز موثوق، وإذا استمرت القراءة المنخفضة فاطلب تقييماً طبياً.','category':'الأكسجين','priority':'عالية','source':'health_metrics'};
+    }
+    if (sleep != null && sleep < 7) {
+      return {'title':'تحسين النوم','description':'آخر مدة نوم مسجلة أقل من 7 ساعات. حاول تثبيت موعد النوم وتقليل المنبهات والشاشات قبل النوم.','category':'النوم','priority':'متوسطة','source':'health_metrics'};
+    }
+    if (steps != null && steps < 5000) {
+      return {'title':'زيادة النشاط اليومي','description':'عدد الخطوات المسجل منخفض نسبياً. زد الحركة تدريجياً بما يناسب حالتك الصحية.','category':'النشاط','priority':'متوسطة','source':'health_metrics'};
+    }
+    return {'title':'استمر في متابعة مؤشراتك','description':'لا توجد إشارة واضحة من القياسات الحالية تستدعي تنبيهاً. استمر في تسجيل القياسات ومراجعتها مع مختص عند الحاجة.','category':'عام','priority':'منخفضة','source':'health_metrics'};
   }
 
   Map<String, dynamic> _getDefaultRecommendation() {
-    return {
-      'title': 'حافظ على صحتك',
-      'description': 'نوصي بممارسة الرياضة بانتظام وتناول الطعام الصحي وشرب الماء بكثرة.',
-      'category': 'عام',
-      'priority': 'متوسطة',
-      'actions': [
-        'مارس الرياضة 3 مرات أسبوعياً',
-        'تناول وجبات صحية متوازنة',
-        'اشرب 8 أكواب ماء يومياً',
-      ],
-    };
+    return {'title':'ابدأ بتسجيل مؤشراتك','description':'سجّل قياساتك الصحية الفعلية ليتم عرض إرشادات مبنية على البيانات المتاحة.','category':'عام','priority':'منخفضة','source':'health_metrics'};
   }
 
   Future<List<Map<String, dynamic>>> getRecommendationsByCategory(String category) async {
     try {
-      // محاكاة جلب توصيات حسب الفئة
-      final allRecommendations = [
-        {
-          'title': 'تحسين النوم',
-          'description': 'نمط نوم صحي يحسن الصحة العامة',
-          'category': 'النوم',
-        },
-        {
-          'title': 'التغذية المتوازنة',
-          'description': 'نظام غذائي صحي يحسن المناعة',
-          'category': 'التغذية',
-        },
-        {
-          'title': 'التمارين اليومية',
-          'description': 'الرياضة تحسن الصحة النفسية والجسدية',
-          'category': 'اللياقة',
-        },
-        {
-          'title': 'التأمل والاسترخاء',
-          'description': 'التأمل يقلل التوتر والقلق',
-          'category': 'الصحة النفسية',
-        },
+      final data = await _getUserHealthData();
+      final metrics = Map<String, dynamic>.from(
+        data['health_metrics'] is Map ? data['health_metrics'] as Map : const {},
+      );
+      final all = <Map<String, dynamic>>[
+        _generateRecommendation({'health_metrics': metrics}),
       ];
-
-      if (category == 'الكل') {
-        return allRecommendations;
-      }
-
-      return allRecommendations
-          .where((r) => r['category'] == category)
-          .toList();
-    } catch (e) {
-      print('⚠️ Error getting recommendations by category: $e');
+      if (category == 'الكل') return all;
+      return all.where((item) => item['category'] == category).toList();
+    } catch (_) {
       return [];
     }
   }
