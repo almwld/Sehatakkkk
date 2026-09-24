@@ -281,3 +281,34 @@ exports.notifyInvoiceStatus = onDocumentUpdated('invoices/{invoiceId}', async ev
   await archiveNotification(uid, payload);
   await sendToUser(uid, payload);
 });
+
+
+exports.notifyOrderCreated = onDocumentCreated('orders/{orderId}', async event => {
+  const data = event.data?.data() || {};
+  const uid = String(data.userId || '');
+  if (!uid) return;
+  const status = String(data.status || 'pending');
+  if (status !== 'pending') return;
+  const payload = notificationPayload(
+    'order_confirmed',
+    'تم استلام طلبك',
+    'تم استلام طلبك بنجاح وسيتم تحديثك بحالته.',
+    {orderId: event.params.orderId, id: event.params.orderId, recipientId: uid},
+  );
+  await archiveNotification(uid, payload);
+  await sendToUser(uid, payload);
+});
+
+exports.notifyPaymentCreated = onDocumentCreated('transactions/{transactionId}', async event => {
+  const data = event.data?.data() || {};
+  const uid = String(data.userId || '');
+  if (!uid || String(data.type || '') !== 'payment' || String(data.status || '') !== 'completed') return;
+  const payload = notificationPayload(
+    'payment_success',
+    'تم إتمام الدفع',
+    'تم إتمام عملية الدفع بنجاح.',
+    {transactionId: event.params.transactionId, paymentId: event.params.transactionId, orderId: data.orderId || '', id: event.params.transactionId, recipientId: uid},
+  );
+  await archiveNotification(uid, payload);
+  await sendToUser(uid, payload);
+});
