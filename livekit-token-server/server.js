@@ -139,11 +139,17 @@ app.post('/call-notification', async (req, res) => {
     const callerPhotoUrl = String(call.callerPhotoUrl || '');
     const message = {
       tokens: fcmTokens,
+      notification: {
+        title: isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
+        body: callerName,
+      },
       data: {
         type: 'incoming_call',
         callId,
         chatId,
         callerId,
+        receiverId,
+        userId: receiverId,
         callerName,
         callerPhotoUrl,
         isVideo: isVideo ? 'true' : 'false',
@@ -152,10 +158,18 @@ app.post('/call-notification', async (req, res) => {
       android: {
         priority: 'high',
         ttl: 60 * 1000,
+        notification: {
+          channelId: 'sehatak_calls_v3',
+          sound: 'call_ringtone',
+          defaultSound: false,
+          visibility: 'public',
+          notificationCount: 1,
+          tag: 'incoming_call_' + callId,
+        },
       },
     };
 
-    console.log(`📤 [${requestId}] sending DATA-ONLY FCM receiver=${receiverId} tokens=${fcmTokens.length} type=incoming_call isVideo=${isVideo} chatId=${chatId}`);
+    console.log(`📤 [${requestId}] sending notification+data FCM receiver=${receiverId} tokens=${fcmTokens.length} type=incoming_call isVideo=${isVideo} chatId=${chatId}`);
     try {
       const response = await admin.messaging().sendEachForMulticast(message);
       const invalidTokens = [];
@@ -179,7 +193,7 @@ app.post('/call-notification', async (req, res) => {
         return res.status(502).json({ success: false, sent: false, reason: firstError?.code || 'fcm_send_failed', requestId });
       }
       console.log(`✅ [${requestId}] FCM accepted success=${response.successCount} failure=${response.failureCount}`);
-      return res.json({ success: true, sent: response.successCount > 0, successCount: response.successCount, failureCount: response.failureCount, callId, receiverId, requestId, mode: 'data_only_multicast' });
+      return res.json({ success: true, sent: response.successCount > 0, successCount: response.successCount, failureCount: response.failureCount, callId, receiverId, requestId, mode: 'notification_data_multicast' });
     } catch (error) {
       console.error(`❌ [${requestId}] Incoming call FCM error code=${error.code || 'unknown'} message=${error.message || error}`);
       return res.status(502).json({ success: false, sent: false, reason: error.code || 'fcm_send_failed', requestId });
