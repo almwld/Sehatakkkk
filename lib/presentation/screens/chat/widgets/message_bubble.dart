@@ -175,9 +175,15 @@ class _MessageBubbleState extends State<MessageBubble> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
-      textDirection: TextDirection.ltr,
+      // Sender bubbles stay LTR so ✓✓ remains at the sender-side end.
+      // Recipient bubbles are RTL so the read state is rendered first:
+      // ✓✓ ثم الفقاعة, instead of appearing after the bubble.
+      textDirection: widget.isMe ? TextDirection.ltr : TextDirection.rtl,
       children: [
-        Padding(padding: const EdgeInsets.only(right: 4, bottom: 7), child: _status(m)),
+        Padding(
+          padding: const EdgeInsets.only(right: 4, bottom: 7),
+          child: _status(m),
+        ),
         bubble,
       ],
     );
