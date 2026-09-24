@@ -118,8 +118,15 @@ async function sendToUser({
       body: String(notification?.body || ''),
     },
 
+    // Always include the trusted recipient in the FCM data payload.
+    // Flutter uses it to archive the notification even when Android delivers
+    // the message in a background isolate where FirebaseAuth.currentUser may
+    // not be available.
     data: Object.fromEntries(
-      Object.entries(data || {}).map(([key, value]) => [
+      Object.entries({
+        ...(data || {}),
+        recipientId: String(userId),
+      }).map(([key, value]) => [
         String(key),
         value == null ? '' : String(value),
       ]),
