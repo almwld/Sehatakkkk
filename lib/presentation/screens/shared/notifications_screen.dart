@@ -87,6 +87,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (type.startsWith('order')) return Icons.local_pharmacy_outlined;
     if (type.startsWith('health')) return Icons.favorite_outline;
     if (type.startsWith('social')) return Icons.people_outline;
+    if (type.startsWith('invoice')) return Icons.receipt_long_outlined;
     if (type == 'promotional') return Icons.local_offer_outlined;
     if (type == 'incoming_call') return Icons.call_outlined;
     return Icons.notifications_none_outlined;
@@ -99,6 +100,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (type.startsWith('lab_')) return Colors.green;
     if (type.startsWith('payment')) return Colors.teal;
     if (type.startsWith('order')) return Colors.indigo;
+    if (type.startsWith('invoice')) return Colors.deepPurple;
     if (type.startsWith('health')) return Colors.red;
     if (type.startsWith('social')) return Colors.purple;
     if (type == 'promotional') return Colors.deepPurple;
@@ -121,7 +123,57 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return;
     }
     if (type == 'medication_prescription' || type == 'medication_refill' || type == 'medication_purchased') { if (mounted) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MedicationReminderScreen())); } return; }
-    if ((type == 'new_message' || type == 'chat_message' || type == 'message') && chatId != null && chatId.isNotEmpty && mounted) { Navigator.of(context).pop(chatId); }
+    if ((type == 'new_message' || type == 'chat_message' || type == 'message') && chatId != null && chatId.isNotEmpty && mounted) { Navigator.of(context).pop(chatId); return; }
+    String? route;
+    switch (type) {
+      case 'appointment':
+      case 'appointment_confirmed':
+      case 'appointment_reminder_24h':
+      case 'appointment_reminder_1h':
+      case 'appointment_rescheduled':
+      case 'appointment_cancelled':
+        route = '/appointments';
+        break;
+      case 'lab':
+      case 'lab_request':
+      case 'lab_test_request':
+      case 'lab_booking_created':
+      case 'lab_booking_confirmed':
+      case 'lab_result':
+      case 'lab_result_ready':
+      case 'lab_reminder':
+        route = '/labs';
+        break;
+      case 'payment':
+      case 'wallet':
+      case 'payment_success':
+      case 'payment_failed':
+      case 'payment_refunded':
+      case 'balance_added':
+        route = '/wallet';
+        break;
+      case 'order':
+      case 'order_confirmed':
+      case 'order_preparing':
+      case 'order_ready':
+      case 'order_on_way':
+      case 'order_delivered':
+      case 'order_cancelled':
+        route = '/cart';
+        break;
+      case 'invoice':
+      case 'invoice_created':
+      case 'invoice_paid':
+      case 'invoice_due':
+      case 'invoice_cancelled':
+        route = '/notifications';
+        break;
+      default:
+        return;
+    }
+    if (mounted && route != null) {
+      try { await Navigator.of(context).pushNamed(route); } catch (_) {}
+    }
   }
 
   @override
