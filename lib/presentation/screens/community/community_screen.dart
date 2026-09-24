@@ -236,9 +236,10 @@ class _CommunityScreenState extends State<CommunityScreen>
       backgroundColor: dark ? const Color(0xFF081A1A) : const Color(0xFFF6F9F9),
       body: Stack(
         children: [
-          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: _posts(),
-        builder: (context, snapshot) {
+          Positioned.fill(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _posts(),
+              builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(
               child: Text(
@@ -270,9 +271,10 @@ class _CommunityScreenState extends State<CommunityScreen>
                 onShare: _share,
               ),
             ),
-            );
-          },
-        ),
+              );
+              },
+            ),
+          ),
         IgnorePointer(
           ignoring: !_headerVisible,
           child: AnimatedPositionedDirectional(
