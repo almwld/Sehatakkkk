@@ -616,6 +616,7 @@ class _SehatakAppState extends State<SehatakApp>
       case 'order':
       case 'order_confirmed':
       case 'order_preparing':
+      case 'order_ready':
       case 'order_on_way':
       case 'order_delivered':
       case 'order_cancelled':
