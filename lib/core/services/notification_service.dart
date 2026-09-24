@@ -15,7 +15,9 @@ enum SehatakNotificationType {
   appointment,
   medication,
   labResult,
+  labRequest,
   payment,
+  invoice,
   order,
   promotional,
   system,
@@ -30,6 +32,7 @@ extension SehatakNotificationTypeValue on SehatakNotificationType {
       case SehatakNotificationType.appointment: return 'appointment';
       case SehatakNotificationType.medication: return 'medication';
       case SehatakNotificationType.labResult: return 'lab_result';
+      case SehatakNotificationType.labRequest: return 'lab_request';
       case SehatakNotificationType.payment: return 'payment';
       case SehatakNotificationType.order: return 'order';
       case SehatakNotificationType.promotional: return 'promotional';
@@ -56,11 +59,20 @@ extension SehatakNotificationTypeValue on SehatakNotificationType {
       case 'lab_result':
       case 'lab_result_ready':
       case 'lab_reminder': return SehatakNotificationType.labResult;
+      case 'lab_request':
+      case 'lab_test_request':
+      case 'lab_booking_created':
+      case 'lab_booking_confirmed': return SehatakNotificationType.labRequest;
       case 'payment':
       case 'payment_success':
       case 'payment_failed':
       case 'payment_refunded':
       case 'balance_added': return SehatakNotificationType.payment;
+      case 'invoice':
+      case 'invoice_created':
+      case 'invoice_paid':
+      case 'invoice_due':
+      case 'invoice_cancelled': return SehatakNotificationType.invoice;
       case 'order':
       case 'order_confirmed':
       case 'order_preparing':
@@ -104,6 +116,8 @@ class NotificationService {
   static const medicationChannelId = 'sehatak_medications_v1';
   static const labChannelId = 'sehatak_labs_v1';
   static const paymentChannelId = 'sehatak_payments_v1';
+  static const invoiceChannelId = 'sehatak_invoices_v1';
+  static const labRequestChannelId = 'sehatak_lab_requests_v1';
   static const orderChannelId = 'sehatak_orders_v1';
   static const promotionalChannelId = 'sehatak_promotions_v1';
   static const systemChannelId = 'sehatak_system_v1';
@@ -120,6 +134,8 @@ class NotificationService {
   static const _medicationChannel = AndroidNotificationChannel(medicationChannelId, 'صحتك - الأدوية', description: 'تذكيرات الأدوية', importance: Importance.high);
   static const _labChannel = AndroidNotificationChannel(labChannelId, 'صحتك - التحاليل', description: 'نتائج وتذكيرات التحاليل', importance: Importance.high);
   static const _paymentChannel = AndroidNotificationChannel(paymentChannelId, 'صحتك - المدفوعات', description: 'تحديثات المدفوعات والمحفظة', importance: Importance.high);
+  static const _invoiceChannel = AndroidNotificationChannel(invoiceChannelId, 'صحتك - الفواتير', description: 'الفواتير والمدفوعات', importance: Importance.high);
+  static const _labRequestChannel = AndroidNotificationChannel(labRequestChannelId, 'صحتك - طلبات الفحص', description: 'طلبات الفحوصات والتحاليل', importance: Importance.high);
   static const _orderChannel = AndroidNotificationChannel(orderChannelId, 'صحتك - الطلبات', description: 'تحديثات طلبات الصيدلية والخدمات', importance: Importance.high);
   static const _promotionalChannel = AndroidNotificationChannel(promotionalChannelId, 'صحتك - العروض', description: 'العروض والمحتوى الترويجي', importance: Importance.defaultImportance);
   static const _systemChannel = AndroidNotificationChannel(systemChannelId, 'صحتك - النظام', description: 'تحديثات وصيانة وتنبيهات النظام', importance: Importance.defaultImportance);
@@ -173,6 +189,8 @@ class NotificationService {
       await android?.createNotificationChannel(_medicationChannel);
       await android?.createNotificationChannel(_labChannel);
       await android?.createNotificationChannel(_paymentChannel);
+      await android?.createNotificationChannel(_invoiceChannel);
+      await android?.createNotificationChannel(_labRequestChannel);
       await android?.createNotificationChannel(_orderChannel);
       await android?.createNotificationChannel(_promotionalChannel);
       await android?.createNotificationChannel(_systemChannel);
@@ -430,6 +448,8 @@ class NotificationService {
       case SehatakNotificationType.medication: return medicationChannelId;
       case SehatakNotificationType.labResult: return labChannelId;
       case SehatakNotificationType.payment: return paymentChannelId;
+      case SehatakNotificationType.invoice: return invoiceChannelId;
+      case SehatakNotificationType.labRequest: return labRequestChannelId;
       case SehatakNotificationType.order: return orderChannelId;
       case SehatakNotificationType.promotional: return promotionalChannelId;
       case SehatakNotificationType.system: return systemChannelId;
@@ -445,6 +465,8 @@ class NotificationService {
       case SehatakNotificationType.medication: return 'صحتك - الأدوية';
       case SehatakNotificationType.labResult: return 'صحتك - التحاليل';
       case SehatakNotificationType.payment: return 'صحتك - المدفوعات';
+      case SehatakNotificationType.invoice: return 'صحتك - الفواتير';
+      case SehatakNotificationType.labRequest: return 'صحتك - طلبات الفحص';
       case SehatakNotificationType.order: return 'صحتك - الطلبات';
       case SehatakNotificationType.promotional: return 'صحتك - العروض';
       case SehatakNotificationType.system: return 'صحتك - النظام';
@@ -460,7 +482,9 @@ class NotificationService {
       case SehatakNotificationType.medication:
       case SehatakNotificationType.labResult:
       case SehatakNotificationType.payment:
-      case SehatakNotificationType.order: return Importance.high;
+      case SehatakNotificationType.order:
+      case SehatakNotificationType.invoice:
+      case SehatakNotificationType.labRequest: return Importance.high;
       case SehatakNotificationType.promotional:
       case SehatakNotificationType.system:
       case SehatakNotificationType.health:
@@ -472,7 +496,10 @@ class NotificationService {
     switch (type) {
       case SehatakNotificationType.newMessage: return AndroidNotificationCategory.message;
       case SehatakNotificationType.appointment: return AndroidNotificationCategory.event;
-      case SehatakNotificationType.payment: return AndroidNotificationCategory.status;
+      case SehatakNotificationType.payment:
+      case SehatakNotificationType.invoice: return AndroidNotificationCategory.status;
+      case SehatakNotificationType.labRequest:
+      case SehatakNotificationType.labResult: return AndroidNotificationCategory.progress;
       case SehatakNotificationType.order: return AndroidNotificationCategory.progress;
       default: return AndroidNotificationCategory.reminder;
     }
