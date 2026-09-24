@@ -589,6 +589,10 @@ class _SehatakAppState extends State<SehatakApp>
         route = AppRouter.appointments;
         break;
       case 'lab':
+      case 'lab_request':
+      case 'lab_test_request':
+      case 'lab_booking_created':
+      case 'lab_booking_confirmed':
       case 'lab_result':
       case 'lab_result_ready':
       case 'lab_reminder':
