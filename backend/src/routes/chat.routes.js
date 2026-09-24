@@ -481,17 +481,9 @@ router.post('/:chatId/call', async (req, res) => {
 
       await db.collection('calls').doc(chatId).set(callData);
 
-      const { sendIncomingCallNotification } =
-        require('../services/notification.service');
-
-      const notificationResult = await sendIncomingCallNotification({
-        receiverId: finalReceiverId,
-        chatId,
-        callId,
-        callerId: currentUserId,
-        callerName: finalCallerName,
-        isVideo: Boolean(isVideo),
-      });
+      // Cloud Functions observes calls/{callId} and owns the single
+      // notification + FCM delivery path. Keeping it there prevents duplicate
+      // call notifications when both the API and Firestore trigger are active.
 
       return res.status(201).json({
         success: true,
@@ -499,7 +491,7 @@ router.post('/:chatId/call', async (req, res) => {
           id: callId,
           ...callData,
         },
-        notification: notificationResult,
+        notification: {queuedByFirestoreTrigger: true},
       });
   } catch (error) {
     console.error('Start call error:', error);
