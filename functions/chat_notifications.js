@@ -1,4 +1,4 @@
-const {onDocumentCreated}=require('firebase-functions/v2/firestore');
+const {onDocumentCreated,onDocumentUpdated}=require('firebase-functions/v2/firestore');
 const admin=require('firebase-admin');
 const db=admin.firestore();
 
