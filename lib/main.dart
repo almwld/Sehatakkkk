@@ -606,6 +606,13 @@ class _SehatakAppState extends State<SehatakApp>
       case 'balance_added':
         route = AppRouter.wallet;
         break;
+      case 'invoice':
+      case 'invoice_created':
+      case 'invoice_paid':
+      case 'invoice_due':
+      case 'invoice_cancelled':
+        route = AppRouter.notifications;
+        break;
       case 'order':
       case 'order_confirmed':
       case 'order_preparing':
