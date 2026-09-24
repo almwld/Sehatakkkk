@@ -981,6 +981,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                 : _replyBanner(_replyingTo!)),
         ChatInputBar(
             chatId: widget.chatId,
+            replyToId: _replyingTo?.id,
             onSendMessage: (_) {
               unawaited(_setTyping(false));
               if (_replyingTo != null) _clearReply();
