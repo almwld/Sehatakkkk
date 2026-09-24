@@ -5,13 +5,16 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/core/constants/medical_specialties.dart';
 import 'package:sehatak/core/models/user_model.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
+import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
@@ -915,6 +918,42 @@ class _AuthScreenState extends State<AuthScreen>
       batch.set(userRef, userData);
 
       await batch.commit();
+
+      // Professional accounts need a persistent in-app notification immediately
+      // after creation. The callable writes the canonical Firestore notification
+      // and is intentionally best-effort so a notification outage cannot make
+      // account creation look like a failure.
+      if (needsVerification) {
+        try {
+          await FirebaseFunctions.instanceFor(region: 'us-central1')
+              .httpsCallable('ensureVerificationNotice')
+              .call();
+        } catch (e) {
+          debugPrint('[Registration] verification notice creation failed: $e');
+        }
+
+        try {
+          await NotificationService().showTypedNotification(
+            type: 'verification_required',
+            title: 'يجب توثيق حسابك',
+            body: 'أكمل توثيق حسابك ورفع المستندات المطلوبة ثم أرسل الطلب للمشرف.',
+            data: <String, dynamic>{
+              'type': 'verification_required',
+              'userId': user.uid,
+              'action': 'verification',
+            },
+            payload: jsonEncode(<String, dynamic>{
+              'type': 'verification_required',
+              'data': <String, dynamic>{
+                'userId': user.uid,
+                'action': 'verification',
+              },
+            }),
+          );
+        } catch (e) {
+          debugPrint('[Registration] local verification notification failed: $e');
+        }
+      }
 
       _hideLoading();
       await _showSuccessAnimation();
