@@ -76,6 +76,7 @@ extension SehatakNotificationTypeValue on SehatakNotificationType {
       case 'order':
       case 'order_confirmed':
       case 'order_preparing':
+      case 'order_ready':
       case 'order_on_way':
       case 'order_delivered':
       case 'order_cancelled': return SehatakNotificationType.order;
