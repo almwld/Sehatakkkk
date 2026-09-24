@@ -19,10 +19,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Stream<QuerySnapshot<Map<String, dynamic>>> _watchNotifications(String uid) {
     // Do not require a composite index: filter by user only and sort the
     // small notification feed locally.
+    // Firestore is the single source of truth for the account notification
+    // center. Do not cap this stream at 200: older notifications must remain
+    // available and searchable by the user through the same screen.
     return _firestore
         .collection('notifications')
         .where('userId', isEqualTo: uid)
-        .limit(200)
         .snapshots();
   }
 
@@ -108,7 +110,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final payload = data['data'];
     final nested = payload is Map ? Map<String, dynamic>.from(payload) : <String, dynamic>{};
     final chatId = (data['chatId'] ?? nested['chatId'])?.toString();
-    if (type == 'verification_required' || type == 'verification_result') { if (mounted) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const VerificationScreen())); } return; }
+    if (type == 'verification_required' ||
+        type == 'verification_result' ||
+        data['action']?.toString() == 'verification') {
+      if (mounted) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const VerificationScreen()),
+        );
+      }
+      return;
+    }
     if (type == 'medication_prescription' || type == 'medication_refill' || type == 'medication_purchased') { if (mounted) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MedicationReminderScreen())); } return; }
     if ((type == 'new_message' || type == 'chat_message' || type == 'message') && chatId != null && chatId.isNotEmpty && mounted) { Navigator.of(context).pop(chatId); }
   }
