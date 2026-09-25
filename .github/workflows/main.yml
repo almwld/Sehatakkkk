@@ -131,8 +131,16 @@ jobs:
             try:
                 with Image.open(src) as image:
                     image.load()
+                    # Preserve alpha for RGBA/LA/P images, including palette PNGs
+                    # whose transparency is stored in PNG metadata rather than a
+                    # literal alpha band. Never flatten transparent pixels to black.
+                    has_alpha = (
+                        "A" in image.getbands()
+                        or "transparency" in image.info
+                        or image.mode in ("LA", "PA")
+                    )
                     if image.mode not in ("RGB", "RGBA"):
-                        image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
+                        image = image.convert("RGBA" if has_alpha else "RGB")
                     image.save(dst, "WEBP", lossless=True, method=6)
             except Exception as exc:
                 if referenced(src):
