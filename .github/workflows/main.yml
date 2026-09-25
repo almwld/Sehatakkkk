@@ -106,6 +106,29 @@ jobs:
         converted = 0
         saved = 0
 
+        # The first PNG→WebP run already replaced the source PNGs in git, so a
+        # later run cannot repair a bad conversion by looking for *.png locally.
+        # Rehydrate the exact PNG sources from the parent of the original
+        # conversion commit before converting them again. This makes the repair
+        # deterministic and prevents us from re-encoding an already-corrupted
+        # WebP as the new source.
+        import subprocess
+        original_conversion = "686fb01557bf60dabecf790e1ca5c79230a409c1"
+        original_parent = "a968aed9e66764ba24d59dbd0d2ed8c150ac2de1"
+        subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", original_parent], check=True)
+        deleted = subprocess.check_output([
+            "git", "diff-tree", "--no-commit-id", "--name-only", "--diff-filter=D",
+            original_parent, original_conversion, "--", "assets"
+        ], text=True).splitlines()
+        for rel in deleted:
+            target = Path(rel)
+            if target.suffix.lower() != ".png":
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            blob = subprocess.check_output(["git", "show", f"{original_parent}:{rel}"])
+            target.write_bytes(blob)
+        print(f"Rehydrated {sum(1 for p in deleted if p.lower().endswith('.png'))} original PNG sources from {original_parent}")
+
         pngs = sorted(root.rglob("*.png"))
         print(f"Found {len(pngs)} PNG assets under {root}")
 
