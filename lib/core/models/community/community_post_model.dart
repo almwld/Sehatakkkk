@@ -55,33 +55,80 @@ class CommunityPostModel extends Equatable {
     this.updatedAt,
   });
 
+  static String _string(dynamic value, [String fallback = '']) =>
+      value == null ? fallback : value.toString();
+
+  static String? _nullableString(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    return text.isEmpty ? null : text;
+  }
+
+  static List<String> _strings(dynamic value) {
+    if (value is! Iterable) return const <String>[];
+    return value
+        .where((item) => item != null)
+        .map((item) => item.toString())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static int _int(dynamic value) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static bool _bool(dynamic value, [bool fallback = false]) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    final text = value?.toString().toLowerCase();
+    if (text == 'true' || text == '1') return true;
+    if (text == 'false' || text == '0') return false;
+    return fallback;
+  }
+
+  static DateTime? _date(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    if (value is num) return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    return null;
+  }
+
   factory CommunityPostModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
+    final raw = doc.data();
+    final data = raw is Map<String, dynamic>
+        ? raw
+        : raw is Map
+            ? Map<String, dynamic>.from(raw)
+            : const <String, dynamic>{};
+
     return CommunityPostModel(
       id: doc.id,
-      userId: data['userId'] ?? '',
-      userName: data['userName'] ?? 'مستخدم',
-      userAvatar: data['userAvatar'],
-      title: data['title'] ?? '',
-      content: data['content'],
-      imageUrl: data['imageUrl'],
-      images: List<String>.from(data['images'] ?? []),
-      category: data['category'],
-      tags: List<String>.from(data['tags'] ?? []),
-      likes: data['likes'] ?? 0,
-      comments: data['comments'] ?? 0,
-      shares: data['shares'] ?? 0,
-      views: data['views'] ?? 0,
-      isLiked: data['isLiked'] ?? false,
-      isSaved: data['isSaved'] ?? false,
-      isReported: data['isReported'] ?? false,
-      isDoctorPost: data['isDoctorPost'] ?? false,
-      isVerified: data['isVerified'] ?? false,
-      isPublished: data['isPublished'] ?? true,
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+      userId: _string(data['userId']),
+      userName: _string(data['userName'], 'مستخدم'),
+      userAvatar: _nullableString(data['userAvatar']),
+      title: _string(data['title']),
+      content: _nullableString(data['content']),
+      imageUrl: _nullableString(data['imageUrl']),
+      images: _strings(data['images']),
+      category: _nullableString(data['category']),
+      tags: _strings(data['tags']),
+      likes: _int(data['likes']),
+      comments: _int(data['comments']),
+      shares: _int(data['shares']),
+      views: _int(data['views']),
+      isLiked: _bool(data['isLiked']),
+      isSaved: _bool(data['isSaved']),
+      isReported: _bool(data['isReported']),
+      isDoctorPost: _bool(data['isDoctorPost']),
+      isVerified: _bool(data['isVerified']),
+      isPublished: _bool(data['isPublished'], true),
+      createdAt: _date(data['createdAt']),
+      updatedAt: _date(data['updatedAt']),
     );
   }
+
 
   Map<String, dynamic> toFirestore() {
     return {
