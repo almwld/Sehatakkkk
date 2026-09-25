@@ -275,38 +275,47 @@ class _CommunityScreenState extends State<CommunityScreen>
               },
             ),
           ),
-        IgnorePointer(
-          ignoring: !_headerVisible,
-          child: AnimatedPositionedDirectional(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            top: _headerVisible ? 0 : -92,
-            start: 0,
-            end: 0,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 160),
-              opacity: _headerVisible ? 1 : 0,
-              child: Container(
-                height: 92,
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top,
-                ),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(30),
-                  ),
-                ),
-                child: const Align(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 10),
-                    child: Text(
-                      'مجتمع صحتك',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w900,
+        PositionedDirectional(
+          top: 0,
+          start: 0,
+          end: 0,
+          child: IgnorePointer(
+            ignoring: !_headerVisible,
+            child: ClipRect(
+              child: AnimatedSlide(
+                offset: _headerVisible ? Offset.zero : const Offset(0, -1),
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: _headerVisible ? 1 : 0,
+                  child: Material(
+                    color: Colors.transparent,
+                    elevation: 0,
+                    child: Container(
+                      height: 92,
+                      padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(30),
+                        ),
+                      ),
+                      child: const Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 10),
+                          child: Text(
+                            'مجتمع صحتك',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
