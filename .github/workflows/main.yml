@@ -93,7 +93,7 @@ jobs:
         } >> "${GITHUB_ENV}"
         echo "✅ Release keystore validated."
 
-    - name: 🖼️ Convert all app PNG assets to lossless WebP
+    - name: 🖼️ Convert original PNG assets to alpha-safe lossless WebP
       shell: bash
       run: |
         set -euo pipefail
@@ -101,110 +101,242 @@ jobs:
         python - <<'PY'
         from pathlib import Path
         from PIL import Image
+        import subprocess
 
         root = Path("assets")
-        converted = 0
-        saved = 0
-
-        # The first PNG→WebP run already replaced the source PNGs in git, so a
-        # later run cannot repair a bad conversion by looking for *.png locally.
-        # Rehydrate the exact PNG sources from the parent of the original
-        # conversion commit before converting them again. This makes the repair
-        # deterministic and prevents us from re-encoding an already-corrupted
-        # WebP as the new source.
-        import subprocess
         original_conversion = "686fb01557bf60dabecf790e1ca5c79230a409c1"
         original_parent = "a968aed9e66764ba24d59dbd0d2ed8c150ac2de1"
-        subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", original_parent], check=True)
-        subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", original_conversion], check=True)
-        deleted = subprocess.check_output([
-            "git", "diff-tree", "--no-commit-id", "--name-only", "--diff-filter=D",
-            original_parent, original_conversion, "--", "assets"
-        ], text=True).splitlines()
+        excluded = {
+            "assets/images/sehatak_chat_wallpaper_dark_1080x2160.webp",
+            "assets/images/sehatak_chat_wallpaper_light_1080x2160.webp",
+        }
+
+        # Rehydrate the exact PNG sources from the pre-conversion commit.
+        # -r is required so git diff-tree walks the assets tree recursively.
+        subprocess.run(
+            ["git", "fetch", "--no-tags", "--depth=1", "origin",
+             original_parent, original_conversion],
+            check=True,
+        )
+        deleted = subprocess.check_output(
+            [
+                "git", "diff-tree", "-r", "--no-commit-id", "--name-only",
+                "--diff-filter=D", original_parent, original_conversion,
+                "--", "assets",
+            ],
+            text=True,
+        ).splitlines()
+
+        original_pngs = []
         for rel in deleted:
             target = Path(rel)
             if target.suffix.lower() != ".png":
                 continue
             target.parent.mkdir(parents=True, exist_ok=True)
-            blob = subprocess.check_output(["git", "show", f"{original_parent}:{rel}"])
-            target.write_bytes(blob)
-        print(f"Rehydrated {sum(1 for p in deleted if p.lower().endswith('.png'))} original PNG sources from {original_parent}")
+            target.write_bytes(
+                subprocess.check_output(
+                    ["git", "show", f"{original_parent}:{rel}"]
+                )
+            )
+            original_pngs.append(target)
 
-        pngs = sorted(root.rglob("*.png"))
-        print(f"Found {len(pngs)} PNG assets under {root}")
+        print(f"Rehydrated {len(original_pngs)} original PNG sources")
 
-        def referenced(asset):
+        def referenced(asset: Path) -> bool:
             ref = asset.as_posix()
-            for path in Path("lib").rglob("*.dart"):
+            candidates = list(Path("lib").rglob("*.dart"))
+            candidates += [Path("pubspec.yaml"), Path("flutter_native_splash.yaml")]
+            for path in candidates:
+                if not path.exists():
+                    continue
                 try:
                     if ref in path.read_text(encoding="utf-8"):
                         return True
                 except (UnicodeDecodeError, OSError):
                     pass
-            for path in (Path("pubspec.yaml"), Path("flutter_native_splash.yaml")):
-                if path.exists():
-                    try:
-                        if ref in path.read_text(encoding="utf-8"):
-                            return True
-                    except (UnicodeDecodeError, OSError):
-                        pass
             return False
 
-        for src in pngs:
+        converted = 0
+        alpha_converted = 0
+        opaque_converted = 0
+        saved = 0
+
+        for src in sorted(original_pngs):
             dst = src.with_suffix(".webp")
-            try:
-                with Image.open(src) as image:
-                    image.load()
-                    # Preserve alpha for RGBA/LA/P images, including palette PNGs
-                    # whose transparency is stored in PNG metadata rather than a
-                    # literal alpha band. Never flatten transparent pixels to black.
-                    has_alpha = (
-                        "A" in image.getbands()
-                        or "transparency" in image.info
-                        or image.mode in ("LA", "PA")
-                    )
-                    if image.mode not in ("RGB", "RGBA"):
-                        image = image.convert("RGBA" if has_alpha else "RGB")
-                    image.save(dst, "WEBP", lossless=True, method=6)
-            except Exception as exc:
-                if referenced(src):
-                    raise RuntimeError(f"Referenced PNG cannot be converted safely: {src}: {exc}") from exc
-                print(f"⚠️ Removing invalid/unreferenced PNG: {src}: {exc}")
-                src.unlink()
+            if dst.as_posix() in excluded:
                 continue
 
-            old_size = src.stat().st_size
-            new_size = dst.stat().st_size
-            if new_size >= old_size:
-                print(f"WARNING: WebP is not smaller: {src} ({old_size} -> {new_size})")
-            else:
-                saved += old_size - new_size
-            converted += 1
+            try:
+                with Image.open(src) as opened:
+                    opened.load()
+                    has_alpha = (
+                        "A" in opened.getbands()
+                        or "transparency" in opened.info
+                        or opened.mode in ("LA", "PA")
+                    )
+                    image = opened.convert("RGBA" if has_alpha else "RGB")
+                    source_size = image.size
+                    source_alpha = (
+                        image.getchannel("A").getextrema()
+                        if has_alpha else None
+                    )
+                    source_corners = (
+                        [image.getpixel(p)[3] for p in (
+                            (0, 0),
+                            (image.width - 1, 0),
+                            (0, image.height - 1),
+                            (image.width - 1, image.height - 1),
+                        )]
+                        if has_alpha else None
+                    )
 
-            old_ref = src.as_posix()
-            new_ref = dst.as_posix()
+                    # Never use the current WebP as the source. Always write
+                    # from the rehydrated original PNG.
+                    image.save(
+                        dst,
+                        "WEBP",
+                        lossless=True,
+                        method=6,
+                        exact=True,
+                    )
 
-            # Update every text source/config file that may reference the asset.
-            for path in Path(".").rglob("*"):
-                if not path.is_file() or ".git" in path.parts:
-                    continue
-                if path == src or path == dst:
-                    continue
-                try:
-                    text = path.read_text(encoding="utf-8")
-                except (UnicodeDecodeError, OSError):
-                    continue
-                if old_ref in text:
-                    path.write_text(text.replace(old_ref, new_ref), encoding="utf-8")
+                # Validate before deleting the source PNG.
+                with Image.open(dst) as converted_image:
+                    converted_image.load()
+                    if converted_image.size != source_size:
+                        raise RuntimeError(
+                            f"Dimension mismatch: {src} -> {dst}"
+                        )
+                    converted = converted_image.convert("RGBA")
+                    output_alpha = (
+                        converted.getchannel("A").getextrema()
+                        if has_alpha else None
+                    )
+                    if has_alpha:
+                        if output_alpha != source_alpha:
+                            raise RuntimeError(
+                                f"Alpha changed: {src} {source_alpha} -> {dst} {output_alpha}"
+                            )
+                        output_corners = [
+                            converted.getpixel(p)[3] for p in (
+                                (0, 0),
+                                (converted.width - 1, 0),
+                                (0, converted.height - 1),
+                                (converted.width - 1, converted.height - 1),
+                            )
+                        ]
+                        if output_corners != source_corners:
+                            raise RuntimeError(
+                                f"Corner alpha changed: {src} {source_corners} -> {dst} {output_corners}"
+                            )
+                        if output_alpha[0] != 0:
+                            raise RuntimeError(
+                                f"Alpha lost: {dst}; original minimum alpha was {source_alpha[0]}"
+                            )
+                        alpha_converted += 1
+                    else:
+                        opaque_converted += 1
 
-            src.unlink()
+                old_size = src.stat().st_size
+                new_size = dst.stat().st_size
+                if new_size < old_size:
+                    saved += old_size - new_size
 
-        print(f"Converted PNG assets: {converted}; estimated byte savings: {saved}")
+                old_ref = src.as_posix()
+                new_ref = dst.as_posix()
+                for path in Path(".").rglob("*"):
+                    if not path.is_file() or ".git" in path.parts or path in (src, dst):
+                        continue
+                    try:
+                        text = path.read_text(encoding="utf-8")
+                    except (UnicodeDecodeError, OSError):
+                        continue
+                    if old_ref in text:
+                        path.write_text(
+                            text.replace(old_ref, new_ref),
+                            encoding="utf-8",
+                        )
+
+                src.unlink()
+                converted += 1
+
+            except Exception as exc:
+                if referenced(src):
+                    raise RuntimeError(
+                        f"Referenced PNG failed safe conversion: {src}: {exc}"
+                    ) from exc
+                print(f"⚠️ Skipping invalid/unreferenced PNG: {src}: {exc}")
+                if dst.exists():
+                    dst.unlink()
+                src.unlink(missing_ok=True)
+
+        print(
+            f"Converted original PNG assets: {converted}; "
+            f"alpha-preserved: {alpha_converted}; "
+            f"opaque: {opaque_converted}; "
+            f"estimated byte savings: {saved}"
+        )
+
         remaining = list(root.rglob("*.png"))
         if remaining:
-            raise SystemExit("PNG assets remain under assets/: " + ", ".join(map(str, remaining)))
-        print("✅ No PNG files remain under assets/")
+            raise SystemExit(
+                "PNG assets remain under assets/: " +
+                ", ".join(map(str, remaining))
+            )
+
+        # Final WebP alpha audit. Chat wallpapers are intentionally excluded
+        # from icon/background transparency statistics.
+        webps = [
+            p for p in root.rglob("*.webp")
+            if p.as_posix() not in excluded
+        ]
+        alpha_count = 0
+        opaque_count = 0
+        transparent_corner_count = 0
+        black_corner_candidates = []
+
+        for path in webps:
+            with Image.open(path) as opened:
+                opened.load()
+                rgba = opened.convert("RGBA")
+                extrema = rgba.getchannel("A").getextrema()
+                corners = [
+                    rgba.getpixel(p) for p in (
+                        (0, 0),
+                        (rgba.width - 1, 0),
+                        (0, rgba.height - 1),
+                        (rgba.width - 1, rgba.height - 1),
+                    )
+                ]
+                if extrema[0] < 255:
+                    alpha_count += 1
+                    if any(px[3] == 0 for px in corners):
+                        transparent_corner_count += 1
+                    if all(px[3] == 255 and px[:3] == (0, 0, 0) for px in corners):
+                        black_corner_candidates.append(path.as_posix())
+                else:
+                    opaque_count += 1
+
+        print(
+            f"WebP alpha audit: total={len(webps)}, "
+            f"with_alpha={alpha_count}, opaque={opaque_count}, "
+            f"transparent_corners={transparent_corner_count}, "
+            f"black_corner_candidates={len(black_corner_candidates)}"
+        )
+        if black_corner_candidates:
+            print("⚠️ Black-corner candidates (manual review):")
+            for path in black_corner_candidates:
+                print(f"  {path}")
+        print("✅ Alpha-safe WebP conversion and validation completed")
         PY
+
+    - name: 🔎 Check source and Flutter changes
+      shell: bash
+      run: |
+        set -euo pipefail
+        git diff --check
+        flutter pub get
+        flutter analyze
 
     - name: 💾 Persist optimized assets
       shell: bash
@@ -217,7 +349,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add assets lib pubspec.yaml flutter_native_splash.yaml
-        git commit -m "perf(assets): replace PNG assets with lossless WebP"
+        git commit -m "fix(assets): preserve alpha in converted webp icons"
         git push
         echo "✅ Lossless WebP assets committed to master."
 
