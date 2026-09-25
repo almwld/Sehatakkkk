@@ -26,7 +26,6 @@ import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
-import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
 import 'package:sehatak/presentation/screens/community/community_screen.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
