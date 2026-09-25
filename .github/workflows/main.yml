@@ -1,6 +1,9 @@
 name: 🚀 Build Sehatak APK
 # Release build with signing + Firebase config from secrets.
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ master, main ]
@@ -159,6 +162,25 @@ jobs:
             print(f"CONVERT {old_ref} -> {new_ref}: {old_size} -> {new_size} bytes; refs={refs}")
         print(f"LOSSLESS WEBP: converted={changed}, saved={saved} bytes")
         PY
+
+        if changed:
+          print("Persisting lossless WebP conversions in the repository...")
+        PY
+
+    - name: 💾 Persist optimized assets
+      shell: bash
+      run: |
+        set -euo pipefail
+        if git diff --quiet -- assets pubspec.yaml lib; then
+          echo "✅ No persistent asset changes."
+          exit 0
+        fi
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add assets pubspec.yaml lib
+        git commit -m "perf(assets): persist lossless WebP optimization"
+        git push
+        echo "✅ Optimized assets committed to master."
 
     - name: 📦 Install dependencies
       run: flutter pub get
