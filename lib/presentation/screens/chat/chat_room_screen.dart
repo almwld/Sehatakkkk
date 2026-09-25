@@ -492,6 +492,50 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (mounted) setState(() => _showNewMessages = false);
   }
 
+  void _optimisticallyAddTextMessage(String text) {
+    final value = text.trim();
+    final uid = _auth.currentUser?.uid;
+    if (!mounted || value.isEmpty || uid == null) return;
+
+    final now = Timestamp.now();
+    final optimisticId =
+        'local_text_${now.microsecondsSinceEpoch}_${uid.hashCode}';
+
+    setState(() {
+      // Render the newly sent text immediately. The Firestore listener will
+      // replace this optimistic item with the canonical server message.
+      _messages = <MessageModel>[
+        MessageModel(
+          id: optimisticId,
+          chatId: widget.chatId,
+          senderId: uid,
+          senderName: _auth.currentUser?.displayName ?? 'مستخدم',
+          senderPhotoUrl: _auth.currentUser?.photoURL,
+          text: value,
+          type: MessageType.text,
+          timestamp: now,
+          clientTimestamp: now,
+          isRead: false,
+          isDelivered: false,
+        ),
+        ..._messages.where((message) => message.id != optimisticId),
+      ];
+      _knownMessageIds.add(optimisticId);
+      _newMessageIds = <String>{optimisticId};
+      _showNewMessages = false;
+    });
+
+    // The ListView is reversed, so offset 0 is the newest message.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
   Future<void> _loadOlderMessages() async {
     if (_loadingMoreMessages || !_hasMoreMessages || _oldestMessageDocument == null) return;
     setState(() => _loadingMoreMessages = true);
@@ -982,8 +1026,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         ChatInputBar(
             chatId: widget.chatId,
             replyToId: _replyingTo?.id,
-            onSendMessage: (_) {
+            onSendMessage: (text) {
               unawaited(_setTyping(false));
+              _optimisticallyAddTextMessage(text);
               if (_replyingTo != null) _clearReply();
             },
             onTyping: _setTyping,
