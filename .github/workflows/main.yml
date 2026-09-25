@@ -90,6 +90,71 @@ jobs:
         } >> "${GITHUB_ENV}"
         echo "✅ Release keystore validated."
 
+    - name: 🖼️ Lossless optimize confirmed-used raster assets
+      shell: bash
+      run: |
+        set -euo pipefail
+        python -m pip install --disable-pip-version-check --quiet Pillow
+        python - <<'PY'
+        from pathlib import Path
+        from PIL import Image
+
+        targets = [
+            "assets/images/sehatak_chat_wallpaper_light_1080x2160.png",
+            "assets/images/sehatak_chat_wallpaper_dark_1080x2160.png",
+            "assets/images/icons/doctors/Male doctor.png",
+            "assets/images/navigation/home.png",
+            "assets/images/navigation/health.png",
+            "assets/images/navigation/chat.png",
+            "assets/images/social/instagram.png",
+            "assets/images/social/tiktok.png",
+            "assets/images/social/google.png",
+            "assets/images/social/youtube.png",
+            "assets/images/social/facebook.png",
+            "assets/images/social/x_twitter.png",
+            "assets/images/services/pharmacy.png",
+            "assets/images/services/labs.png",
+            "assets/images/icons/top_bar/notifications.png",
+            "assets/images/icons/top_bar/Shopping cart.png",
+            "assets/images/pregnancy_follow_up.png",
+            "assets/images/payment/kremi.png",
+            "assets/images/services/medications.png",
+        ]
+
+        changed = 0
+        saved = 0
+        for raw in targets:
+            src = Path(raw)
+            if not src.exists():
+                print(f"SKIP missing: {src}")
+                continue
+            dst = src.with_suffix(".webp")
+            with Image.open(src) as image:
+                image.load()
+                if image.mode not in ("RGB", "RGBA"):
+                    image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
+                image.save(dst, "WEBP", lossless=True, method=6)
+            old_size = src.stat().st_size
+            new_size = dst.stat().st_size
+            if new_size >= old_size:
+                dst.unlink()
+                print(f"KEEP PNG {src}: {old_size} <= {new_size}")
+                continue
+            old_ref = str(src)
+            new_ref = str(dst)
+            refs = 0
+            for dart in Path("lib").rglob("*.dart"):
+                text = dart.read_text(encoding="utf-8")
+                if old_ref in text:
+                    dart.write_text(text.replace(old_ref, new_ref), encoding="utf-8")
+                    refs += 1
+            src.unlink()
+            changed += 1
+            saved += old_size - new_size
+            print(f"CONVERT {old_ref} -> {new_ref}: {old_size} -> {new_size} bytes; refs={refs}")
+        print(f"LOSSLESS WEBP: converted={changed}, saved={saved} bytes")
+        PY
+
     - name: 📦 Install dependencies
       run: flutter pub get
 
