@@ -279,9 +279,9 @@ class _CommunityScreenState extends State<CommunityScreen>
           top: 0,
           start: 0,
           end: 0,
-          child: IgnorePointer(
-            ignoring: !_headerVisible,
-            child: ClipRect(
+          child: ClipRect(
+            child: IgnorePointer(
+              ignoring: !_headerVisible,
               child: AnimatedSlide(
                 offset: _headerVisible ? Offset.zero : const Offset(0, -1),
                 duration: const Duration(milliseconds: 220),
@@ -290,6 +290,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                   duration: const Duration(milliseconds: 180),
                   opacity: _headerVisible ? 1 : 0,
                   child: Material(
+                    type: MaterialType.transparency,
                     color: Colors.transparent,
                     elevation: 0,
                     child: Container(
@@ -345,7 +346,7 @@ class _CommunityScreenState extends State<CommunityScreen>
               child: const Icon(Icons.add_rounded, size: 30),
             ),
           ),
-        ),
+          ),
         ),
       ),
       ],
