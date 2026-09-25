@@ -71,6 +71,12 @@ class _CallScreenState extends State<CallScreen> {
   void initState() {
     super.initState();
     final id = widget.callId?.trim();
+    if ((id == null || id.isEmpty) && widget.isOutgoing) {
+      if (ActiveCallRegistry.instance.hasActiveCall) {
+        debugPrint('⚡ CallScreen: clearing stale registry before new outgoing call');
+        ActiveCallRegistry.instance.reset();
+      }
+    }
     if (id != null && id.isNotEmpty) {
       final registry = ActiveCallRegistry.instance;
       if (registry.hasActiveCall && !registry.isActive(id)) {
@@ -416,6 +422,30 @@ class _CallScreenState extends State<CallScreen> {
               Positioned.fill(child: IgnorePointer(child: fallback())),
             Positioned(top: 12, left: 12, right: 12, child: top(status)),
             if (error == null) Positioned(bottom: 18, left: 14, right: 14, child: controls()),
+            if (error != null)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black87,
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
+                      const SizedBox(height: 16),
+                      const Text('تعذر بدء الاتصال', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      Text(error!, style: const TextStyle(color: Colors.white70, fontSize: 13), textAlign: TextAlign.center),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                        label: const Text('إغلاق'),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
