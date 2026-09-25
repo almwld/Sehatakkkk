@@ -6,6 +6,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -29,11 +30,7 @@ class _HomeTabState extends State<HomeTab> {
     {'icon': 'assets/images/services/wallet.webp', 'label': 'محفظة'},
   ];
 
-  final List<Map<String, dynamic>> _topDoctors = [
-    {'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9},
-    {'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8},
-    {'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7},
-  ];
+  List<Map<String, dynamic>> _topDoctors = const [];
 
   bool _isLoggedIn = false;
   String _userName = 'مستخدم';
@@ -51,6 +48,32 @@ class _HomeTabState extends State<HomeTab> {
       }
     } catch (e) {
       debugPrint('Error loading user: $e');
+    }
+    _loadTopDoctors();
+  }
+
+  Future<void> _loadTopDoctors() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('doctors')
+          .where('isVerified', isEqualTo: true)
+          .limit(3)
+          .get();
+
+      final doctors = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return <String, dynamic>{
+          'id': doc.id,
+          'name': (data['name'] ?? 'طبيب').toString(),
+          'specialty': (data['specialty'] ?? 'طبيب عام').toString(),
+          'rating': (data['rating'] as num?)?.toDouble() ?? 0.0,
+        };
+      }).toList();
+
+      if (mounted) setState(() => _topDoctors = doctors);
+    } catch (e) {
+      debugPrint('Error loading doctors: $e');
+      if (mounted) setState(() => _topDoctors = const []);
     }
   }
 
@@ -356,21 +379,70 @@ class _HomeTabState extends State<HomeTab> {
                 const SizedBox(height: 16),
                 const Text('أفضل الأطباء', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                ..._topDoctors.map((doctor) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(12)),
-                    child: Row(
-                      children: [
-                        CircleAvatar(backgroundColor: AppColors.primary.withOpacity(0.1), child: Text(doctor['name'][0], style: TextStyle(color: AppColors.primary))),
-                        const SizedBox(width: 12),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(doctor['name'], style: const TextStyle(fontWeight: FontWeight.bold)), Text(doctor['specialty'], style: TextStyle(fontSize: 12, color: Colors.grey))])),
-                        Row(children: [const Icon(Icons.star, color: Colors.amber, size: 14), Text(doctor['rating'].toString())]),
-                      ],
+                if (_topDoctors.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  );
-                }).toList(),
+                    child: const Center(
+                      child: Text('لا يوجد أطباء موثقون متاحون حاليًا'),
+                    ),
+                  )
+                else
+                  ..._topDoctors.map((doctor) {
+                    final name = doctor['name'] as String;
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DoctorDetailsScreen(
+                            doctorId: doctor['id'] as String,
+                          ),
+                        ),
+                      ),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: AppColors.primary.withOpacity(0.1),
+                              child: Text(
+                                name.characters.first,
+                                style: const TextStyle(color: AppColors.primary),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text(
+                                    doctor['specialty'] as String,
+                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                const Icon(Icons.star, color: Colors.amber, size: 14),
+                                Text((doctor['rating'] as double).toStringAsFixed(1)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
               ]),
             ),
           ),
