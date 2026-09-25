@@ -287,11 +287,11 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _discover(bool dark) {
     final items = [
-      {'name': 'حجز موعد', 'asset': 'assets/images/services/calendar_booking.png', 'route': AppRouter.appointments},
-      {'name': 'طوارئ', 'asset': 'assets/images/services/emergency.png', 'route': AppRouter.emergency},
-      {'name': 'خريطة', 'asset': 'assets/images/services/map_location.png', 'route': AppRouter.map},
-      {'name': 'باقات', 'asset': 'assets/images/services/packages.png', 'route': AppRouter.packages},
-      {'name': 'جميع الخدمات', 'asset': 'assets/images/ui/all_services.png', 'route': AppRouter.services},
+      {'name': 'حجز موعد', 'asset': 'assets/images/services/calendar_booking.webp', 'route': AppRouter.appointments},
+      {'name': 'طوارئ', 'asset': 'assets/images/services/emergency.webp', 'route': AppRouter.emergency},
+      {'name': 'خريطة', 'asset': 'assets/images/services/map_location.webp', 'route': AppRouter.map},
+      {'name': 'باقات', 'asset': 'assets/images/services/packages.webp', 'route': AppRouter.packages},
+      {'name': 'جميع الخدمات', 'asset': 'assets/images/ui/all_services.webp', 'route': AppRouter.services},
     ];
     return _section(
       title: 'اكتشف المزيد',
@@ -399,9 +399,9 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _articles(List<dynamic> items, bool dark) => _dataCards('مقالات طبية', items, dark, 'assets/images/services/medical_articles.png', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArticlesScreen())), 'لا توجد مقالات منشورة حالياً', 'summary');
+  Widget _articles(List<dynamic> items, bool dark) => _dataCards('مقالات طبية', items, dark, 'assets/images/services/medical_articles.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArticlesScreen())), 'لا توجد مقالات منشورة حالياً', 'summary');
 
-  Widget _tips(List<dynamic> items, bool dark) => _dataCards('نصائح يومية', items, dark, 'assets/images/services/health_tips.png', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), 'لا توجد نصائح منشورة حالياً', 'content');
+  Widget _tips(List<dynamic> items, bool dark) => _dataCards('نصائح يومية', items, dark, 'assets/images/services/health_tips.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), 'لا توجد نصائح منشورة حالياً', 'content');
 
   Widget _dataCards(String title, List<dynamic> items, bool dark, String asset, VoidCallback onMore, String emptyText, String subtitleKey) {
     return _section(

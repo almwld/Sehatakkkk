@@ -44,9 +44,9 @@ class _HelpScreenState extends State<HelpScreen> {
 
   // ✅ معلومات الاتصال
   final List<Map<String, dynamic>> _contactInfo = [
-    {'icon': 'assets/images/services/consultation.png', 'label': 'البريد الإلكتروني', 'value': 'support@sehatak.com', 'action': 'mailto:support@sehatak.com'},
-    {'icon': 'assets/images/chat/phone_call.png', 'label': 'رقم الهاتف', 'value': '+967 1 234 567', 'action': 'tel:+9671234567'},
-    {'icon': 'assets/images/services/map_location.png', 'label': 'العنوان', 'value': 'صنعاء - اليمن', 'action': ''},
+    {'icon': 'assets/images/services/consultation.webp', 'label': 'البريد الإلكتروني', 'value': 'support@sehatak.com', 'action': 'mailto:support@sehatak.com'},
+    {'icon': 'assets/images/chat/phone_call.webp', 'label': 'رقم الهاتف', 'value': '+967 1 234 567', 'action': 'tel:+9671234567'},
+    {'icon': 'assets/images/services/map_location.webp', 'label': 'العنوان', 'value': 'صنعاء - اليمن', 'action': ''},
   ];
 
   @override

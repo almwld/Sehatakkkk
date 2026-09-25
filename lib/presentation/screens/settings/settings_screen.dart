@@ -38,13 +38,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _deliveryArea;
   String? _deliveryAddress;
 
-  static const String _logoutIcon = 'assets/images/ui/logout.png';
-  static const String _languageIcon = 'assets/icons/settings/app_language.png';
-  static const String _autoModeIcon = 'assets/icons/settings/auto_mode.png';
-  static const String _changePasswordIcon = 'assets/icons/settings/change_password.png';
-  static const String _fontSizeIcon = 'assets/icons/settings/font_size.png';
-  static const String _locationIcon = 'assets/icons/settings/select_location.png';
-  static const String _fingerprintIcon = 'assets/icons/fingerprint_lines_transparent.png';
+  static const String _logoutIcon = 'assets/images/ui/logout.webp';
+  static const String _languageIcon = 'assets/icons/settings/app_language.webp';
+  static const String _autoModeIcon = 'assets/icons/settings/auto_mode.webp';
+  static const String _changePasswordIcon = 'assets/icons/settings/change_password.webp';
+  static const String _fontSizeIcon = 'assets/icons/settings/font_size.webp';
+  static const String _locationIcon = 'assets/icons/settings/select_location.webp';
+  static const String _fingerprintIcon = 'assets/icons/fingerprint_lines_transparent.webp';
 
   @override
   void initState() {

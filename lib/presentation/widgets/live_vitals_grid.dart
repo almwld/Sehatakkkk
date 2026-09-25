@@ -25,10 +25,10 @@ class LiveVitalsGrid extends StatelessWidget {
     'temperature': '°C',
   };
   static const _icons = <String, String>{
-    'bloodPressure': 'assets/images/tracking/blood_pressure.png',
-    'glucose': 'assets/images/tracking/blood_sugar.png',
+    'bloodPressure': 'assets/images/tracking/blood_pressure.webp',
+    'glucose': 'assets/images/tracking/blood_sugar.webp',
     'heartRate': 'assets/images/tracking/heart_rate.png',
-    'weight': 'assets/images/tracking/weight_tracking.png',
+    'weight': 'assets/images/tracking/weight_tracking.webp',
     'bloodOxygen': 'assets/images/tracking/blood_oxygen.png',
     'temperature': 'assets/images/tracking/temperature.png',
   };

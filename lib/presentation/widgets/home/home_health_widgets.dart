@@ -32,30 +32,30 @@ class HomeHealthWidgets extends StatelessWidget {
         'value': state.steps,
         'unit': 'خطوة',
         'color': Colors.green,
-        'icon': 'assets/icons/health/step_tracking.png'
+        'icon': 'assets/icons/health/step_tracking.webp'
       },
       {
         'name': 'النوم',
         'value': state.sleep,
         'unit': 'ساعة',
         'color': Colors.purple,
-        'icon': 'assets/icons/health/sleep/sleep_tracking.png'
+        'icon': 'assets/icons/health/sleep/sleep_tracking.webp'
       },
       {
         'name': 'النبض',
         'value': state.heartRate,
         'unit': 'bpm',
         'color': Colors.red,
-        'icon': 'assets/icons/health/heart_rate.png'
+        'icon': 'assets/icons/health/heart_rate.webp'
       },
     ];
     final vitals = <Map<String, dynamic>>[
-      {'label': 'ضغط الدم', 'display': 'غير متوفر', 'color': const Color(0xFF0A8F83), 'icon': 'assets/images/tracking/blood_pressure.png'},
-      {'label': 'سكر الدم', 'display': 'غير متوفر', 'color': const Color(0xFF12AFA0), 'icon': 'assets/images/tracking/blood_sugar.png'},
-      {'label': 'اللياقة', 'display': 'غير متوفر', 'color': const Color(0xFF20B2AA), 'icon': 'assets/images/tracking/fitness.png'},
-      {'label': 'الوزن', 'display': 'غير متوفر', 'color': const Color(0xFF159A9C), 'icon': 'assets/images/tracking/weight_tracking.png'},
-      {'label': 'التغذية', 'display': 'غير متوفر', 'color': const Color(0xFF2BB7A9), 'icon': 'assets/images/tracking/nutrition.png'},
-      {'label': 'الصحة النفسية', 'display': 'غير متوفر', 'color': const Color(0xFF3AAFA9), 'icon': 'assets/images/tracking/mental_health.png'},
+      {'label': 'ضغط الدم', 'display': 'غير متوفر', 'color': const Color(0xFF0A8F83), 'icon': 'assets/images/tracking/blood_pressure.webp'},
+      {'label': 'سكر الدم', 'display': 'غير متوفر', 'color': const Color(0xFF12AFA0), 'icon': 'assets/images/tracking/blood_sugar.webp'},
+      {'label': 'اللياقة', 'display': 'غير متوفر', 'color': const Color(0xFF20B2AA), 'icon': 'assets/images/tracking/fitness.webp'},
+      {'label': 'الوزن', 'display': 'غير متوفر', 'color': const Color(0xFF159A9C), 'icon': 'assets/images/tracking/weight_tracking.webp'},
+      {'label': 'التغذية', 'display': 'غير متوفر', 'color': const Color(0xFF2BB7A9), 'icon': 'assets/images/tracking/nutrition.webp'},
+      {'label': 'الصحة النفسية', 'display': 'غير متوفر', 'color': const Color(0xFF3AAFA9), 'icon': 'assets/images/tracking/mental_health.webp'},
     ];
     final score = state.healthScore.round().clamp(0, 100);
     return Column(children: [

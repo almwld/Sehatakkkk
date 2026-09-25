@@ -395,7 +395,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                   child: ElevatedButton.icon(
                     onPressed: _showStatsDialog,
                     icon: Image.asset(
-                      'assets/icons/health/sleep/sleep_report.png',
+                      'assets/icons/health/sleep/sleep_report.webp',
                       width: 24,
                       height: 24,
                       fit: BoxFit.contain,
@@ -420,7 +420,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
             Row(
               children: [
                 _statCard('المتوسط', '${_avg.toStringAsFixed(1)} س', Image.asset(
-                  'assets/icons/health/sleep/sleep_tracking.png',
+                  'assets/icons/health/sleep/sleep_tracking.webp',
                   width: 20,
                   height: 20,
                   fit: BoxFit.contain,
@@ -428,7 +428,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                 ), Colors.blue),
                 const SizedBox(width: 8),
                 _statCard('الجودة', '${_sleepQuality.toStringAsFixed(1)}/10', Image.asset(
-                  'assets/icons/health/sleep/sleep_quality.png',
+                  'assets/icons/health/sleep/sleep_quality.webp',
                   width: 20,
                   height: 20,
                   fit: BoxFit.contain,

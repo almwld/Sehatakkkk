@@ -77,7 +77,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's1',
       'name': 'الأطباء',
-      'icon': 'assets/images/services/consultation.png',
+      'icon': 'assets/images/services/consultation.webp',
       'category': 'الرعاية الصحية',
       'description': 'استشر أفضل الأطباء في مختلف التخصصات',
       'screen': const DoctorsListScreen(),
@@ -87,7 +87,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's2',
       'name': 'المستشفيات',
-      'icon': 'assets/images/services/hospital.png',
+      'icon': 'assets/images/services/hospital.webp',
       'category': 'الرعاية الصحية',
       'description': 'ابحث عن أقرب المستشفيات والمرافق الصحية',
       'screen': const HospitalScreen(),
@@ -97,7 +97,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's3',
       'name': 'صحتك',
-      'icon': 'assets/images/services/health_tips.png',
+      'icon': 'assets/images/services/health_tips.webp',
       'category': 'الرعاية الصحية',
       'description': 'متابعة حالتك الصحية والإحصائيات',
       'screen': const HealthDashboard(),
@@ -107,7 +107,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's4',
       'name': 'المواعيد',
-      'icon': 'assets/images/services/calendar_booking.png',
+      'icon': 'assets/images/services/calendar_booking.webp',
       'category': 'الرعاية الصحية',
       'description': 'إدارة وحجز المواعيد الطبية',
       'screen': const AppointmentsScreen(),
@@ -117,7 +117,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's5',
       'name': 'المختبرات',
-      'icon': 'assets/images/services/laboratory.png',
+      'icon': 'assets/images/services/laboratory.webp',
       'category': 'التحاليل والمختبرات',
       'description': 'حجز التحاليل والفحوصات المخبرية',
       'screen': const LabsListScreen(),
@@ -127,7 +127,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's6',
       'name': 'التقارير الطبية',
-      'icon': 'assets/images/services/medical_records.png',
+      'icon': 'assets/images/services/medical_records.webp',
       'category': 'الرعاية الصحية',
       'description': 'عرض وتحميل التقارير الطبية',
       'screen': const MedicalReportsScreen(),
@@ -161,7 +161,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's9',
       'name': 'تذكير الأدوية',
-      'icon': 'assets/images/services/first_aid.png',
+      'icon': 'assets/images/services/first_aid.webp',
       'category': 'الأدوية والصيدلة',
       'description': 'تذكير بمواعيد تناول الأدوية',
       'screen': const MedicationReminderScreen(),
@@ -175,7 +175,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's10',
       'name': 'الطوارئ',
-      'icon': 'assets/images/services/emergency.png',
+      'icon': 'assets/images/services/emergency.webp',
       'category': 'الطوارئ',
       'description': 'أرقام الطوارئ والمساعدة الفورية',
       'screen': const EmergencyNumbers(),
@@ -185,7 +185,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's11',
       'name': 'الإسعافات الأولية',
-      'icon': 'assets/images/services/first_aid.png',
+      'icon': 'assets/images/services/first_aid.webp',
       'category': 'الطوارئ',
       'description': 'دليل الإسعافات الأولية',
       'screen': const FirstAidScreen(),
@@ -199,7 +199,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's12',
       'name': 'استشارة فورية',
-      'icon': 'assets/images/services/consultation.png',
+      'icon': 'assets/images/services/consultation.webp',
       'category': 'الاستشارات',
       'description': 'تحدث مع طبيبك الآن',
       'screen': const ConsultationScreen(),
@@ -209,7 +209,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's13',
       'name': 'استشارة فيديو',
-      'icon': 'assets/images/services/video_consultation.png',
+      'icon': 'assets/images/services/video_consultation.webp',
       'category': 'الاستشارات',
       'description': 'استشارة طبية عبر الفيديو',
       'screen': const VideoConsultationScreen(),
@@ -219,7 +219,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's14',
       'name': 'المساعد الذكي',
-      'icon': 'assets/images/services/ai_assistant.png',
+      'icon': 'assets/images/services/ai_assistant.webp',
       'category': 'الاستشارات',
       'description': 'اسأل المساعد الطبي الذكي',
       'screen': const AiChatbotScreen(),
@@ -233,7 +233,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's15',
       'name': 'المحفظة',
-      'icon': 'assets/images/services/wallet.png',
+      'icon': 'assets/images/services/wallet.webp',
       'category': 'الخدمات المالية',
       'description': 'إدارة محفظتك المالية',
       'screen': const WalletScreen(),
@@ -243,7 +243,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's16',
       'name': 'الباقات الصحية',
-      'icon': 'assets/images/services/packages.png',
+      'icon': 'assets/images/services/packages.webp',
       'category': 'الخدمات المالية',
       'description': 'عرض الباقات والاشتراكات الصحية',
       'screen': const PackagesScreen(),
@@ -257,7 +257,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's17',
       'name': 'الخريطة التفاعلية',
-      'icon': 'assets/images/services/map_location.png',
+      'icon': 'assets/images/services/map_location.webp',
       'category': 'الخرائط',
       'description': 'المنشآت الصحية القريبة منك',
       'screen': const InteractiveMapScreen(),
@@ -267,7 +267,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's18',
       'name': 'بالقرب منك',
-      'icon': 'assets/images/services/map_location.png',
+      'icon': 'assets/images/services/map_location.webp',
       'category': 'الخرائط',
       'description': 'الخدمات الصحية القريبة من موقعك',
       'screen': const InteractiveMapScreen(),
@@ -281,7 +281,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's19',
       'name': 'التأمين الصحي',
-      'icon': 'assets/images/services/health_insurance.png',
+      'icon': 'assets/images/services/health_insurance.webp',
       'category': 'التأمين',
       'description': 'خطط التأمين الصحي والاشتراكات',
       'screen': const InsuranceCompanies(),
@@ -295,7 +295,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's20',
       'name': 'المجتمع الطبي',
-      'icon': 'assets/images/services/medical_community.png',
+      'icon': 'assets/images/services/medical_community.webp',
       'category': 'المجتمع',
       'description': 'تواصل مع المجتمع الطبي',
       'screen': const HealthCommunityScreen(),
@@ -305,7 +305,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's21',
       'name': 'المقالات الطبية',
-      'icon': 'assets/images/services/medical_articles.png',
+      'icon': 'assets/images/services/medical_articles.webp',
       'category': 'المجتمع',
       'description': 'أحدث المقالات الطبية',
       'screen': const ArticlesScreen(),
@@ -319,7 +319,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's22',
       'name': 'ضغط الدم',
-      'icon': 'assets/images/tracking/blood_pressure.png',
+      'icon': 'assets/images/tracking/blood_pressure.webp',
       'category': 'الرعاية الصحية',
       'description': 'متابعة ضغط الدم',
       'screen': const BloodPressureScreen(),
@@ -329,7 +329,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's23',
       'name': 'سكر الدم',
-      'icon': 'assets/images/tracking/blood_sugar.png',
+      'icon': 'assets/images/tracking/blood_sugar.webp',
       'category': 'الرعاية الصحية',
       'description': 'مراقبة مستوى السكر في الدم',
       'screen': const GlucoseTrackerScreen(),
@@ -339,7 +339,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's24',
       'name': 'الوزن',
-      'icon': 'assets/images/tracking/weight_tracking.png',
+      'icon': 'assets/images/tracking/weight_tracking.webp',
       'category': 'الرعاية الصحية',
       'description': 'تتبع الوزن واللياقة البدنية',
       'screen': const WeightTrackerScreen(),
@@ -349,7 +349,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's25',
       'name': 'النوم',
-      'icon': 'assets/images/tracking/sleep_tracking.png',
+      'icon': 'assets/images/tracking/sleep_tracking.webp',
       'category': 'الرعاية الصحية',
       'description': 'تتبع جودة النوم',
       'screen': const SleepTrackerScreen(),
@@ -359,7 +359,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's26',
       'name': 'التبرع بالدم',
-      'icon': 'assets/images/services/blood_donation.png',
+      'icon': 'assets/images/services/blood_donation.webp',
       'category': 'الرعاية الصحية',
       'description': 'مراكز التبرع بالدم',
       'screen': const BloodDonationScreen(),
@@ -373,7 +373,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's33',
       'name': 'خدمة التوصيل',
-      'icon': 'assets/images/services/delivery.png',
+      'icon': 'assets/images/services/delivery.webp',
       'category': 'الخدمات',
       'description': 'اختيار خدمة وشركات التوصيل المتاحة',
       'screen': const DeliveryScreen(),
@@ -383,7 +383,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's34',
       'name': 'شركات التوصيل',
-      'icon': 'assets/images/services/delivery.png',
+      'icon': 'assets/images/services/delivery.webp',
       'category': 'الخدمات',
       'description': 'عرض شركات التوصيل المتاحة حسب المنطقة والمسافة',
       'screen': const DeliveryCompanyScreen(onSelect: _noopDeliverySelect),
@@ -397,7 +397,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's27',
       'name': 'صحة المرأة',
-      'icon': 'assets/images/services/womens_health.png',
+      'icon': 'assets/images/services/womens_health.webp',
       'category': 'الرعاية الصحية',
       'description': 'متابعة صحة المرأة',
       'screen': const FamilyPlanningScreen(),
@@ -407,7 +407,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's28',
       'name': 'الصحة النفسية',
-      'icon': 'assets/images/tracking/mental_health.png',
+      'icon': 'assets/images/tracking/mental_health.webp',
       'category': 'الرعاية الصحية',
       'description': 'دعم الصحة النفسية',
       'screen': const MentalHealthScreen(),
@@ -417,7 +417,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's29',
       'name': 'النظام الغذائي',
-      'icon': 'assets/images/tracking/fruits.png',
+      'icon': 'assets/images/tracking/fruits.webp',
       'category': 'الرعاية الصحية',
       'description': 'خطط غذائية صحية',
       'screen': const DietPlanScreen(),
@@ -431,7 +431,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's30',
       'name': 'الملف الشخصي',
-      'icon': 'assets/images/ui/user_profile.png',
+      'icon': 'assets/images/ui/user_profile.webp',
       'category': 'الرعاية الصحية',
       'description': 'إدارة ملفك الشخصي',
       'screen': const PatientProfile(),
@@ -441,7 +441,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's31',
       'name': 'الإشعارات',
-      'icon': 'assets/images/services/notifications.png',
+      'icon': 'assets/images/services/notifications.webp',
       'category': 'الرعاية الصحية',
       'description': 'إدارة الإشعارات',
       'screen': const NotificationsScreen(),
@@ -493,7 +493,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
         actions: [
           IconButton(
             icon: LocalAssetIcon(
-              _isGridView ? AppAssets.menuIcon : 'assets/images/navigation/more.png',
+              _isGridView ? AppAssets.menuIcon : 'assets/images/navigation/more.webp',
               size: 22,
             ),
             onPressed: () => setState(() => _isGridView = !_isGridView),

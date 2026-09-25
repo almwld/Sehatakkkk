@@ -137,19 +137,19 @@ class CustomizationService {
   // ✅ إزالة IconData واستخدام String بدلاً منه
   String getSectionIcon(String key) {
     final icons = {
-      'quick_services': 'assets/images/services/consultation.png',
-      'top_doctors': 'assets/images/services/consultation.png',
-      'favorites': 'assets/images/ui/favorites.png',
+      'quick_services': 'assets/images/services/consultation.webp',
+      'top_doctors': 'assets/images/services/consultation.webp',
+      'favorites': 'assets/images/ui/favorites.webp',
       'products': 'assets/images/services/medications.webp',
-      'hospitals': 'assets/images/services/hospital.png',
-      'labs': 'assets/images/services/laboratory.png',
+      'hospitals': 'assets/images/services/hospital.webp',
+      'labs': 'assets/images/services/laboratory.webp',
       'pharmacies': 'assets/images/services/pharmacy.webp',
-      'articles': 'assets/images/services/medical_articles.png',
-      'daily_tips': 'assets/images/services/health_tips.png',
-      'discover': 'assets/images/services/packages.png',
-      'community': 'assets/images/services/medical_community.png',
+      'articles': 'assets/images/services/medical_articles.webp',
+      'daily_tips': 'assets/images/services/health_tips.webp',
+      'discover': 'assets/images/services/packages.webp',
+      'community': 'assets/images/services/medical_community.webp',
     };
-    return icons[key] ?? 'assets/images/ui/all_services.png';
+    return icons[key] ?? 'assets/images/ui/all_services.webp';
   }
 
   Future<List<Map<String, dynamic>>> getSectionsWithStatus() async {

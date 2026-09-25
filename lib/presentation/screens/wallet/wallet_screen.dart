@@ -23,15 +23,15 @@ class _WalletScreenState extends State<WalletScreen> {
 
 
   final List<Map<String, dynamic>> _wallets = [
-    {'name':'جيب','icon':'assets/images/payment/jeeb.png','account':'536396'},
-    {'name':'جوالي','icon':'assets/images/payment/jawali.png','account':'772222222'},
-    {'name':'كاش','icon':'assets/images/payment/kash.png','account':'774444444'},
-    {'name':'كاش ون','icon':'assets/images/payment/kash_one.png','account':'775555555'},
-    {'name':'إيزي','icon':'assets/images/payment/easy.png','account':'778888888'},
-    {'name':'فلوسك','icon':'assets/images/payment/floosak.png','account':'771111111'},
+    {'name':'جيب','icon':'assets/images/payment/jeeb.webp','account':'536396'},
+    {'name':'جوالي','icon':'assets/images/payment/jawali.webp','account':'772222222'},
+    {'name':'كاش','icon':'assets/images/payment/kash.webp','account':'774444444'},
+    {'name':'كاش ون','icon':'assets/images/payment/kash_one.webp','account':'775555555'},
+    {'name':'إيزي','icon':'assets/images/payment/easy.webp','account':'778888888'},
+    {'name':'فلوسك','icon':'assets/images/payment/floosak.webp','account':'771111111'},
     {'name':'حاسب الكريمي','icon':'assets/images/payment/kremi.webp','account':'770000000'},
-    {'name':'موبايل ماني','icon':'assets/images/payment/mobile_money.png','account':'776666666'},
-    {'name':'يمن وولت','icon':'assets/images/payment/yemen_wallet.png','account':'777777777'},
+    {'name':'موبايل ماني','icon':'assets/images/payment/mobile_money.webp','account':'776666666'},
+    {'name':'يمن وولت','icon':'assets/images/payment/yemen_wallet.webp','account':'777777777'},
   ];
 
   @override

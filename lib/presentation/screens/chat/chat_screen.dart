@@ -234,7 +234,7 @@ class _ChatScreenState extends State<ChatScreen> {
       color: isDark ? const Color(0xFF162039) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-        leading: Padding(padding: const EdgeInsetsDirectional.only(start: 4), child: Image.asset('assets/images/services/ai_assistant.png', width: 42, height: 42, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_outlined, color: AppColors.primary, size: 30))),
+        leading: Padding(padding: const EdgeInsetsDirectional.only(start: 4), child: Image.asset('assets/images/services/ai_assistant.webp', width: 42, height: 42, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_outlined, color: AppColors.primary, size: 30))),
         title: const Text('المساعد الصحي الذكي', style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: const Text('اسأل الآن عن صحتك'),
         trailing: const Icon(Icons.chevron_left),

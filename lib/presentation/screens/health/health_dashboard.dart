@@ -26,7 +26,7 @@ class _HealthDashboardState extends State<HealthDashboard>
   // ✅ المؤشرات الصحية - أيقونات مكبرة بدون حاويات
   final List<Map<String, dynamic>> _healthMetrics = [
     {
-      'icon': 'assets/images/ui/doctor_avatar.png',
+      'icon': 'assets/images/ui/doctor_avatar.webp',
       'label': 'نبض القلب',
       'value': 'غير متوفر',
       'unit': 'نبضة/دقيقة',
@@ -38,7 +38,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'trendUp': true,
     },
     {
-      'icon': 'assets/images/tracking/blood_pressure.png',
+      'icon': 'assets/images/tracking/blood_pressure.webp',
       'label': 'ضغط الدم',
       'value': 'غير متوفر',
       'unit': 'مم زئبق',
@@ -50,7 +50,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'trendUp': false,
     },
     {
-      'icon': 'assets/images/tracking/blood_sugar.png',
+      'icon': 'assets/images/tracking/blood_sugar.webp',
       'label': 'سكر الدم',
       'value': 'غير متوفر',
       'unit': 'مجم/دل',
@@ -62,7 +62,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'trendUp': false,
     },
     {
-      'icon': 'assets/images/tracking/weight_tracking.png',
+      'icon': 'assets/images/tracking/weight_tracking.webp',
       'label': 'الوزن',
       'value': 'غير متوفر',
       'unit': 'كجم',
@@ -78,7 +78,7 @@ class _HealthDashboardState extends State<HealthDashboard>
   // ✅ النصائح الصحية - أيقونات جديدة
   final List<Map<String, dynamic>> _healthTips = [
     {
-      'icon': 'assets/images/tracking/water_drinking.png',
+      'icon': 'assets/images/tracking/water_drinking.webp',
       'title': 'شرب الماء',
       'subtitle': '8 أكواب يومياً',
       'color': Colors.blue,
@@ -86,7 +86,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'target': '2.4/3 لتر',
     },
     {
-      'icon': 'assets/images/tracking/walking.png',
+      'icon': 'assets/images/tracking/walking.webp',
       'title': 'المشي',
       'subtitle': '30 دقيقة يومياً',
       'color': Colors.green,
@@ -94,7 +94,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'target': '18/30 دقيقة',
     },
     {
-      'icon': 'assets/images/tracking/sleep_tracking.png',
+      'icon': 'assets/images/tracking/sleep_tracking.webp',
       'title': 'النوم',
       'subtitle': '7-8 ساعات ليلاً',
       'color': Colors.indigo,
@@ -102,7 +102,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'target': '6.4/8 ساعات',
     },
     {
-      'icon': 'assets/images/tracking/fruits.png',
+      'icon': 'assets/images/tracking/fruits.webp',
       'title': 'الفواكه',
       'subtitle': '5 حصص يومياً',
       'color': Colors.red,
@@ -943,7 +943,7 @@ class _HealthDashboardState extends State<HealthDashboard>
           child: Row(
             children: [
               // ✅ أيقونة مكبرة (44 -> 32)
-              _buildIcon('assets/images/services/laboratory.png', size: 32, color: AppColors.primary),
+              _buildIcon('assets/images/services/laboratory.webp', size: 32, color: AppColors.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -1015,7 +1015,7 @@ class _HealthDashboardState extends State<HealthDashboard>
           child: Row(
             children: [
               // ✅ أيقونة مكبرة (44 -> 32)
-              _buildIcon('assets/images/services/calendar_booking.png', size: 32, color: AppColors.primary),
+              _buildIcon('assets/images/services/calendar_booking.webp', size: 32, color: AppColors.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

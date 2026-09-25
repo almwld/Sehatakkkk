@@ -71,12 +71,12 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
   };
 
   final Map<String, String> _categoryIcons = {
-    'تغذية': 'assets/images/tracking/fruits.png',
-    'رياضة': 'assets/images/tracking/walking.png',
-    'نوم': 'assets/images/tracking/sleep_tracking.png',
-    'صحة نفسية': 'assets/images/tracking/mental_health.png',
-    'وقاية': 'assets/images/tracking/vaccination.png',
-    'صحة القلب': 'assets/images/tracking/blood_pressure.png',
+    'تغذية': 'assets/images/tracking/fruits.webp',
+    'رياضة': 'assets/images/tracking/walking.webp',
+    'نوم': 'assets/images/tracking/sleep_tracking.webp',
+    'صحة نفسية': 'assets/images/tracking/mental_health.webp',
+    'وقاية': 'assets/images/tracking/vaccination.webp',
+    'صحة القلب': 'assets/images/tracking/blood_pressure.webp',
   };
 
   final Map<String, Color> _categoryColors = {

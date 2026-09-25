@@ -155,7 +155,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
       width: size,
       height: size,
       child: Image.asset(
-        'assets/icons/settings/select_location.png',
+        'assets/icons/settings/select_location.webp',
         width: size,
         height: size,
         fit: BoxFit.contain,
@@ -296,7 +296,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     color: AppColors.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Image.asset('assets/icons/settings/select_location.png', width: 28, height: 28, fit: BoxFit.contain),
+                  child: Image.asset('assets/icons/settings/select_location.webp', width: 28, height: 28, fit: BoxFit.contain),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -368,7 +368,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
             if (place.containsKey('phone'))
               Row(
                 children: [
-                  Image.asset('assets/icons/settings/select_location.png', width: 16, height: 16, fit: BoxFit.contain),
+                  Image.asset('assets/icons/settings/select_location.webp', width: 16, height: 16, fit: BoxFit.contain),
                   const SizedBox(width: 8),
                   Text(
                     place['phone'] as String,
@@ -379,7 +379,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
             if (place.containsKey('hours'))
               Row(
                 children: [
-                  Image.asset('assets/icons/settings/select_location.png', width: 16, height: 16, fit: BoxFit.contain),
+                  Image.asset('assets/icons/settings/select_location.webp', width: 16, height: 16, fit: BoxFit.contain),
                   const SizedBox(width: 8),
                   Text(
                     place['hours'] as String,
@@ -404,7 +404,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                           : 'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination';
                       _launchUrl(url);
                     },
-                    icon: Image.asset('assets/icons/settings/select_location.png', width: 20, height: 20),
+                    icon: Image.asset('assets/icons/settings/select_location.webp', width: 20, height: 20),
                     label: const Text('الاتجاهات'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -423,7 +423,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                         _launchUrl('tel:${place['phone']}');
                       }
                     },
-                    icon: Image.asset('assets/icons/settings/select_location.png', width: 20, height: 20),
+                    icon: Image.asset('assets/icons/settings/select_location.webp', width: 20, height: 20),
                     label: const Text('اتصال'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,

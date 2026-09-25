@@ -64,7 +64,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   final List<Map<String, dynamic>> _vitals = [
     {
-      'icon': 'assets/images/tracking/blood_pressure.png',
+      'icon': 'assets/images/tracking/blood_pressure.webp',
       'label': 'ضغط الدم',
       'value': '--',
       'unit': 'مم زئبق',
@@ -72,7 +72,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'screen': const BloodPressureScreen(),
     },
     {
-      'icon': 'assets/images/tracking/blood_sugar.png',
+      'icon': 'assets/images/tracking/blood_sugar.webp',
       'label': 'سكر الدم',
       'value': '--',
       'unit': 'مجم/دل',
@@ -80,7 +80,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'screen': const GlucoseTrackerScreen(),
     },
     {
-      'icon': 'assets/images/tracking/fitness.png',
+      'icon': 'assets/images/tracking/fitness.webp',
       'label': 'اللياقة',
       'value': '--',
       'unit': '%',
@@ -88,7 +88,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'screen': const HealthDashboard(),
     },
     {
-      'icon': 'assets/images/tracking/weight_tracking.png',
+      'icon': 'assets/images/tracking/weight_tracking.webp',
       'label': 'الوزن',
       'value': '--',
       'unit': 'كجم',
@@ -96,7 +96,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'screen': const WeightTrackerScreen(),
     },
     {
-      'icon': 'assets/images/tracking/nutrition.png',
+      'icon': 'assets/images/tracking/nutrition.webp',
       'label': 'التغذية',
       'value': '--',
       'unit': '',
@@ -104,7 +104,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'screen': const HealthDashboard(),
     },
     {
-      'icon': 'assets/images/tracking/mental_health.png',
+      'icon': 'assets/images/tracking/mental_health.webp',
       'label': 'الصحة النفسية',
       'value': '--',
       'unit': '',
@@ -114,26 +114,26 @@ class _PatientDashboardState extends State<PatientDashboard> {
   ];
 
   final List<Map<String, dynamic>> _trackingVitals = [
-    {'icon': 'assets/icons/health/step_tracking.png', 'label': 'الخطوات', 'value': 'تتبع', 'unit': 'خطوة', 'color': const Color(0xFF0A8F83), 'screen': const StepTrackerScreen()},
-    {'icon': 'assets/icons/health/sleep/sleep_tracking.png', 'label': 'النوم', 'value': 'تتبع', 'unit': 'ساعة', 'color': const Color(0xFF18A9A0), 'screen': const SleepTrackerScreen()},
-    {'icon': 'assets/icons/health/heart_rate.png', 'label': 'النبض', 'value': 'قياس', 'unit': 'BPM', 'color': const Color(0xFF147D78), 'screen': const HeartRateScreen()},
+    {'icon': 'assets/icons/health/step_tracking.webp', 'label': 'الخطوات', 'value': 'تتبع', 'unit': 'خطوة', 'color': const Color(0xFF0A8F83), 'screen': const StepTrackerScreen()},
+    {'icon': 'assets/icons/health/sleep/sleep_tracking.webp', 'label': 'النوم', 'value': 'تتبع', 'unit': 'ساعة', 'color': const Color(0xFF18A9A0), 'screen': const SleepTrackerScreen()},
+    {'icon': 'assets/icons/health/heart_rate.webp', 'label': 'النبض', 'value': 'قياس', 'unit': 'BPM', 'color': const Color(0xFF147D78), 'screen': const HeartRateScreen()},
   ];
 
   final List<Map<String, dynamic>> _services = [
-    {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'color': Colors.green, 'screen': const PatientAppointments()},
+    {'icon': 'assets/images/services/calendar_booking.webp', 'label': 'المواعيد', 'color': Colors.green, 'screen': const PatientAppointments()},
     {'icon': 'assets/images/services/medications.webp', 'label': 'الأدوية', 'color': Colors.orange, 'screen': const MedicinesScreen()},
-    {'icon': 'assets/images/services/laboratory.png', 'label': 'المختبرات', 'color': Colors.purple, 'screen': const LabsListScreen()},
-    {'icon': 'assets/images/services/consultation.png', 'label': 'الأطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
+    {'icon': 'assets/images/services/laboratory.webp', 'label': 'المختبرات', 'color': Colors.purple, 'screen': const LabsListScreen()},
+    {'icon': 'assets/images/services/consultation.webp', 'label': 'الأطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
     {'icon': 'assets/images/services/medications.webp', 'label': 'الصيدلية', 'color': Colors.red, 'screen': const PharmacyScreen()},
-    {'icon': 'assets/images/services/health_tips.png', 'label': 'صحتي', 'color': Colors.teal, 'screen': const HealthDashboard()},
-    {'icon': 'assets/images/services/medical_records.png', 'label': 'السجلات الطبية', 'color': Colors.blueGrey, 'screen': const PatientMedicalHistory()},
-    {'icon': 'assets/images/services/notifications.png', 'label': 'الإشعارات', 'color': Colors.cyan, 'screen': const NotificationsScreen()},
-    {'icon': 'assets/images/services/wallet.png', 'label': 'المحفظة', 'color': Colors.brown, 'screen': const WalletScreen()},
-    {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'color': Colors.red, 'screen': const EmergencyNumbers()},
-    {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم', 'color': Colors.deepOrange, 'screen': const BloodDonationScreen()},
-    {'icon': 'assets/images/services/video_consultation.png', 'label': 'استشارة فيديو', 'color': Colors.indigo, 'screen': const ConsultationScreen()},
-    {'icon': 'assets/images/services/ai_assistant.png', 'label': 'المساعد الذكي', 'color': Colors.cyan, 'screen': const AiChatbotScreen()},
-    {'icon': 'assets/images/services/packages.png', 'label': 'الباقات', 'color': Colors.amber, 'screen': const SubscriptionsScreen()},
+    {'icon': 'assets/images/services/health_tips.webp', 'label': 'صحتي', 'color': Colors.teal, 'screen': const HealthDashboard()},
+    {'icon': 'assets/images/services/medical_records.webp', 'label': 'السجلات الطبية', 'color': Colors.blueGrey, 'screen': const PatientMedicalHistory()},
+    {'icon': 'assets/images/services/notifications.webp', 'label': 'الإشعارات', 'color': Colors.cyan, 'screen': const NotificationsScreen()},
+    {'icon': 'assets/images/services/wallet.webp', 'label': 'المحفظة', 'color': Colors.brown, 'screen': const WalletScreen()},
+    {'icon': 'assets/images/services/emergency.webp', 'label': 'طوارئ', 'color': Colors.red, 'screen': const EmergencyNumbers()},
+    {'icon': 'assets/images/services/blood_donation.webp', 'label': 'تبرع بالدم', 'color': Colors.deepOrange, 'screen': const BloodDonationScreen()},
+    {'icon': 'assets/images/services/video_consultation.webp', 'label': 'استشارة فيديو', 'color': Colors.indigo, 'screen': const ConsultationScreen()},
+    {'icon': 'assets/images/services/ai_assistant.webp', 'label': 'المساعد الذكي', 'color': Colors.cyan, 'screen': const AiChatbotScreen()},
+    {'icon': 'assets/images/services/packages.webp', 'label': 'الباقات', 'color': Colors.amber, 'screen': const SubscriptionsScreen()},
   ];
 
   @override
@@ -579,8 +579,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildVitalStat('assets/images/services/blood_donation.png', 'الدم', _bloodType),
-                _buildVitalStat('assets/images/services/health_tips.png', 'المؤشرات', 'موحدة'),
+                _buildVitalStat('assets/images/services/blood_donation.webp', 'الدم', _bloodType),
+                _buildVitalStat('assets/images/services/health_tips.webp', 'المؤشرات', 'موحدة'),
               ],
             ),
           ],
@@ -620,7 +620,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         ),
         child: Row(
           children: [
-            _buildIcon('assets/images/services/packages.png', size: 34, color: Colors.white),
+            _buildIcon('assets/images/services/packages.webp', size: 34, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -696,11 +696,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
   Widget _buildQuickAccess(bool isDark) {
     final quickServices = [
-      {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'screen': const PatientAppointments()},
-      {'icon': 'assets/images/services/medical_records.png', 'label': 'السجلات', 'screen': const PatientMedicalHistory()},
+      {'icon': 'assets/images/services/calendar_booking.webp', 'label': 'المواعيد', 'screen': const PatientAppointments()},
+      {'icon': 'assets/images/services/medical_records.webp', 'label': 'السجلات', 'screen': const PatientMedicalHistory()},
       {'icon': 'assets/images/services/medications.webp', 'label': 'الوصفات', 'screen': const PatientPrescriptions()},
-      {'icon': 'assets/images/services/laboratory.png', 'label': 'التحاليل', 'screen': const PatientMedicalHistory()},
-      {'icon': 'assets/images/services/health_tips.png', 'label': 'التطعيمات', 'screen': const VaccinationScreen()},
+      {'icon': 'assets/images/services/laboratory.webp', 'label': 'التحاليل', 'screen': const PatientMedicalHistory()},
+      {'icon': 'assets/images/services/health_tips.webp', 'label': 'التطعيمات', 'screen': const VaccinationScreen()},
     ];
 
     return Row(
@@ -815,7 +815,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       ),
       child: Row(
         children: [
-          _buildIcon('assets/images/services/blood_donation.png', size: 40, color: AppColors.primary),
+          _buildIcon('assets/images/services/blood_donation.webp', size: 40, color: AppColors.primary),
           const SizedBox(width: 10),
           const Expanded(
             child: Text('جميع التطعيمات محدثة', style: TextStyle(fontSize: 12)),
@@ -834,7 +834,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       ),
       child: Row(
         children: [
-          _buildIcon('assets/images/tracking/mental_health.png', size: 40, color: AppColors.primary),
+          _buildIcon('assets/images/tracking/mental_health.webp', size: 40, color: AppColors.primary),
           const SizedBox(width: 10),
           const Expanded(
             child: Text('لا توجد حساسية مسجلة', style: TextStyle(fontSize: 12)),

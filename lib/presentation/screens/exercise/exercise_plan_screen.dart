@@ -23,9 +23,9 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
   final List<String> _levels = ['مبتدئ', 'متوسط', 'متقدم'];
 
   final List<Map<String, dynamic>> _exercises = [
-    {'name': 'تمارين الإحماء', 'time': '5 دقائق', 'calories': 30, 'icon': 'assets/images/tracking/walking.png', 'color': AppColors.info},
+    {'name': 'تمارين الإحماء', 'time': '5 دقائق', 'calories': 30, 'icon': 'assets/images/tracking/walking.webp', 'color': AppColors.info},
     {'name': 'تمارين الكارديو', 'time': '20 دقيقة', 'calories': 150, 'icon': 'assets/images/tracking/running.png', 'color': AppColors.primary},
-    {'name': 'تمارين القوة', 'time': '15 دقيقة', 'calories': 120, 'icon': 'assets/images/tracking/fitness.png', 'color': AppColors.success},
+    {'name': 'تمارين القوة', 'time': '15 دقيقة', 'calories': 120, 'icon': 'assets/images/tracking/fitness.webp', 'color': AppColors.success},
     {'name': 'تمارين الإطالة', 'time': '10 دقائق', 'calories': 40, 'icon': 'assets/images/tracking/stretching.png', 'color': AppColors.purple},
     {'name': 'تمارين البطن', 'time': '10 دقائق', 'calories': 80, 'icon': 'assets/images/tracking/abs.png', 'color': AppColors.warning},
   ];
@@ -131,7 +131,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
               child: ElevatedButton.icon(
                 onPressed: _openTimer,
                 icon: Image.asset(
-                  'assets/images/tracking/fitness.png',
+                  'assets/images/tracking/fitness.webp',
                   width: 20,
                   height: 20,
                   color: Colors.white,

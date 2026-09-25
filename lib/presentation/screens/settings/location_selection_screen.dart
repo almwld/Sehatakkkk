@@ -435,7 +435,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                           height: 70,
                           alignment: Alignment.bottomCenter,
                           child: Image.asset(
-                            'assets/icons/settings/select_location.png',
+                            'assets/icons/settings/select_location.webp',
                             width: 58,
                             height: 70,
                             fit: BoxFit.contain,

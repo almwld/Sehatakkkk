@@ -44,7 +44,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen>{
       appBar:AppBar(title:const Text('الباقات والاشتراكات'),backgroundColor:dark?const Color(0xFF08131A):Colors.white,foregroundColor:dark?Colors.white:Colors.black87,elevation:0),
       body:ListView(padding:const EdgeInsets.fromLTRB(16,10,16,30),children:[
         Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:const LinearGradient(colors:[AppColors.primary,AppColors.primaryDark]),borderRadius:BorderRadius.circular(28)),child:Row(children:[
-          Container(width:58,height:58,decoration:BoxDecoration(color:Colors.white.withOpacity(.14),shape:BoxShape.circle),child:Image.asset('assets/images/services/packages.png',width:34,height:34,errorBuilder:(_,__,___)=>const Icon(Icons.workspace_premium_outlined,color:Colors.white,size:32))),
+          Container(width:58,height:58,decoration:BoxDecoration(color:Colors.white.withOpacity(.14),shape:BoxShape.circle),child:Image.asset('assets/images/services/packages.webp',width:34,height:34,errorBuilder:(_,__,___)=>const Icon(Icons.workspace_premium_outlined,color:Colors.white,size:32))),
           const SizedBox(width:14),const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('خطتك الصحية تبدأ من هنا',style:TextStyle(color:Colors.white,fontSize:20,fontWeight:FontWeight.w900)),SizedBox(height:5),Text('اختر الباقة، راجع التفاصيل، وادفع بأمان من محفظة صحتك.',style:TextStyle(color:Colors.white70,height:1.4))]))
         ])),
         const SizedBox(height:18),
@@ -71,7 +71,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen>{
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(width: 46, height: 46, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.1), borderRadius: BorderRadius.circular(14)),
-            child: Image.asset('assets/images/services/packages.png', width: 30, height: 30, errorBuilder: (_, __, ___) => const Icon(Icons.workspace_premium_outlined, color: AppColors.primary))),
+            child: Image.asset('assets/images/services/packages.webp', width: 30, height: 30, errorBuilder: (_, __, ___) => const Icon(Icons.workspace_premium_outlined, color: AppColors.primary))),
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(p.$1, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),

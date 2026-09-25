@@ -99,7 +99,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
         title: Row(
           children: [
             Image.asset(
-              'assets/images/services/ai_assistant.png',
+              'assets/images/services/ai_assistant.webp',
               width: 32,
               height: 32,
               fit: BoxFit.contain,
@@ -314,7 +314,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
         children: [
           if (!isUser) ...[
             Image.asset(
-              'assets/images/services/ai_assistant.png',
+              'assets/images/services/ai_assistant.webp',
               width: 32,
               height: 32,
               fit: BoxFit.contain,
@@ -396,7 +396,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
       child: Row(
         children: [
           Image.asset(
-            'assets/images/services/ai_assistant.png',
+            'assets/images/services/ai_assistant.webp',
             width: 32,
             height: 32,
             fit: BoxFit.contain,

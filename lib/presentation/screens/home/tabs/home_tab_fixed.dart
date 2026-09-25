@@ -21,12 +21,12 @@ class _HomeTabState extends State<HomeTab> {
 
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': 'assets/images/services/pharmacy.webp', 'label': 'صيدلية'},
-    {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ'},
-    {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم'},
-    {'icon': 'assets/images/services/consultation.png', 'label': 'أطباء'},
-    {'icon': 'assets/images/services/laboratory.png', 'label': 'مختبرات'},
-    {'icon': 'assets/images/services/health_tips.png', 'label': 'صحة'},
-    {'icon': 'assets/images/services/wallet.png', 'label': 'محفظة'},
+    {'icon': 'assets/images/services/emergency.webp', 'label': 'طوارئ'},
+    {'icon': 'assets/images/services/blood_donation.webp', 'label': 'تبرع بالدم'},
+    {'icon': 'assets/images/services/consultation.webp', 'label': 'أطباء'},
+    {'icon': 'assets/images/services/laboratory.webp', 'label': 'مختبرات'},
+    {'icon': 'assets/images/services/health_tips.webp', 'label': 'صحة'},
+    {'icon': 'assets/images/services/wallet.webp', 'label': 'محفظة'},
   ];
 
   final List<Map<String, dynamic>> _topDoctors = [

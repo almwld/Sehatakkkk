@@ -213,7 +213,7 @@ class _AuthScreenState extends State<AuthScreen>
     {
       'id': 'apple',
       'name': 'Apple',
-      'icon': 'assets/images/social/apple.png',
+      'icon': 'assets/images/social/apple.webp',
       'color': Colors.black,
     },
     {

@@ -29,7 +29,7 @@ class _HeartRateScreenState extends State<HeartRateScreen> {
             decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.error, Color(0xFFC62828)]), borderRadius: BorderRadius.circular(16)),
             child: Column(children: [
               Image.asset(
-                'assets/icons/health/heart_rate.png',
+                'assets/icons/health/heart_rate.webp',
                 width: 48,
                 height: 48,
                 errorBuilder: (context, error, stackTrace) => const Icon(Icons.favorite, color: Colors.white, size: 48),
