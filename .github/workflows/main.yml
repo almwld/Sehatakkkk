@@ -163,9 +163,6 @@ jobs:
         print(f"LOSSLESS WEBP: converted={changed}, saved={saved} bytes")
         PY
 
-        if changed:
-          print("Persisting lossless WebP conversions in the repository...")
-        PY
 
     - name: 💾 Persist optimized assets
       shell: bash
