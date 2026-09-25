@@ -190,19 +190,15 @@ jobs:
 
                     # Never use the current WebP as the source. Always write
                     # from the rehydrated original PNG.
-                    #
-                    # Flutter decodes encoded image bytes by their content. For
-                    # alpha-bearing assets we intentionally keep the existing .webp
-                    # asset key but store PNG bytes in that key. This bypasses the
-                    # Android/WebP alpha decoder path that is producing black
-                    # backgrounds on affected devices.
-                    if has_alpha:
-                        image.save(dst, "PNG", optimize=True)
-                    else:
-                        subprocess.run([
-                            "cwebp", "-quiet", "-lossless", "-m", "6",
-                            str(src), "-o", str(dst),
-                        ], check=True)
+                    # Use Google's libwebp encoder for Android-compatible lossless alpha.
+                    temp_png = src.with_name(f".{src.stem}.alpha-source.png")
+                    image.save(temp_png, "PNG")
+                    subprocess.run([
+                        "cwebp", "-quiet", "-lossless", "-exact",
+                        "-m", "6", "-alpha_q", "100",
+                        str(temp_png), "-o", str(dst),
+                    ], check=True)
+                    temp_png.unlink(missing_ok=True)
 
                 # Validate before deleting the source PNG.
                 with Image.open(dst) as converted_image:
@@ -335,7 +331,7 @@ jobs:
             print("⚠️ Black-corner candidates (manual review):")
             for path in black_corner_candidates:
                 print(f"  {path}")
-        print("✅ Alpha assets use PNG codec bytes; opaque assets use lossless libwebp")
+        print("✅ libwebp/cwebp lossless WebP conversion and pixel-wise alpha validation completed")
         PY
 
     - name: 🔎 Check asset changes and Flutter dependencies
