@@ -19,6 +19,7 @@ import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
+import 'package:sehatak/core/services/active_call_registry.dart';
 import 'package:sehatak/core/services/call_sound_coordinator.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import '../call/call_screen.dart';
@@ -282,6 +283,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
   @override
   void dispose() {
+    ActiveCallRegistry.instance.unregister(widget.callId);
     _stopAlerting();
     WidgetsBinding.instance.removeObserver(this);
     _pulseController.dispose();
