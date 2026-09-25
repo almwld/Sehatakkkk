@@ -97,6 +97,8 @@ jobs:
       shell: bash
       run: |
         set -euo pipefail
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq webp
         python -m pip install --disable-pip-version-check --quiet Pillow
         python - <<'PY'
         from pathlib import Path
@@ -188,13 +190,15 @@ jobs:
 
                     # Never use the current WebP as the source. Always write
                     # from the rehydrated original PNG.
-                    image.save(
-                        dst,
-                        "WEBP",
-                        lossless=True,
-                        method=6,
-                        exact=True,
-                    )
+                    # Use Google's libwebp encoder for Android-compatible lossless alpha.
+                    temp_png = src.with_name(f".{src.stem}.alpha-source.png")
+                    image.save(temp_png, "PNG")
+                    subprocess.run([
+                        "cwebp", "-quiet", "-lossless", "-exact",
+                        "-m", "6", "-alpha_q", "100",
+                        str(temp_png), "-o", str(dst),
+                    ], check=True)
+                    temp_png.unlink(missing_ok=True)
 
                 # Validate before deleting the source PNG.
                 with Image.open(dst) as converted_image:
@@ -209,6 +213,10 @@ jobs:
                         if has_alpha else None
                     )
                     if has_alpha:
+                        source_alpha_bytes = image.getchannel("A").tobytes()
+                        output_alpha_bytes = output_rgba.getchannel("A").tobytes()
+                        if output_alpha_bytes != source_alpha_bytes:
+                            raise RuntimeError(f"Alpha channel changed pixel-wise: {src} -> {dst}")
                         if output_alpha != source_alpha:
                             raise RuntimeError(
                                 f"Alpha changed: {src} {source_alpha} -> {dst} {output_alpha}"
@@ -323,7 +331,7 @@ jobs:
             print("⚠️ Black-corner candidates (manual review):")
             for path in black_corner_candidates:
                 print(f"  {path}")
-        print("✅ Alpha-safe WebP conversion and validation completed")
+        print("✅ libwebp/cwebp lossless WebP conversion and pixel-wise alpha validation completed")
         PY
 
     - name: 🔎 Check asset changes and Flutter dependencies
