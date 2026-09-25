@@ -27,6 +27,7 @@ import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
 import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
+import 'package:sehatak/presentation/screens/community/community_screen.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
@@ -226,7 +227,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/ui/settings_gear.webp', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
           {'icon': 'assets/images/ui/all_services.webp', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const AllServicesScreen()},
           {'icon': 'assets/images/services/ai_assistant.webp', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
-          {'icon': 'assets/images/services/medical_community.webp', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
+          {'icon': 'assets/images/services/medical_community.webp', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const CommunityScreen()},
           {'icon': 'assets/images/services/packages.webp', 'title': 'الباقات الصحية', 'subtitle': 'عرض الباقات والاشتراكات', 'screen': const PackagesScreen()},
         ];
       default:
@@ -247,7 +248,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/ui/settings_gear.webp', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
           {'icon': 'assets/images/ui/all_services.webp', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const AllServicesScreen()},
           {'icon': 'assets/images/services/ai_assistant.webp', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
-          {'icon': 'assets/images/services/medical_community.webp', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
+          {'icon': 'assets/images/services/medical_community.webp', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const CommunityScreen()},
           {'icon': 'assets/images/services/packages.webp', 'title': 'الباقات الصحية', 'subtitle': 'عرض الباقات والاشتراكات', 'screen': const PackagesScreen()},
           {'icon': 'assets/images/ui/favorites.webp', 'title': 'المفضلة', 'subtitle': 'إدارة المفضلة', 'screen': const FavoritesScreen()},
           {'icon': 'assets/images/services/medical_records.webp', 'title': 'السجلات الطبية', 'subtitle': 'إدارة السجلات الطبية', 'screen': const PatientMedicalHistory()},
