@@ -88,10 +88,435 @@ extension SehatakNotificationTypeValue on SehatakNotificationType {
       case 'system_feature':
       case 'system_security': return SehatakNotificationType.system;
       case 'health':
-      case 'health_water': return SehatakNotificationType.health;
-      case 'social': return SehatakNotificationType.social;
+      case 'health_water':
+      case 'health_exercise':
+      case 'health_sleep':
+      case 'health_challenge': return SehatakNotificationType.health;
+      case 'social':
+      case 'social_follow':
+      case 'social_like':
+      case 'social_comment':
+      case 'social_share': return SehatakNotificationType.social;
       default: return null;
     }
   }
 }
 
+class NotificationService {
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
+  NotificationService._internal();
+
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  NotificationTapHandler? _tapHandler;
+  Future<void>? _initialization;
+  bool _initialized = false;
+  bool _callCoordinatorStarted = false;
+
+  static const messageChannelId = 'sehatak_messages_v2';
+  static const appointmentChannelId = 'sehatak_appointments_v1';
+  static const medicationChannelId = 'sehatak_medications_v1';
+  static const labChannelId = 'sehatak_labs_v1';
+  static const paymentChannelId = 'sehatak_payments_v1';
+  static const invoiceChannelId = 'sehatak_invoices_v1';
+  static const labRequestChannelId = 'sehatak_lab_requests_v1';
+  static const orderChannelId = 'sehatak_orders_v1';
+  static const promotionalChannelId = 'sehatak_promotions_v1';
+  static const systemChannelId = 'sehatak_system_v1';
+  static const healthChannelId = 'sehatak_health_v1';
+  static const socialChannelId = 'sehatak_social_v1';
+  static const callChannelId = 'sehatak_calls_v3';
+
+  static const _messageChannel = AndroidNotificationChannel(
+    messageChannelId, 'صحتك - الرسائل',
+    description: 'إشعارات الرسائل الجديدة في الدردشة', importance: Importance.high,
+    playSound: true, sound: RawResourceAndroidNotificationSound('notification'),
+  );
+  static const _appointmentChannel = AndroidNotificationChannel(appointmentChannelId, 'صحتك - المواعيد', description: 'تأكيدات وتذكيرات المواعيد', importance: Importance.high);
+  static const _medicationChannel = AndroidNotificationChannel(medicationChannelId, 'صحتك - الأدوية', description: 'تذكيرات الأدوية', importance: Importance.high);
+  static const _labChannel = AndroidNotificationChannel(labChannelId, 'صحتك - التحاليل', description: 'نتائج وتذكيرات التحاليل', importance: Importance.high);
+  static const _paymentChannel = AndroidNotificationChannel(paymentChannelId, 'صحتك - المدفوعات', description: 'تحديثات المدفوعات والمحفظة', importance: Importance.high);
+  static const _invoiceChannel = AndroidNotificationChannel(invoiceChannelId, 'صحتك - الفواتير', description: 'الفواتير والمدفوعات', importance: Importance.high);
+  static const _labRequestChannel = AndroidNotificationChannel(labRequestChannelId, 'صحتك - طلبات الفحص', description: 'طلبات الفحوصات والتحاليل', importance: Importance.high);
+  static const _orderChannel = AndroidNotificationChannel(orderChannelId, 'صحتك - الطلبات', description: 'تحديثات طلبات الصيدلية والخدمات', importance: Importance.high);
+  static const _promotionalChannel = AndroidNotificationChannel(promotionalChannelId, 'صحتك - العروض', description: 'العروض والمحتوى الترويجي', importance: Importance.defaultImportance);
+  static const _systemChannel = AndroidNotificationChannel(systemChannelId, 'صحتك - النظام', description: 'تحديثات وصيانة وتنبيهات النظام', importance: Importance.defaultImportance);
+  static const _healthChannel = AndroidNotificationChannel(healthChannelId, 'صحتك - الصحة', description: 'التذكيرات والتحديات الصحية', importance: Importance.defaultImportance);
+  static const _socialChannel = AndroidNotificationChannel(socialChannelId, 'صحتك - الاجتماعي', description: 'التفاعلات الاجتماعية', importance: Importance.defaultImportance);
+  static const _callChannel = AndroidNotificationChannel(
+    callChannelId, 'صحتك - المكالمات',
+    description: 'إشعارات المكالمات الواردة', importance: Importance.max,
+    playSound: true, sound: RawResourceAndroidNotificationSound('call_ringtone'),
+  );
+
+  void setNotificationTapHandler(NotificationTapHandler? handler) => _tapHandler = handler;
+
+  Future<void> initialize({bool startCallCoordinator = true}) {
+    final existing = _initialization;
+    if (existing != null) {
+      if (startCallCoordinator && !_callCoordinatorStarted) {
+        unawaited(existing.then((_) {
+          if (!_callCoordinatorStarted) {
+            CallSoundCoordinator.instance.start();
+            _callCoordinatorStarted = true;
+          }
+        }));
+      }
+      return existing;
+    }
+    final future = _initializeCore(startCallCoordinator: startCallCoordinator);
+    _initialization = future;
+    return future;
+  }
+
+  Future<void> _initializeCore({required bool startCallCoordinator}) async {
+    try {
+      const settings = InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(requestAlertPermission: false, requestBadgePermission: false, requestSoundPermission: false),
+      );
+      await _notifications.initialize(settings, onDidReceiveNotificationResponse: (response) async {
+        final handler = _tapHandler;
+        if (handler == null) return;
+        final actionId = response.actionId?.trim();
+        if (actionId != null && actionId.isNotEmpty) {
+          await handler('notification_action:$actionId:${response.payload ?? ''}');
+        } else {
+          await handler(response.payload);
+        }
+      });
+      final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      await android?.createNotificationChannel(_messageChannel);
+      await android?.createNotificationChannel(_appointmentChannel);
+      await android?.createNotificationChannel(_medicationChannel);
+      await android?.createNotificationChannel(_labChannel);
+      await android?.createNotificationChannel(_paymentChannel);
+      await android?.createNotificationChannel(_invoiceChannel);
+      await android?.createNotificationChannel(_labRequestChannel);
+      await android?.createNotificationChannel(_orderChannel);
+      await android?.createNotificationChannel(_promotionalChannel);
+      await android?.createNotificationChannel(_systemChannel);
+      await android?.createNotificationChannel(_healthChannel);
+      await android?.createNotificationChannel(_socialChannel);
+      await android?.createNotificationChannel(_callChannel);
+      // Android 14+ can restrict USE_FULL_SCREEN_INTENT. Request the
+      // special full-screen notification permission so incoming calls can
+      // present the call UI over other apps and while the device is locked.
+      try {
+        await android?.requestFullScreenIntentPermission();
+      } catch (e) {
+        debugPrint('⚠️ Full-screen call permission request unavailable: $e');
+      }
+      final ios = _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      _initialized = true;
+      unawaited(Future<void>(() async {
+        try { await android?.requestNotificationsPermission(); } catch (_) {}
+        try { await ios?.requestPermissions(alert: true, badge: true, sound: true); } catch (_) {}
+      }));
+      if (startCallCoordinator && !_callCoordinatorStarted) {
+        CallSoundCoordinator.instance.start();
+        _callCoordinatorStarted = true;
+      }
+    } catch (e) {
+      _initialization = null;
+      _initialized = false;
+      _callCoordinatorStarted = false;
+      rethrow;
+    }
+  }
+
+  bool get isInitialized => _initialized;
+
+  Future<bool> requestNotificationPermission() async {
+    await initialize(startCallCoordinator: false);
+    try {
+      final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final granted = await android?.requestNotificationsPermission();
+      final ios = _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      final iosGranted = await ios?.requestPermissions(alert: true, badge: true, sound: true);
+      return (granted ?? true) && (iosGranted ?? true);
+    } catch (_) { return false; }
+  }
+
+  Future<String?> getLaunchPayload() async {
+    await initialize(startCallCoordinator: false);
+    final details = await _notifications.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) return null;
+    return details?.notificationResponse?.payload;
+  }
+
+  /// Persists every remote FCM notification in the user's notification feed.
+  /// The deterministic document id prevents duplicates across FCM handlers.
+  Future<void> persistIncomingNotification({
+    required String type,
+    required String title,
+    required String body,
+    Map<String, dynamic>? data,
+    String? messageId,
+  }) async {
+    try {
+      final payload = data ?? const <String, dynamic>{};
+      // Background FCM runs in a separate isolate where FirebaseAuth.currentUser
+      // may be null. Prefer the recipient encoded by the trusted sender.
+      final recipientId = (payload['userId'] ??
+              payload['recipientId'] ??
+              payload['receiverId'])
+          ?.toString()
+          .trim();
+      final authUid = FirebaseAuth.instance.currentUser?.uid;
+      final uid = (recipientId != null && recipientId.isNotEmpty)
+          ? recipientId
+          : authUid;
+      if (uid == null || uid.isEmpty) return;
+
+      final rawId = (payload['notificationId'] ?? payload['id'] ?? messageId)
+              ?.toString()
+              .trim() ??
+          '';
+      final normalizedId = rawId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+      final safeId = normalizedId.length > 120
+          ? normalizedId.substring(0, 120)
+          : normalizedId;
+      final docId = 'fcm_' +
+          (safeId.isEmpty
+              ? DateTime.now().millisecondsSinceEpoch.toString()
+              : safeId);
+
+      await FirebaseFirestore.instance
+          .collection('notifications')
+          .doc(docId)
+          .set({
+        'userId': uid,
+        'type': type.isEmpty ? 'system' : type,
+        'title': title.isEmpty ? 'صحتك' : title,
+        'body': body,
+        'data': payload,
+        'messageId': messageId,
+        'source': 'fcm',
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('❌ Persist FCM notification failed: $e');
+    }
+  }
+
+  Future<void> showTypedNotification({required String type, required String title, required String body, Map<String, dynamic>? data, String? payload, bool? playSound}) async {
+    await initialize(startCallCoordinator: false);
+    final family = SehatakNotificationTypeValue.fromWireValue(type);
+    if (family == null) {
+      await showMessageNotification(title: title, body: body, payload: payload ?? _encodePayload(type, data));
+      return;
+    }
+    final channelId = _channelFor(family);
+    final channelName = _channelNameFor(family);
+    final importance = _importanceFor(family);
+    final resolvedSound = playSound ?? family != SehatakNotificationType.promotional;
+    final isChatMessage = type == 'new_message' || type == 'chat_message' || type == 'message';
+    final safeTitle = isChatMessage
+        ? (data?['senderName']?.toString().trim().isNotEmpty == true
+            ? data!['senderName'].toString()
+            : title)
+        : title;
+    final safeBody = body.trim().isNotEmpty
+        ? body
+        : (isChatMessage ? 'لديك رسالة جديدة في الدردشة' : 'لديك إشعار جديد');
+    StyleInformation style = const BigTextStyleInformation('');
+    final imageUrl = (data?['imageUrl'] ?? data?['mediaUrl'] ?? data?['photoUrl'])?.toString().trim() ?? '';
+    if (imageUrl.isNotEmpty) {
+      try {
+        final response = await http.get(Uri.parse(imageUrl)).timeout(const Duration(seconds: 8));
+        if (response.statusCode >= 200 && response.bodyBytes.isNotEmpty) {
+          style = BigPictureStyleInformation(
+            ByteArrayAndroidBitmap(response.bodyBytes),
+            contentTitle: safeTitle,
+            summaryText: safeBody,
+            hideExpandedLargeIcon: true,
+          );
+        }
+      } catch (e) {
+        debugPrint('notification image load failed: $e');
+      }
+    }
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        channelId, channelName, channelDescription: channelName, importance: importance,
+        ticker: safeBody,
+        priority: importance == Importance.high ? Priority.high : Priority.defaultPriority,
+        playSound: resolvedSound,
+        sound: resolvedSound ? const RawResourceAndroidNotificationSound('notification') : null,
+        category: _categoryFor(family), visibility: NotificationVisibility.public,
+        styleInformation: style,
+      ),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: resolvedSound),
+    );
+    final notificationId = family == SehatakNotificationType.newMessage && data?['chatId'] != null
+        ? _chatNotificationId(data!['chatId'].toString())
+        : _typedNotificationId(type, data);
+    await _notifications.show(notificationId, safeTitle, safeBody, details, payload: payload ?? _encodePayload(type, data));
+  }
+
+  Future<void> showMessageNotification({required String title, required String body, String? payload}) async {
+    await initialize(startCallCoordinator: false);
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(messageChannelId, 'صحتك - الرسائل', channelDescription: 'إشعارات الرسائل الجديدة في الدردشة', importance: Importance.high, priority: Priority.high, playSound: true, sound: RawResourceAndroidNotificationSound('notification'), category: AndroidNotificationCategory.message, visibility: NotificationVisibility.public),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+    );
+    await _notifications.show(_notificationId(), title, body, details, payload: payload);
+  }
+
+  /// Incoming calls stay visible outside the app until the call reaches a
+  /// terminal state (answered, rejected, cancelled, missed or ended).
+  /// No artificial 500ms icon swap and no timeoutAfter are used.
+  Future<void> showIncomingCallNotification({required String callerName, required String callId, required bool isVideo, bool silent = false}) async {
+    await initialize(startCallCoordinator: false);
+    if (silent) unawaited(CallSoundCoordinator.instance.presentIncomingCallById(callId));
+    final id = _callNotificationId(callId);
+    await _showCallNotification(
+      id: id,
+      callerName: callerName,
+      callId: callId,
+      isVideo: isVideo,
+      silent: silent,
+      smallIcon: 'ic_call_received',
+    );
+  }
+
+  Future<void> _showCallNotification({required int id, required String callerName, required String callId, required bool isVideo, required bool silent, required String smallIcon}) async {
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        callChannelId, 'صحتك - المكالمات', channelDescription: 'إشعارات المكالمات الواردة',
+        importance: Importance.max, priority: Priority.max, playSound: !silent,
+        sound: silent ? null : const RawResourceAndroidNotificationSound('call_ringtone'),
+        category: AndroidNotificationCategory.call, visibility: NotificationVisibility.public,
+        fullScreenIntent: true, ongoing: true, autoCancel: false, onlyAlertOnce: true,
+        showWhen: false, ticker: 'مكالمة واردة من $callerName',
+        color: const Color(0xFF2A8F83), colorized: false, icon: smallIcon,
+        actions: <AndroidNotificationAction>[
+          // Android displays actions left-to-right in the notification UI.
+          // Keep the call controls explicit: answer, end, message/call later.
+          AndroidNotificationAction(
+            'call_answer',
+            'الرد',
+            icon: DrawableResourceAndroidBitmap('ic_call_answer'),
+            titleColor: const Color(0xFF2DBE68),
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+          AndroidNotificationAction(
+            'call_reject',
+            'إنهاء',
+            icon: DrawableResourceAndroidBitmap('ic_call_reject'),
+            titleColor: const Color(0xFFE53935),
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+          AndroidNotificationAction(
+            'call_message',
+            'مراسلة لاحقاً',
+            icon: DrawableResourceAndroidBitmap('ic_call_message'),
+            titleColor: const Color(0xFF00BCD4),
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+        ],
+      ),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: !silent),
+    );
+    await _notifications.show(id, isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة', callerName, details, payload: 'incoming_call:$callId');
+  }
+
+  Future<void> cancelIncomingCallNotification(String callId) {
+    return _notifications.cancel(_callNotificationId(callId));
+  }
+
+  /// Removes the visible chat notification as soon as its conversation is opened.
+  Future<void> cancelChatNotifications(String chatId) async {
+    final id = chatId.trim();
+    if (id.isEmpty) return;
+    await _notifications.cancel(_chatNotificationId(id));
+  }
+
+  Future<void> cancelAllNotifications() async {
+    await _notifications.cancelAll();
+  }
+
+  Future<void> showNotification({required String title, required String body, String? payload}) => showMessageNotification(title: title, body: body, payload: payload);
+
+  String _channelFor(SehatakNotificationType type) {
+    switch (type) {
+      case SehatakNotificationType.newMessage: return messageChannelId;
+      case SehatakNotificationType.appointment: return appointmentChannelId;
+      case SehatakNotificationType.medication: return medicationChannelId;
+      case SehatakNotificationType.labResult: return labChannelId;
+      case SehatakNotificationType.payment: return paymentChannelId;
+      case SehatakNotificationType.invoice: return invoiceChannelId;
+      case SehatakNotificationType.labRequest: return labRequestChannelId;
+      case SehatakNotificationType.order: return orderChannelId;
+      case SehatakNotificationType.promotional: return promotionalChannelId;
+      case SehatakNotificationType.system: return systemChannelId;
+      case SehatakNotificationType.health: return healthChannelId;
+      case SehatakNotificationType.social: return socialChannelId;
+    }
+  }
+
+  String _channelNameFor(SehatakNotificationType type) {
+    switch (type) {
+      case SehatakNotificationType.newMessage: return 'صحتك - الرسائل';
+      case SehatakNotificationType.appointment: return 'صحتك - المواعيد';
+      case SehatakNotificationType.medication: return 'صحتك - الأدوية';
+      case SehatakNotificationType.labResult: return 'صحتك - التحاليل';
+      case SehatakNotificationType.payment: return 'صحتك - المدفوعات';
+      case SehatakNotificationType.invoice: return 'صحتك - الفواتير';
+      case SehatakNotificationType.labRequest: return 'صحتك - طلبات الفحص';
+      case SehatakNotificationType.order: return 'صحتك - الطلبات';
+      case SehatakNotificationType.promotional: return 'صحتك - العروض';
+      case SehatakNotificationType.system: return 'صحتك - النظام';
+      case SehatakNotificationType.health: return 'صحتك - الصحة';
+      case SehatakNotificationType.social: return 'صحتك - الاجتماعي';
+    }
+  }
+
+  Importance _importanceFor(SehatakNotificationType type) {
+    switch (type) {
+      case SehatakNotificationType.newMessage:
+      case SehatakNotificationType.appointment:
+      case SehatakNotificationType.medication:
+      case SehatakNotificationType.labResult:
+      case SehatakNotificationType.payment:
+      case SehatakNotificationType.order:
+      case SehatakNotificationType.invoice:
+      case SehatakNotificationType.labRequest: return Importance.high;
+      case SehatakNotificationType.promotional:
+      case SehatakNotificationType.system:
+      case SehatakNotificationType.health:
+      case SehatakNotificationType.social: return Importance.defaultImportance;
+    }
+  }
+
+  AndroidNotificationCategory _categoryFor(SehatakNotificationType type) {
+    switch (type) {
+      case SehatakNotificationType.newMessage: return AndroidNotificationCategory.message;
+      case SehatakNotificationType.appointment: return AndroidNotificationCategory.event;
+      case SehatakNotificationType.payment:
+      case SehatakNotificationType.invoice: return AndroidNotificationCategory.status;
+      case SehatakNotificationType.labRequest:
+      case SehatakNotificationType.labResult: return AndroidNotificationCategory.progress;
+      case SehatakNotificationType.order: return AndroidNotificationCategory.progress;
+      default: return AndroidNotificationCategory.reminder;
+    }
+  }
+
+  String _encodePayload(String type, Map<String, dynamic>? data) => jsonEncode(<String, dynamic>{'type': type, 'data': data ?? const <String, dynamic>{}});
+
+  int _typedNotificationId(String type, Map<String, dynamic>? data) {
+    final key = '$type:${data?['id'] ?? data?['notificationId'] ?? data?['messageId'] ?? data?['appointmentId'] ?? data?['orderId'] ?? data?['paymentId'] ?? DateTime.now().millisecondsSinceEpoch}';
+    return key.hashCode.abs().remainder(900000000) + 100000;
+  }
+
+  int _chatNotificationId(String chatId) =>
+      ('chat:$chatId').hashCode.abs().remainder(900000000) + 100000;
+
+  int _notificationId() => DateTime.now().millisecondsSinceEpoch.remainder(2147483647);
+  int _callNotificationId(String id) => 1000000000 + id.hashCode.abs().remainder(1000000000);
+}
