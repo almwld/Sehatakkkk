@@ -93,7 +93,7 @@ jobs:
         } >> "${GITHUB_ENV}"
         echo "✅ Release keystore validated."
 
-    - name: 🖼️ Lossless optimize confirmed-used raster assets
+    - name: 🖼️ Convert all app PNG assets to lossless WebP
       shell: bash
       run: |
         set -euo pipefail
@@ -102,82 +102,68 @@ jobs:
         from pathlib import Path
         from PIL import Image
 
-        targets = [
-            "assets/images/sehatak_chat_wallpaper_light_1080x2160.png",
-            "assets/images/sehatak_chat_wallpaper_dark_1080x2160.png",
-            "assets/images/icons/doctors/Male doctor.png",
-            "assets/images/navigation/home.png",
-            "assets/images/navigation/health.png",
-            "assets/images/navigation/chat.png",
-            "assets/images/social/instagram.png",
-            "assets/images/social/tiktok.png",
-            "assets/images/social/google.png",
-            "assets/images/social/youtube.png",
-            "assets/images/social/facebook.png",
-            "assets/images/social/x_twitter.png",
-            "assets/images/services/pharmacy.png",
-            "assets/images/services/labs.png",
-            "assets/images/icons/top_bar/notifications.png",
-            "assets/images/icons/top_bar/Shopping cart.png",
-            "assets/images/pregnancy_follow_up.png",
-            "assets/images/payment/kremi.png",
-            "assets/images/services/medications.png",
-        ]
-
-        changed = 0
+        root = Path("assets")
+        converted = 0
         saved = 0
-        for raw in targets:
-            src = Path(raw)
-            if not src.exists():
-                print(f"SKIP missing: {src}")
-                continue
+
+        pngs = sorted(root.rglob("*.png"))
+        print(f"Found {len(pngs)} PNG assets under {root}")
+
+        for src in pngs:
             dst = src.with_suffix(".webp")
             with Image.open(src) as image:
                 image.load()
                 if image.mode not in ("RGB", "RGBA"):
                     image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
                 image.save(dst, "WEBP", lossless=True, method=6)
+
             old_size = src.stat().st_size
             new_size = dst.stat().st_size
             if new_size >= old_size:
-                dst.unlink()
-                print(f"KEEP PNG {src}: {old_size} <= {new_size}")
-                continue
-            old_ref = str(src)
-            new_ref = str(dst)
-            refs = 0
-            for dart in Path("lib").rglob("*.dart"):
-                text = dart.read_text(encoding="utf-8")
-                if old_ref in text:
-                    dart.write_text(text.replace(old_ref, new_ref), encoding="utf-8")
-                    refs += 1
-            pubspec = Path("pubspec.yaml")
-            text = pubspec.read_text(encoding="utf-8")
-            if old_ref in text:
-                pubspec.write_text(text.replace(old_ref, new_ref), encoding="utf-8")
-                refs += 1
-            src.unlink()
-            changed += 1
-            saved += old_size - new_size
-            print(f"CONVERT {old_ref} -> {new_ref}: {old_size} -> {new_size} bytes; refs={refs}")
-        print(f"LOSSLESS WEBP: converted={changed}, saved={saved} bytes")
-        PY
+                print(f"WARNING: WebP is not smaller: {src} ({old_size} -> {new_size})")
+            else:
+                saved += old_size - new_size
+            converted += 1
 
+            old_ref = src.as_posix()
+            new_ref = dst.as_posix()
+
+            # Update every text source/config file that may reference the asset.
+            for path in Path(".").rglob("*"):
+                if not path.is_file() or ".git" in path.parts:
+                    continue
+                if path == src or path == dst:
+                    continue
+                try:
+                    text = path.read_text(encoding="utf-8")
+                except (UnicodeDecodeError, OSError):
+                    continue
+                if old_ref in text:
+                    path.write_text(text.replace(old_ref, new_ref), encoding="utf-8")
+
+            src.unlink()
+
+        print(f"Converted PNG assets: {converted}; estimated byte savings: {saved}")
+        remaining = list(root.rglob("*.png"))
+        if remaining:
+            raise SystemExit("PNG assets remain under assets/: " + ", ".join(map(str, remaining)))
+        print("✅ No PNG files remain under assets/")
+        PY
 
     - name: 💾 Persist optimized assets
       shell: bash
       run: |
         set -euo pipefail
-        if git diff --quiet -- assets pubspec.yaml lib; then
+        if git diff --quiet -- assets lib pubspec.yaml flutter_native_splash.yaml; then
           echo "✅ No persistent asset changes."
           exit 0
         fi
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add assets pubspec.yaml lib
-        git commit -m "perf(assets): persist lossless WebP optimization"
+        git add assets lib pubspec.yaml flutter_native_splash.yaml
+        git commit -m "perf(assets): replace PNG assets with lossless WebP"
         git push
-        echo "✅ Optimized assets committed to master."
+        echo "✅ Lossless WebP assets committed to master."
 
     - name: 📦 Install dependencies
       run: flutter pub get
