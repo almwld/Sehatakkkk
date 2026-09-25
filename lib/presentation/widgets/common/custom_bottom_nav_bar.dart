@@ -27,12 +27,12 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   // ✅ عناصر شريط التنقل مع الأيقونات المحلية
   static const List<NavItem> _navItems = [
-    NavItem(index: 0, icon: Icons.home_rounded, iconPath: 'assets/images/navigation/home.png', label: 'الرئيسية'),
+    NavItem(index: 0, icon: Icons.home_rounded, iconPath: 'assets/images/navigation/home.webp', label: 'الرئيسية'),
     NavItem(index: 1, icon: Icons.person_search_rounded, iconPath: 'assets/images/services/doctors.png', label: 'الأطباء'),
-    NavItem(index: 2, icon: Icons.local_pharmacy_rounded, iconPath: 'assets/images/services/pharmacy.png', label: 'الصيدلية'),
-    NavItem(index: 3, icon: Icons.chat_rounded, iconPath: 'assets/images/navigation/chat.png', label: 'الدردشة', isProtected: true, isSpecial: true),
-    NavItem(index: 4, icon: Icons.science_rounded, iconPath: 'assets/images/services/labs.png', label: 'مختبرات', isProtected: true),
-    NavItem(index: 5, icon: Icons.folder_rounded, iconPath: 'assets/images/navigation/health.png', label: 'صحتي', isProtected: true),
+    NavItem(index: 2, icon: Icons.local_pharmacy_rounded, iconPath: 'assets/images/services/pharmacy.webp', label: 'الصيدلية'),
+    NavItem(index: 3, icon: Icons.chat_rounded, iconPath: 'assets/images/navigation/chat.webp', label: 'الدردشة', isProtected: true, isSpecial: true),
+    NavItem(index: 4, icon: Icons.science_rounded, iconPath: 'assets/images/services/labs.webp', label: 'مختبرات', isProtected: true),
+    NavItem(index: 5, icon: Icons.folder_rounded, iconPath: 'assets/images/navigation/health.webp', label: 'صحتي', isProtected: true),
     NavItem(index: 6, icon: Icons.grid_view_rounded, iconPath: 'assets/images/navigation/more.png', label: 'المزيد'),
   ];
 

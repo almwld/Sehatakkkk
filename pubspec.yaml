@@ -157,12 +157,12 @@ flutter:
     - assets/icons/settings/
     - assets/icons/health/
     - assets/icons/health/sleep/
-    - assets/images/pregnancy_follow_up.png
+    - assets/images/pregnancy_follow_up.webp
     - assets/images/sehatak_chat_wallpaper_auto.svg
     - assets/images/sehatak_chat_wallpaper_dark.svg
-    - assets/images/sehatak_chat_wallpaper_dark_1080x2160.png
+    - assets/images/sehatak_chat_wallpaper_dark_1080x2160.webp
     - assets/images/sehatak_chat_wallpaper_light.svg
-    - assets/images/sehatak_chat_wallpaper_light_1080x2160.png
+    - assets/images/sehatak_chat_wallpaper_light_1080x2160.webp
     - assets/svg/
   fonts:
     # Keep only the static weights currently required by the app.

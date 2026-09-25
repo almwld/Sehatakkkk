@@ -162,7 +162,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/womens_health.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const WomensHealthScreen()},
           {'icon': 'assets/images/childhealth.png', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const ChildHealthScreen()},
           {'icon': 'assets/images/services/hospital.png', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const PregnancyFollowUpScreen()},
+          {'icon': 'assets/images/pregnancy_follow_up.webp', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const PregnancyFollowUpScreen()},
           {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
           {'icon': 'assets/images/tracking/fruits.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
           {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},
@@ -174,7 +174,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/tracking/blood_pressure.png', 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
           {'icon': 'assets/images/tracking/blood_sugar.png', 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
           {'icon': 'assets/images/tracking/weight_tracking.png', 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
+          {'icon': 'assets/images/services/medications.webp', 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
           {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
           {'icon': 'assets/images/services/medical_articles.png', 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
           {'icon': 'assets/images/services/first_aid.png', 'title': 'الإسعافات الأولية', 'subtitle': 'دليل الإسعافات الأولية', 'screen': const FirstAidScreen()},
@@ -182,7 +182,7 @@ class _MoreScreenState extends State<MoreScreen>
         ];
       case 'لوجستيات وتأمين':
         return [
-          {'icon': 'assets/images/services/medications.png', 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': 'assets/images/services/medications.webp', 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
           {'icon': 'assets/images/services/health_insurance.png', 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
           {'icon': 'assets/images/services/nearby_clinics.png', 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
@@ -211,7 +211,7 @@ class _MoreScreenState extends State<MoreScreen>
       case 'خدمات طبية':
         return [
           {'icon': 'assets/images/services/consultation.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': 'assets/images/services/medications.webp', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
           {'icon': 'assets/images/services/emergency.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
           {'icon': 'assets/images/services/consultation.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
@@ -232,7 +232,7 @@ class _MoreScreenState extends State<MoreScreen>
       default:
         return [
           {'icon': 'assets/images/services/consultation.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': 'assets/images/services/medications.webp', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
           {'icon': 'assets/images/services/emergency.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
           {'icon': 'assets/images/services/consultation.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
@@ -252,7 +252,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/ui/favorites.png', 'title': 'المفضلة', 'subtitle': 'إدارة المفضلة', 'screen': const FavoritesScreen()},
           {'icon': 'assets/images/services/medical_records.png', 'title': 'السجلات الطبية', 'subtitle': 'إدارة السجلات الطبية', 'screen': const PatientMedicalHistory()},
           {'icon': 'assets/images/services/medical_records.png', 'title': 'المكتبة الطبية', 'subtitle': 'الوصفات والتقارير وملفاتك الطبية', 'screen': const MedicalLibraryScreen()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'الوصفات الطبية', 'subtitle': 'عرض الوصفات الطبية', 'screen': const PatientPrescriptions()},
+          {'icon': 'assets/images/services/medications.webp', 'title': 'الوصفات الطبية', 'subtitle': 'عرض الوصفات الطبية', 'screen': const PatientPrescriptions()},
           {'icon': 'assets/images/services/calendar_booking.png', 'title': 'مواعيدي', 'subtitle': 'إدارة مواعيدي', 'screen': const PatientAppointments()},
         ];
     }

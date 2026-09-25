@@ -45,7 +45,7 @@ class _AboutScreenState extends State<AboutScreen> {
   Widget _buildFeatureSection(bool isDark) {
     final features = [
       {'icon': AppImages.servicesConsultation, 'title': 'أطباء', 'desc': 'استشر أفضل الأطباء'},
-      {'icon': 'assets/images/services/medications.png', 'title': 'صيدلية', 'desc': 'اطلب أدويتك أونلاين'},
+      {'icon': 'assets/images/services/medications.webp', 'title': 'صيدلية', 'desc': 'اطلب أدويتك أونلاين'},
       {'icon': AppImages.videoCall, 'title': 'مكالمات', 'desc': 'مكالمات صوت وفيديو'},
       {'icon': AppImages.chatBubble, 'title': 'دردشة', 'desc': 'تواصل فوري مع الأطباء'},
       {'icon': AppImages.calendarBooking, 'title': 'مواعيد', 'desc': 'إدارة مواعيدك'},

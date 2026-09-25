@@ -141,7 +141,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's7',
       'name': 'الصيدلية',
-      'icon': 'assets/images/services/pharmacy.png',
+      'icon': 'assets/images/services/pharmacy.webp',
       'category': 'الأدوية والصيدلة',
       'description': 'طلب الأدوية وتوصيلها إلى منزلك',
       'screen': const PharmacyScreen(),
@@ -151,7 +151,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     {
       'id': 's8',
       'name': 'الأدوية',
-      'icon': 'assets/images/services/medications.png',
+      'icon': 'assets/images/services/medications.webp',
       'category': 'الأدوية والصيدلة',
       'description': 'البحث عن الأدوية ومعلوماتها',
       'screen': const MedicinesScreen(),

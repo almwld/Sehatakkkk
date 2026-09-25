@@ -107,7 +107,7 @@ class ImageService {
   // 🔔 أيقونات الشريط العلوي (Top Bar)
   // ============================================================
   static const String cartIcon = 'assets/images/icons/top_bar/Shopping cart.png';
-  static const String notificationIcon = 'assets/images/icons/top_bar/notifications.png';
+  static const String notificationIcon = 'assets/images/icons/top_bar/notifications.webp';
 
   // ============================================================
   // 👨‍⚕️ أيقونات الأطباء (Doctors Icons)

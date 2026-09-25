@@ -207,7 +207,7 @@ class _AuthScreenState extends State<AuthScreen>
     {
       'id': 'google',
       'name': 'Google',
-      'icon': 'assets/images/social/google.png',
+      'icon': 'assets/images/social/google.webp',
       'color': Colors.red,
     },
     {
@@ -219,31 +219,31 @@ class _AuthScreenState extends State<AuthScreen>
     {
       'id': 'facebook',
       'name': 'Facebook',
-      'icon': 'assets/images/social/facebook.png',
+      'icon': 'assets/images/social/facebook.webp',
       'color': Colors.blue.shade700,
     },
     {
       'id': 'instagram',
       'name': 'Instagram',
-      'icon': 'assets/images/social/instagram.png',
+      'icon': 'assets/images/social/instagram.webp',
       'color': Colors.purple.shade700,
     },
     {
       'id': 'twitter',
       'name': 'Twitter',
-      'icon': 'assets/images/social/x_twitter.png',
+      'icon': 'assets/images/social/x_twitter.webp',
       'color': Colors.blue.shade600,
     },
     {
       'id': 'youtube',
       'name': 'YouTube',
-      'icon': 'assets/images/social/youtube.png',
+      'icon': 'assets/images/social/youtube.webp',
       'color': Colors.red.shade700,
     },
     {
       'id': 'tiktok',
       'name': 'TikTok',
-      'icon': 'assets/images/social/tiktok.png',
+      'icon': 'assets/images/social/tiktok.webp',
       'color': Colors.black,
     },
   ];

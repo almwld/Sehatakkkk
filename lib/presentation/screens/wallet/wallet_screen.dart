@@ -29,7 +29,7 @@ class _WalletScreenState extends State<WalletScreen> {
     {'name':'كاش ون','icon':'assets/images/payment/kash_one.png','account':'775555555'},
     {'name':'إيزي','icon':'assets/images/payment/easy.png','account':'778888888'},
     {'name':'فلوسك','icon':'assets/images/payment/floosak.png','account':'771111111'},
-    {'name':'حاسب الكريمي','icon':'assets/images/payment/kremi.png','account':'770000000'},
+    {'name':'حاسب الكريمي','icon':'assets/images/payment/kremi.webp','account':'770000000'},
     {'name':'موبايل ماني','icon':'assets/images/payment/mobile_money.png','account':'776666666'},
     {'name':'يمن وولت','icon':'assets/images/payment/yemen_wallet.png','account':'777777777'},
   ];

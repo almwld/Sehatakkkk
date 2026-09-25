@@ -339,7 +339,7 @@ class LocalWalletOption {
     LocalWalletOption(
       type: PaymentMethodType.kremi,
       name: 'حاسب الكريمي',
-      assetPath: 'assets/images/payment/kremi.png',
+      assetPath: 'assets/images/payment/kremi.webp',
       accountNumber: '536396',
       description: 'التحويل إلى حساب الدفع الموحد عبر جيب',
     ),

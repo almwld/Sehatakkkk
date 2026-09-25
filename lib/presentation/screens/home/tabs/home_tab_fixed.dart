@@ -20,7 +20,7 @@ class _HomeTabState extends State<HomeTab> {
   final List<String> _bannerImages = ImageKit.bannerList;
 
   final List<Map<String, dynamic>> _quickServices = [
-    {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية'},
+    {'icon': 'assets/images/services/pharmacy.webp', 'label': 'صيدلية'},
     {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ'},
     {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم'},
     {'icon': 'assets/images/services/consultation.png', 'label': 'أطباء'},
