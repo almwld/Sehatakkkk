@@ -216,9 +216,9 @@ jobs:
                         output_corners = [
                             output_rgba.getpixel(p)[3] for p in (
                                 (0, 0),
-                                (converted.width - 1, 0),
-                                (0, converted.height - 1),
-                                (converted.width - 1, converted.height - 1),
+                                (output_rgba.width - 1, 0),
+                                (0, output_rgba.height - 1),
+                                (output_rgba.width - 1, output_rgba.height - 1),
                             )
                         ]
                         if output_corners != source_corners:
