@@ -29,6 +29,7 @@ import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/fcm_token_service.dart';
 import 'core/services/call_service.dart';
+import 'core/services/active_call_registry.dart';
 import 'core/services/call_sound_coordinator.dart';
 import 'core/services/chat_media_transfer_service.dart';
 import 'core/services/nextcloud_service.dart';
@@ -105,6 +106,8 @@ Future<void> main() async {
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
+    ActiveCallRegistry.instance.reset();
+    debugPrint('📞 ActiveCallRegistry reset at startup');
     debugPrint('✅ Firebase initialized successfully');
   } catch (e) {
     debugPrint('❌ Firebase initialization error: $e');
@@ -481,7 +484,7 @@ class _SehatakAppState extends State<SehatakApp>
             callId: callId,
             isVideo: message.data['isVideo']?.toString() == 'true' ||
                 message.data['callType']?.toString() == 'video',
-            silent: true);
+            silent: false);
         // Firestore CallSoundCoordinator is the single foreground routing
         // authority. It opens IncomingCallScreen over the current route, so
         // calls never fall back to the chat screen or duplicate dialogs.
