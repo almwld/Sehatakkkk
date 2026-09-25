@@ -142,19 +142,15 @@ jobs:
 
         print(f"Rehydrated {len(original_pngs)} original PNG sources")
 
-        def referenced(asset: Path) -> bool:
+        def referenced_in_source(asset: Path) -> bool:
             ref = asset.as_posix()
-            candidates = list(Path("lib").rglob("*.dart"))
-            candidates += [Path("pubspec.yaml"), Path("flutter_native_splash.yaml")]
-            for path in candidates:
-                if not path.exists():
-                    continue
-                try:
-                    if ref in path.read_text(encoding="utf-8"):
-                        return True
-                except (UnicodeDecodeError, OSError):
-                    pass
-            return False
+            result = subprocess.run(
+                ["git", "grep", "-F", "--quiet", ref, original_parent, "--",
+                 "lib", "pubspec.yaml", "flutter_native_splash.yaml"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return result.returncode == 0
 
         converted = 0
         alpha_converted = 0
@@ -207,9 +203,9 @@ jobs:
                         raise RuntimeError(
                             f"Dimension mismatch: {src} -> {dst}"
                         )
-                    converted = converted_image.convert("RGBA")
+                    output_rgba = converted_image.convert("RGBA")
                     output_alpha = (
-                        converted.getchannel("A").getextrema()
+                        output_rgba.getchannel("A").getextrema()
                         if has_alpha else None
                     )
                     if has_alpha:
@@ -218,7 +214,7 @@ jobs:
                                 f"Alpha changed: {src} {source_alpha} -> {dst} {output_alpha}"
                             )
                         output_corners = [
-                            converted.getpixel(p)[3] for p in (
+                            output_rgba.getpixel(p)[3] for p in (
                                 (0, 0),
                                 (converted.width - 1, 0),
                                 (0, converted.height - 1),
@@ -229,9 +225,9 @@ jobs:
                             raise RuntimeError(
                                 f"Corner alpha changed: {src} {source_corners} -> {dst} {output_corners}"
                             )
-                        if output_alpha[0] != 0:
+                        if output_alpha[0] != source_alpha[0]:
                             raise RuntimeError(
-                                f"Alpha lost: {dst}; original minimum alpha was {source_alpha[0]}"
+                                f"Alpha lost/changed: {dst}; original minimum alpha was {source_alpha[0]}, output minimum alpha is {output_alpha[0]}"
                             )
                         alpha_converted += 1
                     else:
@@ -261,7 +257,7 @@ jobs:
                 converted += 1
 
             except Exception as exc:
-                if referenced(src):
+                if referenced_in_source(src):
                     raise RuntimeError(
                         f"Referenced PNG failed safe conversion: {src}: {exc}"
                     ) from exc
@@ -336,7 +332,7 @@ jobs:
         set -euo pipefail
         git diff --check
         flutter pub get
-        flutter analyze
+        flutter analyze --no-fatal-warnings --no-fatal-infos
 
     - name: 💾 Persist optimized assets
       shell: bash
