@@ -109,13 +109,37 @@ jobs:
         pngs = sorted(root.rglob("*.png"))
         print(f"Found {len(pngs)} PNG assets under {root}")
 
+        def referenced(asset):
+            ref = asset.as_posix()
+            for path in Path("lib").rglob("*.dart"):
+                try:
+                    if ref in path.read_text(encoding="utf-8"):
+                        return True
+                except (UnicodeDecodeError, OSError):
+                    pass
+            for path in (Path("pubspec.yaml"), Path("flutter_native_splash.yaml")):
+                if path.exists():
+                    try:
+                        if ref in path.read_text(encoding="utf-8"):
+                            return True
+                    except (UnicodeDecodeError, OSError):
+                        pass
+            return False
+
         for src in pngs:
             dst = src.with_suffix(".webp")
-            with Image.open(src) as image:
-                image.load()
-                if image.mode not in ("RGB", "RGBA"):
-                    image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
-                image.save(dst, "WEBP", lossless=True, method=6)
+            try:
+                with Image.open(src) as image:
+                    image.load()
+                    if image.mode not in ("RGB", "RGBA"):
+                        image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
+                    image.save(dst, "WEBP", lossless=True, method=6)
+            except Exception as exc:
+                if referenced(src):
+                    raise RuntimeError(f"Referenced PNG cannot be converted safely: {src}: {exc}") from exc
+                print(f"⚠️ Removing invalid/unreferenced PNG: {src}: {exc}")
+                src.unlink()
+                continue
 
             old_size = src.stat().st_size
             new_size = dst.stat().st_size
