@@ -27,7 +27,7 @@ class _AboutScreenState extends State<AboutScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(height: 20),
-          Container(width: 120, height: 120, decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(30), boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))]), child: Padding(padding: const EdgeInsets.all(20), child: Image.asset('android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png', width: 60, height: 60, fit: BoxFit.contain))),
+          SizedBox(width: 120, height: 120, child: Image.asset('android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png', width: 120, height: 120, fit: BoxFit.contain)),
           const SizedBox(height: 20),
           const Text('صحتك', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4), Text('Sehatak', style: TextStyle(fontSize: 16, color: AppColors.grey, letterSpacing: 2)),
