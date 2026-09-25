@@ -148,6 +148,11 @@ jobs:
                 if old_ref in text:
                     dart.write_text(text.replace(old_ref, new_ref), encoding="utf-8")
                     refs += 1
+            pubspec = Path("pubspec.yaml")
+            text = pubspec.read_text(encoding="utf-8")
+            if old_ref in text:
+                pubspec.write_text(text.replace(old_ref, new_ref), encoding="utf-8")
+                refs += 1
             src.unlink()
             changed += 1
             saved += old_size - new_size
