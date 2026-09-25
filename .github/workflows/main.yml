@@ -116,6 +116,7 @@ jobs:
         original_conversion = "686fb01557bf60dabecf790e1ca5c79230a409c1"
         original_parent = "a968aed9e66764ba24d59dbd0d2ed8c150ac2de1"
         subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", original_parent], check=True)
+        subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", original_conversion], check=True)
         deleted = subprocess.check_output([
             "git", "diff-tree", "--no-commit-id", "--name-only", "--diff-filter=D",
             original_parent, original_conversion, "--", "assets"
