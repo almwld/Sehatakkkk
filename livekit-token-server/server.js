@@ -205,6 +205,8 @@ function buildMessagePayload(opts) {
   var preview = String(opts.messageText || '').slice(0, 120);
   return {
     token: opts.fcmToken,
+    // DATA-ONLY is intentional: Android must not auto-render the FCM
+    // notification, otherwise the OS bypasses our Flutter notification actions.
     data: {
       type: 'new_message',
       chatId: String(opts.chatId || ''),
@@ -212,6 +214,14 @@ function buildMessagePayload(opts) {
       senderId: String(opts.senderId || ''),
       senderName: String(opts.senderName || 'user'),
       senderPhotoUrl: String(opts.senderPhotoUrl || ''),
+      messageType: String(opts.messageType || 'text'),
+      imageUrl: String(opts.imageUrl || ''),
+      videoUrl: String(opts.videoUrl || ''),
+      audioUrl: String(opts.audioUrl || ''),
+      fileUrl: String(opts.fileUrl || ''),
+      fileName: String(opts.fileName || ''),
+      fileMimeType: String(opts.fileMimeType || ''),
+      fileSize: String(opts.fileSize || ''),
       body: preview,
       title: String(opts.senderName || 'New message'),
       chatType: String(opts.chatType || 'direct'),
@@ -219,8 +229,7 @@ function buildMessagePayload(opts) {
     },
     android: {
       priority: 'high',
-      ttl: 3600000,
-      notification: { channelId: 'sehatak_messages_v2' }
+      ttl: 3600000
     },
     apns: {
       headers: { 'apns-priority': '5', 'apns-push-type': 'background' },
@@ -246,6 +255,14 @@ async function handleNewMessage(change) {
 
     var senderName = String(msg.senderName || msg.senderDisplayName || '');
     var senderPhotoUrl = String(msg.senderPhotoUrl || msg.senderAvatar || '');
+    var messageType = String(msg.type || 'text');
+    var imageUrl = String(msg.imageUrl || '');
+    var videoUrl = String(msg.videoUrl || '');
+    var audioUrl = String(msg.audioUrl || '');
+    var fileUrl = String(msg.fileUrl || '');
+    var fileName = String(msg.fileName || '');
+    var fileMimeType = String(msg.fileMimeType || msg.fileType || '');
+    var fileSize = String(msg.fileSize || '');
     var messageText = '';
     if (typeof msg.text === 'string') messageText = msg.text;
     else if (typeof msg.message === 'string') messageText = msg.message;
@@ -255,8 +272,9 @@ async function handleNewMessage(change) {
     if (!chatSnap.exists) { console.warn('[msg] chat missing id=' + chatId); return; }
     var chat = chatSnap.data() || {};
 
-    if (chat.isMuted === true || chat.muted === true) {
-      console.log('[msg] muted chatId=' + chatId);
+    var mutedFor = chat.mutedFor && typeof chat.mutedFor === 'object' ? chat.mutedFor : {};
+    if (chat.isMuted === true || chat.muted === true || mutedFor[receiverId] === true) {
+      console.log('[msg] muted chatId=' + chatId + ' receiver=' + receiverId);
       return;
     }
 
@@ -296,7 +314,15 @@ async function handleNewMessage(change) {
           chatId: chatId,
           messageId: messageId,
           messageText: messageText,
-          chatType: chatType
+          chatType: chatType,
+          messageType: messageType,
+          imageUrl: imageUrl,
+          videoUrl: videoUrl,
+          audioUrl: audioUrl,
+          fileUrl: fileUrl,
+          fileName: fileName,
+          fileMimeType: fileMimeType,
+          fileSize: fileSize
         });
 
         try {
