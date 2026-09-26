@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -32,6 +34,20 @@ class ContactInfoSheet extends StatefulWidget {
 
 class _ContactInfoSheetState extends State<ContactInfoSheet> {
   bool _isFavorite = false;
+  bool _savingContact = false;
+
+  Future<void> _saveContact() async {
+    if (_savingContact) return;
+    setState(() => _savingContact = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getStringList('saved_chat_contacts') ?? <String>[];
+      final contact = jsonEncode({'name': widget.name ?? '', 'phone': widget.phone ?? '', 'imageUrl': widget.imageUrl ?? '', 'specialty': widget.specialty ?? ''});
+      if (!raw.contains(contact)) { raw.add(contact); await prefs.setStringList('saved_chat_contacts', raw); }
+      if (mounted) ToastService.showSuccess('تم حفظ جهة الاتصال على هذا الجهاز');
+    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ جهة الاتصال'); }
+    finally { if (mounted) setState(() => _savingContact = false); }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +211,7 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
                         context,
                         Icons.person_add_alt,
                         'حفظ جهة الاتصال',
-                        () => ToastService.showSuccess('✅ تم حفظ جهة الاتصال'),
+                        _savingContact ? () {} : _saveContact,
                       ),
                       _buildMenuItem(
                         context,
