@@ -13,6 +13,7 @@ class FontSizeScreen extends StatefulWidget {
 
 class _FontSizeScreenState extends State<FontSizeScreen> {
   double _fontSize = 1.0;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -190,12 +191,19 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
     );
   }
 
+  Future<void> _saveFontSize() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      await context.read<FontSizeProvider>().setFontScale(_fontSize);
+      if (mounted) { ToastService.showSuccess('تم حفظ حجم الخط'); Navigator.pop(context, true); }
+    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ حجم الخط'); }
+    finally { if (mounted) setState(() => _saving = false); }
+  }
+
   Widget _buildSaveButton() {
     return ElevatedButton(
-      onPressed: () {
-        Navigator.pop(context);
-        ToastService.showSuccess('✅ تم حفظ حجم الخط');
-      },
+      onPressed: _saving ? null : _saveFontSize,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -204,7 +212,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      child: const Text(
+      child: _saving ? const CircularProgressIndicator(color: Colors.white) : const Text(
         'حفظ',
         style: TextStyle(fontSize: 16),
       ),
