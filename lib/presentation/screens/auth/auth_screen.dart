@@ -974,7 +974,7 @@ class _AuthScreenState extends State<AuthScreen>
 
       // Keep the model construction out of the navigation path. The profile
       // has already been committed to Firestore above.
-      unawaited(Future<void>(() async {
+      unawaited(() async {
         try {
           UserModel.fromFirestore(user.uid, userData);
         } catch (e) {
