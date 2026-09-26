@@ -1,14 +1,62 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'call_sound_coordinator.dart';
+import 'chat_service.dart';
+import '../../firebase_options.dart';
 
 typedef NotificationTapHandler = Future<void> Function(String? payload);
+
+@pragma('vm:entry-point')
+Future<void> notificationActionBackgroundHandler(NotificationResponse response) async {
+  final action = response.actionId?.trim();
+  if (action == null || action.isEmpty) return;
+  if (!['message_reply', 'message_read', 'message_mute'].contains(action)) return;
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (_) {}
+  await handleMessageNotificationAction(action: action, input: response.input, payload: response.payload);
+}
+
+Future<void> handleMessageNotificationAction({
+  required String action,
+  String? input,
+  String? payload,
+}) async {
+  if (!['message_reply', 'message_read', 'message_mute'].contains(action)) return;
+  Map<String, dynamic> envelope = <String, dynamic>{};
+  try {
+    final decoded = payload == null ? null : jsonDecode(payload);
+    if (decoded is Map) envelope = Map<String, dynamic>.from(decoded);
+  } catch (_) {}
+  final data = envelope['data'] is Map ? Map<String, dynamic>.from(envelope['data']) : <String, dynamic>{};
+  final chatId = data['chatId']?.toString().trim() ?? '';
+  if (chatId.isEmpty) return;
+  final chat = ChatService();
+  if (action == 'message_read') {
+    await chat.markAsRead(chatId);
+    await NotificationService().cancelChatNotifications(chatId);
+    return;
+  }
+  if (action == 'message_mute') {
+    await chat.muteChat(chatId, true);
+    await NotificationService().cancelChatNotifications(chatId);
+    return;
+  }
+  final text = input?.trim() ?? '';
+  if (text.isEmpty) return;
+  final replyToId = data['messageId']?.toString().trim();
+  await chat.sendMessage(chatId: chatId, text: text, replyToId: replyToId?.isEmpty == true ? null : replyToId, metadata: const <String, dynamic>{'source': 'notification_reply'});
+  await chat.markAsRead(chatId);
+  await NotificationService().cancelChatNotifications(chatId);
+}
 
 enum SehatakNotificationType {
   newMessage,
