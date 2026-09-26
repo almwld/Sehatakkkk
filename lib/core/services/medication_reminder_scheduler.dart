@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +10,6 @@ class MedicationReminderScheduler {
   static final MedicationReminderScheduler instance = MedicationReminderScheduler._();
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
-  static const MethodChannel _androidChannel = MethodChannel('com.sehatak.app/medication_alarms');
   bool _initialized = false;
 
   Future<void> initialize() async {
@@ -57,21 +54,11 @@ class MedicationReminderScheduler {
 
   Future<void> cancelMedication(String medicationId) async {
     await initialize();
-    if (Platform.isAndroid) {
-      // Android uses the native AlarmManager receiver as the source of truth.
-      // Avoid cancelling hundreds of Flutter-local IDs on every save.
-      for (var i = 0; i < 16; i++) {
-        try {
-          await _androidChannel.invokeMethod<void>(
-            'cancelMedicationAlarm',
-            {'id': _id(medicationId, i)},
-          );
-        } catch (_) {}
-      }
-    } else {
-      for (var i = 0; i < 512; i++) {
-        await _notifications.cancel(_id(medicationId, i));
-      }
+    // Use the same flutter_local_notifications scheduler on Android and iOS.
+    // This removes the old custom MethodChannel dependency and its
+    // MissingPluginException path.
+    for (var i = 0; i < 32; i++) {
+      await _notifications.cancel(_id(medicationId, i));
     }
     await _removeReport(medicationId);
   }
@@ -129,18 +116,6 @@ class MedicationReminderScheduler {
       if (next == null) continue;
       final id = _id(medicationId, index++);
       final dose = medication['dose']?.toString().trim() ?? '';
-
-      if (Platform.isAndroid) {
-        await _androidChannel.invokeMethod<void>('scheduleMedicationAlarm', {
-          'id': id,
-          'medicationId': medicationId,
-          'name': name,
-          'dose': dose,
-          'triggerAtMillis': next.millisecondsSinceEpoch,
-          'endAtMillis': end?.millisecondsSinceEpoch,
-        });
-        continue;
-      }
 
       final scheduled = tz.TZDateTime.from(next, tz.local);
       await _notifications.zonedSchedule(
