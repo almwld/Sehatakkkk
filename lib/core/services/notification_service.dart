@@ -166,14 +166,17 @@ class NotificationService {
   static const MethodChannel _fullScreenChannel =
       MethodChannel('com.sehatak.app/full_screen_intent');
 
-  Future<bool> canUseFullScreenIntent() async {
+  /// Checks whether the app can currently use Full Screen Intent on Android.
+  /// Returns true when available, false when explicitly denied, and null when
+  /// the platform state cannot be determined.
+  Future<bool?> canUseFullScreenIntent() async {
     if (!Platform.isAndroid) return true;
     try {
       final result = await _fullScreenChannel.invokeMethod<bool>('canUseFullScreenIntent');
-      return result ?? true;
+      return result;
     } catch (e) {
       debugPrint('⚠️ canUseFullScreenIntent failed: $e');
-      return true;
+      return null;
     }
   }
 
@@ -276,18 +279,21 @@ class NotificationService {
       await android?.createNotificationChannel(_healthChannel);
       await android?.createNotificationChannel(_socialChannel);
       await android?.createNotificationChannel(_callChannel);
-      // Android 14+ can restrict USE_FULL_SCREEN_INTENT. Check the
-      // current state here for diagnostics only. The UI owns user guidance
-      // and settings navigation; the FCM background isolate does not depend
-      // on the MethodChannel.
-      try {
-        final canUse = await canUseFullScreenIntent();
-        debugPrint('📱 Full Screen Intent available: $canUse');
-        if (!canUse) {
-          debugPrint('ℹ️ Full Screen Intent not granted — UI will prompt');
+      // ⚡ Full Screen Intent is UI-only. The FCM background isolate
+      // initializes this service with startCallCoordinator=false, so it must
+      // never touch the MainActivity-backed MethodChannel.
+      if (startCallCoordinator && Platform.isAndroid) {
+        try {
+          final canUse = await canUseFullScreenIntent();
+          debugPrint('📱 Full Screen Intent available: $canUse');
+          if (canUse == false) {
+            debugPrint('ℹ️ Full Screen Intent not granted — UI will prompt');
+          } else if (canUse == null) {
+            debugPrint('ℹ️ Full Screen Intent check unavailable');
+          }
+        } catch (e) {
+          debugPrint('⚠️ Full Screen Intent check failed: $e');
         }
-      } catch (e) {
-        debugPrint('⚠️ Full Screen Intent check failed: $e');
       }
       final ios = _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
       _initialized = true;

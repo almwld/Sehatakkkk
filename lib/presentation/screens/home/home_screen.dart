@@ -94,7 +94,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       final canUse = await NotificationService().canUseFullScreenIntent();
       debugPrint('📱 [Home] canUseFullScreenIntent = $canUse');
-      if (!canUse && mounted) {
+
+      // نعرض التحذير فقط إذا رفض النظام الإذن صراحةً.
+      // null يعني تعذر التحقق، لذلك لا نعرض تحذيراً كاذباً.
+      if (canUse == false && mounted) {
         await Future<void>.delayed(const Duration(milliseconds: 800));
         if (!mounted) return;
         await showDialog<void>(
@@ -114,6 +117,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 onPressed: () async {
                   Navigator.pop(ctx);
                   await NotificationService().openFullScreenIntentSettings();
+                  _fullScreenIntentChecked = false;
                 },
                 child: const Text('فتح الإعدادات'),
               ),
