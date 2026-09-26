@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class MoodTrackerScreen extends StatefulWidget {
@@ -12,6 +15,22 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
   final _note = TextEditingController();
   final moods = const ['ممتاز', 'جيد', 'متوسط', 'منخفض', 'متعب'];
   final factors = const ['النوم', 'العمل', 'الدراسة', 'العائلة', 'النشاط', 'الألم'];
+  bool _saving = false;
+
+  Future<void> _saveMood() async {
+    if (_saving) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) { ToastService.showError('يرجى تسجيل الدخول أولاً'); return; }
+    setState(() => _saving = true);
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('mood_entries').add({
+        'mood': _mood, 'factors': _factors.toList(), 'note': _note.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      if (mounted) { _note.clear(); ToastService.showSuccess('تم حفظ حالة المزاج'); }
+    } catch (e) { if (mounted) ToastService.showError('تعذر حفظ حالة المزاج'); }
+    finally { if (mounted) setState(() => _saving = false); }
+  }
 
   @override void dispose() { _note.dispose(); super.dispose(); }
 
@@ -41,7 +60,7 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
       const SizedBox(height: 20),
       TextField(controller: _note, maxLines: 4, decoration: const InputDecoration(labelText: 'ملاحظات اليوم', hintText: 'اكتب ما تريد تذكره...', border: OutlineInputBorder())),
       const SizedBox(height: 16),
-      ElevatedButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تسجيل حالتك لهذا اليوم'))), child: const Text('حفظ الحالة')),
+      ElevatedButton(onPressed: _saving ? null : _saveMood, child: Text(_saving ? 'جاري الحفظ...' : 'حفظ الحالة')),
       const SizedBox(height: 20),
       const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('التتبع يساعدك على ملاحظة الأنماط مع الوقت، لكنه ليس أداة لتشخيص الاكتئاب أو أي اضطراب نفسي.'))),
     ]),
