@@ -492,7 +492,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (mounted) setState(() => _showNewMessages = false);
   }
 
-  void _optimisticallyAddTextMessage(String text) {
+  void _optimisticallyAddTextMessage(
+    String text, {
+    String? replyToId,
+    Map<String, dynamic>? replyPreview,
+  }) {
     final value = text.trim();
     final uid = _auth.currentUser?.uid;
     if (!mounted || value.isEmpty || uid == null) return;
@@ -517,6 +521,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           clientTimestamp: now,
           isRead: false,
           isDelivered: false,
+          replyToId: replyToId,
+          replyPreview: replyPreview,
         ),
         ..._messages.where((message) => message.id != optimisticId),
       ];
@@ -1028,8 +1034,22 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             replyToId: _replyingTo?.id,
             onSendMessage: (text) {
               unawaited(_setTyping(false));
-              _optimisticallyAddTextMessage(text);
-              if (_replyingTo != null) _clearReply();
+              final replyingTo = _replyingTo;
+              final replyPreview = replyingTo == null
+                  ? null
+                  : <String, dynamic>{
+                      'id': replyingTo.id,
+                      'senderId': replyingTo.senderId,
+                      'senderName': replyingTo.senderName,
+                      'text': replyingTo.text ?? '',
+                      'type': replyingTo.type.name,
+                    };
+              _optimisticallyAddTextMessage(
+                text,
+                replyToId: replyingTo?.id,
+                replyPreview: replyPreview,
+              );
+              if (replyingTo != null) _clearReply();
             },
             onTyping: _setTyping,
             onSendImage: (_) {},
