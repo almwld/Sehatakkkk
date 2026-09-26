@@ -63,23 +63,107 @@ class _TestsTab extends StatelessWidget{
     final desc=TextEditingController(text:old?['description']?.toString()??'');
     final price=TextEditingController(text:old?['price']?.toString()??'');
     final duration=TextEditingController(text:old?['duration']?.toString()??'');
-    await showModalBottomSheet(context:context,isScrollControlled:true,builder:(ctx)=>Padding(
-      padding:EdgeInsets.only(left:16,right:16,top:16,bottom:MediaQuery.of(ctx).viewInsets.bottom+16),
-      child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
-        Text(id==null?'إضافة فحص جديد':'تعديل الفحص',style:const TextStyle(fontSize:20,fontWeight:FontWeight.bold)),
-        const SizedBox(height:12),
-        TextField(controller:name,decoration:const InputDecoration(labelText:'اسم الفحص',border:OutlineInputBorder())),
-        const SizedBox(height:10),TextField(controller:desc,maxLines:2,decoration:const InputDecoration(labelText:'الوصف',border:OutlineInputBorder())),
-        const SizedBox(height:10),Row(children:[
-          Expanded(child:TextField(controller:price,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'السعر',border:OutlineInputBorder()))),
-          const SizedBox(width:10),Expanded(child:TextField(controller:duration,decoration:const InputDecoration(labelText:'المدة',border:OutlineInputBorder())))]),
-        const SizedBox(height:12),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:()async{
-          if(name.text.trim().isEmpty||price.text.trim().isEmpty){ToastService.showError('الاسم والسعر مطلوبان');return;}
-          final data=<String,dynamic>{'labId':uid,'name':name.text.trim(),'description':desc.text.trim(),'price':double.tryParse(price.text.trim())??0,'duration':duration.text.trim(),'isActive':true,'updatedAt':FieldValue.serverTimestamp()};
-          if(id==null){data['createdAt']=FieldValue.serverTimestamp();await FirebaseFirestore.instance.collection('lab_tests').add(data);}else{await FirebaseFirestore.instance.collection('lab_tests').doc(id).update(data);}
-          if(ctx.mounted)Navigator.pop(ctx);ToastService.showSuccess(id==null?'تمت إضافة الفحص':'تم تحديث الفحص');
-        },child:Text(id==null?'حفظ':'حفظ التعديل'))))
-      ])));
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  id == null ? 'إضافة فحص جديد' : 'تعديل الفحص',
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: name,
+                  decoration: const InputDecoration(
+                    labelText: 'اسم الفحص',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: desc,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'الوصف',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: price,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'السعر',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: duration,
+                        decoration: const InputDecoration(
+                          labelText: 'المدة',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (name.text.trim().isEmpty || price.text.trim().isEmpty) {
+                        ToastService.showError('الاسم والسعر مطلوبان');
+                        return;
+                      }
+                      final data = <String, dynamic>{
+                        'labId': uid,
+                        'name': name.text.trim(),
+                        'description': desc.text.trim(),
+                        'price': double.tryParse(price.text.trim()) ?? 0,
+                        'duration': duration.text.trim(),
+                        'isActive': true,
+                        'updatedAt': FieldValue.serverTimestamp(),
+                      };
+                      if (id == null) {
+                        data['createdAt'] = FieldValue.serverTimestamp();
+                        await FirebaseFirestore.instance.collection('lab_tests').add(data);
+                      } else {
+                        await FirebaseFirestore.instance.collection('lab_tests').doc(id).update(data);
+                      }
+                      if (ctx.mounted) {
+                        Navigator.pop(ctx);
+                      }
+                      ToastService.showSuccess(
+                        id == null ? 'تمت إضافة الفحص' : 'تم تحديث الفحص',
+                      );
+                    },
+                    child: Text(id == null ? 'حفظ' : 'حفظ التعديل'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
     name.dispose();desc.dispose();price.dispose();duration.dispose();
   }
   @override Widget build(BuildContext context)=>Scaffold(
