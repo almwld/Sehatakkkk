@@ -8,7 +8,29 @@ class ChildService{
   CollectionReference<Map<String,dynamic>> get _children=>_db.collection('users').doc(_uid).collection('children');
   Stream<List<ChildModel>> streamChildren()=>_children.where('isActive',isEqualTo:true).snapshots().map((s){final x=s.docs.map((d)=>ChildModel.fromFirestore(d.id,d.data())).toList();x.sort((a,b)=>(a.createdAt??DateTime.fromMillisecondsSinceEpoch(0)).compareTo(b.createdAt??DateTime.fromMillisecondsSinceEpoch(0)));return x;});
   Stream<ChildModel?> streamChild(String id)=>_children.doc(id).snapshots().map((d)=>!d.exists||d.data()?['isActive']==false?null:ChildModel.fromFirestore(d.id,d.data()!));
-  Future<String> addChild({required String name,required DateTime birthDate,required String gender,double? weight,double? height,double? headCircumference,String? bloodType,String? photoUrl,String? notes})async{final r=await _children.add({'name':name.trim(),'birthDate':Timestamp.fromDate(birthDate),'gender':gender=='female'?'female':'male','weight':weight,'height':height,'headCircumference':headCircumference,'bloodType':bloodType,'photoUrl':photoUrl,'notes':notes,'isActive':true,'createdAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp()});return r.id;}
+  Future<String> addChild({String? childId,required String name,required DateTime birthDate,required String gender,double? weight,double? height,double? headCircumference,String? bloodType,String? photoUrl,String? notes})async{
+    final id = childId?.trim();
+    final data = {
+      'name': name.trim(),
+      'birthDate': Timestamp.fromDate(birthDate),
+      'gender': gender == 'female' ? 'female' : 'male',
+      'weight': weight,
+      'height': height,
+      'headCircumference': headCircumference,
+      'bloodType': bloodType,
+      'photoUrl': photoUrl,
+      'notes': notes,
+      'isActive': true,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    if (id != null && id.isNotEmpty) {
+      await _children.doc(id).set(data, SetOptions(merge: true));
+      return id;
+    }
+    final r = await _children.add(data);
+    return r.id;
+  }
   Future<void> updateChild(String id,Map<String,dynamic>d)=>_children.doc(id).update({...d,'updatedAt':FieldValue.serverTimestamp()});
   Future<void> deleteChild(String id)=>updateChild(id,{'isActive':false});
   CollectionReference<Map<String,dynamic>> _growth(String id)=>_children.doc(id).collection('growth');
