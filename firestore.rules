@@ -192,7 +192,10 @@ service cloud.firestore {
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status == 'pending';
       allow update: if isSignedIn()
-        && ((request.auth.uid == requestId && resource.data.userId == request.auth.uid)
+        && ((request.auth.uid == requestId
+             && resource.data.userId == request.auth.uid
+             && request.resource.data.userId == request.auth.uid
+             && request.resource.data.status == 'pending')
             || isAdmin());
       allow delete: if isAdmin();
     }
