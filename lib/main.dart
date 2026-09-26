@@ -349,59 +349,59 @@ class _SehatakAppState extends State<SehatakApp>
     final nav = navigatorKey.currentState;
     if (nav == null) return;
 
-    // Call notification action buttons can launch the app from a
-    // terminated/background state. Resolve the action here instead of
-    // treating the action payload as a normal notification payload.
+    // Local notification actions (reply/read/mute/call).
     if (payload.startsWith('notification_action:')) {
-      final parts = payload.split(':');
-      if (parts.length >= 3) {
-        final action = parts[1];
-        final actionPayload = parts.sublist(2).join(':');
-        if (actionPayload.startsWith('incoming_call:')) {
-          final callId = actionPayload.substring('incoming_call:'.length);
-          if (callId.isNotEmpty) {
-            await _notificationService.cancelIncomingCallNotification(callId);
-            if (action == 'call_reject') {
-              await _callService.rejectCall(callId);
-              return;
-            }
-            if (action == 'call_answer' && mounted) {
-              // Answer directly from the notification action, then open the live call screen.
-              await _callService.answerIncomingCallById(context, callId);
-              return;
-            }
-            if (action == 'call_message' && mounted) {
-              // "مراسلة لاحقاً" ends the ringing state first, then opens only the chat.
-              await _callService.rejectCall(callId);
-              final snap = await FirebaseFirestore.instance.collection('calls').doc(callId).get();
-              final data = snap.data() ?? <String, dynamic>{};
-              final chatId = data['chatId']?.toString().trim() ?? '';
-              final callerId = data['callerId']?.toString() ?? '';
-              final callerName = data['callerName']?.toString() ?? 'مستخدم';
-              final callerImage = data['callerPhotoUrl']?.toString();
-              if (chatId.isNotEmpty) {
-                await Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => ChatRoomScreen(
-                    chatId: chatId,
-                    otherUserId: callerId,
-                    otherUserName: callerName,
-                    groupImage: callerImage,
-                    isGroup: false,
-                  ),
-                ));
-              }
-              return;
-            }
-            if (action == 'call_message' && mounted) {
-              await _callService.openChatForCall(context, callId);
-              return;
-            }
+      final raw = payload.substring('notification_action:'.length);
+      String? action;
+      String? input;
+      String? actionPayload;
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          action = decoded['action']?.toString();
+          input = decoded['input']?.toString();
+          actionPayload = decoded['payload']?.toString();
+        }
+      } catch (_) {
+        // Backward compatibility with the previous action:id:payload format.
+        final parts = raw.split(':');
+        if (parts.length >= 2) {
+          action = parts.first;
+          actionPayload = parts.sublist(1).join(':');
+        }
+      }
+      if (action == 'message_reply' || action == 'message_read' || action == 'message_mute') {
+        try {
+          await handleMessageNotificationAction(action: action!, input: input, payload: actionPayload);
+        } catch (e) {
+          debugPrint('notification chat action failed: $e');
+        }
+        return;
+      }
+      if ((action ?? '').startsWith('call_')) {
+        final callPayload = actionPayload ?? '';
+        final callId = callPayload.startsWith('incoming_call:')
+            ? callPayload.substring('incoming_call:'.length)
+            : '';
+        if (callId.isNotEmpty) {
+          await _notificationService.cancelIncomingCallNotification(callId);
+          if (action == 'call_reject') {
+            await _callService.rejectCall(callId);
+            return;
+          }
+          if (action == 'call_answer' && mounted) {
+            await _callService.answerIncomingCallById(context, callId);
+            return;
+          }
+          if (action == 'call_message' && mounted) {
+            await _callService.rejectCall(callId);
+            await _callService.openChatForCall(context, callId);
+            return;
           }
         }
       }
       return;
     }
-
     if (payload.startsWith('medication:')) {
       if (mounted) {
         await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MedicationReminderScreen()));
