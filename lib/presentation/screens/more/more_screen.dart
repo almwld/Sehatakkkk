@@ -61,6 +61,7 @@ import 'package:sehatak/presentation/screens/library/medical_library_screen.dart
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';
+import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/eye_care/eye_care_screen.dart';
 
 class MoreScreen extends StatefulWidget {
@@ -195,6 +196,7 @@ class _MoreScreenState extends State<MoreScreen>
         ];
       case 'إعدادات':
         return [
+          {'icon': 'assets/images/ui/user_profile.webp', 'title': 'توثيق الحساب', 'subtitle': 'متابعة أو استكمال توثيق حسابك', 'screen': const VerificationScreen()},
           {'icon': 'assets/images/ui/user_profile.webp', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
           {'icon': 'assets/images/ui/settings_gear.webp', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
           {'icon': 'assets/images/services/notifications.webp', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
@@ -219,6 +221,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/consultation.webp', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
           {'icon': 'assets/images/services/video_consultation.webp', 'title': 'استشارة فيديو', 'subtitle': 'استشارة طبية عبر الفيديو', 'screen': const VideoConsultationScreen()},
           {'icon': 'assets/images/services/health_tips.webp', 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
+          {'icon': 'assets/images/ui/user_profile.webp', 'title': 'توثيق الحساب', 'subtitle': 'متابعة أو استكمال توثيق حسابك', 'screen': const VerificationScreen()},
           {'icon': 'assets/images/services/wallet.webp', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
           {'icon': 'assets/images/services/calendar_booking.webp', 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const AppointmentsScreen()},
           {'icon': 'assets/images/services/nearby_clinics.webp', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
