@@ -13,7 +13,7 @@ class WeightTrackerScreen extends StatefulWidget {
 class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
   static const _cacheKey='weight_history_v3';
   final _weight=TextEditingController(),_note=TextEditingController();
-  List<Map<String,dynamic>> _history=[]; double? _target; bool _loading=true;
+  List<Map<String,dynamic>> _history=[]; double? _target; bool _loading=true,_saving=false;
   @override void initState(){super.initState();_load();}
   @override void dispose(){_weight.dispose();_note.dispose();super.dispose();}
 
@@ -128,15 +128,15 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _saveWeight();
+                onPressed: _saving ? null : () async {
+                  await _saveWeight();
+                  if (context.mounted && !_saving) Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('حفظ القياس'),
+                child: _saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Text('حفظ القياس'),
               ),
             ),
           ],
