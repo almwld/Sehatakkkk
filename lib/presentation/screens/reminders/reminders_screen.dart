@@ -76,6 +76,6 @@ class _RemindersScreenState extends State<RemindersScreen> {
           await ToastService.showError('تعذر حفظ التذكير، حاول مرة أخرى');
         }
       }, child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : const Text('حفظ'))],
-    ));
+    )));
   }
 }
