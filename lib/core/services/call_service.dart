@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,7 +16,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/call_sound_coordinator.dart';
 import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/presentation/screens/chat/incoming_call_screen.dart';
-import 'package:sehatak/presentation/screens/chat/call_screen.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 
 class CallService {
@@ -67,7 +68,51 @@ class CallService {
     final uid = _uid();
     final user = _auth.currentUser!;
     if (receiverId.isEmpty || receiverId == uid) throw Exception('معرّف المستقبل غير صالح');
-    if (ActiveCallRegistry.instance.hasActiveCall) throw StateError('لديك مكالمة نشطة بالفعل');
+    final registry = ActiveCallRegistry.instance;
+    if (registry.hasActiveCall) {
+      final activeId = registry.activeCallId;
+      bool isStale = activeId == null || activeId.trim().isEmpty;
+      if (!isStale) {
+        try {
+          final activeSnap = await _retry(
+            () => _firestore.collection('calls').doc(activeId).get(),
+          );
+          if (!activeSnap.exists) {
+            isStale = true;
+          } else {
+            final data = activeSnap.data() ?? <String, dynamic>{};
+            final status = data['status']?.toString();
+            const terminalStatuses = <String>{
+              'ended',
+              'cancelled',
+              'rejected',
+              'missed',
+              'busy',
+            };
+            if (status == null || terminalStatuses.contains(status)) {
+              isStale = true;
+            } else {
+              final rawStartedAt = data['startedAt'];
+              final startedAt =
+                  rawStartedAt is Timestamp ? rawStartedAt.toDate() : null;
+              if (startedAt != null &&
+                  DateTime.now().difference(startedAt).inMinutes > 5 &&
+                  status != 'connected') {
+                isStale = true;
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint('CALL REGISTRY CHECK FAILED active=$activeId error=$e');
+        }
+      }
+      if (isStale) {
+        debugPrint('CALL REGISTRY: clearing stale active call $activeId');
+        registry.reset();
+      } else {
+        throw StateError('لديك مكالمة نشطة بالفعل');
+      }
+    }
     final id = idempotencyKey ?? _firestore.collection('calls').doc().id; final ref = _firestore.collection('calls').doc(id); final lockRef = _firestore.collection('callLocks').doc(_lockId(uid, receiverId)); final room = 'call_$id';
     await _retry(() => _firestore.runTransaction((tx) async {
       final existingCall = await tx.get(ref); if (existingCall.exists) return;
@@ -144,9 +189,10 @@ class CallService {
     if (status != CallStatus.calling.name && status != CallStatus.ringing.name) return;
     final chatId = data['chatId']?.toString() ?? '';
     if (chatId.isEmpty) return;
+    await HapticFeedback.mediumImpact();
     await acceptCall(normalizedId);
     if (!context.mounted) return;
-    await Navigator.of(context).push(
+    await Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => CallScreen(
           callId: normalizedId,
