@@ -13,7 +13,7 @@ class BloodPressureScreen extends StatefulWidget {
 class _BloodPressureScreenState extends State<BloodPressureScreen>{
   static const _cacheKey='blood_pressure_readings_v2';
   final _sys=TextEditingController(),_dia=TextEditingController(),_pulse=TextEditingController();
-  List<Map<String,dynamic>> _readings=[]; bool _loading=true,_adding=false;
+  List<Map<String,dynamic>> _readings=[]; bool _loading=true,_adding=false,_saving=false;
 
   @override void initState(){super.initState();_load();}
   @override void dispose(){_sys.dispose();_dia.dispose();_pulse.dispose();super.dispose();}
@@ -84,7 +84,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen>{
               Row(children: [
                 Expanded(child: TextButton(onPressed: () => setState(() => _adding = false), child: const Text('إلغاء'))),
                 const SizedBox(width: 10),
-                Expanded(child: ElevatedButton(onPressed: _save, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white), child: const Text('حفظ'))),
+                Expanded(child: ElevatedButton(onPressed: _saving ? null : _save, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white), child: _saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Text('حفظ'))),
               ]),
             ]),
           ),
