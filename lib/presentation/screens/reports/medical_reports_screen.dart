@@ -105,6 +105,6 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
           }
         }, child: Text(saving ? 'جاري الحفظ...' : 'حفظ')),
       ],
-    ));
+    )));
   }
 }
