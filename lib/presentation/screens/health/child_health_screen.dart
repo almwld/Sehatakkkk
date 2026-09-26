@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/screens/health/child_section_screen.dart';
 
 class ChildHealthScreen extends StatelessWidget {
-  const ChildHealthScreen({super.key});
+  final String? childId;
+  const ChildHealthScreen({super.key, this.childId});
 
   static const _services = [
     ['النمو والتطور', 'متابعة الطول والوزن ومراحل التطور والمهارات', Icons.insights_rounded],
@@ -99,7 +102,7 @@ class ChildHealthScreen extends StatelessWidget {
           Container(width: 52, height: 52, decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(.12), borderRadius: BorderRadius.circular(16)), child: const Icon(Icons.face_rounded, color: Color(0xFF0284C7), size: 30)),
           const SizedBox(width: 12),
           const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('أضف ملف طفلك', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), SizedBox(height: 4), Text('العمر وتاريخ الميلاد والجنس والطول والوزن والتطعيمات.', style: TextStyle(fontSize: 11, height: 1.4))])),
-          IconButton(onPressed: () => _message(context, 'يمكن ربط بيانات الطفل بملفه الصحي عند توفر نموذج الملف في الحساب.'), icon: const Icon(Icons.add_circle_outline_rounded)),
+          IconButton(onPressed: () { if (childId == null || childId!.isEmpty) { ToastService.showInfo('أضف ملف الطفل أولاً من حساب العائلة'); return; } Navigator.push(context, MaterialPageRoute(builder: (_) => ChildSectionScreen(childId: childId!, section: 'growth'))); }, icon: const Icon(Icons.add_circle_outline_rounded)),
         ]),
       ),
     );
@@ -115,7 +118,7 @@ class ChildHealthScreen extends StatelessWidget {
         title: Text(service[0] as String, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
         subtitle: Text(service[1] as String, style: const TextStyle(fontSize: 11, height: 1.35)),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15),
-        onTap: () => _message(context, '${service[0]}\n\n${service[1]}\n\nالمعلومات داخل التطبيق للتثقيف والمتابعة ولا تغني عن تقييم طبيب الأطفال عند الحاجة.'),
+        onTap: () { if (childId == null || childId!.isEmpty) { ToastService.showInfo('يجب إضافة ملف الطفل أولاً من حساب العائلة'); return; } const m={'النمو والتطور':'growth','التطعيمات':'vaccines','التغذية':'nutrition','النوم':'sleep','صحة الفم والأسنان':'dental','الفحوصات الدورية':'checkups','النظر والسمع':'vision','النشاط واللعب':'activity','الصحة النفسية':'mental','الإسعافات الأولية':'firstaid'}; final k=m[service[0] as String]; if(k!=null) Navigator.push(context, MaterialPageRoute(builder: (_) => ChildSectionScreen(childId: childId!, section: k))); },
       ),
     );
   }

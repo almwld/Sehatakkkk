@@ -38,6 +38,7 @@ import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/lab/lab_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
+import 'package:sehatak/presentation/screens/family/family_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
@@ -100,7 +101,7 @@ class AppRouter {
       health = '/health',
       delivery = '/delivery',
       deliveryCompanies = '/delivery/companies',
-      deliveryTracking = '/delivery/tracking';
+      deliveryTracking = '/delivery/tracking', family = '/family';
 
   static bool _backPressedOnce = false;
   static Timer? _backExitTimer;
@@ -243,6 +244,7 @@ class AppRouter {
           onExit: _returnToHome,
           path: storyViewer,
           builder: (_, s) => StoryViewerScreen(status: s.extra as dynamic)),
+      GoRoute(onExit: _returnToHome, path: family, builder: (_, __) => const FamilyDashboardScreen()),
       GoRoute(
           onExit: _returnToHome,
           path: more,

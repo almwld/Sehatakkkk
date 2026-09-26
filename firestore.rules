@@ -57,6 +57,8 @@ service cloud.firestore {
         allow update: if false;
       }
 
+      match /children/{childId} { allow read, write: if isSelf(userId); match /records/{recordId} { allow read, write: if isSelf(userId); } match /growth/{entryId} { allow read, write: if isSelf(userId); } }
+
       match /followers/{followerUserId} {
         allow read: if isSignedIn();
         allow create, delete: if isSignedIn()
