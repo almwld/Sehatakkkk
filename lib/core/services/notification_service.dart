@@ -180,7 +180,11 @@ class NotificationService {
         if (handler == null) return;
         final actionId = response.actionId?.trim();
         if (actionId != null && actionId.isNotEmpty) {
-          await handler('notification_action:$actionId:${response.payload ?? ''}');
+          await handler('notification_action:${jsonEncode(<String, dynamic>{
+            'action': actionId,
+            'input': response.input,
+            'payload': response.payload,
+          })}');
         } else {
           await handler(response.payload);
         }
@@ -242,7 +246,17 @@ class NotificationService {
     await initialize(startCallCoordinator: false);
     final details = await _notifications.getNotificationAppLaunchDetails();
     if (details?.didNotificationLaunchApp != true) return null;
-    return details?.notificationResponse?.payload;
+    final response = details?.notificationResponse;
+    if (response == null) return null;
+    final actionId = response.actionId?.trim();
+    if (actionId != null && actionId.isNotEmpty) {
+      return 'notification_action:${jsonEncode(<String, dynamic>{
+        'action': actionId,
+        'input': response.input,
+        'payload': response.payload,
+      })}';
+    }
+    return response.payload;
   }
 
   /// Persists every remote FCM notification in the user's notification feed.
@@ -300,18 +314,28 @@ class NotificationService {
     }
   }
 
-  Future<void> showTypedNotification({required String type, required String title, required String body, Map<String, dynamic>? data, String? payload, bool? playSound}) async {
+  Future<void> showTypedNotification({
+    required String type,
+    required String title,
+    required String body,
+    Map<String, dynamic>? data,
+    String? payload,
+    bool? playSound,
+  }) async {
     await initialize(startCallCoordinator: false);
     final family = SehatakNotificationTypeValue.fromWireValue(type);
     if (family == null) {
-      await showMessageNotification(title: title, body: body, payload: payload ?? _encodePayload(type, data));
+      await showMessageNotification(
+        title: title,
+        body: body,
+        payload: payload ?? _encodePayload(type, data),
+        data: data,
+      );
       return;
     }
-    final channelId = _channelFor(family);
-    final channelName = _channelNameFor(family);
-    final importance = _importanceFor(family);
-    final resolvedSound = playSound ?? family != SehatakNotificationType.promotional;
-    final isChatMessage = type == 'new_message' || type == 'chat_message' || type == 'message';
+
+    final isChatMessage =
+        type == 'new_message' || type == 'chat_message' || type == 'message';
     final safeTitle = isChatMessage
         ? (data?['senderName']?.toString().trim().isNotEmpty == true
             ? data!['senderName'].toString()
@@ -320,11 +344,34 @@ class NotificationService {
     final safeBody = body.trim().isNotEmpty
         ? body
         : (isChatMessage ? 'لديك رسالة جديدة في الدردشة' : 'لديك إشعار جديد');
+
+    if (isChatMessage) {
+      await showMessageNotification(
+        title: safeTitle,
+        body: safeBody,
+        payload: payload ?? _encodePayload(type, data),
+        data: data,
+        playSound: playSound,
+      );
+      return;
+    }
+
+    final channelId = _channelFor(family);
+    final channelName = _channelNameFor(family);
+    final importance = _importanceFor(family);
+    final resolvedSound =
+        playSound ?? family != SehatakNotificationType.promotional;
     StyleInformation style = const BigTextStyleInformation('');
-    final imageUrl = (data?['imageUrl'] ?? data?['mediaUrl'] ?? data?['photoUrl'])?.toString().trim() ?? '';
+    final imageUrl = (data?['imageUrl'] ??
+            data?['mediaUrl'] ??
+            data?['photoUrl'])
+        ?.toString()
+        .trim() ??
+        '';
     if (imageUrl.isNotEmpty) {
       try {
-        final response = await http.get(Uri.parse(imageUrl)).timeout(const Duration(seconds: 8));
+        final response =
+            await http.get(Uri.parse(imageUrl)).timeout(const Duration(seconds: 8));
         if (response.statusCode >= 200 && response.bodyBytes.isNotEmpty) {
           style = BigPictureStyleInformation(
             ByteArrayAndroidBitmap(response.bodyBytes),
@@ -339,29 +386,202 @@ class NotificationService {
     }
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
-        channelId, channelName, channelDescription: channelName, importance: importance,
+        channelId,
+        channelName,
+        channelDescription: channelName,
+        importance: importance,
         ticker: safeBody,
-        priority: importance == Importance.high ? Priority.high : Priority.defaultPriority,
+        priority: importance == Importance.high
+            ? Priority.high
+            : Priority.defaultPriority,
         playSound: resolvedSound,
-        sound: resolvedSound ? const RawResourceAndroidNotificationSound('notification') : null,
-        category: _categoryFor(family), visibility: NotificationVisibility.public,
+        sound: resolvedSound
+            ? const RawResourceAndroidNotificationSound('notification')
+            : null,
+        category: _categoryFor(family),
+        visibility: NotificationVisibility.public,
         styleInformation: style,
       ),
-      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: resolvedSound),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: resolvedSound,
+      ),
     );
-    final notificationId = family == SehatakNotificationType.newMessage && data?['chatId'] != null
-        ? _chatNotificationId(data!['chatId'].toString())
-        : _typedNotificationId(type, data);
-    await _notifications.show(notificationId, safeTitle, safeBody, details, payload: payload ?? _encodePayload(type, data));
+    final notificationId =
+        family == SehatakNotificationType.newMessage && data?['chatId'] != null
+            ? _chatNotificationId(data!['chatId'].toString())
+            : _typedNotificationId(type, data);
+    await _notifications.show(
+      notificationId,
+      safeTitle,
+      safeBody,
+      details,
+      payload: payload ?? _encodePayload(type, data),
+    );
   }
 
-  Future<void> showMessageNotification({required String title, required String body, String? payload}) async {
+  Future<void> showMessageNotification({
+    required String title,
+    required String body,
+    String? payload,
+    Map<String, dynamic>? data,
+    bool? playSound,
+  }) async {
     await initialize(startCallCoordinator: false);
-    const details = NotificationDetails(
-      android: AndroidNotificationDetails(messageChannelId, 'صحتك - الرسائل', channelDescription: 'إشعارات الرسائل الجديدة في الدردشة', importance: Importance.high, priority: Priority.high, playSound: true, sound: RawResourceAndroidNotificationSound('notification'), category: AndroidNotificationCategory.message, visibility: NotificationVisibility.public),
-      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+    final resolvedSound = playSound ?? true;
+    final notificationData = data ?? const <String, dynamic>{};
+    final chatId = notificationData['chatId']?.toString().trim() ?? '';
+    final senderId = notificationData['senderId']?.toString().trim() ?? '';
+    final senderPhotoUrl = (notificationData['senderPhotoUrl'] ??
+            notificationData['photoUrl'] ??
+            notificationData['imageUrl'])
+        ?.toString()
+        .trim() ??
+        '';
+    final messageType =
+        notificationData['messageType']?.toString() ??
+        notificationData['type']?.toString() ??
+        'text';
+    final imageUrl = (notificationData['imageUrl'] ??
+            notificationData['mediaUrl'])
+        ?.toString()
+        .trim() ??
+        '';
+
+    AndroidBitmap<Object>? avatarIcon;
+    Uint8List? avatarBytes;
+    if (senderPhotoUrl.isNotEmpty) {
+      try {
+        final response =
+            await http.get(Uri.parse(senderPhotoUrl)).timeout(const Duration(seconds: 6));
+        if (response.statusCode >= 200 && response.bodyBytes.isNotEmpty) {
+          avatarBytes = response.bodyBytes;
+          avatarIcon = ByteArrayAndroidIcon(response.bodyBytes);
+        }
+      } catch (e) {
+        debugPrint('message avatar load failed: $e');
+      }
+    }
+
+    final sender = Person(
+      name: title,
+      key: senderId.isEmpty ? title : senderId,
+      icon: avatarIcon,
     );
-    await _notifications.show(_notificationId(), title, body, details, payload: payload);
+    const me = Person(name: 'أنت', key: 'self');
+    final timestamp = DateTime.now();
+
+    String messageText = body;
+    if (messageType == 'image' && messageText.trim().isEmpty) {
+      messageText = '📷 أرسل صورة';
+    } else if (messageType == 'file' && messageText.trim().isEmpty) {
+      messageText =
+          '📎 ${notificationData['fileName']?.toString().trim().isNotEmpty == true ? notificationData['fileName'] : 'أرسل ملفاً'}';
+    }
+
+    final messages = <Message>[
+      Message(messageText, timestamp, sender),
+    ];
+
+    final messagingStyle = MessagingStyleInformation(
+      me,
+      groupConversation: false,
+      conversationTitle: title,
+      messages: messages,
+    );
+
+    StyleInformation style = messagingStyle;
+    if (imageUrl.isNotEmpty &&
+        (messageType == 'image' || messageType == 'photo')) {
+      try {
+        final response =
+            await http.get(Uri.parse(imageUrl)).timeout(const Duration(seconds: 8));
+        if (response.statusCode >= 200 && response.bodyBytes.isNotEmpty) {
+          style = BigPictureStyleInformation(
+            ByteArrayAndroidBitmap(response.bodyBytes),
+            contentTitle: title,
+            summaryText: messageText,
+            hideExpandedLargeIcon: true,
+          );
+        }
+      } catch (e) {
+        debugPrint('message media preview failed: $e');
+      }
+    }
+
+    final actions = <AndroidNotificationAction>[
+      if (chatId.isNotEmpty)
+        AndroidNotificationAction(
+          'message_reply',
+          'رد',
+          icon: DrawableResourceAndroidBitmap('ic_reply'),
+          inputs: const <AndroidNotificationActionInput>[
+            AndroidNotificationActionInput(
+              label: 'اكتب ردك…',
+              allowFreeFormInput: true,
+            ),
+          ],
+          showsUserInterface: false,
+          cancelNotification: false,
+        ),
+      if (chatId.isNotEmpty)
+        AndroidNotificationAction(
+          'message_read',
+          'تمت القراءة',
+          icon: DrawableResourceAndroidBitmap('ic_mark_read'),
+          showsUserInterface: false,
+          cancelNotification: true,
+        ),
+      if (chatId.isNotEmpty)
+        AndroidNotificationAction(
+          'message_mute',
+          'كتم',
+          icon: DrawableResourceAndroidBitmap('ic_mute'),
+          showsUserInterface: false,
+          cancelNotification: true,
+        ),
+    ];
+
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        messageChannelId,
+        'صحتك - الرسائل',
+        channelDescription: 'إشعارات الرسائل الجديدة في الدردشة',
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: resolvedSound,
+        sound: resolvedSound
+            ? const RawResourceAndroidNotificationSound('notification')
+            : null,
+        category: AndroidNotificationCategory.message,
+        visibility: NotificationVisibility.public,
+        styleInformation: style,
+        largeIcon:
+            avatarBytes == null ? null : ByteArrayAndroidBitmap(avatarBytes),
+        actions: actions,
+        groupKey: chatId.isEmpty ? null : 'sehatak_chat_${chatId}',
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
+    final notificationId =
+        chatId.isEmpty ? _notificationId() : _chatNotificationId(chatId);
+    final actionPayload = jsonEncode(<String, dynamic>{
+      'type': 'new_message',
+      'data': notificationData,
+    });
+    await _notifications.show(
+      notificationId,
+      title,
+      messageText,
+      details,
+      payload: payload ?? actionPayload,
+    );
   }
 
   /// Incoming calls stay visible outside the app until the call reaches a
