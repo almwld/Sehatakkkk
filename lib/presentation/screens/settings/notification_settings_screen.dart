@@ -21,6 +21,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   bool _sound = true;
   bool _vibration = true;
   bool _popup = true;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -43,6 +44,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   }
 
   Future<void> _saveSettings() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notif_all', _allNotifications);
     await prefs.setBool('notif_appointments', _appointments);
@@ -53,7 +57,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     await prefs.setBool('notif_vibration', _vibration);
     await prefs.setBool('notif_popup', _popup);
 
-    ToastService.showSuccess(context, '✅ تم حفظ إعدادات الإشعارات');
+    if (mounted) ToastService.showSuccess(context, 'تم حفظ إعدادات الإشعارات');
+    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ إعدادات الإشعارات'); }
+    finally { if (mounted) setState(() => _saving = false); }
   }
 
   @override
@@ -72,8 +78,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.save_rounded),
-            onPressed: _saveSettings,
+            icon: _saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Icon(Icons.save_rounded),
+            onPressed: _saving ? null : _saveSettings,
             tooltip: 'حفظ الإعدادات',
           ),
         ],
