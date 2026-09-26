@@ -218,7 +218,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     return GestureDetector(
       onTap: widget.onReplyPreviewTap,
       child: Container(
-        width: double.infinity,
+        constraints: const BoxConstraints(maxWidth: 260),
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
