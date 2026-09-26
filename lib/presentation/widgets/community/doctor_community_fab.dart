@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/bloc/community/community_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/create_post_sheet.dart';
@@ -103,15 +102,7 @@ class _DoctorCommunityFabState extends State<DoctorCommunityFab> with SingleTick
     if (!mounted) return;
 
     try {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => BlocProvider(
-          create: (_) => CommunityBloc(),
-          child: const CreatePostSheet(),
-        ),
-      );
+      await CreatePostSheet.show(context);
       if (mounted) widget.onPostPublished?.call();
     } finally {
       if (mounted) {
