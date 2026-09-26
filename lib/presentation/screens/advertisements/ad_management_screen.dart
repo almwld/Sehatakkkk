@@ -17,6 +17,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> {
   final _auth = FirebaseAuth.instance;
   AdType? _selectedType;
   String _status = 'الكل';
+  bool _creating = false;
 
   @override void initState() { super.initState(); _selectedType = widget.providerType; }
 
@@ -66,10 +67,15 @@ class _AdManagementScreenState extends State<AdManagementScreen> {
               ElevatedButton(onPressed: () async {
                 final user = _auth.currentUser;
                 if (user == null || title.text.trim().isEmpty) { ToastService.showWarning('أدخل عنوان الإعلان'); return; }
-                await _firestore.collection('advertisements').add({'providerId': user.uid, 'title': title.text.trim(), 'description': desc.text.trim(), 'imageUrl': '', 'type': type.name, 'status': AdStatus.pending.name, 'budget': double.tryParse(budget.text) ?? 0, 'spent': 0, 'views': 0, 'clicks': 0, 'startDate': Timestamp.now(), 'endDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 30))), 'createdAt': FieldValue.serverTimestamp()});
-                if (ctx.mounted) Navigator.pop(ctx);
-                ToastService.showSuccess('تم إنشاء الإعلان');
-              }, child: const Text('حفظ')),
+                setDialogState(() => _creating = true);
+                try {
+                  await _firestore.collection('advertisements').add({'providerId': user.uid, 'title': title.text.trim(), 'description': desc.text.trim(), 'imageUrl': '', 'type': type.name, 'status': AdStatus.pending.name, 'budget': double.tryParse(budget.text) ?? 0, 'spent': 0, 'views': 0, 'clicks': 0, 'startDate': Timestamp.now(), 'endDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 30))), 'createdAt': FieldValue.serverTimestamp()});
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  ToastService.showSuccess('تم إنشاء الإعلان');
+                } catch (_) {
+                  if (ctx.mounted) { setDialogState(() => _creating = false); ToastService.showError('تعذر حفظ الإعلان، حاول مرة أخرى'); }
+                }
+              }, child: _creating ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : const Text('حفظ')),
             ],
           ),
         ),
