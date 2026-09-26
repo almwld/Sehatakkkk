@@ -101,9 +101,14 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
       'blockedPatientIds': blockedPatients.toList(), 'availabilityUpdatedAt': FieldValue.serverTimestamp()
     };
     try {
-      await FirebaseFirestore.instance.collection('users').doc(uid).update(data);
-      await FirebaseFirestore.instance.collection('doctors').doc(uid).set(<String,dynamic>{...data,'userId':uid,'uid':uid}, SetOptions(merge:true));
+      final batch = FirebaseFirestore.instance.batch();
+      batch.update(FirebaseFirestore.instance.collection('users').doc(uid), data);
+      batch.set(FirebaseFirestore.instance.collection('doctors').doc(uid), <String,dynamic>{...data,'userId':uid,'uid':uid}, SetOptions(merge:true));
+      await batch.commit();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ إعدادات الطبيب وتحديث ملفه في قائمة الأطباء')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر حفظ إعدادات الطبيب، حاول مرة أخرى')));
+      debugPrint('Doctor settings save failed: $e');
     } finally {
       if (mounted) setState(() => saving = false);
     }
