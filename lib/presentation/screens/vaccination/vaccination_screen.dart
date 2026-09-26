@@ -41,6 +41,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
     String beneficiaryType = 'self';
     final beneficiaryName = TextEditingController();
 
+    bool saving = false;
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
@@ -131,7 +132,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
               child: const Text('إلغاء'),
             ),
             ElevatedButton(
-              onPressed: () async {
+              onPressed: saving ? null : () async {
                 if (name.text.trim().isEmpty) {
                   _msg('أدخل اسم اللقاح');
                   return;
@@ -140,6 +141,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                   _msg(beneficiaryType == 'child' ? 'أدخل اسم الطفل' : 'أدخل اسم المرأة');
                   return;
                 }
+                setDialogState(() => saving = true);
                 try {
                   await _items(uid).add({
                     'name': name.text.trim(),
@@ -160,13 +162,12 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 } catch (e) {
                   debugPrint('save vaccination failed: $e');
                   if (dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      const SnackBar(content: Text('تعذر حفظ التطعيم')),
-                    );
+                    setDialogState(() => saving = false);
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('تعذر حفظ التطعيم')));
                   }
                 }
               },
-              child: const Text('حفظ'),
+              child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : const Text('حفظ'),
             ),
           ],
         ),
