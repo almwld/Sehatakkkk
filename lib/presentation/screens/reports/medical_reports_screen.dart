@@ -80,6 +80,7 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
 
   void _showAddReportDialog(BuildContext context) {
     final title = TextEditingController(), doctor = TextEditingController(), type = TextEditingController(), notes = TextEditingController();
+    bool saving = false;
     showDialog(context: context, builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, setDialogState) => AlertDialog(
       title: const Text('إضافة تقرير طبي'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
