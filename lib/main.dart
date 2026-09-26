@@ -565,7 +565,25 @@ class _SehatakAppState extends State<SehatakApp>
       String? type, Map<String, dynamic> data) async {
     final nav = navigatorKey.currentState;
     if (nav == null) return;
-    if (type == 'verification_required' || type == 'verification_result') {
+    final directRoute = data['route']?.toString().trim() ?? '';
+    if (directRoute.isNotEmpty) {
+      try {
+        nav.pushNamed(directRoute, arguments: data);
+      } catch (_) {
+        final ctx = navigatorKey.currentContext;
+        final router = ctx == null ? null : GoRouter.maybeOf(ctx);
+        if (router != null) router.push(directRoute, extra: data);
+      }
+      return;
+    }
+    if (type == 'verification' ||
+        type == 'verification_required' ||
+        type == 'verification_result' ||
+        type == 'verification_approved' ||
+        type == 'verification_rejected' ||
+        type == 'verified' ||
+        type == 'account_verified' ||
+        data['action']?.toString() == 'verification') {
       final ctx = navigatorKey.currentContext;
       if (ctx != null) {
         await Navigator.of(ctx).push(MaterialPageRoute(builder: (_) => const VerificationScreen()));

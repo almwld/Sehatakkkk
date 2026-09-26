@@ -264,9 +264,8 @@ class NotificationService {
           ?.toString()
           .trim();
       final authUid = FirebaseAuth.instance.currentUser?.uid;
-      final uid = (recipientId != null && recipientId.isNotEmpty)
-          ? recipientId
-          : authUid;
+      final uid = authUid ??
+          ((recipientId != null && recipientId.isNotEmpty) ? recipientId : null);
       if (uid == null || uid.isEmpty) return;
 
       final rawId = (payload['notificationId'] ?? payload['id'] ?? messageId)

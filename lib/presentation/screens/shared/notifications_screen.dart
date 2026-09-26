@@ -112,8 +112,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final payload = data['data'];
     final nested = payload is Map ? Map<String, dynamic>.from(payload) : <String, dynamic>{};
     final chatId = (data['chatId'] ?? nested['chatId'])?.toString();
-    if (type == 'verification_required' ||
+    final directRoute = (data['route'] ?? nested['route'])?.toString().trim() ?? '';
+    if (directRoute.isNotEmpty && mounted) {
+      try { await Navigator.of(context).pushNamed(directRoute, arguments: data); } catch (_) {}
+      return;
+    }
+    if (type == 'verification' ||
+        type == 'verification_required' ||
         type == 'verification_result' ||
+        type == 'verification_approved' ||
+        type == 'verification_rejected' ||
+        type == 'verified' ||
+        type == 'account_verified' ||
         data['action']?.toString() == 'verification') {
       if (mounted) {
         await Navigator.of(context).push(
