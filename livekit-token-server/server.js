@@ -272,12 +272,6 @@ async function handleNewMessage(change) {
     if (!chatSnap.exists) { console.warn('[msg] chat missing id=' + chatId); return; }
     var chat = chatSnap.data() || {};
 
-    var mutedFor = chat.mutedFor && typeof chat.mutedFor === 'object' ? chat.mutedFor : {};
-    if (chat.isMuted === true || chat.muted === true || mutedFor[receiverId] === true) {
-      console.log('[msg] muted chatId=' + chatId + ' receiver=' + receiverId);
-      return;
-    }
-
     var participants = Array.isArray(chat.participants)
       ? chat.participants.map(String).filter(Boolean) : [];
     if (participants.length === 0) { console.warn('[msg] no participants'); return; }
@@ -296,6 +290,12 @@ async function handleNewMessage(change) {
     for (i = 0; i < userSnaps.length; i++) {
       var userSnap = userSnaps[i];
       if (!userSnap.exists) continue;
+      var receiverId = userSnap.id;
+      var mutedFor = chat.mutedFor && typeof chat.mutedFor === 'object' ? chat.mutedFor : {};
+      if (chat.isMuted === true || chat.muted === true || mutedFor[receiverId] === true) {
+        console.log('[msg] muted chatId=' + chatId + ' receiver=' + receiverId);
+        continue;
+      }
       var user = userSnap.data() || {};
       var fcmTokens = (Array.isArray(user.fcmTokens) ? user.fcmTokens : [])
         .concat([user.fcmToken])
