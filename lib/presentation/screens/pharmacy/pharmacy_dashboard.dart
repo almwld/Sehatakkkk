@@ -21,6 +21,7 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
   bool _loading = true;
   String? _error;
   File? _productImage;
+  bool _addingProduct = false;
 
   @override
   void initState() { super.initState(); _load(); }
@@ -55,16 +56,18 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
   }
 
   Future<void> _addProduct() async {
-    if (_pharmacy == null || _pharmacy!['status'] != 'approved') return;
+    if (_addingProduct || _pharmacy == null || _pharmacy!['status'] != 'approved') return;
     final name = TextEditingController(), category = TextEditingController(text: 'أدوية'), price = TextEditingController(), stock = TextEditingController(text: '0'), drug = TextEditingController();
     final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(title: const Text('إضافة منتج'), content: SingleChildScrollView(child: Column(children: [TextField(controller: name, decoration: const InputDecoration(labelText: 'اسم المنتج')), TextField(controller: drug, decoration: const InputDecoration(labelText: 'معرّف الدواء الرسمي (اختياري)')), TextField(controller: category, decoration: const InputDecoration(labelText: 'الفئة')), TextField(controller: price, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'السعر ر.ي')), TextField(controller: stock, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'المخزون')), const SizedBox(height: 10), if (_productImage != null) Image.file(_productImage!, height: 110, width: 110, fit: BoxFit.cover), OutlinedButton.icon(onPressed: _pickProductImage, icon: const Icon(Icons.image), label: const Text('رفع/تصوير صورة الصنف'))])), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')), ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ المنتج'))]));
     if (ok != true || name.text.trim().isEmpty || price.text.trim().isEmpty) return;
+    if (mounted) setState(() => _addingProduct = true);
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid; if (uid == null) throw StateError('يجب تسجيل الدخول'); String? imageUrl;
       if (_productImage != null) { final up = await NextcloudService().uploadFile(file: _productImage!, path: 'sehatak/products/'+uid, fileName: DateTime.now().millisecondsSinceEpoch.toString()+'_'+_productImage!.path.split('/').last); if (!up.success || up.url == null) throw StateError(up.error ?? 'فشل رفع صورة المنتج'); imageUrl = up.url; }
       await FirebaseFirestore.instance.collection('products').add({'name':name.text.trim(),'category':category.text.trim(),'price':double.tryParse(price.text)??0,'stock':int.tryParse(stock.text)??0,'drugId':drug.text.trim(),'imageUrl':imageUrl,'pharmacyId':_pharmacy!['id'],'sellerId':uid,'pharmacyName':_pharmacy!['name']??'','approvalStatus':'pending','isPublished':false,'isActive':true,'createdAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp()});
       _productImage=null; await _load(); if(mounted) ToastService.showSuccess('تم حفظ المنتج وإرساله للمراجعة');
-    } catch(e){if(mounted) ToastService.showError('فشل: '+e.toString());}
+    } catch(e){if(mounted) ToastService.showError('فشل حفظ المنتج: '+e.toString());}
+    finally { if (mounted) setState(() => _addingProduct = false); }
   }
 
   Future<void> _editOffer(Map<String, dynamic> p) async { final id='${p['id']??''}'; if(id.isEmpty)return; final price=TextEditingController(text:'${p['price']??0}'), stock=TextEditingController(text:'${p['stock']??0}'); final ok=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(title:Text('تعديل ${p['name']??'المنتج'}'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:price,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'السعر ر.ي')),TextField(controller:stock,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'المخزون'))]),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('إلغاء')),ElevatedButton(onPressed:()=>Navigator.pop(context,true),child:const Text('حفظ'))])); if(ok!=true)return; try{await FirebaseFirestore.instance.collection('products').doc(id).update({'price':double.tryParse(price.text)??0,'stock':int.tryParse(stock.text)??0,'updatedAt':FieldValue.serverTimestamp()});await _load();if(mounted)ToastService.showSuccess('تم تحديث المنتج');}catch(e){if(mounted)ToastService.showError('فشل تحديث المنتج: '+e.toString());}}
