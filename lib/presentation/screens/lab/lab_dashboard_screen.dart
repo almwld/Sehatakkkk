@@ -63,10 +63,11 @@ class _TestsTab extends StatelessWidget{
     final desc=TextEditingController(text:old?['description']?.toString()??'');
     final price=TextEditingController(text:old?['price']?.toString()??'');
     final duration=TextEditingController(text:old?['duration']?.toString()??'');
+    bool saving = false;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) {
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setSheetState) {
         return Padding(
           padding: EdgeInsets.only(
             left: 16,
@@ -128,11 +129,13 @@ class _TestsTab extends StatelessWidget{
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async {
+                    onPressed: saving ? null : () async {
                       if (name.text.trim().isEmpty || price.text.trim().isEmpty) {
                         ToastService.showError('الاسم والسعر مطلوبان');
                         return;
                       }
+                      setSheetState(() => saving = true);
+                      try {
                       final data = <String, dynamic>{
                         'labId': uid,
                         'name': name.text.trim(),
@@ -148,21 +151,20 @@ class _TestsTab extends StatelessWidget{
                       } else {
                         await FirebaseFirestore.instance.collection('lab_tests').doc(id).update(data);
                       }
-                      if (ctx.mounted) {
-                        Navigator.pop(ctx);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      ToastService.showSuccess(id == null ? 'تمت إضافة الفحص' : 'تم تحديث الفحص');
+                      } catch (e) {
+                        if (ctx.mounted) { setSheetState(() => saving = false); ToastService.showError('تعذر حفظ الفحص، حاول مرة أخرى'); }
                       }
-                      ToastService.showSuccess(
-                        id == null ? 'تمت إضافة الفحص' : 'تم تحديث الفحص',
-                      );
                     },
-                    child: Text(id == null ? 'حفظ' : 'حفظ التعديل'),
+                    child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : Text(id == null ? 'حفظ' : 'حفظ التعديل'),
                   ),
                 ),
               ],
             ),
           ),
         );
-      },
+      }),
     );
     name.dispose();desc.dispose();price.dispose();duration.dispose();
   }
