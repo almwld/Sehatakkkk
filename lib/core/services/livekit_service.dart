@@ -43,20 +43,78 @@ class LiveKitService {
     return value;
   }
 
+  Future<Room> _connectWithRetry({
+    required String url,
+    required String token,
+  }) async {
+    const options = RoomOptions(
+      adaptiveStream: true,
+      dynacast: true,
+      defaultVideoPublishOptions: VideoPublishOptions(simulcast: false),
+      defaultAudioPublishOptions: AudioPublishOptions(),
+    );
+
+    Object? lastError;
+    for (var attempt = 1; attempt <= 3; attempt++) {
+      final current = _room ??= Room();
+      try {
+        if (attempt > 1) {
+          // Reuse the existing Room first so its lifecycle/listeners remain
+          // intact in the normal retry path. Do not dispose between attempts.
+          await current.disconnect();
+        }
+        debugPrint('LIVEKIT CONNECT attempt=$attempt/3');
+        await current
+            .connect(url, token, roomOptions: options)
+            .timeout(const Duration(seconds: 20));
+        return current;
+      } catch (e, st) {
+        lastError = e;
+        _isConnected = false;
+        debugPrint('LIVEKIT CONNECT attempt=$attempt/3 FAILED: $e');
+        debugPrintStack(stackTrace: st);
+
+        if (attempt == 2) {
+          // Only after two failed attempts do we replace the Room. Callers
+          // attach their listeners after connectRoom returns, so no existing
+          // listeners are lost here.
+          try {
+            await current.disconnect();
+          } catch (_) {}
+          _room = Room();
+        }
+        if (attempt < 3) {
+          await Future<void>.delayed(
+            Duration(milliseconds: attempt == 1 ? 500 : 1000),
+          );
+        }
+      }
+    }
+    throw lastError ?? StateError('تعذر الاتصال بخدمة LiveKit');
+  }
+
   Future<Room> connectRoom({required String roomName, String? participantName}) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('يجب تسجيل الدخول قبل إجراء المكالمة');
-      final name = participantName?.trim().isNotEmpty == true ? participantName!.trim() : (user.displayName?.trim().isNotEmpty == true ? user.displayName!.trim() : 'مستخدم');
-      final tokenData = await _requestLiveKitToken(roomName: roomName, participantName: name);
-      await _room?.disconnect();
-      _room = Room();
-      const options = RoomOptions(adaptiveStream: true, dynacast: true, defaultVideoPublishOptions: VideoPublishOptions(simulcast: false), defaultAudioPublishOptions: AudioPublishOptions());
-      await _room!.connect(tokenData['url'] as String, tokenData['token'] as String, roomOptions: options);
+      final name = participantName?.trim().isNotEmpty == true
+          ? participantName!.trim()
+          : (user.displayName?.trim().isNotEmpty == true
+              ? user.displayName!.trim()
+              : 'مستخدم');
+      final tokenData = await _requestLiveKitToken(
+        roomName: roomName,
+        participantName: name,
+      );
+      final connectedRoom = await _connectWithRetry(
+        url: tokenData['url'] as String,
+        token: tokenData['token'] as String,
+      );
+      _room = connectedRoom;
       _isConnected = true;
       await enableMicrophone();
       await setSpeakerphone(true);
-      return _room!;
+      return connectedRoom;
     } catch (e, st) {
       _isConnected = false;
       debugPrint('LIVEKIT CONNECT ERROR: $e');
