@@ -136,17 +136,17 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     final doctor = TextEditingController();
     final type = TextEditingController(text: 'تقارير');
     final desc = TextEditingController();
+    bool saving = false;
     try {
       final ok = await showDialog<bool>(
         context: context,
         builder: (dialogContext) {
-          bool saving = false;
-          return AlertDialog(
+          return StatefulBuilder(builder: (dialogContext, setDialogState) => AlertDialog(
           title: const Text('إضافة ملف طبي'),
           content: SingleChildScrollView(child: Column(children: [TextField(controller: title, decoration: const InputDecoration(labelText: 'العنوان')), TextField(controller: doctor, decoration: const InputDecoration(labelText: 'اسم الطبيب')), TextField(controller: type, decoration: const InputDecoration(labelText: 'النوع')), TextField(controller: desc, maxLines: 3, decoration: const InputDecoration(labelText: 'الوصف'))])),
           actions: [TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext, false), child: const Text('إلغاء')), ElevatedButton(onPressed: saving ? null : () async {
             if (title.text.trim().isEmpty) { ToastService.showWarning('يرجى إدخال عنوان الملف'); return; }
-            setState(() => saving = true);
+            setDialogState(() => saving = true);
             try {
               final user = _auth.currentUser;
               if (user == null) throw Exception('unauthenticated');
@@ -154,11 +154,11 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               if (dialogContext.mounted) Navigator.pop(dialogContext, true);
               if (mounted) ToastService.showSuccess('تمت إضافة الملف الطبي');
             } catch (_) {
-              if (dialogContext.mounted) setState(() => saving = false);
+              if (dialogContext.mounted) setDialogState(() => saving = false);
               if (mounted) ToastService.showError('تعذر حفظ الملف الطبي، حاول مرة أخرى');
             }
           }, child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : const Text('حفظ'))],
-        );
+        ));
         },
       );
       if (ok != true) return;
