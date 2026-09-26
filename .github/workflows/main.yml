@@ -431,6 +431,29 @@ jobs:
         path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
         retention-days: 30
 
+    - name: 🧪 Upload arm64 APK to Appetize
+      id: appetize
+      uses: appetizeio/github-action-appetize@v1.1.0
+      with:
+        apiToken: ${{ secrets.APPETIZE_API_KEY }}
+        appFile: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+        platform: android
+        note: "Sehatak CI build ${{ github.sha }}"
+
+    - name: 🔗 Publish Appetize test link
+      shell: bash
+      run: |
+        set -euo pipefail
+        public_key="${{ steps.appetize.outputs.publicKey }}"
+        if [ -z "$public_key" ]; then
+          echo "❌ Appetize did not return a publicKey."
+          exit 1
+        fi
+        echo "APPETIZE_PUBLIC_KEY=$public_key" >> "$GITHUB_OUTPUT"
+        echo "### Appetize cloud test" >> "$GITHUB_STEP_SUMMARY"
+        echo "[Open Sehatak in Appetize](https://appetize.io/app/$public_key)" >> "$GITHUB_STEP_SUMMARY"
+        echo "Appetize publicKey: $public_key"
+
     - name: 📤 Upload armeabi-v7a
       uses: actions/upload-artifact@v4
       with:
