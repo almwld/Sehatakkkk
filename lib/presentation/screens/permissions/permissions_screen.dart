@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class PermissionsScreen extends StatefulWidget {
@@ -16,6 +17,39 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
   bool _notifications = true;
   bool _contacts = false;
   bool _storage = true;
+  bool _saving = false;
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    final p = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _location = p.getBool('perm_location') ?? true;
+      _camera = p.getBool('perm_camera') ?? true;
+      _microphone = p.getBool('perm_microphone') ?? false;
+      _notifications = p.getBool('perm_notifications') ?? true;
+      _contacts = p.getBool('perm_contacts') ?? false;
+      _storage = p.getBool('perm_storage') ?? true;
+    });
+  }
+
+  Future<void> _save() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      final p = await SharedPreferences.getInstance();
+      await Future.wait([
+        p.setBool('perm_location', _location), p.setBool('perm_camera', _camera),
+        p.setBool('perm_microphone', _microphone), p.setBool('perm_notifications', _notifications),
+        p.setBool('perm_contacts', _contacts), p.setBool('perm_storage', _storage),
+      ]);
+      if (mounted) ToastService.showSuccess('تم حفظ إعدادات الأذونات');
+    } catch (e) {
+      if (mounted) ToastService.showError('تعذر حفظ إعدادات الأذونات');
+    } finally { if (mounted) setState(() => _saving = false); }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +71,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           _permissionCard(Icons.contacts, 'جهات الاتصال', 'لإضافة جهات اتصال الطوارئ', _contacts, false, (v) => setState(() => _contacts = v)),
           _permissionCard(Icons.storage, 'التخزين', 'لحفظ التقارير والملفات', _storage, false, (v) => setState(() => _storage = v)),
           const SizedBox(height: 24),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () { Navigator.pop(context); ToastService.showSuccess(context, 'تم حفظ إعدادات الأذونات'); }, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)), child: const Text('حفظ'))),
+          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _saving ? null : _save, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)), child: _saving ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('حفظ'))),
         ]),
       ),
     );
