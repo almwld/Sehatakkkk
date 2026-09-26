@@ -1,5 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class SymptomCheckerScreen extends StatefulWidget {
@@ -409,15 +411,24 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
             child: const Text('إغلاق'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ToastService.showSuccess('📋 تم حفظ تحليل الأعراض');
+            onPressed: _savingReport ? null : () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user == null) { ToastService.showError('يرجى تسجيل الدخول لحفظ التقرير'); return; }
+              setState(() => _savingReport = true);
+              try {
+                await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('symptom_checks').add({
+                  'symptoms': _selectedSymptoms.toList(), 'result': result, 'advice': advice,
+                  'severityCount': severityCount, 'createdAt': FieldValue.serverTimestamp(),
+                });
+                if (mounted) { Navigator.pop(context); ToastService.showSuccess('تم حفظ تحليل الأعراض'); }
+              } catch (_) { if (mounted) ToastService.showError('تعذر حفظ التقرير، حاول مرة أخرى'); }
+              finally { if (mounted) setState(() => _savingReport = false); }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('حفظ التقرير'),
+            child: Text(_savingReport ? 'جاري الحفظ...' : 'حفظ التقرير'),
           ),
         ],
       ),
