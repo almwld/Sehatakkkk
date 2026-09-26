@@ -75,9 +75,9 @@ app.post('/token', async (req, res) => {
 // Production incoming-call notification endpoint.
 // Flutter creates the canonical calls/{callId} document, then calls this endpoint.
 // Railway verifies the caller and sends FCM directly, so Firebase Cloud Functions/Blaze are not required.
-// IMPORTANT: the FCM payload is DATA-ONLY. This lets Flutter own the notification path:
-// foreground -> onMessage -> IncomingCallScreen/local alert
-// background/terminated -> background handler -> local call notification.
+// Incoming calls remain DATA-ONLY so Flutter can own the full-screen call notification
+// and answer/reject actions. Text messages intentionally use notification + data below
+// so Android can place them in the system tray while the app is backgrounded.
 app.post('/call-notification', async (req, res) => {
   const requestId = `call-notify-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   console.log(`📞 [${requestId}] incoming /call-notification request`);
@@ -207,6 +207,10 @@ function buildMessagePayload(opts) {
     token: opts.fcmToken,
     // DATA-ONLY is intentional: Android must not auto-render the FCM
     // notification, otherwise the OS bypasses our Flutter notification actions.
+    notification: {
+      title: String(opts.senderName || 'رسالة جديدة'),
+      body: preview || 'لديك رسالة جديدة في الدردشة',
+    },
     data: {
       type: 'new_message',
       chatId: String(opts.chatId || ''),
@@ -223,13 +227,18 @@ function buildMessagePayload(opts) {
       fileMimeType: String(opts.fileMimeType || ''),
       fileSize: String(opts.fileSize || ''),
       body: preview,
-      title: String(opts.senderName || 'New message'),
+      title: String(opts.senderName || 'رسالة جديدة'),
       chatType: String(opts.chatType || 'direct'),
       timestamp: String(Date.now())
     },
     android: {
       priority: 'high',
-      ttl: 3600000
+      ttl: 3600000,
+      notification: {
+        channelId: 'sehatak_messages_v2',
+        sound: 'notification',
+        priority: 'high',
+      },
     },
     apns: {
       headers: { 'apns-priority': '5', 'apns-push-type': 'background' },
