@@ -50,9 +50,8 @@ class _RemindersScreenState extends State<RemindersScreen> {
 
   Future<void> _showAddReminderDialog(BuildContext context) async {
     _selectedDate = DateTime.now(); _selectedTime = TimeOfDay.now();
-    await showDialog<void>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, setDialogState) {
-      bool saving = false;
-      return AlertDialog(
+    bool saving = false;
+    await showDialog<void>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, setDialogState) => AlertDialog(
       title: const Text('إضافة تذكير'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: _titleCtrl, decoration: const InputDecoration(labelText: 'العنوان', prefixIcon: Icon(Icons.title))),
@@ -77,7 +76,6 @@ class _RemindersScreenState extends State<RemindersScreen> {
           await ToastService.showError('تعذر حفظ التذكير، حاول مرة أخرى');
         }
       }, child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : const Text('حفظ'))],
-    );
-    });
+    ));
   }
 }
