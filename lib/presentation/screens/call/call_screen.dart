@@ -66,6 +66,7 @@ class _CallScreenState extends State<CallScreen> {
   double speakerVolume = 0.75;
   bool online = true;
   bool swapped = false;
+  String connectionStatus = 'جاري الاتصال...';
 
   @override
   void initState() {
@@ -239,6 +240,24 @@ class _CallScreenState extends State<CallScreen> {
       registry.register(c.id);
       setConnectedAt(c.connectedAt?.toDate() ?? DateTime.now());
       syncTracks();
+      connectionStatus = 'متصل';
+      room!.events.on<RoomReconnectingEvent>((_) {
+        if (mounted) setState(() => connectionStatus = 'إعادة الاتصال...');
+      });
+      room!.events.on<RoomReconnectedEvent>((_) {
+        if (mounted) {
+          setState(() {
+            connectionStatus = 'متصل';
+            error = null;
+          });
+          syncTracks();
+        }
+      });
+      room!.events.on<RoomDisconnectedEvent>((_) {
+        if (mounted && !ending) {
+          setState(() => connectionStatus = 'انقطع الاتصال');
+        }
+      });
       room!.events.on<ParticipantConnectedEvent>((_) => syncTracks());
       room!.events.on<TrackSubscribedEvent>((e) {
         syncTracks();
@@ -410,11 +429,13 @@ class _CallScreenState extends State<CallScreen> {
     final remote = swapped ? localTrack : remoteTrack;
     final local = swapped ? remoteTrack : localTrack;
     final topStatus = error ??
-        (!online ? 'لا يوجد اتصال بالإنترنت' : joined
-            ? fmt(seconds)
-            : connecting
-                ? 'جاري الاتصال...'
-                : 'في انتظار قبول المكالمة...');
+        (!online
+            ? 'لا يوجد اتصال بالإنترنت'
+            : !joined
+                ? (connecting ? 'جاري الاتصال...' : 'في انتظار قبول المكالمة...')
+                : connectionStatus == 'متصل'
+                    ? fmt(seconds)
+                    : connectionStatus);
     final centerMessage = error ??
         (!online
             ? 'لا يوجد اتصال بالإنترنت'
