@@ -563,7 +563,6 @@ class NotificationService {
         AndroidNotificationAction(
           'message_reply',
           'رد',
-          icon: DrawableResourceAndroidBitmap('ic_reply'),
           inputs: const <AndroidNotificationActionInput>[
             AndroidNotificationActionInput(
               label: 'اكتب ردك…',
@@ -577,7 +576,6 @@ class NotificationService {
         AndroidNotificationAction(
           'message_read',
           'تمت القراءة',
-          icon: DrawableResourceAndroidBitmap('ic_mark_read'),
           showsUserInterface: false,
           cancelNotification: true,
         ),
@@ -585,7 +583,6 @@ class NotificationService {
         AndroidNotificationAction(
           'message_mute',
           'كتم',
-          icon: DrawableResourceAndroidBitmap('ic_mute'),
           showsUserInterface: false,
           cancelNotification: true,
         ),
