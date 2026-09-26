@@ -2,6 +2,10 @@ package com.sehatak.app
 
 import android.os.Bundle
 import android.media.AudioManager
+import android.app.NotificationManager
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.view.WindowManager
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -9,6 +13,7 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 class MainActivity : FlutterFragmentActivity() {
 
     private val callAudioChannel = "com.sehatak.app/call_audio"
+    private val fullScreenChannel = "com.sehatak.app/full_screen_intent"
 
     override fun configureFlutterEngine(flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -32,6 +37,51 @@ class MainActivity : FlutterFragmentActivity() {
                     val volume = kotlin.math.round(normalized * max).toInt().coerceIn(0, max)
                     audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL, volume, 0)
                     result.success(volume.toDouble() / max.toDouble())
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, fullScreenChannel).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "canUseFullScreenIntent" -> {
+                    try {
+                        if (android.os.Build.VERSION.SDK_INT >= 34) {
+                            val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                            result.success(nm.canUseFullScreenIntent())
+                        } else {
+                            result.success(true)
+                        }
+                    } catch (e: Exception) {
+                        result.error("CHECK_FAILED", e.message, null)
+                    }
+                }
+                "openFullScreenIntentSettings" -> {
+                    try {
+                        val intent = if (android.os.Build.VERSION.SDK_INT >= 34) {
+                            Intent("android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT").apply {
+                                data = Uri.parse("package:$packageName")
+                            }
+                        } else {
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.parse("package:$packageName")
+                            }
+                        }
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(intent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        try {
+                            val fallback = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.parse("package:$packageName")
+                            }
+                            fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            startActivity(fallback)
+                            result.success(true)
+                        } catch (e2: Exception) {
+                            result.error("OPEN_FAILED", e2.message, null)
+                        }
+                    }
                 }
                 else -> result.notImplemented()
             }

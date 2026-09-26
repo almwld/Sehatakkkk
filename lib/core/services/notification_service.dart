@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -161,6 +163,29 @@ class NotificationService {
   bool _initialized = false;
   bool _callCoordinatorStarted = false;
 
+  static const MethodChannel _fullScreenChannel =
+      MethodChannel('com.sehatak.app/full_screen_intent');
+
+  Future<bool> canUseFullScreenIntent() async {
+    if (!Platform.isAndroid) return true;
+    try {
+      final result = await _fullScreenChannel.invokeMethod<bool>('canUseFullScreenIntent');
+      return result ?? true;
+    } catch (e) {
+      debugPrint('⚠️ canUseFullScreenIntent failed: $e');
+      return true;
+    }
+  }
+
+  Future<void> openFullScreenIntentSettings() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _fullScreenChannel.invokeMethod('openFullScreenIntentSettings');
+    } catch (e) {
+      debugPrint('⚠️ openFullScreenIntentSettings failed: $e');
+    }
+  }
+
   static const messageChannelId = 'sehatak_messages_v2';
   static const appointmentChannelId = 'sehatak_appointments_v1';
   static const medicationChannelId = 'sehatak_medications_v1';
@@ -251,13 +276,18 @@ class NotificationService {
       await android?.createNotificationChannel(_healthChannel);
       await android?.createNotificationChannel(_socialChannel);
       await android?.createNotificationChannel(_callChannel);
-      // Android 14+ can restrict USE_FULL_SCREEN_INTENT. Request the
-      // special full-screen notification permission so incoming calls can
-      // present the call UI over other apps and while the device is locked.
+      // Android 14+ can restrict USE_FULL_SCREEN_INTENT. Check the
+      // current state here for diagnostics only. The UI owns user guidance
+      // and settings navigation; the FCM background isolate does not depend
+      // on the MethodChannel.
       try {
-        await android?.requestFullScreenIntentPermission();
+        final canUse = await canUseFullScreenIntent();
+        debugPrint('📱 Full Screen Intent available: $canUse');
+        if (!canUse) {
+          debugPrint('ℹ️ Full Screen Intent not granted — UI will prompt');
+        }
       } catch (e) {
-        debugPrint('⚠️ Full-screen call permission request unavailable: $e');
+        debugPrint('⚠️ Full Screen Intent check failed: $e');
       }
       final ios = _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
       _initialized = true;

@@ -52,50 +52,94 @@ import 'presentation/screens/medication/medication_reminder_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final notificationService = NotificationService();
-  await notificationService.initialize(startCallCoordinator: false);
-  final type = message.data['type']?.toString() ?? 'system';
-  await notificationService.persistIncomingNotification(
-    type: type,
-    title: message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? 'صحتك',
-    body: message.data['body']?.toString() ?? 'لديك إشعار جديد',
-    data: Map<String, dynamic>.from(message.data),
-    messageId: message.messageId,
-  );
-  if (type == 'new_message' || type == 'chat_message' || type == 'message') {
-    final chatId = message.data['chatId']?.toString() ?? '';
-    final messageId = message.data['messageId']?.toString() ?? '';
-    if (chatId.isNotEmpty && messageId.isNotEmpty) {
-      try { await ChatService().markDelivered(chatId); } catch (e) { debugPrint('message delivery ack failed: $e'); }
-    }
-  }
-  if (type == 'incoming_call') {
-    final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-    if (callId != null && callId.isNotEmpty) {
-      await notificationService.showIncomingCallNotification(
-        callerName: message.data['callerName']?.toString() ?? 'مكالمة واردة',
-        callId: callId,
-        isVideo: message.data['isVideo']?.toString() == 'true' ||
-            message.data['callType']?.toString() == 'video',
-      );
-    }
+  debugPrint('═══════ [BG FCM] START ═══════');
+  debugPrint('📨 [BG] messageId=${message.messageId}');
+  debugPrint('📨 [BG] data keys=${message.data.keys.toList()}');
+  debugPrint('📨 [BG] type=${message.data['type']}');
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    debugPrint('✅ [BG] Firebase initialized');
+  } catch (e) {
+    debugPrint('❌ [BG] Firebase init failed: $e');
     return;
   }
-  if (type != null && type.isNotEmpty) {
-    await notificationService.showTypedNotification(
+  final notificationService = NotificationService();
+  try {
+    await notificationService.initialize(startCallCoordinator: false);
+    debugPrint('✅ [BG] NotificationService initialized');
+  } catch (e, st) {
+    debugPrint('❌ [BG] NotificationService init failed: $e');
+    debugPrintStack(stackTrace: st);
+    return;
+  }
+  final type = message.data['type']?.toString() ?? 'system';
+  try {
+    await notificationService.persistIncomingNotification(
       type: type,
       title: message.data['title']?.toString() ??
           message.data['senderName']?.toString() ??
           'صحتك',
       body: message.data['body']?.toString() ?? 'لديك إشعار جديد',
       data: Map<String, dynamic>.from(message.data),
-      payload: jsonEncode(<String, dynamic>{
-        'type': type,
-        'data': Map<String, dynamic>.from(message.data)
-      }),
+      messageId: message.messageId,
     );
+    debugPrint('✅ [BG] notification persisted');
+  } catch (e) {
+    debugPrint('❌ [BG] persist failed: $e');
   }
+  if (type == 'new_message' || type == 'chat_message' || type == 'message') {
+    final chatId = message.data['chatId']?.toString() ?? '';
+    final messageId = message.data['messageId']?.toString() ?? '';
+    if (chatId.isNotEmpty && messageId.isNotEmpty) {
+      try {
+        await ChatService().markDelivered(chatId);
+      } catch (e) {
+        debugPrint('⚠️ [BG] markDelivered failed: $e');
+      }
+    }
+  }
+  if (type == 'incoming_call') {
+    final callId = (message.data['callId'] ?? message.data['id'])?.toString();
+    debugPrint('📞 [BG] incoming_call callId=$callId');
+    if (callId != null && callId.isNotEmpty) {
+      try {
+        await notificationService.showIncomingCallNotification(
+          callerName: message.data['callerName']?.toString() ?? 'مكالمة واردة',
+          callId: callId,
+          isVideo: message.data['isVideo']?.toString() == 'true' ||
+              message.data['callType']?.toString() == 'video',
+        );
+        debugPrint('✅ [BG] incoming call notification shown for $callId');
+      } catch (e, st) {
+        debugPrint('❌ [BG] showIncomingCallNotification failed: $e');
+        debugPrintStack(stackTrace: st);
+      }
+    } else {
+      debugPrint('❌ [BG] missing callId');
+    }
+    debugPrint('═══════ [BG FCM] END ═══════');
+    return;
+  }
+  if (type.isNotEmpty) {
+    try {
+      await notificationService.showTypedNotification(
+        type: type,
+        title: message.data['title']?.toString() ??
+            message.data['senderName']?.toString() ??
+            'صحتك',
+        body: message.data['body']?.toString() ?? 'لديك إشعار جديد',
+        data: Map<String, dynamic>.from(message.data),
+        payload: jsonEncode(<String, dynamic>{
+          'type': type,
+          'data': Map<String, dynamic>.from(message.data),
+        }),
+      );
+      debugPrint('✅ [BG] typed notification shown');
+    } catch (e) {
+      debugPrint('❌ [BG] showTypedNotification failed: $e');
+    }
+  }
+  debugPrint('═══════ [BG FCM] END ═══════');
 }
 
 Future<void> main() async {

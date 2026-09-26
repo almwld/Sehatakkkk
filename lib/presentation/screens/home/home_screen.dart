@@ -8,6 +8,7 @@ import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
@@ -43,6 +44,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _scrollController = ScrollController();
   late final GlobalScrollManager _scrollManager;
   bool _isLoggedIn = false, _backPressedOnce = false;
+  bool _fullScreenIntentChecked = false;
   Timer? _backExitTimer;
   Timer? _healthRefreshTimer;
   late final Map<int, Widget> _screens;
@@ -63,6 +65,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     };
     _checkAuth();
     _systemNav();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFullScreenIntentPermission();
+    });
     _healthRefreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) context.read<HomeBloc>().add(HomeHealthStatsRefreshed());
     });
@@ -83,6 +88,44 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted && v != _isLoggedIn) setState(() => _isLoggedIn = v);
   }
 
+  Future<void> _checkFullScreenIntentPermission() async {
+    if (_fullScreenIntentChecked) return;
+    _fullScreenIntentChecked = true;
+    try {
+      final canUse = await NotificationService().canUseFullScreenIntent();
+      debugPrint('📱 [Home] canUseFullScreenIntent = $canUse');
+      if (!canUse && mounted) {
+        await Future<void>.delayed(const Duration(milliseconds: 800));
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('تفعيل المكالمات الواردة'),
+            content: const Text(
+              'لتظهر شاشة المكالمات الواردة عند قفل الجهاز، '
+              'يجب تفعيل "الإشعارات الكاملة" من إعدادات النظام.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('لاحقاً'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await NotificationService().openFullScreenIntentSettings();
+                },
+                child: const Text('فتح الإعدادات'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('⚠️ [Home] _checkFullScreenIntentPermission failed: $e');
+    }
+  }
+
   @override
   void dispose() {
     _backExitTimer?.cancel();
@@ -98,6 +141,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (s == AppLifecycleState.resumed) {
       _checkAuth();
       _systemNav();
+      _fullScreenIntentChecked = false;
+      _checkFullScreenIntentPermission();
     }
   }
 
