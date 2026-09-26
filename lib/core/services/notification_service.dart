@@ -533,7 +533,7 @@ class NotificationService {
         .trim() ??
         '';
 
-    AndroidBitmap<Object>? avatarIcon;
+    AndroidIcon<Object>? avatarIcon;
     Uint8List? avatarBytes;
     if (senderPhotoUrl.isNotEmpty) {
       try {
