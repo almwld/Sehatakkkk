@@ -4,6 +4,8 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/template_model.dart';
 import 'package:sehatak/core/services/template_service.dart';
@@ -20,6 +22,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   TemplateModel? _selectedTemplate;
   final TextEditingController _primaryController = TextEditingController();
   final TextEditingController _secondaryController = TextEditingController();
+  bool _saving = false;
 
   @override
   void initState() {
@@ -27,6 +30,28 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     _selectedTemplate = TemplateData.templates.first;
     _primaryController.text = _selectedTemplate?.primaryText ?? '';
     _secondaryController.text = _selectedTemplate?.secondaryText ?? '';
+    _loadSavedTemplate();
+  }
+
+  Future<void> _loadSavedTemplate() async {
+    final p = await SharedPreferences.getInstance();
+    final id = p.getString('saved_template_id');
+    final t = TemplateData.templates.where((e) => e.id == id).firstOrNull;
+    if (!mounted || t == null) return;
+    setState(() { _selectedTemplate=t; _primaryController.text=p.getString('saved_template_primary') ?? t.primaryText ?? ''; _secondaryController.text=p.getString('saved_template_secondary') ?? t.secondaryText ?? ''; });
+  }
+
+  Future<void> _saveTemplate() async {
+    if (_saving || _selectedTemplate == null) return;
+    setState(() => _saving = true);
+    try {
+      final p = await SharedPreferences.getInstance();
+      await p.setString('saved_template_id', _selectedTemplate!.id);
+      await p.setString('saved_template_primary', _primaryController.text.trim());
+      await p.setString('saved_template_secondary', _secondaryController.text.trim());
+      if (mounted) ToastService.showSuccess('تم حفظ القالب');
+    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ القالب'); }
+    finally { if (mounted) setState(() => _saving = false); }
   }
 
   @override
@@ -198,9 +223,9 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: _saveTemplate,
-                        icon: const Icon(Icons.save_rounded),
-                        label: const Text('حفظ'),
+                        onPressed: _saving ? null : _saveTemplate,
+                        icon: _saving ? const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.save_rounded),
+                        label: Text(_saving ? 'جاري الحفظ...' : 'حفظ'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primary,
                         ),
@@ -242,15 +267,6 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
       const SnackBar(
         content: Text('📤 جاري المشاركة...'),
         backgroundColor: AppColors.primary,
-      ),
-    );
-  }
-
-  void _saveTemplate() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ تم حفظ القالب'),
-        backgroundColor: Colors.green,
       ),
     );
   }
