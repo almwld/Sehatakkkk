@@ -477,13 +477,66 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   Future<void> _jumpToMessage(String id) async {
     if (id.isEmpty) return;
+
+    // First try the currently rendered timeline.
     final key = _messageKeys[id];
     final target = key?.currentContext;
     if (target != null) {
-      await Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 350), curve: Curves.easeOut, alignment: .45);
+      await Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+        alignment: .45,
+      );
       return;
     }
-    if (mounted) ToastService.showError('الرسالة ليست ضمن الرسائل المحمّلة حالياً.');
+
+    // A reply can point to an older message that is outside the current
+    // pagination window. Load that exact Firestore document instead of
+    // reporting that the message does not exist.
+    try {
+      final snap = await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .doc(id)
+          .get();
+
+      if (!snap.exists || snap.data() == null) {
+        if (mounted) ToastService.showError('تعذر العثور على الرسالة الأصلية.');
+        return;
+      }
+
+      final loaded = MessageModel.fromFirestore(snap.id, snap.data()!);
+      if (!mounted) return;
+
+      setState(() {
+        if (!_messages.any((m) => m.id == loaded.id)) {
+          _messages = <MessageModel>[..._messages, loaded]
+            ..sort((a, b) => (b.timestamp ?? b.clientTimestamp ?? Timestamp(0, 0))
+                .compareTo(a.timestamp ?? a.clientTimestamp ?? Timestamp(0, 0)));
+        }
+        _knownMessageIds.add(loaded.id);
+      });
+
+      // The list is reversed; wait for the newly inserted target to be
+      // laid out, then reveal it.
+      await WidgetsBinding.instance.endOfFrame;
+      final loadedKey = _messageKeys.putIfAbsent(id, GlobalKey.new);
+      final loadedContext = loadedKey.currentContext;
+      if (loadedContext != null) {
+        await Scrollable.ensureVisible(
+          loadedContext,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
+          alignment: .45,
+        );
+      } else if (mounted) {
+        ToastService.showInfo('تم العثور على الرسالة الأصلية، مرر المحادثة للوصول إليها.');
+      }
+    } catch (e) {
+      if (mounted) ToastService.showError('تعذر فتح الرسالة الأصلية.');
+    }
   }
 
   void _scrollToLatest() {
