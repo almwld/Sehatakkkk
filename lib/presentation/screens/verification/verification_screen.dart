@@ -22,9 +22,54 @@ class _VerificationScreenState extends State<VerificationScreen>{
   String get _roleLabel=>_labels[_role]??'الحساب المهني';
   List<String> get _specialRequirements{switch(_role){case 'lab':return ['ترخيص المختبر','نطاق الفحوصات والخدمات','المسؤول الفني'];case 'hospital':return ['ترخيص المنشأة','الأقسام والخدمات','بيانات المسؤول'];case 'dental':case 'dentist':return ['ترخيص طب الأسنان','التخصص والخدمات السنية'];case 'ophthalmology':case 'eye_clinic':case 'optometrist':return ['ترخيص العيون/البصريات','الخدمات والأجهزة'];default:return ['رقم الترخيص أو المزاولة','التخصص والخدمات'];}}
   @override void initState(){super.initState();_load();}
+
+  Future<void> _saveDraft() async {
+    final u = FirebaseAuth.instance.currentUser;
+    if (u == null || _verified || _status == 'pending') return;
+    try {
+      await FirebaseFirestore.instance.collection('verification_requests').doc(u.uid).set({
+        'userId': u.uid, 'role': _role, 'name': _name.text.trim(),
+        'age': int.tryParse(_age.text.trim()), 'licenseNumber': _license.text.trim(),
+        'experience': _experience.text.trim(), 'specialty': _specialty.text.trim(),
+        'academicSummary': _academic.text.trim(),
+        'documents': {for (final entry in _docs.entries) entry.key: entry.value},
+        'status': _status == 'rejected' ? 'rejected' : 'draft',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
+  }
+
+  Future<bool> _handleExit() async {
+    if (_submitting) { ToastService.showError('انتظر حتى تكتمل العملية الحالية'); return false; }
+    await _saveDraft();
+    return true;
+  }
   @override void dispose(){for(final c in [_name,_age,_license,_experience,_specialty,_academic])c.dispose();super.dispose();}
   Future<void> _load() async{try{final u=FirebaseAuth.instance.currentUser;if(u==null)throw Exception('يجب تسجيل الدخول أولاً');final s=await FirebaseFirestore.instance.collection('users').doc(u.uid).get();final request=await FirebaseFirestore.instance.collection('verification_requests').doc(u.uid).get();final d=s.data()??{};final rd=request.data()??{};final docs=rd['documents'];if(docs is Map){_docs..clear()..addAll(docs.map((k,v)=>MapEntry(k.toString(),v is List?v.map<Map<String,dynamic>>((x)=>x is Map?Map<String,dynamic>.from(x):<String,dynamic>{}).toList():<Map<String,dynamic>>[])));}if(!mounted)return;setState((){_role=d['role']?.toString()??'user';_name.text=d['name']?.toString()??d['displayName']?.toString()??'';_age.text=d['age']?.toString()??'';_academic.text=d['academicSummary']?.toString()??'';_license.text=d['licenseNumber']?.toString()??'';_experience.text=d['experience']?.toString()??'';_specialty.text=d['specialty']?.toString()??'';_status=rd['status']?.toString()??d['verificationStatus']?.toString()??'notSubmitted';_verified=d['isVerified']==true;_loading=false;});}catch(e){if(mounted)setState((){_error=e.toString();_loading=false;});}}
-  Future<void> _pick(String category) async{final result=await FilePicker.platform.pickFiles(allowMultiple:true,type:FileType.custom,allowedExtensions:['pdf','jpg','jpeg','png']);if(result==null)return;final u=FirebaseAuth.instance.currentUser;if(u==null)return;setState(()=>_submitting=true);try{final list=<Map<String,dynamic>>[];final nextcloud=NextcloudService();for(final x in result.files){if(x.path==null)continue;final file=File(x.path!);final size=await file.length();if(size>12*1024*1024)throw Exception('حجم الملف '+x.name+' أكبر من 12MB');final upload=await nextcloud.uploadFile(file:file,path:'sehatak/verification/'+u.uid+'/'+category,fileName:DateTime.now().millisecondsSinceEpoch.toString()+'_'+x.name);if(!upload.success||upload.url==null)throw Exception(upload.error??'فشل رفع الملف '+x.name);list.add({'name':x.name,'url':upload.url!,'uploadedAt':DateTime.now().toIso8601String()});}setState(()=>_docs[category]=[...(_docs[category]??[]),...list]);ToastService.showSuccess('تم رفع '+list.length.toString()+' ملف');}catch(e){ToastService.showError(e.toString().replaceFirst('Exception: ',''));}finally{if(mounted)setState(()=>_submitting=false);}}
+  Future<void> _pick(String category) async {
+    final result = await FilePicker.platform.pickFiles(allowMultiple: true, type: FileType.custom, allowedExtensions: ['pdf','jpg','jpeg','png']);
+    if (result == null) return;
+    final u = FirebaseAuth.instance.currentUser;
+    if (u == null) return;
+    setState(() => _submitting = true);
+    try {
+      final nextcloud = NextcloudService(); var count = 0;
+      for (final x in result.files) {
+        if (x.path == null) continue;
+        final file = File(x.path!); final size = await file.length();
+        if (size > 12*1024*1024) throw Exception('حجم الملف '+x.name+' أكبر من 12MB');
+        final existing = _docs[category] ?? <Map<String,dynamic>>[];
+        if (existing.any((d) => d['name']?.toString() == x.name && (d['size'] == null || d['size'].toString() == size.toString()))) continue;
+        final upload = await nextcloud.uploadFile(file:file,path:'sehatak/verification/'+u.uid+'/'+category,fileName:DateTime.now().millisecondsSinceEpoch.toString()+'_'+x.name);
+        if (!upload.success || upload.url == null) throw Exception(upload.error ?? 'فشل رفع الملف '+x.name);
+        if (mounted) setState(() => _docs[category] = [...(_docs[category] ?? <Map<String,dynamic>>[]), {'name':x.name,'size':size,'url':upload.url!,'uploadedAt':DateTime.now().toIso8601String()}]);
+        count++; await _saveDraft();
+      }
+      if (count > 0) ToastService.showSuccess('تم رفع '+count.toString()+' ملف وحفظه كمسودة');
+      else ToastService.showError('الملفات المحددة مرفوعة مسبقاً أو لم يتم اختيار ملف صالح');
+    } catch(e) { ToastService.showError(e.toString().replaceFirst('Exception: ','')); await _saveDraft(); }
+    finally { if (mounted) setState(() => _submitting = false); }
+  }
 
   Future<void> _submitVerification() async {
     if (_submitting || _verified) return;
@@ -80,5 +125,5 @@ class _VerificationScreenState extends State<VerificationScreen>{
 
   Widget _field(TextEditingController c,String label,{TextInputType? type})=>Padding(padding:const EdgeInsets.only(bottom:10),child:TextField(controller:c,keyboardType:type,decoration:InputDecoration(labelText:label,border:const OutlineInputBorder())));
   Widget _upload(String key,String title)=>Card(child:ListTile(leading:const Icon(Icons.upload_file,color:AppColors.primary),title:Text(title),subtitle:Text((_docs[key]??[]).length.toString()+' ملف مرفوع'),trailing:IconButton(onPressed:_submitting?null:()=>_pick(key),icon:const Icon(Icons.add_circle_outline))));
-  @override Widget build(BuildContext context){if(_loading)return const Scaffold(body:Center(child:CircularProgressIndicator()));if(_error!=null)return Scaffold(body:Center(child:Text(_error!)));final dark=Theme.of(context).brightness==Brightness.dark;return Scaffold(backgroundColor:dark?const Color(0xFF0B1121):const Color(0xFFF8FAFC),appBar:CustomAppBar(title:'توثيق حساب '+_roleLabel,backgroundColor:AppColors.primary,foregroundColor:Colors.white,elevation:0),bottomNavigationBar:SafeArea(child:Padding(padding:const EdgeInsets.fromLTRB(16,8,16,12),child:SizedBox(width:double.infinity,child:ElevatedButton.icon(onPressed:(_submitting||_verified||_status=='pending')?null:_submitVerification,icon:Icon(_status=='pending'?Icons.hourglass_top_rounded:Icons.send_rounded),label:Text(_status=='pending'?'طلب التوثيق قيد المراجعة':_submitting?'جاري إرسال طلب التوثيق...':'إرسال طلب التوثيق والتحقق من المستندات'),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white,padding:const EdgeInsets.symmetric(vertical:15))))),body:SingleChildScrollView(padding:const EdgeInsets.all(16),child:Column(children:[Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(_verified?'الحساب موثق':_status=='pending'?'الطلب قيد المراجعة':'يجب توثيق حسابك',style:const TextStyle(fontSize:20,fontWeight:FontWeight.bold)),const SizedBox(height:8),Text(_verified?'تم اعتماد حسابك ويمكنك استخدام ميزات دورك.':_status=='pending'?'تم إرسال ملفك إلى المشرف وستصلك النتيجة عبر الإشعارات.':'لاستخدام ميزات '+_roleLabel+' يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.')]))),const SizedBox(height:12),_field(_name,'الاسم الكامل'),_field(_age,'العمر',type:TextInputType.number),_field(_specialty,'التخصص'),_field(_license,'رقم الترخيص/المزاولة'),_field(_experience,'سنوات الخبرة'),_field(_academic,'ملخص السجل الأكاديمي'),const SizedBox(height:6),..._specialRequirements.map((x)=>Align(alignment:AlignmentDirectional.centerStart,child:Padding(padding:const EdgeInsets.only(bottom:6),child:Text('• '+x)))),_upload('academicRecord','السجل الأكاديمي'),_upload('certificates','الشهادات والمؤهلات'),_upload('professionalRecord','السجل المهني/الخبرات'),_upload('healthRecord','السجل الصحي/اللياقة المهنية'),_upload('identity','الهوية والمستندات الرسمية'),const SizedBox(height:10),const Text('الملفات المدعومة: PDF و JPG و PNG — الحد الأقصى 12MB للملف.',style:TextStyle(color:Colors.grey,fontSize:12)),const SizedBox(height:80)])));}
+  @override Widget build(BuildContext context){if(_loading)return const Scaffold(body:Center(child:CircularProgressIndicator()));if(_error!=null)return Scaffold(body:Center(child:Text(_error!)));final dark=Theme.of(context).brightness==Brightness.dark;return WillPopScope(onWillPop:_handleExit,child:Scaffold(backgroundColor:dark?const Color(0xFF0B1121):const Color(0xFFF8FAFC),appBar:CustomAppBar(title:'توثيق حساب '+_roleLabel,backgroundColor:AppColors.primary,foregroundColor:Colors.white,elevation:0),bottomNavigationBar:SafeArea(child:Padding(padding:const EdgeInsets.fromLTRB(16,8,16,12),child:SizedBox(width:double.infinity,child:ElevatedButton.icon(onPressed:(_submitting||_verified||_status=='pending')?null:_submitVerification,icon:Icon(_status=='pending'?Icons.hourglass_top_rounded:Icons.send_rounded),label:Text(_status=='pending'?'طلب التوثيق قيد المراجعة':_submitting?'جاري إرسال طلب التوثيق...':'إرسال طلب التوثيق والتحقق من المستندات'),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white,padding:const EdgeInsets.symmetric(vertical:15))))),body:SingleChildScrollView(padding:const EdgeInsets.all(16),child:Column(children:[Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(_verified?'الحساب موثق':_status=='pending'?'الطلب قيد المراجعة':'يجب توثيق حسابك',style:const TextStyle(fontSize:20,fontWeight:FontWeight.bold)),const SizedBox(height:8),Text(_verified?'تم اعتماد حسابك ويمكنك استخدام ميزات دورك.':_status=='pending'?'تم إرسال ملفك إلى المشرف وستصلك النتيجة عبر الإشعارات.':'لاستخدام ميزات '+_roleLabel+' يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.')]))),const SizedBox(height:12),_field(_name,'الاسم الكامل'),_field(_age,'العمر',type:TextInputType.number),_field(_specialty,'التخصص'),_field(_license,'رقم الترخيص/المزاولة'),_field(_experience,'سنوات الخبرة'),_field(_academic,'ملخص السجل الأكاديمي'),const SizedBox(height:6),..._specialRequirements.map((x)=>Align(alignment:AlignmentDirectional.centerStart,child:Padding(padding:const EdgeInsets.only(bottom:6),child:Text('• '+x)))),_upload('academicRecord','السجل الأكاديمي'),_upload('certificates','الشهادات والمؤهلات'),_upload('professionalRecord','السجل المهني/الخبرات'),_upload('healthRecord','السجل الصحي/اللياقة المهنية'),_upload('identity','الهوية والمستندات الرسمية'),const SizedBox(height:10),const Text('الملفات المدعومة: PDF و JPG و PNG — الحد الأقصى 12MB للملف.',style:TextStyle(color:Colors.grey,fontSize:12)),const SizedBox(height:80)])));}
 }
