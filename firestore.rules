@@ -272,7 +272,16 @@ service cloud.firestore {
     match /labs/{id} { allow read: if true; allow write: if isAdmin(); }
     match /pharmacies/{id} { allow read: if true; allow write: if isAdmin(); }
     match /hospitals/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /products/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /products/{id} {
+      allow read: if true;
+      allow create: if isSignedIn() && (request.resource.data.sellerId == request.auth.uid || request.resource.data.pharmacyId == request.auth.uid || (request.resource.data.pharmacyId is string && exists(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)) && get(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)).data.ownerId == request.auth.uid));
+      allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || resource.data.pharmacyId == request.auth.uid || (resource.data.pharmacyId is string && exists(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)) && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.ownerId == request.auth.uid));
+    }
+    match /prescriptions/{id} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.patientId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
     match /lab_categories/{id} { allow read: if true; allow write: if isAdmin(); }
     match /articles/{id} { allow read: if true; allow write: if isAdmin(); }
     match /tips/{id} { allow read: if true; allow write: if isAdmin(); }
