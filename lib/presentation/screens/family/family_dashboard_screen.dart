@@ -9,10 +9,153 @@ import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/health/child_health_screen.dart';
 
-class FamilyDashboardScreen extends StatelessWidget{
- const FamilyDashboardScreen({super.key});
- @override Widget build(BuildContext c){final dark=Theme.of(c).brightness==Brightness.dark;return Scaffold(appBar:AppBar(title:const Text('حساب العائلة'),backgroundColor:AppColors.primary,foregroundColor:Colors.white),backgroundColor:dark?const Color(0xFF0B1121):const Color(0xFFF8FAFC),body:StreamBuilder<List<ChildModel>>(stream:ChildService.instance.streamChildren(),builder:(c,s){if(s.hasError)return Center(child:Text('تعذر تحميل الأطفال: '+s.error.toString()));if(!s.hasData)return const Center(child:CircularProgressIndicator());final xs=s.data!;if(xs.isEmpty)return _empty(c);return ListView.builder(padding:const EdgeInsets.all(16),itemCount:xs.length,itemBuilder:(_,i)=>Card(child:ListTile(leading:CircleAvatar(backgroundColor:AppColors.primary.withOpacity(.12),backgroundImage:xs[i].photoUrl?.isNotEmpty==true?NetworkImage(xs[i].photoUrl!):null,child:xs[i].photoUrl?.isNotEmpty==true?null:Text(xs[i].name.substring(0,1))),title:Text(xs[i].name),subtitle:Text(xs[i].ageLabel),trailing:const Icon(Icons.arrow_forward_ios,size:16),onTap:()=>Navigator.push(c,MaterialPageRoute(builder:(_)=>ChildHealthScreen(childId:xs[i].id)))));});}),floatingActionButton:FloatingActionButton.extended(onPressed:()=>_add(c),icon:const Icon(Icons.person_add_alt_1),label:const Text('إضافة طفل'),backgroundColor:AppColors.primary,foregroundColor:Colors.white));}
- Widget _empty(BuildContext c)=>Center(child:ElevatedButton.icon(onPressed:()=>_add(c),icon:const Icon(Icons.add),label:const Text('إضافة طفل')));
- Future<void> _add(BuildContext c)async{if(FirebaseAuth.instance.currentUser==null){ToastService.showError('يجب تسجيل الدخول أولاً');return;}final n=TextEditingController(),w=TextEditingController(),h=TextEditingController(),head=TextEditingController();DateTime? bd;String gender='male';File? photo;await showModalBottomSheet(context:c,isScrollControlled:true,builder:(x)=>StatefulBuilder(builder:(x,set)=>Padding(padding:EdgeInsets.only(left:16,right:16,top:16,bottom:MediaQuery.of(x).viewInsets.bottom+16),child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[const Text('إضافة طفل',style:TextStyle(fontSize:20,fontWeight:FontWeight.bold)),const SizedBox(height:12),GestureDetector(onTap:()async{final p=await ImagePicker().pickImage(source:ImageSource.gallery,imageQuality:80,maxWidth:500);if(p!=null)set(()=>photo=File(p.path));},child:CircleAvatar(radius:45,child:photo==null?const Icon(Icons.add_a_photo):null,backgroundImage:photo==null?null:FileImage(photo!))),const SizedBox(height:12),TextField(controller:n,decoration:const InputDecoration(labelText:'اسم الطفل',border:OutlineInputBorder())),const SizedBox(height:10),ListTile(title:Text(bd==null?'تاريخ الميلاد مطلوب':bd!.toLocal().toString().split(' ').first),leading:const Icon(Icons.cake),onTap:()async{final p=await showDatePicker(context:x,initialDate:DateTime.now().subtract(const Duration(days:365)),firstDate:DateTime(2000),lastDate:DateTime.now());if(p!=null)set(()=>bd=p);}),Row(children:[Expanded(child:RadioListTile(value:'male',groupValue:gender,onChanged:(v)=>set(()=>gender=v!),title:const Text('ذكر'))),Expanded(child:RadioListTile(value:'female',groupValue:gender,onChanged:(v)=>set(()=>gender=v!),title:const Text('أنثى')))]),Row(children:[Expanded(child:TextField(controller:w,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'الوزن (كجم)',border:OutlineInputBorder()))),const SizedBox(width:8),Expanded(child:TextField(controller:h,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'الطول (سم)',border:OutlineInputBorder())))]),const SizedBox(height:10),TextField(controller:head,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'محيط الرأس (سم)',border:OutlineInputBorder())),const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:()async{if(n.text.trim().isEmpty||bd==null){ToastService.showError('اسم الطفل وتاريخ الميلاد مطلوبان');return;}try{String? url;if(photo!=null){final nc=NextcloudService();await nc.loadConfig();final up=await nc.uploadFile(file:photo!,path:'children',fileName:DateTime.now().millisecondsSinceEpoch.toString()+'.jpg');if(!up.success){ToastService.showError(up.error??'تعذر رفع الصورة');return;}url=up.url;}await ChildService.instance.addChild(name:n.text,birthDate:bd!,gender:gender,weight:double.tryParse(w.text),height:double.tryParse(h.text),headCircumference:double.tryParse(head.text),photoUrl:url);if(x.mounted)Navigator.pop(x);ToastService.showSuccess('تم إضافة الطفل بنجاح');}catch(e){ToastService.showError('تعذر إضافة الطفل: '+e.toString());}},child:const Text('حفظ')))])))));
- }
+class FamilyDashboardScreen extends StatelessWidget {
+  const FamilyDashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      appBar: AppBar(title: const Text('حساب العائلة'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      body: StreamBuilder<List<ChildModel>>(
+        stream: ChildService.instance.streamChildren(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return Center(child: Text('تعذر تحميل الأطفال: '+snapshot.error.toString()));
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final children = snapshot.data!;
+          if (children.isEmpty) {
+            return Center(child: ElevatedButton.icon(
+              onPressed: () => _addChild(context),
+              icon: const Icon(Icons.add), label: const Text('إضافة طفل'),
+            ));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: children.length,
+            itemBuilder: (context, index) {
+              final child = children[index];
+              final initial = child.name.isEmpty ? 'ط' : child.name.substring(0, 1);
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primary.withOpacity(.12),
+                    backgroundImage: child.photoUrl?.isNotEmpty == true ? NetworkImage(child.photoUrl!) : null,
+                    child: child.photoUrl?.isNotEmpty == true ? null : Text(initial),
+                  ),
+                  title: Text(child.name),
+                  subtitle: Text(child.ageLabel + ' • ' + (child.gender == 'male' ? 'ذكر' : 'أنثى')),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChildHealthScreen(childId: child.id))),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _addChild(context),
+        icon: const Icon(Icons.person_add_alt_1),
+        label: const Text('إضافة طفل'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  Future<void> _addChild(BuildContext context) async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      ToastService.showError('يجب تسجيل الدخول أولاً');
+      return;
+    }
+    final name = TextEditingController();
+    final weight = TextEditingController();
+    final height = TextEditingController();
+    final head = TextEditingController();
+    DateTime? birthDate;
+    String gender = 'male';
+    File? photo;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setState) => Padding(
+          padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16),
+          child: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Text('إضافة طفل', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 500);
+                  if (picked != null) setState(() => photo = File(picked.path));
+                },
+                child: CircleAvatar(radius: 45, backgroundImage: photo == null ? null : FileImage(photo!), child: photo == null ? const Icon(Icons.add_a_photo) : null),
+              ),
+              const SizedBox(height: 12),
+              TextField(controller: name, decoration: const InputDecoration(labelText: 'اسم الطفل', border: OutlineInputBorder())),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: const Icon(Icons.cake),
+                title: Text(birthDate == null ? 'تاريخ الميلاد مطلوب' : birthDate!.toString().split(' ').first),
+                onTap: () async {
+                  final picked = await showDatePicker(context: sheetContext, initialDate: DateTime.now().subtract(const Duration(days: 365)), firstDate: DateTime(2000), lastDate: DateTime.now());
+                  if (picked != null) setState(() => birthDate = picked);
+                },
+              ),
+              Row(children: [
+                Expanded(child: RadioListTile<String>(value: 'male', groupValue: gender, onChanged: (v) => setState(() => gender = v ?? 'male'), title: const Text('ذكر'))),
+                Expanded(child: RadioListTile<String>(value: 'female', groupValue: gender, onChanged: (v) => setState(() => gender = v ?? 'female'), title: const Text('أنثى'))),
+              ]),
+              Row(children: [
+                Expanded(child: TextField(controller: weight, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'الوزن (كجم)', border: OutlineInputBorder()))),
+                const SizedBox(width: 8),
+                Expanded(child: TextField(controller: height, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'الطول (سم)', border: OutlineInputBorder()))),
+              ]),
+              const SizedBox(height: 10),
+              TextField(controller: head, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'محيط الرأس (سم)', border: OutlineInputBorder())),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (name.text.trim().isEmpty || birthDate == null) {
+                      ToastService.showError('اسم الطفل وتاريخ الميلاد مطلوبان');
+                      return;
+                    }
+                    try {
+                      String? photoUrl;
+                      if (photo != null) {
+                        final nc = NextcloudService();
+                        await nc.loadConfig();
+                        final upload = await nc.uploadFile(file: photo!, path: 'children', fileName: DateTime.now().millisecondsSinceEpoch.toString()+'.jpg');
+                        if (!upload.success) {
+                          ToastService.showError(upload.error ?? 'تعذر رفع الصورة');
+                          return;
+                        }
+                        photoUrl = upload.url;
+                      }
+                      await ChildService.instance.addChild(
+                        name: name.text, birthDate: birthDate!, gender: gender,
+                        weight: double.tryParse(weight.text), height: double.tryParse(height.text),
+                        headCircumference: double.tryParse(head.text), photoUrl: photoUrl,
+                      );
+                      if (sheetContext.mounted) Navigator.pop(sheetContext);
+                      ToastService.showSuccess('تم إضافة الطفل بنجاح');
+                    } catch (e) {
+                      ToastService.showError('تعذر إضافة الطفل: '+e.toString());
+                    }
+                  },
+                  child: const Text('حفظ'),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+    name.dispose(); weight.dispose(); height.dispose(); head.dispose();
+  }
 }
