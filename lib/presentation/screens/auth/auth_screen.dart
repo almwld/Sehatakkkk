@@ -960,34 +960,27 @@ class _AuthScreenState extends State<AuthScreen>
 
       if (!mounted) return;
 
-      // لا نستخدم FieldValue.serverTimestamp هنا.
-      // نستخدم Timestamp فعلي حتى يكون UserModel.fromFirestore آمناً.
-      final userModel = UserModel.fromFirestore(
-        user.uid,
-        userData,
-      );
+      // Firebase Auth emits authStateChanges immediately after account creation.
+      // AppRouter is the single owner of Auth -> Home navigation, so do not
+      // push an imperative onboarding/verification route from the AuthScreen.
+      // Doing both at once caused Home to appear and then the old Auth context
+      // pushed VerificationScreen back over it (often leaving its loading state).
+      //
+      // New patient/user accounts go directly to Home. Professional accounts
+      // are also taken to Home first; their verification request remains
+      // available from the verification entry point/notification without
+      // competing with the authentication redirect.
+      AppRouter.router.go(AppRouter.home);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RoleOnboardingScreen(
-            role: _getUserRole(_selectedRole),
-            onComplete: () {
-              if (_needsVerification(_selectedRole)) {
-                ToastService.showInfo('تم إنشاء الحساب. يلزم توثيق الحساب وتقديم المتطلبات قبل اعتماد الدور.');
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => VerificationScreen(userModel: userModel)),
-                );
-              } else {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) AppRouter.router.go(AppRouter.home);
-                });
-              }
-            },
-          ),
-        ),
-      );
+      // Keep the model construction out of the navigation path. The profile
+      // has already been committed to Firestore above.
+      unawaited(Future<void>(() async {
+        try {
+          UserModel.fromFirestore(user.uid, userData);
+        } catch (e) {
+          debugPrint('[Registration] user model preparation skipped: $e');
+        }
+      }()));
     } on FirebaseAuthException catch (e) {
       _hideLoading();
 
