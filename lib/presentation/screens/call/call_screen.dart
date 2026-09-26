@@ -211,11 +211,17 @@ class _CallScreenState extends State<CallScreen> {
   Future<void> join(CallModel c, User user) async {
     if (joined || ending || c.status != CallStatus.connected) return;
     try {
-      if (widget.isVideo && !(await Permission.camera.request()).isGranted) {
-        throw StateError('يرجى منح إذن الكاميرا');
+      // Request all required permissions in one batch to avoid Android
+      // PermissionManager rejecting a second request while the first is active.
+      final permissions = <Permission>[Permission.microphone];
+      if (widget.isVideo) permissions.add(Permission.camera);
+      final statuses = await permissions.request();
+
+      if (widget.isVideo && !(statuses[Permission.camera]?.isGranted ?? false)) {
+        throw StateError('يرجى منح إذن الكاميرا من إعدادات التطبيق');
       }
-      if (!(await Permission.microphone.request()).isGranted) {
-        throw StateError('يرجى منح إذن الميكروفون');
+      if (!(statuses[Permission.microphone]?.isGranted ?? false)) {
+        throw StateError('يرجى منح إذن الميكروفون من إعدادات التطبيق');
       }
       final registry = ActiveCallRegistry.instance;
       if (registry.hasActiveCall && !registry.isActive(c.id)) {
