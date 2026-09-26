@@ -403,10 +403,20 @@ class _CallScreenState extends State<CallScreen> {
   Widget build(BuildContext context) {
     final remote = swapped ? localTrack : remoteTrack;
     final local = swapped ? remoteTrack : localTrack;
-    final status = error ??
-        (!online ? 'لا يوجد اتصال بالإنترنت' : connecting
-            ? 'جاري الاتصال...'
-            : !joined ? 'في انتظار قبول المكالمة...' : fmt(seconds));
+    final topStatus = error ??
+        (!online ? 'لا يوجد اتصال بالإنترنت' : joined
+            ? fmt(seconds)
+            : connecting
+                ? 'جاري الاتصال...'
+                : 'في انتظار قبول المكالمة...');
+    final centerMessage = error ??
+        (!online
+            ? 'لا يوجد اتصال بالإنترنت'
+            : connecting
+                ? 'جاري الاتصال...'
+                : !joined
+                    ? 'في انتظار قبول المكالمة...'
+                    : '');
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -415,12 +425,12 @@ class _CallScreenState extends State<CallScreen> {
             if (widget.isVideo && remote != null)
               Positioned.fill(child: VideoTrackRenderer(remote))
             else
-              Positioned.fill(child: waiting(status)),
+              Positioned.fill(child: waiting(centerMessage)),
             if (widget.isVideo && local != null)
               PositionedDirectional(top: 68, end: 18, child: preview(local)),
             if (widget.isVideo && joined && remoteTrack == null)
               Positioned.fill(child: IgnorePointer(child: fallback())),
-            Positioned(top: 12, left: 12, right: 12, child: top(status)),
+            Positioned(top: 12, left: 12, right: 12, child: top(topStatus)),
             if (error == null) Positioned(bottom: 18, left: 14, right: 14, child: controls()),
             if (error != null)
               Positioned.fill(
@@ -483,8 +493,10 @@ class _CallScreenState extends State<CallScreen> {
       avatar(140),
       const SizedBox(height: 22),
       Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w700)),
-      const SizedBox(height: 12),
-      badge(s),
+      if (s.isNotEmpty) ...[
+        const SizedBox(height: 12),
+        Text(s, style: const TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w600)),
+      ],
       const SizedBox(height: 22),
       Text(fmt(seconds), style: const TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.w300)),
     ]),
