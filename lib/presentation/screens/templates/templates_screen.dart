@@ -103,8 +103,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 child: _selectedTemplate != null
                     ? _templateService.buildTemplateWidget(
                         template: _selectedTemplate!,
-                        primaryText: _primaryController.text,
-                        secondaryText: _secondaryController.text,
+                        primaryText: _selectedTemplate?.primaryText ?? '',
+                        secondaryText: _selectedTemplate?.secondaryText ?? ''
                         width: MediaQuery.of(context).size.width - 32,
                         height: 300,
                       )
