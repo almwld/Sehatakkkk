@@ -675,7 +675,7 @@ class NotificationService {
       callId: callId,
       isVideo: isVideo,
       silent: silent,
-      smallIcon: 'ic_call_received',
+      smallIcon: 'ic_launcher',
     );
   }
 
@@ -695,7 +695,6 @@ class NotificationService {
           AndroidNotificationAction(
             'call_answer',
             'الرد',
-            icon: DrawableResourceAndroidBitmap('ic_call_answer'),
             titleColor: const Color(0xFF2DBE68),
             showsUserInterface: true,
             cancelNotification: true,
@@ -703,7 +702,6 @@ class NotificationService {
           AndroidNotificationAction(
             'call_reject',
             'إنهاء',
-            icon: DrawableResourceAndroidBitmap('ic_call_reject'),
             titleColor: const Color(0xFFE53935),
             showsUserInterface: true,
             cancelNotification: true,
@@ -711,7 +709,6 @@ class NotificationService {
           AndroidNotificationAction(
             'call_message',
             'مراسلة لاحقاً',
-            icon: DrawableResourceAndroidBitmap('ic_call_message'),
             titleColor: const Color(0xFF00BCD4),
             showsUserInterface: true,
             cancelNotification: true,
