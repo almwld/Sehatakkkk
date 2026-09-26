@@ -75,6 +75,7 @@ async function sendToUser({
   notification,
   data = {},
   android = {},
+  dataOnly = false,
 }) {
   if (!userId) {
     return {
@@ -113,10 +114,14 @@ async function sendToUser({
   const message = {
     token: token.trim(),
 
-    notification: {
-      title: String(notification?.title || 'صحتك'),
-      body: String(notification?.body || ''),
-    },
+    ...(dataOnly
+      ? {}
+      : {
+          notification: {
+            title: String(notification?.title || 'صحتك'),
+            body: String(notification?.body || ''),
+          },
+        }),
 
     // Always include the trusted recipient in the FCM data payload.
     // Flutter uses it to archive the notification even when Android delivers
@@ -246,6 +251,7 @@ async function sendNewMessageNotification({
       channelId: 'sehatak_messages_v2',
       sound: 'notification',
     },
+    dataOnly: true,
   });
 
   return {
@@ -307,9 +313,10 @@ async function sendIncomingCallNotification({
     },
 
     android: {
-      channelId: 'sehatak_calls_v2',
+      channelId: 'sehatak_calls_v3',
       sound: 'call_ringtone',
     },
+    dataOnly: true,
   });
 
   return {
