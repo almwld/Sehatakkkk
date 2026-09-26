@@ -202,8 +202,16 @@ async function sendNewMessageNotification({
   chatId,
   senderId,
   senderName,
+  senderPhotoUrl = '',
   text,
   type = 'text',
+  imageUrl = '',
+  videoUrl = '',
+  audioUrl = '',
+  fileUrl = '',
+  fileName = '',
+  fileMimeType = '',
+  fileSize = '',
 }) {
   const preview =
     type === 'image'
@@ -245,6 +253,15 @@ async function sendNewMessageNotification({
       chatId,
       senderId,
       senderName: senderName || '',
+      senderPhotoUrl: senderPhotoUrl || '',
+      messageType: type || 'text',
+      imageUrl: imageUrl || '',
+      videoUrl: videoUrl || '',
+      audioUrl: audioUrl || '',
+      fileUrl: fileUrl || '',
+      fileName: fileName || '',
+      fileMimeType: fileMimeType || '',
+      fileSize: fileSize || '',
     },
 
     android: {
