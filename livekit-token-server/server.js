@@ -205,8 +205,8 @@ function buildMessagePayload(opts) {
   var preview = String(opts.messageText || '').slice(0, 120);
   return {
     token: opts.fcmToken,
-    // DATA-ONLY is intentional: Android must not auto-render the FCM
-    // notification, otherwise the OS bypasses our Flutter notification actions.
+    // Notification + data is intentional for chat messages: Android can render
+    // the message in the system tray while the data payload preserves chat routing.
     notification: {
       title: String(opts.senderName || 'رسالة جديدة'),
       body: preview || 'لديك رسالة جديدة في الدردشة',
