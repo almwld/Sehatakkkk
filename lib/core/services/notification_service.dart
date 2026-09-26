@@ -533,7 +533,6 @@ class NotificationService {
         .trim() ??
         '';
 
-    AndroidIcon<Object>? avatarIcon;
     Uint8List? avatarBytes;
     if (senderPhotoUrl.isNotEmpty) {
       try {
@@ -541,7 +540,6 @@ class NotificationService {
             await http.get(Uri.parse(senderPhotoUrl)).timeout(const Duration(seconds: 6));
         if (response.statusCode >= 200 && response.bodyBytes.isNotEmpty) {
           avatarBytes = response.bodyBytes;
-          avatarIcon = ByteArrayAndroidIcon(response.bodyBytes);
         }
       } catch (e) {
         debugPrint('message avatar load failed: $e');
@@ -551,7 +549,6 @@ class NotificationService {
     final sender = Person(
       name: title,
       key: senderId.isEmpty ? title : senderId,
-      icon: avatarIcon,
     );
     const me = Person(name: 'أنت', key: 'self');
     final timestamp = DateTime.now();
