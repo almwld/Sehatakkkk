@@ -15,6 +15,7 @@ class ChatSettingsScreen extends StatefulWidget {
 class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
   bool _darkMode = false, _notifications = true, _sound = true, _vibration = true;
   double _fontSize = 14.0;
+  bool _saving = false;
 
   @override void initState() { super.initState(); _loadSettings(); }
 
@@ -31,6 +32,9 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
   }
 
   Future<void> _saveSettings() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('dark_mode', _darkMode);
     await prefs.setBool('notifications', _notifications);
@@ -38,11 +42,13 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
     await prefs.setBool('vibration', _vibration);
     await prefs.setDouble('font_size', _fontSize);
     if (mounted) ToastService.showSuccess('تم حفظ الإعدادات');
+    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ إعدادات الدردشة'); }
+    finally { if (mounted) setState(() => _saving = false); }
   }
 
   @override Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.grey[50],
-    appBar: AppBar(title: const Text('إعدادات الدردشة'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(icon: const Icon(Icons.save), onPressed: _saveSettings)]),
+    appBar: AppBar(title: const Text('إعدادات الدردشة'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(icon: _saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Icon(Icons.save), onPressed: _saving ? null : _saveSettings)]),
     body: ListView(children: [
       _buildSection(title: 'المظهر', children: [
         SwitchListTile(title: const Text('الوضع المظلم'), subtitle: const Text('تفعيل الوضع المظلم في الدردشة'), value: _darkMode, onChanged: (v) => setState(() => _darkMode = v), activeColor: AppColors.primary),
