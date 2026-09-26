@@ -626,13 +626,27 @@ router.post('/:chatId/messages', async (req, res) => {
             ? (chatData?.doctorName || req.user?.name || req.user?.displayName || 'مستخدم')
             : (req.user?.name || req.user?.displayName || 'مستخدم');
 
+      const senderPhotoUrl =
+        currentUserId === String(chatData?.patientId)
+          ? (chatData?.patientImage || '')
+          : currentUserId === String(chatData?.doctorId)
+            ? (chatData?.doctorImage || '')
+            : (req.user?.photoURL || '');
       await sendNewMessageNotification({
         receiverId: finalReceiverId,
         chatId,
         senderId: currentUserId,
         senderName,
+        senderPhotoUrl,
         text,
         type,
+        imageUrl,
+        videoUrl: req.body?.videoUrl ?? null,
+        audioUrl,
+        fileUrl,
+        fileName,
+        fileMimeType: req.body?.fileMimeType ?? fileType,
+        fileSize,
       });
     }
 
