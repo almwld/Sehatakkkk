@@ -44,7 +44,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(title: Text(_s(l['name']).isEmpty ? 'المختبر' : _s(l['name'])), backgroundColor: AppColors.primary, foregroundColor: Colors.white, bottom: TabBar(controller: _tabs, tabs: const [Tab(text: 'نبذة'), Tab(text: 'الفحوصات')], indicatorColor: Colors.white, labelColor: Colors.white, unselectedLabelColor: Colors.white70)),
-      body: TabBarView(controller: _tabs, children: [_overview(l, image, verified, dark), _tests(l, _list(l['tests']), dark)]),
+      body: TabBarView(controller: _tabs, children: [_overview(l, image, verified, dark), StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:_db.collection('lab_tests').where('labId',isEqualTo:widget.labId).where('isActive',isEqualTo:true).snapshots(),builder:(context,snap)=>_tests(l,snap.data?.docs.map((x)=>{'id':x.id,...x.data()}).toList()??const [],dark))]),
     );
   }
 

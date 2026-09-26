@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -14,7 +13,6 @@ class LabBookingScreen extends StatefulWidget {
 
 class _LabBookingScreenState extends State<LabBookingScreen> {
   final _db = FirebaseFirestore.instance;
-  final _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
   final _notes = TextEditingController();
   final _collectionAddress = TextEditingController();
   Map<String, dynamic>? _lab;
@@ -39,16 +37,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       final snap = await _db.collection('labs').doc(widget.labId).get();
       if (!snap.exists) throw Exception('المختبر غير موجود');
       final data = Map<String, dynamic>.from(snap.data()!);
-      final raw = data['tests'] is List ? data['tests'] as List : const [];
-      final tests = raw.asMap().entries.map((e) {
-        final v = e.value;
-        if (v is Map) {
-          final t = Map<String, dynamic>.from(v);
-          if (_s(t['id']).isEmpty) t['id'] = 'test_${e.key}';
-          return t;
-        }
-        return {'id': 'test_${e.key}', 'name': _s(v), 'price': 0, 'description': ''};
-      }).toList();
+      final testsSnap = await _db.collection('lab_tests').where('labId', isEqualTo: widget.labId).where('isActive', isEqualTo: true).get();
+      final tests = testsSnap.docs.map((doc) { final t = Map<String,dynamic>.from(doc.data()); t['id']=doc.id; return t; }).toList();
       if (widget.testId != null && tests.any((t) => _s(t['id']) == widget.testId)) _selected.add(widget.testId!);
       if (!mounted) return;
       setState(() { _lab = {'id': snap.id, ...data}; _tests = tests; _loading = false; });
@@ -69,29 +59,23 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
     final notes = _notes.text.trim();
     setState(() => _saving = true);
     try {
-      final create = await _functions.httpsCallable('createLabBooking').call({
-        'labId': widget.labId,
-        'testIds': _selected.toList(),
-        'date': date,
-        'time': time,
-        'notes': notes.length > 1000 ? notes.substring(0, 1000) : notes,
-        'homeCollection': _homeCollection,
-        'collectionAddress': _homeCollection ? _collectionAddress.text.trim() : null,
+      final user = FirebaseAuth.instance.currentUser!;
+      final selectedTests = _tests.where((x)=>_selected.contains(_s(x['id']))).map((x)=>{'id':_s(x['id']),'name':_s(x['name']),'description':_s(x['description']),'price':_n(x['price']),'duration':_s(x['duration'])}).toList();
+      final ref = await _db.collection('lab_bookings').add({
+        'patientId':user.uid,'patientName':user.displayName??'مستخدم','patientPhone':user.phoneNumber??'',
+        'labId':widget.labId,'labName':_s(_lab!['name']),'labAddress':_s(_lab!['address']??_lab!['location']),
+        'tests':selectedTests,'testId':selectedTests.length==1?selectedTests.first['id']:null,
+        'testName':selectedTests.map((x)=>x['name']).join('، '),'price':_total,'totalPrice':_total,
+        'date':date,'time':time,'appointmentDate':Timestamp.fromDate(appointment),'homeCollection':_homeCollection,
+        'collectionAddress':_homeCollection?_collectionAddress.text.trim():'','notes':notes.length>1000?notes.substring(0,1000):notes,
+        'status':'pending','createdAt':FieldValue.serverTimestamp(),
       });
-      final map = Map<String, dynamic>.from(create.data as Map);
-      final bookingId = map['bookingId']?.toString() ?? '';
-      if (bookingId.isEmpty) throw Exception('لم يتم إنشاء الحجز');
-      String? invoiceId;
-      if (_total > 0) {
-        final payment = await _functions.httpsCallable('payLabBooking').call({'bookingId': bookingId, 'idempotencyKey': 'lab-$bookingId'});
-        final paymentData = Map<String, dynamic>.from(payment.data as Map);
-        invoiceId = paymentData['invoiceId']?.toString();
-      }
+      final bookingId = ref.id;
       if (!mounted) return;
-      _show('تم الحجز والدفع بنجاح. رقم الحجز: $bookingId${invoiceId == null || invoiceId.isEmpty ? '' : ' • الفاتورة: $invoiceId'}', true);
+      _show('تم إرسال طلب الحجز بنجاح. رقم الحجز: '+bookingId, true);
       Navigator.pop(context, bookingId);
-    } on FirebaseFunctionsException catch (e) {
-      if (mounted) _show(e.message ?? 'تعذر إتمام الحجز والدفع.', false);
+    } catch (e) {
+      if (mounted) _show('تعذر إرسال الحجز: '+e.toString(), false);
     } catch (e) {
       if (mounted) _show('تعذر إتمام العملية: $e', false);
     } finally {
@@ -119,7 +103,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('حجز ودفع الفحص'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: const Text('حجز الفحص'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -161,7 +145,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
           const SizedBox(height: 12),
           Card(child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('الإجمالي', style: TextStyle(fontWeight: FontWeight.bold)), Text('${_total.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary))]))),
           const SizedBox(height: 16),
-          SizedBox(height: 52, child: ElevatedButton.icon(onPressed: _saving ? null : _bookAndPay, icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.lock_outline), label: Text(_saving ? 'جارٍ الحجز والدفع...' : 'حجز ودفع من المحفظة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))),
+          SizedBox(height: 52, child: ElevatedButton.icon(onPressed: _saving ? null : _bookAndPay, icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.lock_outline), label: Text(_saving ? 'جارٍ الحجز والدفع...' : 'إرسال طلب الحجز'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))),
         ],
       ),
     );

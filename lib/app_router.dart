@@ -35,6 +35,7 @@ import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
+import 'package:sehatak/presentation/screens/lab/lab_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
@@ -82,6 +83,7 @@ class AppRouter {
       articles = '/articles',
       community = '/community',
       pharmacyDashboard = '/pharmacy-dashboard',
+      labDashboard = '/lab-dashboard',
       marketplaceAdmin = '/marketplace-admin',
       chatRoom = '/chat-room',
       addStatus = '/chat/add-status',
@@ -205,6 +207,10 @@ class AppRouter {
           onExit: _returnToHome,
           path: pharmacyDashboard,
           builder: (_, __) => const PharmacyDashboard()),
+      GoRoute(
+          onExit: _returnToHome,
+          path: labDashboard,
+          builder: (_, __) => const LabDashboardScreen()),
       GoRoute(
           onExit: _returnToHome,
           path: marketplaceAdmin,

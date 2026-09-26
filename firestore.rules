@@ -269,7 +269,22 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════
     // HEALTHCARE (public read)
     // ═══════════════════════════════════════════════════════════
-    match /labs/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /labs/{labId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && request.auth.uid == labId;
+      allow delete: if isAdmin();
+    }
+    match /lab_tests/{testId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.labId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.labId == request.auth.uid;
+    }
+    match /lab_bookings/{bookingId} {
+      allow read: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.labId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      allow update: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.labId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid);
+    }
     match /pharmacies/{id} { allow read: if true; allow write: if isAdmin(); }
     match /hospitals/{id} { allow read: if true; allow write: if isAdmin(); }
     match /products/{id} {

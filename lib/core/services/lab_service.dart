@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/models/lab/lab_booking_model.dart';
 import 'package:sehatak/core/models/lab/lab_booking_status.dart';
@@ -7,7 +6,6 @@ import 'package:sehatak/core/models/lab/sample_collection_method.dart';
 
 class LabService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
   Future<LabBookingModel> createLabBooking({
     required String consultationId,
@@ -29,19 +27,14 @@ class LabService {
     if (tests.isEmpty) throw Exception('اختر فحصًا واحدًا على الأقل');
 
     final now = DateTime.now();
-    final date = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    final result = await _functions.httpsCallable('createLabBooking').call({
-      'labId': labId,
-      'date': date,
-      'time': time,
-      'testIds': tests.map((t) => '${t['id'] ?? t['testId'] ?? ''}').where((id) => id.isNotEmpty).toList(),
-      'notes': notes,
+    final ref = await _firestore.collection('lab_bookings').add({
+      'consultationId': consultationId, 'patientId': user.uid, 'patientName': patientName, 'patientPhone': patientPhone,
+      'patientAddress': patientAddress, 'labId': labId, 'labName': labName, 'labAddress': labAddress, 'tests': tests,
+      'totalPrice': totalPrice, 'collectionMethod': collectionMethod.toString().split('.').last, 'notes': notes ?? '',
+      'status': 'pending', 'bookingDate': Timestamp.fromDate(now), 'createdAt': FieldValue.serverTimestamp(),
     });
-
-    final data = Map<String, dynamic>.from(result.data as Map);
     return LabBookingModel(
-      id: '${data['bookingId'] ?? ''}',
+      id: ref.id,
       consultationId: consultationId,
       patientId: user.uid,
       patientName: patientName,
