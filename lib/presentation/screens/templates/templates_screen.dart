@@ -36,7 +36,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   Future<void> _loadSavedTemplate() async {
     final p = await SharedPreferences.getInstance();
     final id = p.getString('saved_template_id');
-    final t = TemplateData.templates.where((e) => e.id == id).firstOrNull;
+    TemplateModel? t;
+    for (final item in TemplateData.templates) { if (item.id == id) { t = item; break; } }
     if (!mounted || t == null) return;
     setState(() { _selectedTemplate=t; _primaryController.text=p.getString('saved_template_primary') ?? t.primaryText ?? ''; _secondaryController.text=p.getString('saved_template_secondary') ?? t.secondaryText ?? ''; });
   }
