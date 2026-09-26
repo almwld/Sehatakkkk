@@ -93,7 +93,25 @@ exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{message
   });
 
   await Promise.all(notifyReceivers.map(async uid=>{
-    const data={type:'new_message',chatId,messageId:event.params.messageId,senderId,senderName,body,recipientId:uid,title:senderName};
+    const data={
+      type:'new_message',
+      chatId,
+      messageId:event.params.messageId,
+      senderId,
+      senderName,
+      senderPhotoUrl:String(m.senderPhotoUrl || m.senderAvatar || ''),
+      messageType:type,
+      imageUrl:String(m.imageUrl || ''),
+      videoUrl:String(m.videoUrl || ''),
+      audioUrl:String(m.audioUrl || ''),
+      fileUrl:String(m.fileUrl || ''),
+      fileName:String(m.fileName || ''),
+      fileMimeType:String(m.fileMimeType || m.fileType || ''),
+      fileSize:String(m.fileSize || ''),
+      body,
+      recipientId:uid,
+      title:senderName,
+    };
     await archiveNotification(uid,{data});
     await sendToUser(uid,{data});
   }));
