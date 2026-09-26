@@ -50,7 +50,9 @@ class _RemindersScreenState extends State<RemindersScreen> {
 
   Future<void> _showAddReminderDialog(BuildContext context) async {
     _selectedDate = DateTime.now(); _selectedTime = TimeOfDay.now();
-    await showDialog<void>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, setDialogState) => AlertDialog(
+    await showDialog<void>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, setDialogState) {
+      bool saving = false;
+      return AlertDialog(
       title: const Text('إضافة تذكير'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: _titleCtrl, decoration: const InputDecoration(labelText: 'العنوان', prefixIcon: Icon(Icons.title))),
@@ -60,13 +62,22 @@ class _RemindersScreenState extends State<RemindersScreen> {
         ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)), onTap: () async { final d = await showDatePicker(context: dialogContext, initialDate: _selectedDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365))); if (d != null) setDialogState(() => _selectedDate = d); }),
         ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.access_time, color: AppColors.primary), title: Text(_selectedTime.format(dialogContext)), onTap: () async { final t = await showTimePicker(context: dialogContext, initialTime: _selectedTime); if (t != null) setDialogState(() => _selectedTime = t); }),
       ])),
-      actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')), ElevatedButton(onPressed: () async {
+      actions: [TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext), child: const Text('إلغاء')), ElevatedButton(onPressed: saving ? null : () async {
         final user = _auth.currentUser;
         if (user == null || _titleCtrl.text.trim().isEmpty) { await ToastService.showWarning('يرجى إدخال العنوان'); return; }
-        final dateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute);
-        await _firestore.collection('reminders').add({'userId': user.uid, 'title': _titleCtrl.text.trim(), 'description': _descCtrl.text.trim(), 'dateTime': Timestamp.fromDate(dateTime), 'completed': false, 'createdAt': FieldValue.serverTimestamp()});
-        _titleCtrl.clear(); _descCtrl.clear(); if (dialogContext.mounted) Navigator.pop(dialogContext); await ToastService.showSuccess('تم إضافة التذكير');
-      }, child: const Text('حفظ'))],
-    )));
+        setDialogState(() => saving = true);
+        try {
+          final dateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute);
+          await _firestore.collection('reminders').add({'userId': user.uid, 'title': _titleCtrl.text.trim(), 'description': _descCtrl.text.trim(), 'dateTime': Timestamp.fromDate(dateTime), 'completed': false, 'createdAt': FieldValue.serverTimestamp()});
+          _titleCtrl.clear(); _descCtrl.clear();
+          if (dialogContext.mounted) Navigator.pop(dialogContext);
+          await ToastService.showSuccess('تم إضافة التذكير');
+        } catch (_) {
+          if (dialogContext.mounted) setDialogState(() => saving = false);
+          await ToastService.showError('تعذر حفظ التذكير، حاول مرة أخرى');
+        }
+      }, child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : const Text('حفظ'))],
+    );
+    });
   }
 }
