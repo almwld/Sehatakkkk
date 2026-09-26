@@ -80,7 +80,7 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
 
   void _showAddReportDialog(BuildContext context) {
     final title = TextEditingController(), doctor = TextEditingController(), type = TextEditingController(), notes = TextEditingController();
-    showDialog(context: context, builder: (dialogContext) => AlertDialog(
+    showDialog(context: context, builder: (dialogContext) { bool saving = false; return AlertDialog(
       title: const Text('إضافة تقرير طبي'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: title, decoration: const InputDecoration(labelText: 'عنوان التقرير')),
@@ -89,15 +89,21 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
         TextField(controller: notes, maxLines: 3, decoration: const InputDecoration(labelText: 'ملاحظات')),
       ])),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
-        ElevatedButton(onPressed: () async {
+        TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+        ElevatedButton(onPressed: saving ? null : () async {
           final user = _auth.currentUser;
           if (user == null || title.text.trim().isEmpty || doctor.text.trim().isEmpty) { ToastService.showError(context, 'يرجى ملء الحقول'); return; }
-          await _firestore.collection('reports').add({'patientId': user.uid, 'title': title.text.trim(), 'doctorName': doctor.text.trim(), 'type': type.text.trim(), 'notes': notes.text.trim(), 'attachments': 0, 'createdAt': FieldValue.serverTimestamp()});
-          if (dialogContext.mounted) Navigator.pop(dialogContext);
-          if (mounted) ToastService.showSuccess(context, 'تم إضافة التقرير');
-        }, child: const Text('حفظ')),
+          saving = true;
+          try {
+            await _firestore.collection('reports').add({'patientId': user.uid, 'title': title.text.trim(), 'doctorName': doctor.text.trim(), 'type': type.text.trim(), 'notes': notes.text.trim(), 'attachments': 0, 'createdAt': FieldValue.serverTimestamp()});
+            if (dialogContext.mounted) Navigator.pop(dialogContext);
+            if (mounted) ToastService.showSuccess(context, 'تم إضافة التقرير');
+          } catch (_) {
+            saving = false;
+            if (mounted) ToastService.showError(context, 'تعذر حفظ التقرير، حاول مرة أخرى');
+          }
+        }, child: Text(saving ? 'جاري الحفظ...' : 'حفظ')),
       ],
-    ));
+    ); });
   }
 }
