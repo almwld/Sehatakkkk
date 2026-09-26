@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -45,6 +46,69 @@ enum ToastType { success, error, warning, info, loading }
 class _ToastOverlay extends StatelessWidget {
   final String message; final ToastType type; final Color color; final Color textColor; final VoidCallback onDismiss;
   const _ToastOverlay({required this.message, required this.type, required this.color, required this.textColor, required this.onDismiss});
-  @override Widget build(BuildContext context) => Positioned(top: MediaQuery.of(context).padding.top + 8, left: 16, right: 16, child: Material(color: Colors.transparent, child: Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: color.withOpacity(0.9), borderRadius: BorderRadius.circular(12)), child: Row(children: [Text(_symbol, style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold)), const SizedBox(width: 10), Expanded(child: Text(message, maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: TextStyle(color: textColor))), IconButton(onPressed: onDismiss, icon: Text('×', style: TextStyle(color: textColor, fontSize: 22))) ]))));
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top + 8;
+    const glass = Color(0xCC0A8F83);
+    const glassEdge = Color(0x665DE0D2);
+    return Positioned(
+      top: top,
+      left: 14,
+      right: 14,
+      child: Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 54),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: glass.withOpacity(.72),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: glassEdge, width: 1),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x33000000), blurRadius: 18, offset: Offset(0, 7)),
+                ],
+              ),
+              child: Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: const Color(0x335DE0D2),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0x665DE0D2)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(_symbol, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w800)),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      message,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(color: textColor, fontSize: 13, height: 1.25, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onDismiss,
+                    icon: Icon(Icons.close_rounded, color: textColor.withOpacity(.82), size: 19),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
   String get _symbol => switch (type) { ToastType.success => '✓', ToastType.error => '×', ToastType.warning => '!', ToastType.info => 'i', ToastType.loading => '⌛' };
 }
