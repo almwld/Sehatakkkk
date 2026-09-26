@@ -17,6 +17,7 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
   bool _isAdding = false;
   List<Map<String, dynamic>> _readings = [];
   bool _loading = true;
+  bool _saving = false;
   final _mealOptions = const ['قبل الفطور','بعد الفطور','قبل الغداء','بعد الغداء','قبل العشاء','بعد العشاء'];
 
   @override void initState() { super.initState(); _load(); }
@@ -44,14 +45,19 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
   Future<void> _save() async {
     final value = double.tryParse(_glucoseCtrl.text.trim());
     if (value == null || value <= 0 || value > 1000) { ToastService.showError('أدخل قراءة سكر صحيحة'); return; }
+    if (_saving) return;
+    setState(() => _saving = true);
     final now = DateTime.now();
     final item = {'meal':_selectedMeal,'value':value,'status':_status(value),'time':now.toIso8601String()};
-    setState(() { _readings.insert(0,item); _isAdding=false; });
-    _glucoseCtrl.clear();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_cacheKey, jsonEncode(_readings));
-    try { await HealthMetricsService.update({'blood_sugar': value, 'blood_sugar_at': now.toIso8601String(), 'blood_sugar_meal': _selectedMeal}); } catch (_) {}
-    if (mounted) ToastService.showSuccess('تم حفظ قراءة السكر');
+    try {
+      final next = [item, ..._readings];
+      final prefs = await SharedPreferences.getInstance(); await prefs.setString(_cacheKey, jsonEncode(next));
+      try { await HealthMetricsService.update({'blood_sugar': value, 'blood_sugar_at': now.toIso8601String(), 'blood_sugar_meal': _selectedMeal}); }
+      catch (_) { if (mounted) ToastService.showWarning('تم حفظ القراءة على الجهاز، وتعذرت المزامنة حالياً'); }
+      if (!mounted) return;
+      setState(() { _readings=next; _isAdding=false; }); _glucoseCtrl.clear(); ToastService.showSuccess('تم حفظ قراءة السكر');
+    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ قراءة السكر، حاول مرة أخرى'); }
+    finally { if (mounted) setState(() => _saving = false); }
   }
 
   void _openAdd() => setState(() => _isAdding = true);
