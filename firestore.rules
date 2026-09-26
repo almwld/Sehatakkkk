@@ -58,6 +58,9 @@ service cloud.firestore {
       }
 
       match /children/{childId} { allow read, write: if isSelf(userId); match /records/{recordId} { allow read, write: if isSelf(userId); } match /growth/{entryId} { allow read, write: if isSelf(userId); } }
+      match /mood_entries/{entryId} { allow read, write: if isSelf(userId); }
+      match /symptom_checks/{checkId} { allow read, write: if isSelf(userId); }
+      match /vaccinations/{vaccinationId} { allow read, write: if isSelf(userId); }
 
       match /followers/{followerUserId} {
         allow read: if isSignedIn();
@@ -259,6 +262,22 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════
     // APPOINTMENTS
     // ═══════════════════════════════════════════════════════════
+    match /medical_records/{recordId} {
+      allow read: if isSignedIn() && resource.data.patientId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.patientId == request.auth.uid;
+    }
+    match /reports/{reportId} {
+      allow read: if isSignedIn() && resource.data.patientId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.patientId == request.auth.uid;
+    }
+    match /reminders/{reminderId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
     match /appointments/{appointmentId} {
       allow get: if isSignedIn() 
         && (!exists(/databases/$(database)/documents/appointments/$(appointmentId))
