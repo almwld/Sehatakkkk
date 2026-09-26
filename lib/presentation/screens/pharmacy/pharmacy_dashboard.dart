@@ -1,10 +1,9 @@
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:sehatak/core/constants/app_icons.dart';
-import 'package:sehatak/core/services/image_kit_service.dart';
+import 'package:sehatak/core/services/nextcloud_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/toast_service.dart';
 
@@ -15,7 +14,6 @@ class PharmacyDashboard extends StatefulWidget {
 }
 
 class _PharmacyDashboardState extends State<PharmacyDashboard> {
-  final _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
   Map<String, dynamic>? _pharmacy;
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
@@ -28,25 +26,19 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
   Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
     try {
-      final r = await _functions.httpsCallable('getMyPharmacy').call();
-      final d = Map<String, dynamic>.from(r.data as Map);
-      if (d['exists'] == true) {
-        _pharmacy = Map<String, dynamic>.from(d['pharmacy'] as Map);
-        final p = await _functions.httpsCallable('getMyPharmacyProducts').call({'pharmacyId': _pharmacy!['id']});
-        final pd = Map<String, dynamic>.from(p.data as Map);
-        _products = (pd['products'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
-      } else {
-        _pharmacy = null;
-        _products = [];
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) throw StateError('يجب تسجيل الدخول');
+      QuerySnapshot<Map<String, dynamic>> q = await FirebaseFirestore.instance.collection('pharmacies').where('ownerId', isEqualTo: uid).limit(1).get();
+      if (q.docs.isEmpty) q = await FirebaseFirestore.instance.collection('pharmacies').where('userId', isEqualTo: uid).limit(1).get();
+      if (q.docs.isEmpty) { _pharmacy = null; _products = []; } else {
+        final d = q.docs.first.data(); _pharmacy = {...d, 'id': q.docs.first.id};
+        var pq = await FirebaseFirestore.instance.collection('products').where('pharmacyId', isEqualTo: q.docs.first.id).limit(300).get();
+        if (pq.docs.isEmpty && q.docs.first.id != uid) pq = await FirebaseFirestore.instance.collection('products').where('pharmacyId', isEqualTo: uid).limit(300).get();
+        _products = pq.docs.map((d) => {...d.data(), 'id': d.id}).toList();
       }
       if (mounted) setState(() => _error = null);
-    } on FirebaseFunctionsException catch (e) {
-      if (mounted) setState(() => _error = e.message ?? 'تعذر تحميل لوحة الصيدلية');
-    } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+    } catch (e) { if (mounted) setState(() => _error = e.toString()); }
+    finally { if (mounted) setState(() => _loading = false); }
   }
 
   Future<void> _create() async {
