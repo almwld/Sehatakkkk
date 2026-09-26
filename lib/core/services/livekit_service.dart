@@ -50,7 +50,9 @@ class LiveKitService {
     const options = RoomOptions(
       adaptiveStream: true,
       dynacast: true,
-      defaultVideoPublishOptions: VideoPublishOptions(simulcast: false),
+      // Keep simulcast enabled so LiveKit can switch quality layers with
+      // changing bandwidth instead of forcing a single fixed stream.
+      defaultVideoPublishOptions: VideoPublishOptions(simulcast: true),
       defaultAudioPublishOptions: AudioPublishOptions(),
     );
 
@@ -64,9 +66,24 @@ class LiveKitService {
           await current.disconnect();
         }
         debugPrint('LIVEKIT CONNECT attempt=$attempt/3');
+        // On restrictive mobile networks the direct ICE candidates can fail
+        // even though signaling is reachable. The final attempt forces TURN
+        // relay, which is the reliable fallback for those networks.
+        final connectOptions = attempt == 3
+            ? const ConnectOptions(
+                rtcConfiguration: RTCConfiguration(
+                  iceTransportPolicy: RTCIceTransportPolicy.relay,
+                ),
+              )
+            : null;
         await current
-            .connect(url, token, roomOptions: options)
-            .timeout(const Duration(seconds: 20));
+            .connect(
+              url,
+              token,
+              connectOptions: connectOptions,
+              roomOptions: options,
+            )
+            .timeout(const Duration(seconds: 25));
         return current;
       } catch (e, st) {
         lastError = e;
