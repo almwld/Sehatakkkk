@@ -76,6 +76,8 @@ class FamilyDashboardScreen extends StatelessWidget {
     DateTime? birthDate;
     String gender = 'male';
     File? photo;
+    bool saving = false;
+    final childId = 'child_${DateTime.now().microsecondsSinceEpoch}';
 
     await showModalBottomSheet(
       context: context,
@@ -120,35 +122,46 @@ class FamilyDashboardScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () async {
+                  onPressed: saving ? null : () async {
                     if (name.text.trim().isEmpty || birthDate == null) {
                       ToastService.showError('اسم الطفل وتاريخ الميلاد مطلوبان');
                       return;
                     }
+                    setState(() => saving = true);
                     try {
                       String? photoUrl;
                       if (photo != null) {
                         final nc = NextcloudService();
                         await nc.loadConfig();
-                        final upload = await nc.uploadFile(file: photo!, path: 'children', fileName: DateTime.now().millisecondsSinceEpoch.toString()+'.jpg');
+                        final upload = await nc.uploadFile(
+                          file: photo!,
+                          path: 'children',
+                          fileName: '$childId.jpg',
+                        );
                         if (!upload.success) {
-                          ToastService.showError(upload.error ?? 'تعذر رفع الصورة');
-                          return;
+                          throw StateError(upload.error ?? 'تعذر رفع الصورة');
                         }
                         photoUrl = upload.url;
                       }
                       await ChildService.instance.addChild(
-                        name: name.text, birthDate: birthDate!, gender: gender,
-                        weight: double.tryParse(weight.text), height: double.tryParse(height.text),
-                        headCircumference: double.tryParse(head.text), photoUrl: photoUrl,
+                        childId: childId,
+                        name: name.text,
+                        birthDate: birthDate!,
+                        gender: gender,
+                        weight: double.tryParse(weight.text),
+                        height: double.tryParse(height.text),
+                        headCircumference: double.tryParse(head.text),
+                        photoUrl: photoUrl,
                       );
                       if (sheetContext.mounted) Navigator.pop(sheetContext);
                       ToastService.showSuccess('تم إضافة الطفل بنجاح');
                     } catch (e) {
-                      ToastService.showError('تعذر إضافة الطفل: '+e.toString());
+                      ToastService.showError('تعذر إضافة الطفل: '+e.toString().replaceFirst('StateError: ', ''));
+                    } finally {
+                      if (sheetContext.mounted) setState(() => saving = false);
                     }
                   },
-                  child: const Text('حفظ'),
+                  child: Text(saving ? 'جاري الحفظ...' : 'حفظ'),
                 ),
               ),
             ]),
