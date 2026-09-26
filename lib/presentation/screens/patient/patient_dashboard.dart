@@ -31,7 +31,6 @@ import 'package:sehatak/presentation/screens/step_tracker/step_tracker_screen.da
 import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PatientDashboard extends StatefulWidget {
@@ -328,15 +327,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
   }
 
-  void _openAccountManagement() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const RoleBasedDashboardScreen(),
-      ),
-    );
-  }
-
   Future<void> _shareProfile() async {
     setState(() => _isSharing = true);
     try {
@@ -434,11 +424,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
             icon: const Icon(Icons.qr_code),
             onPressed: _showQRCode,
             tooltip: 'عرض الباركود',
-          ),
-          IconButton(
-            icon: const Icon(Icons.manage_accounts_outlined),
-            onPressed: _openAccountManagement,
-            tooltip: 'إدارة الحساب',
           ),
         ],
       ),
