@@ -49,6 +49,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
   Map<String, int> _symptomSeverity = {};
   int? _selectedBodyPart;
   String? _selectedSeverity;
+  bool _savingReport = false;
 
   @override
   Widget build(BuildContext context) {
