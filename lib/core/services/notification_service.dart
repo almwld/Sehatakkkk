@@ -675,7 +675,7 @@ class NotificationService {
       callId: callId,
       isVideo: isVideo,
       silent: silent,
-      smallIcon: 'ic_launcher',
+      smallIcon: 'ic_notification',
     );
   }
 
