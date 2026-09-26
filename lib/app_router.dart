@@ -21,6 +21,13 @@ import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/delivery/delivery_screen.dart';
 import 'package:sehatak/presentation/screens/delivery/delivery_company_screen.dart';
 import 'package:sehatak/presentation/screens/delivery/delivery_tracking_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_clinics_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_clinic_detail_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_doctors_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_doctor_detail_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_consultation_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_hospitals_screen.dart';
+import 'package:sehatak/presentation/screens/dental/dental_tips_screen.dart';
 import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/step_tracker/step_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
@@ -101,7 +108,10 @@ class AppRouter {
       health = '/health',
       delivery = '/delivery',
       deliveryCompanies = '/delivery/companies',
-      deliveryTracking = '/delivery/tracking', family = '/family';
+      deliveryTracking = '/delivery/tracking', family = '/family',
+      dentalClinics = '/dental/clinics', dentalClinicDetail = '/dental/clinic/:id',
+      dentalDoctors = '/dental/doctors', dentalDoctorDetail = '/dental/doctor/:id',
+      dentalConsultation = '/dental/consultation', dentalHospitals = '/dental/hospitals', dentalTips = '/dental/tips';
 
   static bool _backPressedOnce = false;
   static Timer? _backExitTimer;
@@ -337,6 +347,13 @@ class AppRouter {
                 area: '${extra['area'] ?? ''}',
                 onSelect: (company) => context.pop(company));
           }),
+      GoRoute(onExit: _returnToHome, path: dentalClinics, builder: (_, __) => const DentalClinicsScreen()),
+      GoRoute(onExit: _returnToHome, path: dentalClinicDetail, builder: (_, s) => DentalClinicDetailScreen(clinicId: s.pathParameters['id'] ?? '')),
+      GoRoute(onExit: _returnToHome, path: dentalDoctors, builder: (_, __) => const DentalDoctorsScreen()),
+      GoRoute(onExit: _returnToHome, path: dentalDoctorDetail, builder: (_, s) => DentalDoctorDetailScreen(doctorId: s.pathParameters['id'] ?? '')),
+      GoRoute(onExit: _returnToHome, path: dentalConsultation, builder: (_, __) => const DentalConsultationScreen()),
+      GoRoute(onExit: _returnToHome, path: dentalHospitals, builder: (_, __) => const DentalHospitalsScreen()),
+      GoRoute(onExit: _returnToHome, path: dentalTips, builder: (_, __) => const DentalTipsScreen()),
       GoRoute(
           onExit: _returnToHome,
           path: deliveryTracking,
