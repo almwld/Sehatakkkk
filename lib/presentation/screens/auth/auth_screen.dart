@@ -980,7 +980,7 @@ class _AuthScreenState extends State<AuthScreen>
         } catch (e) {
           debugPrint('[Registration] user model preparation skipped: $e');
         }
-      }()));
+      }());
     } on FirebaseAuthException catch (e) {
       _hideLoading();
 
