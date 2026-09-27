@@ -12,7 +12,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:sehatak/core/constants/app_images.dart';
@@ -63,20 +62,18 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
   late final AnimationController _pulseController;
   late final AnimationController _haloController;
-  late final AnimationController _answerExpansionController;
   late final Animation<double> _pulseAnimation;
   late final Animation<double> _haloAnimation;
-  late final Animation<double> _answerExpansionAnimation;
 
   final CallService _callService = CallService();
   StreamSubscription<CallModel?>? _callSubscription;
-  Timer? _vibrationTimer;
 
   bool _isProcessing = false;
   bool _isMuted = false;
   bool _isAlerting = true;
-  bool _answerSwipeTriggered = false;
-  double _answerSwipeDistance = 0;
+  double _swipeProgress = 0.0;
+  double _swipeDirection = 0.0;
+  bool _swipeLocked = false;
 
   @override
   void initState() {
@@ -86,11 +83,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     _enableFullScreenUI();
 
     _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 100),
       vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 1, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeOutCubic),
     );
 
     _haloController = AnimationController(
@@ -101,16 +98,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       CurvedAnimation(parent: _haloController, curve: Curves.easeOut),
     );
 
-    _answerExpansionController = AnimationController(
-      duration: const Duration(milliseconds: 430),
-      vsync: this,
-    );
-    _answerExpansionAnimation = CurvedAnimation(
-      parent: _answerExpansionController,
-      curve: Curves.easeInOutCubic,
-    );
-
-    unawaited(_startVibration());
     _listenToCall();
     unawaited(WakelockPlus.enable());
   }
@@ -136,13 +123,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
   void _restoreSystemUI() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  }
-
-  Future<void> _startVibration() async {
-    if (!await Vibrate.canVibrate) return;
-    _vibrationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_isAlerting && mounted) Vibrate.feedback(FeedbackType.medium);
-    });
   }
 
   void _listenToCall() {
@@ -184,30 +164,109 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     try {
       await _callService.acceptCall(widget.callId);
       widget.onCallAnswered(true);
-      _stopAlerting();
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => CallScreen(
-            callId: widget.callId,
-            chatId: widget.chatId,
-            doctorName: widget.callerName,
-            doctorId: widget.callerId,
-            doctorImage: widget.callerImage,
-            isVideo: widget.isVideo,
-            isOutgoing: false,
-          ),
-        ),
-      );
     } catch (e) {
-      if (!mounted) return;
+      debugPrint('acceptCall failed: $e');
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _swipeProgress = 0;
+          _swipeDirection = 0;
+          _swipeLocked = false;
+        });
+        ToastService.showError('تعذر قبول المكالمة: $e');
+      }
+    }
+  }
+
+  Future<void> _handleAnswerTap() async {
+    if (_isProcessing || _swipeLocked) return;
+    setState(() => _isProcessing = true);
+
+    await _pulseController.forward();
+    await _pulseController.reverse();
+
+    if (!mounted) return;
+    _ringController.forward(from: 0);
+
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    if (!mounted) return;
+
+    _navigateToCall();
+  }
+
+  void _navigateToCall() {
+    if (!mounted) return;
+    _stopAlerting();
+    widget.onCallAnswered(true);
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => CallScreen(
+          callId: widget.callId,
+          chatId: widget.chatId,
+          doctorId: widget.callerId,
+          doctorName: widget.callerName,
+          doctorImage: widget.callerImage,
+          isVideo: widget.isVideo,
+          isOutgoing: false,
+        ),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+      ),
+    );
+
+    unawaited(
+      _callService.acceptCall(widget.callId).catchError((Object error) {
+        debugPrint('acceptCall failed after navigation: $error');
+      }),
+    );
+  }
+
+  Future<void> _triggerSwipeAnswer() async {
+    if (_isProcessing || _swipeLocked) return;
+    setState(() {
+      _swipeLocked = true;
+      _isProcessing = true;
+      _swipeProgress = 1.0;
+    });
+
+    await _pulseController.forward();
+    await _pulseController.reverse();
+
+    if (!mounted) return;
+    _ringController.forward(from: 0);
+
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    if (!mounted) return;
+
+    _navigateToCall();
+  }
+
+  void _handleAnswerSwipeUpdate(DragUpdateDetails details) {
+    if (_isProcessing || _swipeLocked) return;
+    final dx = details.primaryDelta ?? 0;
+    if (dx == 0) return;
+    final direction = dx.sign;
+    if (_swipeDirection == 0) _swipeDirection = direction;
+    if (direction != _swipeDirection) return;
+
+    setState(() {
+      _swipeProgress = (_swipeProgress + dx.abs() / 200).clamp(0.0, 1.0);
+    });
+    if (_swipeProgress >= 0.7) {
+      unawaited(_triggerSwipeAnswer());
+    }
+  }
+
+  void _handleAnswerSwipeEnd(DragEndDetails details) {
+    if (_isProcessing || _swipeLocked) return;
+    if (_swipeProgress < 0.7 && mounted) {
       setState(() {
-        _isProcessing = false;
-        _answerSwipeTriggered = false;
-        _answerSwipeDistance = 0;
+        _swipeProgress = 0;
+        _swipeDirection = 0;
       });
-      await _answerExpansionController.reverse();
-      ToastService.showError('تعذر قبول المكالمة: $e');
     }
   }
 
@@ -288,7 +347,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     WidgetsBinding.instance.removeObserver(this);
     _pulseController.dispose();
     _haloController.dispose();
-    _answerExpansionController.dispose();
     _restoreSystemUI();
     unawaited(WakelockPlus.disable());
     super.dispose();
@@ -409,7 +467,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                           size: isCompact ? 68 : 78,
                           isMain: true,
                           pulse: true,
-                          swipeDistance: _answerSwipeDistance,
+                          swipeDistance: _swipeProgress,
                           onTap: _isProcessing ? null : _acceptCall,
                           onPanUpdate: _handleAnswerSwipeUpdate,
                           onPanEnd: _handleAnswerSwipeEnd,
@@ -430,68 +488,16 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                 ),
               ),
             ),
-            if (_answerSwipeTriggered)
+            if (_ringController.value > 0)
               Positioned.fill(
                 child: IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _answerExpansionAnimation,
-                    builder: (_, __) {
-                      final v = _answerExpansionAnimation.value;
-                      final size = MediaQuery.sizeOf(context);
-                      final radius = size.longestSide * 1.15;
-                      return Center(
-                        child: Transform.scale(
-                          scale: v * radius / 78,
-                          child: ClipOval(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 20 * v,
-                                sigmaY: 20 * v,
-                              ),
-                              child: Container(
-                                width: 78,
-                                height: 78,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: RadialGradient(
-                                    colors: [
-                                      Colors.white.withOpacity(.25 * v),
-                                      _green.withOpacity(.35 * v),
-                                      _green.withOpacity(.15 * v),
-                                    ],
-                                    stops: const [0, .5, 1],
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(.45 * v),
-                                    width: 2.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: _green.withOpacity(.4 * v),
-                                      blurRadius: 40,
-                                      spreadRadius: 10,
-                                    ),
-                                    BoxShadow(
-                                      color: Colors.white.withOpacity(.2 * v),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                                padding: const EdgeInsets.all(20),
-                                child: Icon(
-                                  widget.isVideo
-                                      ? Icons.videocam_rounded
-                                      : Icons.call_rounded,
-                                  color: Colors.white.withOpacity(.95),
-                                  size: 35,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                  child: Center(
+                    child: _ExpandingRing(
+                      controller: _ringController,
+                      startSize: 78.0,
+                      maxScale: 8.0,
+                      color: _green,
+                    ),
                   ),
                 ),
               ),
@@ -702,55 +708,67 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     GestureDragUpdateCallback? onPanUpdate,
     GestureDragEndCallback? onPanEnd,
   }) {
-    final swipeProgress = (swipeDistance / 78).clamp(0.0, 1.0);
-    final scaleFactor = 1 + swipeProgress;
-    final effectiveSize = size * scaleFactor;
+    final swipeProgress = swipeDistance.clamp(0.0, 1.0);
+    final effectiveSize = size;
+
+    Widget button = AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOutCubic,
+      transform: Matrix4.identity()
+        ..translate(_swipeDirection * swipeProgress * 18.0, 0.0),
+      width: effectiveSize,
+      height: effectiveSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: isMain
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color.withOpacity(.95), color],
+              )
+            : null,
+        color: isMain ? null : color.withOpacity(.12),
+        border: Border.all(
+          color: isMain ? Colors.white.withOpacity(.15) : color,
+          width: isMain ? 0 : 2,
+        ),
+        boxShadow: isMain || pulse
+            ? [
+                BoxShadow(
+                  color: color.withOpacity(.45 + swipeProgress * .3),
+                  blurRadius: 20 + swipeProgress * 12,
+                  spreadRadius: 4 + swipeProgress * 4,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: Icon(
+        icon,
+        color: isMain ? Colors.white : color,
+        size: isMain ? 34 : 26,
+      ),
+    );
+
+    if (pulse && isMain) {
+      button = AnimatedBuilder(
+        animation: _pulseAnimation,
+        builder: (_, child) => Transform.scale(
+          scale: _pulseAnimation.value,
+          child: child,
+        ),
+        child: button,
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
           onTap: onTap,
-          onPanUpdate: onPanUpdate,
-          onPanEnd: onPanEnd,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            transform: Matrix4.identity()
-              ..translate(0.0, -swipeDistance * .4),
-            width: effectiveSize,
-            height: effectiveSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: isMain
-                  ? LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [color.withOpacity(.95), color],
-                    )
-                  : null,
-              color: isMain ? null : color.withOpacity(.12),
-              border: Border.all(
-                color: isMain ? Colors.white.withOpacity(.15) : color,
-                width: isMain ? 0 : 2,
-              ),
-              boxShadow: isMain || pulse
-                  ? [
-                      BoxShadow(
-                        color: color.withOpacity(.45 + swipeProgress * .3),
-                        blurRadius: 20 + swipeProgress * 30,
-                        spreadRadius: 4 + swipeProgress * 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Icon(
-              icon,
-              color: isMain ? Colors.white : color,
-              size: isMain ? 34 + swipeProgress * 15 : 26,
-            ),
-          ),
+          onHorizontalDragUpdate: onPanUpdate,
+          onHorizontalDragEnd: onPanEnd,
+          child: button,
         ),
         const SizedBox(height: 10),
         Text(
@@ -812,4 +830,39 @@ class _PulseDotState extends State<_PulseDot>
           ),
         ),
       );
+}
+
+class _ExpandingRing extends StatelessWidget {
+  final Animation<double> controller;
+  final double startSize;
+  final double maxScale;
+  final Color color;
+
+  const _ExpandingRing({
+    required this.controller,
+    required this.startSize,
+    required this.maxScale,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final scale = 1.0 + (maxScale - 1.0) * controller.value;
+        final opacity = (1.0 - controller.value).clamp(0.0, 1.0);
+        return IgnorePointer(
+          child: Container(
+            width: startSize * scale,
+            height: startSize * scale,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withOpacity(opacity * 0.6),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
