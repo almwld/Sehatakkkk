@@ -61,6 +61,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   static const Color _green = Color(0xFF4CAF50);
 
   late final AnimationController _pulseController;
+  late final AnimationController _ringController;
   late final AnimationController _haloController;
   late final Animation<double> _pulseAnimation;
   late final Animation<double> _haloAnimation;
@@ -88,6 +89,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     );
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeOutCubic),
+    );
+
+    _ringController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
     );
 
     _haloController = AnimationController(
@@ -152,7 +158,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
   void _stopAlerting() {
     _isAlerting = false;
-    _vibrationTimer?.cancel();
     unawaited(CallSoundCoordinator.instance.stopForCall(widget.callId));
     _callSubscription?.cancel();
     _callSubscription = null;
@@ -224,107 +229,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     );
   }
 
-  Future<void> _triggerSwipeAnswer() async {
-    if (_isProcessing || _swipeLocked) return;
-    setState(() {
-      _swipeLocked = true;
-      _isProcessing = true;
-      _swipeProgress = 1.0;
-    });
-
-    await _pulseController.forward();
-    await _pulseController.reverse();
-
-    if (!mounted) return;
-    _ringController.forward(from: 0);
-
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-    if (!mounted) return;
-
-    _navigateToCall();
-  }
-
-  void _handleAnswerSwipeUpdate(DragUpdateDetails details) {
-    if (_isProcessing || _swipeLocked) return;
-    final dx = details.primaryDelta ?? 0;
-    if (dx == 0) return;
-    final direction = dx.sign;
-    if (_swipeDirection == 0) _swipeDirection = direction;
-    if (direction != _swipeDirection) return;
-
-    setState(() {
-      _swipeProgress = (_swipeProgress + dx.abs() / 200).clamp(0.0, 1.0);
-    });
-    if (_swipeProgress >= 0.7) {
-      unawaited(_triggerSwipeAnswer());
-    }
-  }
-
-  void _handleAnswerSwipeEnd(DragEndDetails details) {
-    if (_isProcessing || _swipeLocked) return;
-    if (_swipeProgress < 0.7 && mounted) {
-      setState(() {
-        _swipeProgress = 0;
-        _swipeDirection = 0;
-      });
-    }
-  }
-
-  Future<void> _rejectCall() async {
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
-    try {
-      await _callService.rejectCall(widget.callId);
-      widget.onCallAnswered(false);
-    } catch (e) {
-      debugPrint('Reject call update failed: $e');
-    } finally {
-      _stopAlerting();
-      if (mounted) Navigator.of(context).pop();
-    }
-  }
-
-  Future<void> _triggerSwipeAnswer() async {
-    if (_isProcessing || _answerSwipeTriggered) return;
-    HapticFeedback.mediumImpact();
-    setState(() {
-      _answerSwipeTriggered = true;
-      _isProcessing = true;
-      _answerSwipeDistance = 0;
-    });
-    try {
-      await _answerExpansionController.forward();
-      if (mounted) await _acceptCall(prelocked: true);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isProcessing = false;
-        _answerSwipeTriggered = false;
-        _answerSwipeDistance = 0;
-      });
-      await _answerExpansionController.reverse();
-    }
-  }
-
-  void _handleAnswerSwipeUpdate(DragUpdateDetails details) {
-    if (_isProcessing || _answerSwipeTriggered) return;
-    final upward = -details.delta.dy;
-    if (upward <= 0) return;
-    setState(() {
-      _answerSwipeDistance = (_answerSwipeDistance + upward).clamp(0, 110);
-    });
-    if (_answerSwipeDistance >= 78) unawaited(_triggerSwipeAnswer());
-  }
-
-  void _handleAnswerSwipeEnd(DragEndDetails details) {
-    if (_isProcessing || _answerSwipeTriggered) return;
-    if (_answerSwipeDistance >= 58) {
-      unawaited(_triggerSwipeAnswer());
-    } else if (mounted) {
-      setState(() => _answerSwipeDistance = 0);
-    }
-  }
-
   Future<void> _toggleMute() async {
     final muted = !_isMuted;
     setState(() => _isMuted = muted);
@@ -346,6 +250,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     _stopAlerting();
     WidgetsBinding.instance.removeObserver(this);
     _pulseController.dispose();
+    _ringController.dispose();
     _haloController.dispose();
     _restoreSystemUI();
     unawaited(WakelockPlus.disable());
