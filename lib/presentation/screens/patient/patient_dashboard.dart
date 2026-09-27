@@ -31,6 +31,7 @@ import 'package:sehatak/presentation/screens/step_tracker/step_tracker_screen.da
 import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PatientDashboard extends StatefulWidget {
@@ -391,6 +392,20 @@ class _PatientDashboardState extends State<PatientDashboard> {
           ),
         ),
         actions: [
+          if (_userRole != 'user' &&
+              _userRole != 'patient' &&
+              _userRole != 'مريض')
+            IconButton(
+              icon: const Icon(Icons.dashboard_rounded),
+              tooltip: 'لوحة التحكم',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const RoleBasedDashboardScreen(),
+                  ),
+                );
+              },
+            ),
           if (_isOffline)
             Container(
               margin: const EdgeInsets.only(right: 8),
