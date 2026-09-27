@@ -69,7 +69,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     try { await _chatService.markAsRead(widget.chatId); } catch (e) { debugPrint('Chat mark-as-read failed: $e'); } finally { _markingSeen = false; }
   }
 
-  void _sendText(String text) {
+  void _sendText(String text, Timestamp clientTimestamp) {
     final value = text.trim();
     if (value.isEmpty) return;
     _keepAtBottom = true;
