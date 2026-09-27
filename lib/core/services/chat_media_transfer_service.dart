@@ -7,7 +7,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -48,7 +47,6 @@ class ChatMediaTransferService {
   bool _processing = false;
   bool _workerInitialized = false;
   final Map<String, UploadTask> _activeFirebaseTasks = {};
-  final Map<String, CancelToken> _activeCancelTokens = {};
   final Set<String> _cancelledIds = {};
 
   bool _isCancelled(String id) => _cancelledIds.contains(id);
@@ -384,17 +382,12 @@ class ChatMediaTransferService {
     return null;
   }
 
-  CancelToken _cancelToken(String id) =>
-      _activeCancelTokens.putIfAbsent(id, CancelToken.new);
-
   Future<void> cancel(String id) async {
     _cancelledIds.add(id);
     final task = _activeFirebaseTasks[id];
     if (task != null) {
       await task.cancel();
     }
-    final token = _activeCancelTokens[id];
-    token?.cancel('تم إلغاء رفع الوسائط');
     final db = await _database;
     final job = await getById(id);
     if (job != null) {
