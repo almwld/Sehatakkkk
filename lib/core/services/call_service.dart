@@ -68,8 +68,8 @@ class CallService {
   Future<void> _timeline({required String chatId, required String callId, required String text, required String status, required CallType type}) async { if (chatId.isEmpty) return; try { await _chat.sendSystemMessage(chatId: chatId, text: text, idempotencyKey: 'call_${callId}_$status', metadata: {'callId': callId, 'callType': type.name, 'status': status}); } catch (e) { debugPrint('call timeline: $e'); } }
   String _lockId(String a, String b) { final ids = [a,b]..sort(); return '${ids[0]}_${ids[1]}'; }
   static const String _callNotificationEndpoint = String.fromEnvironment(
-    'SEHATAK_CALL_NOTIFICATION_URL',
-    defaultValue: 'https://miraculous-compassion-production-1d54.up.railway.app/call-notification',
+    'BACKEND_URL',
+    defaultValue: 'https://miraculous-compassion-production-1d54.up.railway.app',
   );
 
   Future<void> _notifyIncomingCall({required String callId}) async {
@@ -80,7 +80,7 @@ class CallService {
       throw Exception('تعذر الحصول على Firebase ID token لإشعار المكالمة');
     }
     final response = await http.post(
-      Uri.parse(_callNotificationEndpoint),
+      Uri.parse('$_callNotificationEndpoint/call-notification'),
       headers: <String, String>{
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
