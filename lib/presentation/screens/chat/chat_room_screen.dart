@@ -386,7 +386,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _hasInitialMessageSnapshot = true;
       final wasAwayFromLatest = _scrollController.hasClients && _scrollController.position.pixels > 140;
       setState(() {
-        _messages = messages;
+        final canonicalClientTimestamps = messages
+            .where((m) => m.clientTimestamp != null)
+            .map((m) => m.clientTimestamp!.millisecondsSinceEpoch)
+            .toSet();
+
+        final canonicalContentKeys = messages
+            .map((m) => '${m.senderId}|${m.type.name}|${m.text ?? ''}|${m.fileName ?? ''}')
+            .toSet();
+
+        final pendingOptimistic = _messages.where((m) {
+          if (!m.id.startsWith('local_')) return false;
+          final ts = m.clientTimestamp?.millisecondsSinceEpoch;
+          if (ts != null && canonicalClientTimestamps.contains(ts)) return false;
+          final key = '${m.senderId}|${m.type.name}|${m.text ?? ''}|${m.fileName ?? ''}';
+          return !canonicalContentKeys.contains(key);
+        }).toList();
+
+        _messages = <MessageModel>[...messages, ...pendingOptimistic];
+        _messages.sort((a, b) =>
+            (b.timestamp ?? b.clientTimestamp ?? Timestamp(0, 0))
+                .compareTo(a.timestamp ?? a.clientTimestamp ?? Timestamp(0, 0)));
         _localMedia.removeWhere((m) {
           final outboxId = m['outboxId']?.toString();
           return remoteIds.contains(m['id']) ||
@@ -547,6 +567,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   void _optimisticallyAddTextMessage(
     String text, {
+    Timestamp? clientTimestamp,
     String? replyToId,
     Map<String, dynamic>? replyPreview,
   }) {
@@ -554,7 +575,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final uid = _auth.currentUser?.uid;
     if (!mounted || value.isEmpty || uid == null) return;
 
-    final now = Timestamp.now();
+    final now = clientTimestamp ?? Timestamp.now();
     final optimisticId =
         'local_text_${now.microsecondsSinceEpoch}_${uid.hashCode}';
 
@@ -1085,7 +1106,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         ChatInputBar(
             chatId: widget.chatId,
             replyToId: _replyingTo?.id,
-            onSendMessage: (text) {
+            onSendMessage: (text, clientTimestamp) {
               unawaited(_setTyping(false));
               final replyingTo = _replyingTo;
               final replyPreview = replyingTo == null
@@ -1099,6 +1120,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                     };
               _optimisticallyAddTextMessage(
                 text,
+                clientTimestamp: clientTimestamp,
                 replyToId: replyingTo?.id,
                 replyPreview: replyPreview,
               );
