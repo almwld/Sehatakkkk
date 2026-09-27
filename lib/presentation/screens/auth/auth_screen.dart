@@ -1105,6 +1105,87 @@ class _AuthScreenState extends State<AuthScreen>
     ToastService.showError(message);
   }
 
+  Widget _buildHospitalFields(bool isDark, Color primaryColor) {
+    final fillColor = isDark ? const Color(0xFF1A2540) : Colors.white;
+    final borderColor = isDark ? Colors.white24 : Colors.grey.shade300;
+
+    Widget field({
+      required TextEditingController controller,
+      required String label,
+      required IconData icon,
+      TextInputType keyboardType = TextInputType.text,
+      int maxLines = 1,
+    }) {
+      return TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        textDirection: TextDirection.rtl,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: primaryColor),
+          filled: true,
+          fillColor: fillColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: primaryColor, width: 1.5),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'بيانات المشفى',
+          textAlign: TextAlign.right,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: isDark ? Colors.white : const Color(0xFF263238),
+            fontFamily: 'NotoSansArabicUI',
+          ),
+        ),
+        const SizedBox(height: 12),
+        field(
+          controller: _facilityNameController,
+          label: 'اسم المشفى',
+          icon: Icons.local_hospital_outlined,
+        ),
+        const SizedBox(height: 12),
+        field(
+          controller: _facilityAddressController,
+          label: 'عنوان المشفى',
+          icon: Icons.location_on_outlined,
+        ),
+        const SizedBox(height: 12),
+        field(
+          controller: _facilityPhoneController,
+          label: 'هاتف المشفى',
+          icon: Icons.phone_outlined,
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: 12),
+        field(
+          controller: _facilityDescriptionController,
+          label: 'وصف وخدمات المشفى',
+          icon: Icons.description_outlined,
+          maxLines: 4,
+        ),
+      ],
+    );
+  }
+
   List<Widget> _buildDynamicFields(
     bool isDark,
     Color primaryColor,
