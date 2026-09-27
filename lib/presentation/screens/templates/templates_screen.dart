@@ -39,7 +39,12 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     TemplateModel? t;
     for (final item in TemplateData.templates) { if (item.id == id) { t = item; break; } }
     if (!mounted || t == null) return;
-    setState(() { _selectedTemplate=t; _primaryController.text=p.getString('saved_template_primary') ?? t.primaryText ?? ''; _secondaryController.text=p.getString('saved_template_secondary') ?? t.secondaryText ?? ''; });
+    final selected = t;
+    setState(() {
+      _selectedTemplate = selected;
+      _primaryController.text = p.getString('saved_template_primary') ?? selected.primaryText ?? '';
+      _secondaryController.text = p.getString('saved_template_secondary') ?? selected.secondaryText ?? '';
+    });
   }
 
   Future<void> _saveTemplate() async {
