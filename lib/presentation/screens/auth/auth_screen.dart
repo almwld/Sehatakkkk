@@ -768,9 +768,9 @@ class _AuthScreenState extends State<AuthScreen>
       // Complete non-visual post-login preparation in the background so the
       // first Home frame is not delayed by local persistence.
       if (user != null) {
-        unawaited(SavedAccountsService.saveCurrentAccount(user).catchError((_) {}));
+        unawaited(SavedAccountsService.saveCurrentAccount(user).then<void>((_) {}, onError: (Object _) {}));
       }
-      unawaited(prefs.remove('sehatak_last_route').catchError((_) {}));
+      unawaited(prefs.remove('sehatak_last_route').then<void>((_) {}, onError: (Object _) {}));
     } on FirebaseAuthException catch (e) {
       _hideLoading();
 
