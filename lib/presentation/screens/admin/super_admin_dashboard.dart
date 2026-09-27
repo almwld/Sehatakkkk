@@ -130,5 +130,28 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
 
   Widget _audit()=>StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('admin_audit_logs').orderBy('createdAt',descending:true).limit(10).snapshots(),builder:(c,s)=>Card(child:ListTile(leading:const Icon(Icons.history),title:const Text('آخر إجراءات الإدارة'),subtitle:Text((s.data?.size??0).toString()+' إجراء مسجل'),onTap:_showAudit)));
 
-  void _showAudit()=>showModalBottomSheet(context:context,builder:(c)=>SizedBox(height:500,child:StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('admin_audit_logs').orderBy('createdAt',descending:true).limit(50).snapshots(),builder:(c,s)=>ListView(children:(s.data?.docs ?? <QueryDocumentSnapshot<Map<String,dynamic>>>[]).map<Widget>((d)=>ListTile(title:Text(d.data()['action']?.toString()??''),subtitle:Text('الهدف: '+(d.data()['targetUserId']?.toString()??'-')))).toList())))));
+  void _showAudit() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (c) => SizedBox(
+        height: 500,
+        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection('admin_audit_logs')
+              .orderBy('createdAt', descending: true)
+              .limit(50)
+              .snapshots(),
+          builder: (c, s) {
+            final docs = s.data?.docs ?? <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+            return ListView(
+              children: docs.map<Widget>((d) => ListTile(
+                title: Text(d.data()['action']?.toString() ?? ''),
+                subtitle: Text('الهدف: ${d.data()['targetUserId']?.toString() ?? '-'}'),
+              )).toList(),
+            );
+          },
+        ),
+      ),
+    );
+  }
 }
