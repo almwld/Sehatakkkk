@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/models/lab/lab_booking_status.dart';
 import 'package:sehatak/core/models/lab/sample_collection_method.dart';
 
