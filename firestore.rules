@@ -104,3 +104,435 @@ service cloud.firestore {
     // CHATS
     // ═══════════════════════════════════════════════════════════
     match /chats/{chatId} {
+      // ✅ get: وثيقة محددة
+      allow get: if isSignedIn() 
+        && (!exists(/databases/$(database)/documents/chats/$(chatId))
+            || (resource.data.participants is list
+                && request.auth.uid in resource.data.participants));
+      
+      // Queries must prove that every returned chat belongs to the caller.
+      // This works with the existing arrayContains(participants, uid) queries.
+      allow list: if isSignedIn()
+        && resource.data.participants is list
+        && request.auth.uid in resource.data.participants;
+      
+      // ✅ create
+      allow create: if isSignedIn() 
+        && request.resource.data.participants is list
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.participants.size() >= 1
+        && request.resource.data.participants.size() <= 100;
+      
+      // ✅ update
+      allow update: if isSignedIn() 
+        && resource.data.participants is list
+        && request.auth.uid in resource.data.participants;
+      
+      // ✅ delete
+      allow delete: if isSignedIn() 
+        && resource.data.participants is list
+        && request.auth.uid in resource.data.participants;
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn() 
+          && (!exists(/databases/$(database)/documents/chats/$(chatId))
+              || request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants);
+        
+        allow create: if isSignedIn()
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.chatId == chatId
+          && request.resource.data.timestamp == request.time;
+        
+        allow update: if isSignedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+          && (
+            (
+              request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly([
+                  'isRead', 'readAt', 'isDelivered', 'deliveredAt', 'status'
+                ])
+            )
+            ||
+            (
+              resource.data.senderId == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly([
+                  'text', 'isEdited', 'editedAt', 'isDeleted', 'deletedAt',
+                  'type'
+                ])
+            )
+            ||
+            (
+              request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly([
+                  'reactions', 'deletedFor', 'isPinned', 'pinnedAt', 'pinnedBy'
+                ])
+            )
+          );
+        
+        allow delete: if false;
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CALLS — مرنة
+    // ═══════════════════════════════════════════════════════════
+    match /calls/{callId} {
+      allow get: if isSignedIn()
+        && (!exists(/databases/$(database)/documents/calls/$(callId))
+            || (resource.data.participants is list
+                && request.auth.uid in resource.data.participants));
+
+      allow list: if isSignedIn()
+        && resource.data.participants is list
+        && request.auth.uid in resource.data.participants;
+
+      allow create: if isSignedIn()
+        && request.resource.data.callerId == request.auth.uid
+        && request.resource.data.receiverId is string
+        && request.resource.data.receiverId != request.auth.uid
+        && request.resource.data.participants is list
+        && request.resource.data.participants.size() == 2
+        && request.resource.data.participants[0] == request.resource.data.callerId
+        && request.resource.data.participants[1] == request.resource.data.receiverId
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.chatId is string
+        && request.resource.data.chatId != ''
+        && request.resource.data.liveKitRoomName == 'call_' + callId
+        && request.resource.data.roomName == request.resource.data.liveKitRoomName
+        && request.resource.data.status == 'calling';
+
+      // callerId/receiverId/participants/room fields are immutable after creation.
+      allow update: if isSignedIn()
+        && resource.data.participants is list
+        && request.auth.uid in resource.data.participants
+        && request.resource.data.callerId == resource.data.callerId
+        && request.resource.data.receiverId == resource.data.receiverId
+        && request.resource.data.participants == resource.data.participants
+        && request.resource.data.chatId == resource.data.chatId
+        && request.resource.data.liveKitRoomName == resource.data.liveKitRoomName
+        && request.resource.data.roomName == resource.data.roomName
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly([
+            'status', 'connectedAt', 'endedAt', 'endedReason',
+            'isAnswered', 'durationSeconds', 'metadata', 'busyReason'
+          ])
+        && (
+          (resource.data.status == 'calling'
+            && request.resource.data.status in [
+              'ringing', 'accepted', 'connected', 'rejected', 'cancelled',
+              'missed', 'busy', 'failed'
+            ])
+          ||
+          (resource.data.status == 'ringing'
+            && request.resource.data.status in [
+              'accepted', 'connected', 'rejected', 'cancelled', 'missed',
+              'busy', 'failed'
+            ])
+          ||
+          (resource.data.status == 'accepted'
+            && request.resource.data.status in ['connected', 'ended', 'failed'])
+          ||
+          (resource.data.status == 'connected'
+            && request.resource.data.status == 'ended')
+        );
+
+      allow delete: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CALLLOCKS — مرنة
+    // ═══════════════════════════════════════════════════════════
+    match /callLocks/{lockId} {
+      allow get: if isSignedIn()
+        && resource.data.participants is list
+        && request.auth.uid in resource.data.participants;
+
+      allow list: if false;
+
+      allow create: if isSignedIn()
+        && request.resource.data.participants is list
+        && request.resource.data.participants.size() == 2
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.activeCallId is string
+        && request.resource.data.status == 'calling';
+
+      allow update: if isSignedIn()
+        && resource.data.participants is list
+        && request.auth.uid in resource.data.participants
+        && request.resource.data.participants == resource.data.participants
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['activeCallId', 'status', 'updatedAt'])
+        && (
+          (resource.data.status == 'calling'
+            && request.resource.data.status in [
+              'ringing', 'accepted', 'connected', 'rejected', 'cancelled',
+              'missed', 'busy', 'ended'
+            ])
+          ||
+          (resource.data.status == 'ringing'
+            && request.resource.data.status in [
+              'accepted', 'connected', 'rejected', 'cancelled', 'missed',
+              'busy', 'ended'
+            ])
+          ||
+          (resource.data.status == 'accepted'
+            && request.resource.data.status in ['connected', 'ended'])
+          ||
+          (resource.data.status == 'connected'
+            && request.resource.data.status == 'ended')
+        );
+
+      allow delete: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // PROFESSIONAL VERIFICATION
+    // ═══════════════════════════════════════════════════════════
+    match /verification_requests/{requestId} {
+      allow get: if isSignedIn() && (request.auth.uid == requestId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn()
+        && requestId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && (request.resource.data.status == 'draft' || request.resource.data.status == 'pending');
+      allow update: if isSignedIn()
+        && ((request.auth.uid == requestId
+             && resource.data.userId == request.auth.uid
+             && request.resource.data.userId == request.auth.uid
+             && (request.resource.data.status == 'draft' || request.resource.data.status == 'pending'))
+            || isAdmin());
+      allow delete: if isAdmin();
+    }
+    match /admin_audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /admin_daily_reports/{reportId} {
+      allow read: if isSuperAdmin();
+      allow write: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // NOTIFICATIONS
+    // ═══════════════════════════════════════════════════════════
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /notifications_log/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // STATUSES (24h stories)
+    // ═══════════════════════════════════════════════════════════
+    match /statuses/{statusId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      match /views/{viewerId} {
+        allow read: if isSignedIn() && viewerId == request.auth.uid;
+        allow create, update: if isSignedIn() && viewerId == request.auth.uid;
+        allow delete: if isSignedIn() && viewerId == request.auth.uid;
+      }
+
+      match /reactions/{userId} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn() && userId == request.auth.uid;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      match /replies/{replyId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // APPOINTMENTS
+    // ═══════════════════════════════════════════════════════════
+    match /medical_records/{recordId} {
+      allow read: if isSignedIn() && resource.data.patientId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.patientId == request.auth.uid;
+    }
+    match /reports/{reportId} {
+      allow read: if isSignedIn() && resource.data.patientId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.patientId == request.auth.uid;
+    }
+    match /reminders/{reminderId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /appointments/{appointmentId} {
+      allow get: if isSignedIn() 
+        && (!exists(/databases/$(database)/documents/appointments/$(appointmentId))
+            || resource.data.patientId == request.auth.uid
+            || resource.data.doctorId == request.auth.uid);
+      
+      allow list: if isSignedIn()
+        && (
+          resource.data.patientId == request.auth.uid
+          || resource.data.doctorId == request.auth.uid
+        );
+      
+      allow create: if isSignedIn()
+        && request.resource.data.patientId == request.auth.uid
+        && request.resource.data.doctorId is string
+        && request.resource.data.doctorId != '';
+      
+      allow update: if isSignedIn()
+        && (
+          resource.data.patientId == request.auth.uid
+          || resource.data.doctorId == request.auth.uid
+        );
+      
+      allow delete: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // HEALTHCARE (public read)
+    // ═══════════════════════════════════════════════════════════
+    match /labs/{labId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && request.auth.uid == labId;
+      allow delete: if isAdmin();
+    }
+    match /lab_tests/{testId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.labId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.labId == request.auth.uid;
+    }
+    match /lab_bookings/{bookingId} {
+      allow read: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.labId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      allow update: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.labId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid);
+    }
+    match /pharmacies/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /hospitals/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /products/{id} {
+      allow read: if true;
+      allow create: if isSignedIn() && (request.resource.data.sellerId == request.auth.uid || request.resource.data.pharmacyId == request.auth.uid || (request.resource.data.pharmacyId is string && exists(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)) && get(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)).data.ownerId == request.auth.uid));
+      allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || resource.data.pharmacyId == request.auth.uid || (resource.data.pharmacyId is string && exists(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)) && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.ownerId == request.auth.uid));
+    }
+    match /prescriptions/{id} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.patientId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    match /lab_categories/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /articles/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /tips/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /cities/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /regions/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /specialties/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /health_contacts/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSelf(id)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.role == 'paramedic'
+        && userDataAfter(id).role == 'paramedic';
+      allow update: if isAdmin()
+        || (isSelf(id)
+            && resource.data.role == 'paramedic'
+            && request.resource.data.role == 'paramedic'
+            && request.resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /ambulance_requests/{requestId} {
+      allow get: if isSignedIn()
+        && (resource.data.patientId == request.auth.uid
+            || resource.data.paramedicId == request.auth.uid
+            || isAdmin());
+      allow list: if isSignedIn()
+        && (resource.data.patientId == request.auth.uid
+            || resource.data.paramedicId == request.auth.uid
+            || isAdmin());
+      allow create: if isSignedIn()
+        && request.resource.data.patientId == request.auth.uid
+        && request.resource.data.paramedicId != null;
+      allow update: if isSignedIn()
+        && (resource.data.patientId == request.auth.uid
+            || resource.data.paramedicId == request.auth.uid
+            || isAdmin());
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource.data.patientId == request.auth.uid);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // COMMUNITY
+    // ═══════════════════════════════════════════════════════════
+    match /community_posts/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin() 
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // MISC
+    // ═══════════════════════════════════════════════════════════
+    match /blood_donors/{donorId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /stories/{storyId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /wallets/{walletId} {
+      allow read: if isSignedIn() && isSelf(walletId);
+      allow write: if false;
+    }
+
+    match /transactions/{txnId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // DEFAULT DENY
+    // ═══════════════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
