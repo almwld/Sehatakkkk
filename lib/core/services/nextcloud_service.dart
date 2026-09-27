@@ -78,6 +78,38 @@ class NextcloudService {
       .take(8)
       .join('/');
 
+  String _mimeTypeFor(String name) {
+    switch (name.toLowerCase().split('.').last) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'gif':
+        return 'image/gif';
+      case 'mp4':
+        return 'video/mp4';
+      case 'webm':
+        return 'video/webm';
+      case 'mov':
+        return 'video/quicktime';
+      case 'mp3':
+        return 'audio/mpeg';
+      case 'm4a':
+        return 'audio/mp4';
+      case 'aac':
+        return 'audio/aac';
+      case 'wav':
+        return 'audio/wav';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
   Future<NextcloudUploadResult> uploadFile({
     required File file,
     required String path,
@@ -106,7 +138,7 @@ class NextcloudService {
 
       final bytes = await file.readAsBytes();
       final token = await _idToken();
-      final mimeType = 'application/octet-stream';
+      final mimeType = _mimeTypeFor(name);
 
       final response = await _dio.post<Map<String, dynamic>>(
         '$backendUrl/media/upload',
