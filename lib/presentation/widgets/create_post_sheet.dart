@@ -145,9 +145,7 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
                         child: Column(children: [
                           const Icon(Icons.perm_media_outlined, color: AppColors.primary, size: 30),
                           const SizedBox(height: 6),
-                          const Text('إضافة صور أو فيديو', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
-                          const SizedBox(height: 4),
-                          Text('الوسائط تحفظ في Nextcloud فقط ولا تُخزن داخل Firestore', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 12), textAlign: TextAlign.center),
+                          const SizedBox.shrink(),
                           if (_selectedFiles.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
