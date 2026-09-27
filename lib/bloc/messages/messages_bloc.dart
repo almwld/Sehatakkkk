@@ -239,8 +239,6 @@ class MessagesBloc
 
   String? _currentChatId;
 
-  int _currentLimit = 30;
-
   List<MessageModel> _loadedMessages = [];
 
   MessagesBloc()
