@@ -67,6 +67,9 @@ class AppRoles {
       case 'doctor': return UserRole.doctor;
       case 'pharmacist': return UserRole.pharmacist;
       case 'lab': return UserRole.lab;
+      case 'hospital': return UserRole.hospital;
+      case 'dentist': return UserRole.dentist;
+      case 'ophthalmology': return UserRole.ophthalmology;
       case 'veterinarian': return UserRole.veterinarian;
       case 'admin': return UserRole.admin;
       case 'superAdmin': return UserRole.superAdmin;
