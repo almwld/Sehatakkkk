@@ -28,6 +28,7 @@ class _CommunityScreenState extends State<CommunityScreen>
   bool _fabVisible = true;
   bool _headerVisible = true;
   late final ScrollController _feedController;
+  final Set<String> _likedPostIds = <String>{};
 
   @override
   void initState() {
@@ -44,7 +45,7 @@ class _CommunityScreenState extends State<CommunityScreen>
       duration: const Duration(milliseconds: 320),
     );
     _feedController = ScrollController()..addListener(_updateScrollChrome);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _updateScrollChrome());
+    WidgetsBinding.instance.addPostFrameCallback((_) { _updateScrollChrome(); _loadLikedPosts(); });
   }
 
   void _updateScrollChrome() {
@@ -126,6 +127,20 @@ class _CommunityScreenState extends State<CommunityScreen>
     }
   }
 
+  Future<void> _loadLikedPosts() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final snap = await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('liked_posts').get();
+      if (!mounted) return;
+      setState(() {
+        _likedPostIds
+          ..clear()
+          ..addAll(snap.docs.map((d) => d.id));
+      });
+    } catch (_) {}
+  }
+
   Future<void> _toggleLike(CommunityPostModel post) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -151,6 +166,14 @@ class _CommunityScreenState extends State<CommunityScreen>
           'postId': post.id,
           'likedAt': FieldValue.serverTimestamp(),
         });
+      }
+    });
+    if (!mounted) return;
+    setState(() {
+      if (_likedPostIds.contains(post.id)) {
+        _likedPostIds.remove(post.id);
+      } else {
+        _likedPostIds.add(post.id);
       }
     });
   }
@@ -263,7 +286,7 @@ class _CommunityScreenState extends State<CommunityScreen>
               itemCount: docs.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (_, index) => _PostCard(
-                post: CommunityPostModel.fromFirestore(docs[index]),
+                post: CommunityPostModel.fromFirestore(docs[index]).copyWith(isLiked: _likedPostIds.contains(docs[index].id)),
                 dark: dark,
                 onLike: _toggleLike,
                 onComment: _comment,
