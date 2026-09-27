@@ -56,6 +56,20 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
     });
   }
 
+  String _friendlyStatusError(Object error) {
+    final raw = error.toString().replaceFirst('Exception: ', '').trim();
+    if (raw.contains('Media body is required') || raw.contains('media body')) {
+      return 'اختر صورة أو فيديو قبل إرسال الحالة.';
+    }
+    if (raw.contains('permission') || raw.contains('إذن')) {
+      return 'تعذر الوصول إلى الوسائط. تحقق من أذونات الصور والفيديو.';
+    }
+    if (raw.contains('network') || raw.contains('SocketException') || raw.contains('timeout')) {
+      return 'تعذر إرسال الحالة بسبب ضعف الاتصال بالإنترنت. حاول مرة أخرى.';
+    }
+    return 'تعذر نشر الحالة الآن. تحقق من الاتصال وحاول مرة أخرى.';
+  }
+
   Future<void> _publish() async {
     if (_publishing) return;
     final text = _textController.text.trim();
