@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 
 enum MessageType { text, image, audio, video, file, location, contact, system, reaction, reply, deleted, call }
 
+enum MessageStatus { sending, sent, failed }
+
 class MessageModel extends Equatable {
   final String id, chatId, senderId, senderName;
   final String? senderPhotoUrl, text;
@@ -10,6 +12,7 @@ class MessageModel extends Equatable {
   final MessageType type;
   final Timestamp? timestamp, clientTimestamp, readAt, deliveredAt, editedAt, pinnedAt;
   final bool isRead, isDelivered, isEdited, isDeleted, isPinned;
+  final MessageStatus status;
   final String? replyToId, idempotencyKey;
   final MessageModel? replyTo;
   final Map<String, String>? reactions;
@@ -26,7 +29,7 @@ class MessageModel extends Equatable {
     this.attachments, this.metadata, this.imageUrl, this.audioUrl, this.fileUrl, this.videoUrl,
     this.locationUrl, this.locationAddress, this.locationLat, this.locationLng, this.audioDuration,
     this.fileSize, this.fileName, this.fileMimeType, this.thumbnailUrl, this.readAt, this.deliveredAt, this.editedAt, this.pinnedAt,
-    this.isPinned = false,
+    this.isPinned = false, this.status = MessageStatus.sent,
   });
 
   factory MessageModel.fromFirestore(String id, Map<String, dynamic> d) {
@@ -44,6 +47,7 @@ class MessageModel extends Equatable {
       replyPreview: rawReply is Map ? Map<String, dynamic>.from(rawReply) : null,
       type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text), timestamp: effectiveTs, clientTimestamp: clientTs,
       isRead: d['isRead'] == true, isDelivered: d['isDelivered'] == true, isEdited: d['isEdited'] == true, isDeleted: d['isDeleted'] == true,
+      status: MessageStatus.values.firstWhere((e) => e.name == d['status']?.toString(), orElse: () => MessageStatus.sent),
       replyToId: d['replyToId']?.toString(),
       idempotencyKey: d['idempotencyKey']?.toString(),
       reactions: d['reactions'] is Map ? Map<String, String>.from((d['reactions'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()))) : <String, String>{},
@@ -62,12 +66,12 @@ class MessageModel extends Equatable {
     'replyToId': replyToId, 'replyPreview': replyPreview, 'idempotencyKey': idempotencyKey, 'reactions': reactions, 'deletedFor': deletedFor, 'attachments': attachments, 'metadata': metadata,
     'imageUrl': imageUrl, 'audioUrl': audioUrl, 'fileUrl': fileUrl, 'videoUrl': videoUrl, 'locationUrl': locationUrl, 'locationAddress': locationAddress,
     'locationLat': locationLat, 'locationLng': locationLng, 'audioDuration': audioDuration, 'fileSize': fileSize, 'fileName': fileName, 'fileMimeType': fileMimeType,
-    'thumbnailUrl': thumbnailUrl, 'readAt': readAt, 'deliveredAt': deliveredAt, 'editedAt': editedAt, 'pinnedAt': pinnedAt, 'isPinned': isPinned,
+    'thumbnailUrl': thumbnailUrl, 'status': status.name, 'readAt': readAt, 'deliveredAt': deliveredAt, 'editedAt': editedAt, 'pinnedAt': pinnedAt, 'isPinned': isPinned,
   };
 
   bool get isImage => type == MessageType.image; bool get isAudio => type == MessageType.audio; bool get isVideo => type == MessageType.video; bool get isFile => type == MessageType.file;
   bool get isLocation => type == MessageType.location; bool get isDeletedMessage => type == MessageType.deleted; bool get isText => type == MessageType.text; bool get isReply => type == MessageType.reply;
   bool get isCall => type == MessageType.call;
   bool get hasReactions => reactions?.isNotEmpty ?? false; bool get hasAttachments => attachments?.isNotEmpty ?? false;
-  @override List<Object?> get props => [id, chatId, senderId, senderName, senderPhotoUrl, text, replyPreview, type, timestamp, clientTimestamp, isRead, isDelivered, isEdited, isDeleted, replyToId, idempotencyKey, replyTo, reactions, deletedFor, attachments, metadata, imageUrl, audioUrl, fileUrl, videoUrl, locationUrl, locationAddress, locationLat, locationLng, audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl, readAt, deliveredAt, editedAt, pinnedAt, isPinned];
+  @override List<Object?> get props => [id, chatId, senderId, senderName, senderPhotoUrl, text, replyPreview, type, timestamp, clientTimestamp, isRead, isDelivered, isEdited, isDeleted, replyToId, idempotencyKey, replyTo, reactions, deletedFor, attachments, metadata, imageUrl, audioUrl, fileUrl, videoUrl, locationUrl, locationAddress, locationLat, locationLng, audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl, readAt, deliveredAt, editedAt, pinnedAt, isPinned, status];
 }
