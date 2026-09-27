@@ -79,7 +79,6 @@ class GlobalScrollManager extends ChangeNotifier {
     _isVisible = true;
     _lastPosition = 0.0;
     _pendingDelta = 0.0;
-    _currentRoute = '';
     notifyListeners();
   }
 
