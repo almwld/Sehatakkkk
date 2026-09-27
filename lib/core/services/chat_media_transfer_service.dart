@@ -286,7 +286,7 @@ class ChatMediaTransferService {
             url = await _retryShare(nextcloud, remotePath!);
           }
           if (url != null && url.isNotEmpty) {
-            final reachable = await nextcloud.verifyPublicUrl(url!);
+            final reachable = await nextcloud.verifyPublicUrl(url);
             if (!reachable) url = null;
           }
         }
