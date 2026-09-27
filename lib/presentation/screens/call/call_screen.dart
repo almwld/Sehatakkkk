@@ -186,16 +186,27 @@ class _CallScreenState extends State<CallScreen> {
       roomName = rn != null && rn.isNotEmpty ? rn : 'call_${c.id}';
       ActiveCallRegistry.instance.register(c.id);
 
-      callSub = calls.streamCall(c.id).listen((u) {
-        if (!mounted || u == null || ending) return;
-        if (u.status == CallStatus.connected) {
-          final d = u.connectedAt?.toDate();
-          if (d != null) setConnectedAt(d);
-          if (!joined) unawaited(join(u, user));
-        } else if (_terminal(u.status)) {
-          unawaited(finishRemote());
-        }
-      });
+      callSub = calls.streamCall(c.id).listen(
+        (u) {
+          if (!mounted || u == null || ending) return;
+          if (u.status == CallStatus.connected) {
+            final d = u.connectedAt?.toDate();
+            if (d != null) setConnectedAt(d);
+            if (!joined) unawaited(join(u, user));
+          } else if (_terminal(u.status)) {
+            unawaited(finishRemote());
+          }
+        },
+        onError: (Object streamError, StackTrace stackTrace) {
+          if (!mounted || ending) return;
+          final friendly = _friendlyCallError(streamError);
+          debugPrint('CALL STREAM ERROR $streamError');
+          setState(() {
+            connecting = false;
+            error = friendly;
+          });
+        },
+      );
 
       if (widget.isOutgoing && c.status != CallStatus.connected) {
         timeout = Timer(const Duration(seconds: 30), () async {
@@ -232,11 +243,12 @@ class _CallScreenState extends State<CallScreen> {
       }
       debugPrint('CALL CONNECT $e');
       if (mounted) {
+        final friendly = _friendlyCallError(e);
         setState(() {
           connecting = false;
-          error = e.toString();
+          error = friendly;
         });
-        ToastService.showError('تعذر بدء الاتصال. حاول مرة أخرى');
+        ToastService.showError(friendly);
       }
     }
   }
@@ -333,8 +345,15 @@ class _CallScreenState extends State<CallScreen> {
       if (mounted) setState(() { connecting = false; error = null; });
     } catch (e) {
       ActiveCallRegistry.instance.unregister(c.id);
+      final friendly = _friendlyCallError(e);
       debugPrint('CALL LIVEKIT $e');
-      if (mounted) setState(() { connecting = false; error = e.toString().replaceFirst('Exception: ', ''); });
+      if (mounted) {
+        setState(() {
+          connecting = false;
+          error = friendly;
+        });
+        ToastService.showError(friendly);
+      }
     }
   }
 

@@ -67,7 +67,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   late final Animation<double> _haloAnimation;
 
   final CallService _callService = CallService();
-  StreamSubscription<CallModel?>? _callSubscription;
+  Timer? _streamRetryTimer;
+  int _retryCount = 0;
+  CallStatus? _lastObservedStatus;
 
   bool _isProcessing = false;
   bool _isMuted = false;
@@ -104,7 +106,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       CurvedAnimation(parent: _haloController, curve: Curves.easeOut),
     );
 
-    _listenToCall();
     unawaited(WakelockPlus.enable());
   }
 
@@ -131,36 +132,43 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
-  void _listenToCall() {
-    _callSubscription = _callService.streamCall(widget.callId).listen(
-      (call) {
-        if (!mounted || call == null || _isProcessing) return;
-        final terminal = call.status == CallStatus.connected ||
-            call.status == CallStatus.cancelled ||
-            call.status == CallStatus.rejected ||
-            call.status == CallStatus.missed ||
-            call.status == CallStatus.busy ||
-            call.status == CallStatus.ended;
-        if (!terminal) return;
-        _stopAlerting();
-        if (call.status == CallStatus.busy) {
-          ToastService.showInfo('المستخدم مشغول بمكالمة أخرى');
-        }
-        if (call.status != CallStatus.connected && mounted) {
-          Navigator.of(context).pop();
-        }
-      },
-      onError: (Object error) {
-        debugPrint('Incoming call stream error: $error');
-      },
-    );
+  void _scheduleStreamRetry(Object error) {
+    if (!mounted || _isProcessing || !_isAlerting) return;
+    if (_streamRetryTimer?.isActive == true) return;
+    debugPrint('Incoming call stream error: $error');
+    _streamRetryTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted || _isProcessing || !_isAlerting) return;
+      setState(() => _retryCount++);
+    });
+  }
+
+  void _handleStreamCall(CallModel? call) {
+    if (!mounted || call == null || _isProcessing) return;
+    if (_lastObservedStatus == call.status) return;
+    _lastObservedStatus = call.status;
+
+    final terminal = call.status == CallStatus.connected ||
+        call.status == CallStatus.cancelled ||
+        call.status == CallStatus.rejected ||
+        call.status == CallStatus.missed ||
+        call.status == CallStatus.busy ||
+        call.status == CallStatus.ended;
+    if (!terminal) return;
+
+    _stopAlerting();
+    if (call.status == CallStatus.busy) {
+      ToastService.showInfo('المستخدم مشغول بمكالمة أخرى');
+    }
+    if (call.status != CallStatus.connected && mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   void _stopAlerting() {
     _isAlerting = false;
+    _streamRetryTimer?.cancel();
+    _streamRetryTimer = null;
     unawaited(CallSoundCoordinator.instance.stopForCall(widget.callId));
-    _callSubscription?.cancel();
-    _callSubscription = null;
   }
 
   Future<void> _rejectCall() async {
@@ -297,6 +305,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
   @override
   void dispose() {
+    _streamRetryTimer?.cancel();
+    _streamRetryTimer = null;
     ActiveCallRegistry.instance.unregister(widget.callId);
     _stopAlerting();
     WidgetsBinding.instance.removeObserver(this);
@@ -310,6 +320,25 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder<CallModel?>(
+      key: ValueKey(_retryCount),
+      stream: _callService.streamCall(widget.callId),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          _scheduleStreamRetry(snapshot.error!);
+        }
+        if (snapshot.hasData) {
+          final call = snapshot.data;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _handleStreamCall(call);
+          });
+        }
+        return _buildContent(context);
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final isCompact = size.height < 700;
     final imageUrl = widget.callerImage?.trim().isNotEmpty == true

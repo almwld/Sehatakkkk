@@ -287,7 +287,7 @@ class NotificationService {
           final canUse = await canUseFullScreenIntent();
           debugPrint('📱 Full Screen Intent available: $canUse');
           if (canUse == false) {
-            debugPrint('ℹ️ Full Screen Intent not granted — UI will prompt');
+            debugPrint('Full Screen Intent NOT granted — UI must prompt');
           } else if (canUse == null) {
             debugPrint('ℹ️ Full Screen Intent check unavailable');
           }
