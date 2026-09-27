@@ -19,7 +19,7 @@ class ChatInputBar extends StatefulWidget {
   /// input widget prevents the reply context from being lost between the UI
   /// and the actual Firestore write.
   final String? replyToId;
-  final Function(String) onSendMessage;
+  final Function(String, Timestamp) onSendMessage;
   final Function(String)? onSendImage;
   final Function(Map<String, dynamic>)? onLocalMedia;
   final VoidCallback? onShareLocation;
@@ -156,10 +156,16 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final text = _controller.text.trim();
     if (text.isEmpty || _sending || _recording || _hasRecording) return;
     setState(() => _sending = true);
+    final clientTimestamp = Timestamp.now();
     try {
-      await ReliableMessageService.sendText(chatId: widget.chatId, text: text, replyToId: widget.replyToId);
-      widget.onSendMessage(text);
+      widget.onSendMessage(text, clientTimestamp);
       _controller.clear();
+      await ReliableMessageService.sendText(
+        chatId: widget.chatId,
+        text: text,
+        replyToId: widget.replyToId,
+        clientTimestamp: clientTimestamp,
+      );
     } catch (e) {
       debugPrint('chat text send: $e');
       ToastService.showError('تعذر إرسال الرسالة. تحقق من الاتصال.');
