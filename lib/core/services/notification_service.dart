@@ -656,7 +656,7 @@ class NotificationService {
           AndroidNotificationAction(
             'call_answer',
             'الرد',
-            icon: 'ic_call_answer',
+            icon: DrawableResourceAndroidBitmap('ic_call_answer'),
             titleColor: const Color(0xFF2DBE68),
             showsUserInterface: true,
             cancelNotification: true,
@@ -664,7 +664,7 @@ class NotificationService {
           AndroidNotificationAction(
             'call_reject',
             'رفض',
-            icon: 'ic_call_reject',
+            icon: DrawableResourceAndroidBitmap('ic_call_reject'),
             titleColor: const Color(0xFFE53935),
             showsUserInterface: true,
             cancelNotification: true,
@@ -672,7 +672,7 @@ class NotificationService {
           AndroidNotificationAction(
             'call_message',
             'رسالة',
-            icon: 'ic_call_message',
+            icon: DrawableResourceAndroidBitmap('ic_call_message'),
             titleColor: const Color(0xFF2A8F83),
             showsUserInterface: true,
             cancelNotification: true,
