@@ -271,6 +271,71 @@ exports.reviewTransaction = onCall(async (request) => {
 // Triggers are kept separate from the core callable functions to keep this file maintainable.
 Object.assign(exports, require('./notification_triggers'));
 
+exports.adminSendNotification = onCall(async (request) => {
+  const actorId = requireAuth(request);
+  if (!(await isAdmin(actorId))) throw new HttpsError('permission-denied', 'صلاحية المدير مطلوبة');
+  const title = text(request.data.title, 'title', 120);
+  const body = text(request.data.body, 'body', 1000);
+  const type = String(request.data.type || 'admin_broadcast').trim().slice(0, 60) || 'admin_broadcast';
+  const targetUserId = request.data.userId ? String(request.data.userId).trim() : '';
+  const targetRole = request.data.role ? String(request.data.role).trim() : '';
+  let query = db.collection('users');
+  if (targetUserId) {
+    const snap = await db.collection('users').doc(targetUserId).get();
+    if (!snap.exists) throw new HttpsError('not-found', 'المستخدم غير موجود');
+    query = {get: async () => ({docs: [snap]})};
+  } else if (targetRole) {
+    query = db.collection('users').where('role', '==', targetRole);
+  }
+  const usersSnap = await query.get();
+  const now = FieldValue.serverTimestamp();
+  const docs = usersSnap.docs;
+  for (let i = 0; i < docs.length; i += 450) {
+    const batch = db.batch();
+    docs.slice(i, i + 450).forEach(u => batch.set(db.collection('notifications').doc(), {
+      userId: u.id, type, title, body, data: {type, title, body, adminId: actorId},
+      isRead: false, createdAt: now, sentBy: actorId,
+    }));
+    if (docs.slice(i, i + 450).length) await batch.commit();
+  }
+  await db.collection('admin_audit_logs').add({
+    actorId, action: targetUserId ? 'notification_user' : targetRole ? 'notification_role' : 'notification_broadcast',
+    targetUserId: targetUserId || null, targetRole: targetRole || null, count: docs.length,
+    title, type, createdAt: FieldValue.serverTimestamp(),
+  });
+  return {success: true, count: docs.length};
+});
+
+exports.adminUpdateUser = onCall(async (request) => {
+  const actorId = requireAuth(request);
+  if (!(await isAdmin(actorId))) throw new HttpsError('permission-denied', 'صلاحية المدير مطلوبة');
+  const userId = text(request.data.userId, 'userId', 128);
+  const action = text(request.data.action, 'action', 40);
+  const userRef = db.collection('users').doc(userId);
+  const snap = await userRef.get();
+  if (!snap.exists) throw new HttpsError('not-found', 'المستخدم غير موجود');
+  const current = snap.data() || {};
+  const isSuper = (await db.collection('users').doc(actorId).get()).data()?.role === 'superAdmin';
+  const updates = {updatedAt: FieldValue.serverTimestamp()};
+  if (action === 'block' || action === 'unblock') updates.isSuspended = action === 'block';
+  else if (action === 'verify') updates.isVerified = true;
+  else if (action === 'unverify') updates.isVerified = false;
+  else if (action === 'enable' || action === 'disable') {
+    await admin.auth().updateUser(userId, {disabled: action === 'disable'});
+    updates.accountDisabled = action === 'disable';
+  } else if (action.startsWith('role:')) {
+    if (!isSuper) throw new HttpsError('permission-denied', 'تغيير الأدوار يتطلب المدير الأعلى');
+    const role = action.slice(5).trim();
+    const allowed = ['user','doctor','pharmacist','pharmacyOwner','lab','hospital','clinic','medical_center','dentist','dental','ophthalmology','eye_clinic','optometrist','nurse','midwife','physiotherapist','paramedic','delivery','service','admin'];
+    if (!allowed.includes(role)) throw new HttpsError('invalid-argument', 'الدور غير مسموح');
+    if (userId === actorId || role === 'superAdmin') throw new HttpsError('failed-precondition', 'لا يمكن تغيير صلاحية المدير الأعلى بهذه الطريقة');
+    updates.role = role;
+  } else throw new HttpsError('invalid-argument', 'إجراء المستخدم غير معروف');
+  await userRef.set(updates, {merge: true});
+  await db.collection('admin_audit_logs').add({actorId, action: 'user_'+action, targetUserId:userId, previousRole:current.role||'user', createdAt:FieldValue.serverTimestamp()});
+  return {success:true, userId, action};
+});
+
 exports.getSuperAdminDailyReport = onCall(async (request) => {
   const uid=requireAuth(request);const me=await db.collection('users').doc(uid).get();
   if(!me.exists || me.data().role!=='superAdmin') throw new HttpsError('permission-denied','صلاحية المدير الأعلى مطلوبة');
