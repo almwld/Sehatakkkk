@@ -311,6 +311,7 @@ class ChatMediaTransferService {
     if (user == null) throw StateError('المستخدم غير مسجل الدخول');
     await ChatService().sendMessage(
       chatId: job['chat_id'].toString(),
+      messageId: id,
       text: job['preview'].toString(),
       imageUrl: type == 'image' ? url : null,
       videoUrl: type == 'video' ? url : null,
