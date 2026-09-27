@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -47,7 +48,12 @@ class ChatMediaTransferService {
   bool _processing = false;
   bool _workerInitialized = false;
   final Map<String, UploadTask> _activeFirebaseTasks = {};
+  final Map<String, CancelToken> _activeCancelTokens = {};
   final Set<String> _cancelledIds = {};
+
+  CancelToken _cancelToken(String id) {
+    return _activeCancelTokens.putIfAbsent(id, CancelToken.new);
+  }
 
   bool _isCancelled(String id) => _cancelledIds.contains(id);
 
@@ -256,6 +262,7 @@ class ChatMediaTransferService {
             file: file,
             path: 'chats/${job['chat_id']}/${job['folder']}',
             fileName: job['file_name']?.toString(),
+            cancelToken: _cancelToken(id),
             onProgress: (sent, total) {
               if (total > 0) {
                 unawaited(db.update('media_outbox', {
