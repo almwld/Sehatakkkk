@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 
 enum MessageType { text, image, audio, video, file, location, contact, system, reaction, reply, deleted, call }
 
-enum MessageStatus { sending, sent, failed }
+enum MessageStatus { sending, sent, delivered, read, failed }
 
 class MessageModel extends Equatable {
   final String id, chatId, senderId, senderName;
@@ -41,13 +41,25 @@ class MessageModel extends Equatable {
     final ea = d['editedAt'] is Timestamp ? d['editedAt'] as Timestamp : null;
     final pa = d['pinnedAt'] is Timestamp ? d['pinnedAt'] as Timestamp : null;
     final rawReply = d['replyPreview'];
+    final explicitStatus = d['status']?.toString();
+    final parsedStatus = MessageStatus.values.where((e) => e.name == explicitStatus);
+    final fallbackStatus = d['isRead'] == true
+        ? MessageStatus.read
+        : d['isDelivered'] == true
+            ? MessageStatus.delivered
+            : MessageStatus.sent;
+    final resolvedStatus = parsedStatus.isNotEmpty ? parsedStatus.first : fallbackStatus;
     return MessageModel(
       id: id, chatId: d['chatId']?.toString() ?? '', senderId: d['senderId']?.toString() ?? '', senderName: d['senderName']?.toString() ?? '',
       senderPhotoUrl: d['senderPhotoUrl']?.toString(), text: d['text']?.toString(),
       replyPreview: rawReply is Map ? Map<String, dynamic>.from(rawReply) : null,
       type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text), timestamp: effectiveTs, clientTimestamp: clientTs,
-      isRead: d['isRead'] == true, isDelivered: d['isDelivered'] == true, isEdited: d['isEdited'] == true, isDeleted: d['isDeleted'] == true,
-      status: MessageStatus.values.firstWhere((e) => e.name == d['status']?.toString(), orElse: () => MessageStatus.sent),
+      isRead: d['isRead'] == true || resolvedStatus == MessageStatus.read,
+      isDelivered: d['isDelivered'] == true ||
+          resolvedStatus == MessageStatus.delivered ||
+          resolvedStatus == MessageStatus.read,
+      isEdited: d['isEdited'] == true, isDeleted: d['isDeleted'] == true,
+      status: resolvedStatus,
       replyToId: d['replyToId']?.toString(),
       idempotencyKey: d['idempotencyKey']?.toString(),
       reactions: d['reactions'] is Map ? Map<String, String>.from((d['reactions'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()))) : <String, String>{},
@@ -60,14 +72,21 @@ class MessageModel extends Equatable {
     );
   }
 
-  Map<String, dynamic> toFirestore() => {
+  Map<String, dynamic> toFirestore() {
+    final effectiveRead = isRead || status == MessageStatus.read;
+    final effectiveDelivered = isDelivered ||
+        status == MessageStatus.delivered ||
+        status == MessageStatus.read;
+    return {
     'chatId': chatId, 'senderId': senderId, 'senderName': senderName, 'senderPhotoUrl': senderPhotoUrl, 'text': text, 'type': type.name,
-    'timestamp': timestamp ?? FieldValue.serverTimestamp(), 'clientTimestamp': clientTimestamp, 'isRead': isRead, 'isDelivered': isDelivered, 'isEdited': isEdited, 'isDeleted': isDeleted,
+    'timestamp': timestamp ?? FieldValue.serverTimestamp(), 'clientTimestamp': clientTimestamp,
+    'isRead': effectiveRead, 'isDelivered': effectiveDelivered, 'isEdited': isEdited, 'isDeleted': isDeleted,
     'replyToId': replyToId, 'replyPreview': replyPreview, 'idempotencyKey': idempotencyKey, 'reactions': reactions, 'deletedFor': deletedFor, 'attachments': attachments, 'metadata': metadata,
     'imageUrl': imageUrl, 'audioUrl': audioUrl, 'fileUrl': fileUrl, 'videoUrl': videoUrl, 'locationUrl': locationUrl, 'locationAddress': locationAddress,
     'locationLat': locationLat, 'locationLng': locationLng, 'audioDuration': audioDuration, 'fileSize': fileSize, 'fileName': fileName, 'fileMimeType': fileMimeType,
     'thumbnailUrl': thumbnailUrl, 'status': status.name, 'readAt': readAt, 'deliveredAt': deliveredAt, 'editedAt': editedAt, 'pinnedAt': pinnedAt, 'isPinned': isPinned,
   };
+  }
 
   bool get isImage => type == MessageType.image; bool get isAudio => type == MessageType.audio; bool get isVideo => type == MessageType.video; bool get isFile => type == MessageType.file;
   bool get isLocation => type == MessageType.location; bool get isDeletedMessage => type == MessageType.deleted; bool get isText => type == MessageType.text; bool get isReply => type == MessageType.reply;
