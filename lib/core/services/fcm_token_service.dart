@@ -80,6 +80,12 @@ class FcmTokenService {
       debugPrint('🔑 FCM: token already synchronized uid=${user.uid}');
       return;
     }
+    // Always verify that the token belongs to the currently signed-in user
+    // before writing. Auth can change while getToken()/Firestore is in flight.
+    if (_auth.currentUser?.uid != user.uid) {
+      debugPrint('⚠️ FCM: auth changed during token sync; aborting uid=${user.uid}');
+      return;
+    }
     final previous = _syncInFlight;
     if (previous != null) {
       debugPrint('🔑 FCM: waiting for existing Firestore sync uid=${user.uid}');
