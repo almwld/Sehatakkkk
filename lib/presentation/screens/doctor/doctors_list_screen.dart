@@ -39,6 +39,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     'عظام',
     'نفسية',
     'أنف وأذن وحنجرة',
+    'أسنان',
+    'عيون',
   ];
 
   @override
