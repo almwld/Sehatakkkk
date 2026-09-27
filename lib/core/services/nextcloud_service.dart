@@ -1,114 +1,66 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
-/// Media gateway for Sehatak.
-///
-/// Nextcloud credentials never live in the Flutter application. The client
-/// authenticates with Firebase and the server performs the Nextcloud operation.
 class NextcloudService {
   static final NextcloudService _instance = NextcloudService._internal();
   factory NextcloudService() => _instance;
   NextcloudService._internal();
-
-  static const String backendUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'https://miraculous-compassion-production-1d54.up.railway.app',
-  );
 
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 60),
     sendTimeout: const Duration(minutes: 10),
   ));
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  // Kept for compatibility with the existing settings surface. These values
-  // are intentionally never used for authentication or persisted.
-  String baseUrl = backendUrl;
+  String baseUrl = '';
   String username = '';
   String password = '';
 
   Future<void> loadConfig() async {
-    baseUrl = backendUrl;
-    username = '';
-    password = '';
+    baseUrl = (await _storage.read(key: 'sehatak.nextcloud.base_url') ?? '').trim().replaceFirst(RegExp(r'/$'), '');
+    username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
+    password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
   }
 
-  Future<void> updateConfig({
-    required String baseUrl,
-    required String username,
-    required String password,
-  }) async {
-    // Global Nextcloud credentials are server-owned. Ignore client-supplied
-    // credentials rather than storing them in the device.
-    this.baseUrl = backendUrl;
-    this.username = '';
-    this.password = '';
+  Future<void> updateConfig({required String baseUrl, required String username, required String password}) async {
+    this.baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), '');
+    this.username = username.trim();
+    this.password = password;
+    await _storage.write(key: 'sehatak.nextcloud.base_url', value: this.baseUrl);
+    await _storage.write(key: 'sehatak.nextcloud.username', value: this.username);
+    await _storage.write(key: 'sehatak.nextcloud.app_password', value: this.password);
   }
 
   Future<void> clearConfig() async {
-    baseUrl = backendUrl;
+    baseUrl = '';
     username = '';
     password = '';
+    await Future.wait([
+      _storage.delete(key: 'sehatak.nextcloud.base_url'),
+      _storage.delete(key: 'sehatak.nextcloud.username'),
+      _storage.delete(key: 'sehatak.nextcloud.app_password'),
+    ]);
   }
 
-  Future<String> _idToken() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw StateError('يجب تسجيل الدخول لاستخدام خادم الوسائط');
-    }
-    final token = await user.getIdToken();
-    if (token == null || token.isEmpty) {
-      throw StateError('تعذر الحصول على رمز المصادقة');
-    }
-    return token;
-  }
-
-  String _cleanPart(String value) => value
-      .trim()
-      .replaceAll('\\', '')
-      .replaceAll('/', '')
-      .replaceAll('..', '');
-
-  String _cleanLogicalPath(String path) => path
-      .split('/')
-      .map(_cleanPart)
-      .where((part) => part.isNotEmpty && part != '.')
-      .take(8)
-      .join('/');
-
-  String _mimeTypeFor(String name) {
-    switch (name.toLowerCase().split('.').last) {
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'png':
-        return 'image/png';
-      case 'webp':
-        return 'image/webp';
-      case 'gif':
-        return 'image/gif';
-      case 'mp4':
-        return 'video/mp4';
-      case 'webm':
-        return 'video/webm';
-      case 'mov':
-        return 'video/quicktime';
-      case 'mp3':
-        return 'audio/mpeg';
-      case 'm4a':
-        return 'audio/mp4';
-      case 'aac':
-        return 'audio/aac';
-      case 'wav':
-        return 'audio/wav';
-      case 'pdf':
-        return 'application/pdf';
-      default:
-        return 'application/octet-stream';
+  void _ensureConfigured() {
+    if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
+      throw StateError('Nextcloud غير مهيأ؛ اضبط بياناته من إعدادات Nextcloud.');
     }
   }
+
+  String _authToken() => base64Encode(utf8.encode('$username:$password'));
+  String _normalizedBase() => baseUrl.replaceFirst(RegExp(r'/$'), '');
+
+  Map<String, String> _headers() => {
+        'OCS-APIRequest': 'true',
+        'Authorization': 'Basic ${_authToken()}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
 
   Future<NextcloudUploadResult> uploadFile({
     required File file,
@@ -116,78 +68,74 @@ class NextcloudService {
     String? fileName,
     void Function(int, int)? onProgress,
     bool createShare = true,
-    CancelToken? cancelToken,
   }) async {
     try {
+      _ensureConfigured();
       if (!await file.exists()) {
-        return const NextcloudUploadResult(
-          success: false,
-          error: 'الملف المحلي غير موجود',
-        );
+        return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
       }
 
-      final name = _cleanPart(
-        fileName ?? file.path.split(Platform.pathSeparator).last,
-      );
-      if (name.isEmpty) {
-        return const NextcloudUploadResult(
-          success: false,
-          error: 'اسم الملف غير صالح',
-        );
-      }
+      final name = fileName ?? file.path.split(Platform.pathSeparator).last;
+      final logicalDirectory = path
+          .split('/')
+          .where((p) => p.isNotEmpty && p != '..')
+          .join('/');
+      final remotePath = '/$logicalDirectory/${name.replaceAll('\\', '')}';
+      final encodedDirectory = logicalDirectory
+          .split('/')
+          .where((p) => p.isNotEmpty)
+          .map(Uri.encodeComponent)
+          .join('/');
+      final encodedName = Uri.encodeComponent(name.replaceAll('\\', ''));
+      final davPath = '/$encodedDirectory/$encodedName';
 
-      final bytes = await file.readAsBytes();
-      final token = await _idToken();
-      final mimeType = _mimeTypeFor(name);
-
-      final response = await _dio.post<Map<String, dynamic>>(
-        '$backendUrl/media/upload',
-        queryParameters: {
-          'path': _cleanLogicalPath(path),
-          'fileName': name,
-          'mimeType': mimeType,
-          'createShare': createShare.toString(),
-        },
-        data: bytes,
-        cancelToken: cancelToken,
+      final response = await _dio.put<void>(
+        '${_normalizedBase()}/remote.php/dav/files/${Uri.encodeComponent(username)}$davPath',
+        data: file.openRead(),
         options: Options(
           headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': mimeType,
-            'Content-Length': bytes.length.toString(),
+            'Authorization': 'Basic ${_authToken()}',
+            'Content-Type': 'application/octet-stream',
           },
-          responseType: ResponseType.json,
-          validateStatus: (status) => status != null,
+          contentType: 'application/octet-stream',
+          validateStatus: (status) => status != null && status >= 200 && status < 300,
         ),
         onSendProgress: onProgress,
       );
 
-      final body = response.data ?? const <String, dynamic>{};
-      final fileData = body['file'] is Map
-          ? Map<String, dynamic>.from(body['file'])
-          : const <String, dynamic>{};
-      final status = response.statusCode ?? 0;
-      if (status < 200 || status >= 300 || body['success'] != true) {
+      final status = response.statusCode;
+      final uploaded = status != null && status >= 200 && status < 300;
+      if (!uploaded) {
         return NextcloudUploadResult(
           success: false,
-          error: body['message']?.toString() ??
-              'فشل رفع الوسائط: HTTP $status',
+          path: remotePath,
+          fileName: name,
+          error: 'فشل رفع الملف إلى Nextcloud: HTTP $status',
         );
+      }
+
+      if (!createShare) {
+        return NextcloudUploadResult(success: true, path: remotePath, fileName: name);
+      }
+
+      String? publicUrl;
+      String? shareError;
+      try {
+        publicUrl = await createPublicShare(remotePath);
+        if (publicUrl == null || publicUrl.isEmpty) {
+          shareError = 'تم رفع الملف بنجاح، لكن رابط المشاركة لم يجهز بعد';
+        }
+      } catch (e) {
+        shareError = 'تم رفع الملف بنجاح، وتعذر تجهيز رابط المشاركة: $e';
       }
 
       return NextcloudUploadResult(
         success: true,
-        url: fileData['url']?.toString(),
-        path: fileData['remotePath']?.toString(),
-        fileName: fileData['fileName']?.toString() ?? name,
-        shareReady: fileData['shareReady'] == true,
-      );
-    } on DioException catch (e) {
-      return NextcloudUploadResult(
-        success: false,
-        error: e.response?.data is Map
-            ? (e.response?.data['message']?.toString() ?? e.message)
-            : e.message,
+        url: publicUrl,
+        path: remotePath,
+        fileName: name,
+        error: shareError,
+        shareReady: publicUrl != null && publicUrl.isNotEmpty,
       );
     } catch (e) {
       return NextcloudUploadResult(success: false, error: e.toString());
@@ -195,72 +143,57 @@ class NextcloudService {
   }
 
   Future<String?> createPublicShare(String remotePath) async {
+    _ensureConfigured();
     try {
-      final token = await _idToken();
-      final response = await _dio.post<Map<String, dynamic>>(
-        '$backendUrl/media/share',
-        data: {'remotePath': remotePath},
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-          responseType: ResponseType.json,
-          validateStatus: (status) => status != null,
-        ),
+      final response = await http.post(
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
+        headers: _headers(),
+        body: {'path': remotePath, 'shareType': '3'},
       );
-      if (response.statusCode != 200 || response.data?['success'] != true) {
-        return null;
-      }
-      return response.data?['url']?.toString();
+      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final ocs = body['ocs'] as Map<String, dynamic>?;
+      final data = ocs?['data'] as Map<String, dynamic>?;
+      final shareUrl = data?['url']?.toString();
+      if (shareUrl == null || shareUrl.isEmpty) return null;
+      return '${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
     } catch (_) {
       return null;
     }
   }
 
+  /// Verifies the exact public download path that the receiver will use.
+  /// HEAD is cheap; a one-byte ranged GET confirms that the download endpoint
+  /// actually serves the object and is not merely returning a landing page.
   Future<bool> verifyPublicUrl(String url) async {
-    final client = HttpClient();
-    Uri current;
     try {
-      current = Uri.parse(url);
-    } catch (_) {
-      return false;
-    }
-    try {
-      for (var hop = 0; hop <= 5; hop++) {
-        final request = await client.getUrl(current);
-        request.followRedirects = false;
-        request.headers.set(HttpHeaders.rangeHeader, 'bytes=0-0');
-        final response = await request.close().timeout(
-              const Duration(seconds: 20),
-            );
-        final status = response.statusCode;
-        final location = response.headers.value(HttpHeaders.locationHeader);
-        await response.drain<void>();
+      final uri = Uri.parse(url);
+      final head = await http.head(uri).timeout(const Duration(seconds: 15));
+      final headOk = head.statusCode != null && head.statusCode! >= 200 && head.statusCode! < 400;
+      if (!headOk) return false;
 
-        if (status == 200 || status == 206) return true;
-        if (status >= 300 &&
-            status < 400 &&
-            location != null &&
-            location.isNotEmpty) {
-          final next = current.resolve(location);
-          if (next.host != current.host) return false;
-          current = next;
-          continue;
-        }
+      final probe = await http.get(
+        uri,
+        headers: const {'Range': 'bytes=0-0'},
+      ).timeout(const Duration(seconds: 20));
+      final probeOk = probe.statusCode == 200 || probe.statusCode == 206;
+      if (!probeOk) return false;
+      return probe.bodyBytes.isNotEmpty;
+    } catch (_) {
+      // Some proxies reject HEAD or Range. A bounded GET is the final fallback.
+      try {
+        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
+        return response.statusCode >= 200 && response.statusCode < 400 && response.bodyBytes.isNotEmpty;
+      } catch (_) {
         return false;
       }
-      return false;
-    } catch (_) {
-      return false;
-    } finally {
-      client.close(force: true);
     }
   }
 
   Future<bool> checkServerStatus() async {
     try {
-      final response = await _dio.get(
-        '$backendUrl/health',
-        options: Options(validateStatus: (status) => status != null),
-      );
+      if (baseUrl.isEmpty) return false;
+      final response = await http.get(Uri.parse('${_normalizedBase()}/status.php'));
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -269,14 +202,8 @@ class NextcloudService {
 
   Future<bool> testAuth() async {
     try {
-      final token = await _idToken();
-      final response = await _dio.get(
-        '$backendUrl/health',
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-          validateStatus: (status) => status != null,
-        ),
-      );
+      _ensureConfigured();
+      final response = await http.get(Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'), headers: _headers());
       return response.statusCode == 200;
     } catch (_) {
       return false;
