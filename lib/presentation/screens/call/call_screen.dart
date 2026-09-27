@@ -109,6 +109,42 @@ class _CallScreenState extends State<CallScreen> {
     }
   }
 
+  Future<void> _retryConnection() async {
+    if (ending) return;
+    timeout?.cancel();
+    timer?.cancel();
+    sync?.cancel();
+    await callSub?.cancel();
+    await live.endCall();
+    if (!mounted) return;
+    setState(() {
+      error = null;
+      connecting = true;
+      joined = false;
+      localTrack = null;
+      remoteTrack = null;
+      connectionStatus = 'جاري إعادة الاتصال...';
+    });
+    await connect();
+  }
+
+  String _friendlyCallError(Object value) {
+    final raw = value.toString().toLowerCase();
+    if (raw.contains('mediaconnectexception') || raw.contains('peerconnection') || raw.contains('ice connectivity')) {
+      return 'تعذر إنشاء اتصال المكالمة. تحقق من الإنترنت ثم أعد المحاولة.';
+    }
+    if (raw.contains('timeout') || raw.contains('timed out')) {
+      return 'انتهت مهلة الاتصال. تحقق من جودة الإنترنت وحاول مرة أخرى.';
+    }
+    if (raw.contains('permission') || raw.contains('إذن')) {
+      return 'يلزم السماح بالميكروفون${widget.isVideo ? ' والكاميرا' : ''} لإجراء المكالمة.';
+    }
+    if (raw.contains('network') || raw.contains('socket')) {
+      return 'تعذر الاتصال بالشبكة. تحقق من الإنترنت وحاول مرة أخرى.';
+    }
+    return 'تعذر بدء المكالمة. حاول مرة أخرى.';
+  }
+
   Future<void> connect() async {
     if (widget.isOutgoing) ToastService.showInfo('جاري الاتصال...');
     try {
@@ -462,24 +498,47 @@ class _CallScreenState extends State<CallScreen> {
             if (error != null)
               Positioned.fill(
                 child: Container(
-                  color: Colors.black87,
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
-                      const SizedBox(height: 16),
-                      const Text('تعذر بدء الاتصال', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
-                      Text(error!, style: const TextStyle(color: Colors.white70, fontSize: 13), textAlign: TextAlign.center),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close),
-                        label: const Text('إغلاق'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+                  color: Colors.black.withOpacity(.94),
+                  padding: const EdgeInsets.fromLTRB(28, 40, 28, 28),
+                  child: SafeArea(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.cloud_off_rounded, color: Colors.redAccent, size: 62),
+                            const SizedBox(height: 16),
+                            const Text('تعذر الاتصال', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 10),
+                            Text(error!, style: const TextStyle(color: Colors.white70, fontSize: 15, height: 1.5), textAlign: TextAlign.center),
+                            const SizedBox(height: 10),
+                            const Text('تحقق من اتصال الإنترنت، ثم أعد المحاولة.', style: TextStyle(color: Colors.white54, fontSize: 13), textAlign: TextAlign.center),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: connecting ? null : _retryConnection,
+                                icon: connecting
+                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : const Icon(Icons.refresh_rounded),
+                                label: Text(connecting ? 'جاري إعادة الاتصال...' : 'إعادة المحاولة'),
+                                style: ElevatedButton.styleFrom(backgroundColor: teal, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: ending ? null : end,
+                                icon: const Icon(Icons.call_end_rounded),
+                                label: const Text('إنهاء المكالمة والعودة'),
+                                style: OutlinedButton.styleFrom(foregroundColor: Colors.white70, side: const BorderSide(color: Colors.white24), padding: const EdgeInsets.symmetric(vertical: 13)),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
