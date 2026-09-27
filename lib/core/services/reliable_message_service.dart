@@ -51,7 +51,7 @@ class ReliableMessageService {
 
     final effectiveClientTimestamp = clientTimestamp ?? Timestamp.now();
     final messageRef = chatRef.collection('messages').doc(
-      messageId ?? 'msg_${effectiveClientTimestamp.millisecondsSinceEpoch}',
+      messageId ?? 'msg_${effectiveClientTimestamp.microsecondsSinceEpoch}',
     );
     final batch = _db.batch();
     batch.set(messageRef, {
