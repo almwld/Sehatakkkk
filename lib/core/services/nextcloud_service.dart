@@ -66,6 +66,7 @@ class NextcloudService {
     required File file,
     required String path,
     String? fileName,
+    CancelToken? cancelToken,
     void Function(int, int)? onProgress,
     bool createShare = true,
   }) async {
@@ -100,6 +101,7 @@ class NextcloudService {
           contentType: 'application/octet-stream',
           validateStatus: (status) => status != null && status >= 200 && status < 300,
         ),
+        cancelToken: cancelToken,
         onSendProgress: onProgress,
       );
 
