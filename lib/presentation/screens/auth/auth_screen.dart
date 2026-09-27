@@ -74,12 +74,6 @@ class _AuthScreenState extends State<AuthScreen>
       'color': 0xFF0D5257,
     },
     {
-      'id': 'hospital',
-      'name': 'مشفى',
-      'icon': Icons.local_hospital,
-      'color': 0xFF1565C0,
-    },
-    {
       'id': 'doctor',
       'name': 'طبيب',
       'icon': Icons.local_hospital_outlined,
