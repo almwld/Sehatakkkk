@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'chat_reply_context.dart';
+import '../models/message_model.dart';
 
 /// Reliable text path: message + chat preview + unread counter in one batch.
 class ReliableMessageService {
@@ -14,6 +15,7 @@ class ReliableMessageService {
     required String text,
     String? replyToId,
     Timestamp? clientTimestamp,
+    String? messageId,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('يجب تسجيل الدخول');
@@ -47,7 +49,10 @@ class ReliableMessageService {
       }
     }
 
-    final messageRef = chatRef.collection('messages').doc();
+    final effectiveClientTimestamp = clientTimestamp ?? Timestamp.now();
+    final messageRef = chatRef.collection('messages').doc(
+      messageId ?? 'msg_${effectiveClientTimestamp.millisecondsSinceEpoch}',
+    );
     final batch = _db.batch();
     batch.set(messageRef, {
       'chatId': chatId,
@@ -57,7 +62,8 @@ class ReliableMessageService {
       'text': value,
       'type': 'text',
       'timestamp': FieldValue.serverTimestamp(),
-      'clientTimestamp': clientTimestamp ?? Timestamp.now(),
+      'clientTimestamp': effectiveClientTimestamp,
+      'status': MessageStatus.sent.name,
       'isRead': false,
       'isDelivered': false,
       'deliveredAt': null,
