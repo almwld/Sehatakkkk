@@ -103,8 +103,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 child: _selectedTemplate != null
                     ? _templateService.buildTemplateWidget(
                         template: _selectedTemplate!,
-                        primaryText: _selectedTemplate?.primaryText ?? '',
-                        secondaryText: _selectedTemplate?.secondaryText ?? ''
+                        primaryText: _selectedTemplate!.primaryText,
+                        secondaryText: _selectedTemplate!.secondaryText,
                         width: MediaQuery.of(context).size.width - 32,
                         height: 300,
                       )
@@ -218,66 +218,3 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _saving ? null : _saveTemplate,
-                        icon: _saving ? const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.save_rounded),
-                        label: Text(_saving ? 'جاري الحفظ...' : 'حفظ'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getTemplateIcon(String id) {
-    switch (id) {
-      case 'slope':
-        return Icons.trending_up_rounded;
-      case 'descent':
-        return Icons.trending_down_rounded;
-      case 'swell':
-        return Icons.waves_rounded;
-      case 'drop':
-        return Icons.water_drop_rounded;
-      case 'frame':
-        return Icons.crop_7_5_rounded;
-      case 'cover':
-        return Icons.photo_library_rounded;
-      case 'slide':
-        return Icons.slideshow_rounded;
-      default:
-        return Icons.image_rounded;
-    }
-  }
-
-  void _shareTemplate() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📤 جاري المشاركة...'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
-  }
-
-  void _downloadTemplate() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📥 جاري تحميل الصورة...'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
-  }
-}
