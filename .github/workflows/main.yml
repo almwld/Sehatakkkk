@@ -2,7 +2,7 @@ name: 🚀 Build Sehatak APK
 # Release build with signing + Firebase config from secrets.
 
 permissions:
-  contents: write
+  contents: read
 
 on:
   push:
@@ -341,33 +341,10 @@ jobs:
         git diff --check
         flutter pub get
 
-    - name: 💾 Persist optimized assets
-      shell: bash
-      run: |
-        set -euo pipefail
-        if git diff --quiet -- assets lib pubspec.yaml flutter_native_splash.yaml; then
-          echo "✅ No persistent asset changes."
-          exit 0
-        fi
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add assets lib pubspec.yaml flutter_native_splash.yaml
-        git commit -m "fix(assets): preserve alpha in converted webp icons"
-        git push
-        echo "✅ Lossless WebP assets committed to master."
-
     - name: 🧪 Flutter analyze
       shell: bash
-      continue-on-error: true
       run: |
-        set +e
-        flutter analyze --no-fatal-warnings --no-fatal-infos
-        status=$?
-        echo "FLUTTER_ANALYZE_EXIT_CODE=$status"
-        if [ "$status" -ne 0 ]; then
-          echo "⚠️ Flutter analyze reports pre-existing code issues; asset validation remains successful."
-        fi
-        exit 0
+        flutter analyze --no-fatal-infos
 
     - name: 📦 Install dependencies
       run: flutter pub get
@@ -375,33 +352,12 @@ jobs:
     - name: 🔨 Build APK
       run: |
         flutter build apk --release --split-per-abi --no-shrink \
-          --dart-define=NEXTCLOUD_URL=https://noa.it.tabdigital.cloud \
-          --dart-define=NEXTCLOUD_USERNAME=PlatformSehatak@gmail.com \
-          --dart-define=NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }} \
-          --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
-          --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
-          --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
-          --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
-          --dart-define=FIREBASE_AUTH_DOMAIN=sehatak-platform.firebaseapp.com \
-          --dart-define=FIREBASE_STORAGE_BUCKET=sehatak-platform.appspot.com \
-          --dart-define=FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }} \
+          --dart-define=BACKEND_URL=https://miraculous-compassion-production-1d54.up.railway.app \
           --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud \
-          --dart-define=LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }} \
-          --dart-define=LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }} \
-          --dart-define=JWT_SECRET=${{ secrets.JWT_SECRET }} \
-          --dart-define=ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
+          --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
           --dart-define=APP_NAME=صحتك_Sehatak \
           --dart-define=APP_VERSION=2.0.0 \
-          --dart-define=APP_ENV=production \
-          --dart-define=API_RATE_LIMIT=100 \
-          --dart-define=API_RATE_LIMIT_WINDOW=60000 \
-          --dart-define=CORS_ORIGIN=* \
-          --dart-define=LOG_LEVEL=info \
-          --dart-define=DB_HOST=localhost \
-          --dart-define=DB_PORT=5432 \
-          --dart-define=DB_NAME=sehatak \
-          --dart-define=DB_USER=sehatak_user \
-          --dart-define=DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          --dart-define=APP_ENV=production
 
     - name: 🔎 Verify production APK signing
       shell: bash
