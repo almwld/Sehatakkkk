@@ -20,7 +20,8 @@ class GlobalScrollManager extends ChangeNotifier {
   }
 
   void registerScreen(String route) {
-    _currentRoute = route;
+    // Route-specific exclusions are evaluated by isExcludedRoute(route).
+    // Keep registration as the reset point for accumulated scroll deltas.
     _pendingDelta = 0.0;
   }
 
