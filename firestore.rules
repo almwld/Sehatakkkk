@@ -125,8 +125,7 @@ service cloud.firestore {
         allow create: if isSignedIn()
           && request.resource.data.senderId == request.auth.uid
           && request.resource.data.chatId == chatId
-          && request.resource.data.timestamp == request.time
-          && request.resource.data.status is string;
+          && request.resource.data.timestamp == request.time;
         
         allow update: if isSignedIn()
           && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
@@ -189,7 +188,7 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly([
             'status', 'connectedAt', 'endedAt', 'endedReason',
-            'isAnswered', 'durationSeconds', 'metadata'
+            'isAnswered', 'durationSeconds', 'metadata', 'busyReason'
           ])
         && (
           (resource.data.status == 'calling'
