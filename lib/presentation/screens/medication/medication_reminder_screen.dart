@@ -166,6 +166,36 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
     );
   }
 
+  Widget _offlineState(String title, String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.cloud_off_rounded, size: 58, color: AppColors.primary.withOpacity(.75)),
+            const SizedBox(height: 16),
+            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.grey, height: 1.5)),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: () => setState(() {}),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('إعادة المحاولة'),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: const Icon(Icons.arrow_back_rounded),
+              label: const Text('رجوع'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _medicationCard(Map<String, dynamic> medicine) {
     final id = medicine['id'].toString();
     final enabled = medicine['reminderEnabled'] != false;
