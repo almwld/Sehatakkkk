@@ -32,7 +32,6 @@ import 'core/services/call_service.dart';
 import 'core/services/active_call_registry.dart';
 import 'core/services/call_sound_coordinator.dart';
 import 'core/services/chat_media_transfer_service.dart';
-import 'core/services/nextcloud_service.dart';
 import 'core/services/toast_service.dart';
 
 import 'app_router.dart';
@@ -219,7 +218,6 @@ class _SehatakAppState extends State<SehatakApp>
   bool _authStatePrimed = false;
   bool _fcmStarted = false;
   bool _notificationsStarted = false;
-  bool _nextcloudStarted = false;
   final MethodChannel _platformNavigationChannel =
       const MethodChannel('com.sehatak.app/navigation');
 
@@ -259,37 +257,9 @@ class _SehatakAppState extends State<SehatakApp>
     });
   }
 
-  /// تهيئة Nextcloud من الإعدادات المضمنة عند البناء (--dart-define).
-  /// لا يراها المستخدم ولا تحتاج إلى تفاعل.
-  Future<void> _initializeNextcloud() async {
-    if (_nextcloudStarted) return;
-    _nextcloudStarted = true;
-    try {
-      const url = String.fromEnvironment('NEXTCLOUD_URL', defaultValue: '');
-      const user =
-          String.fromEnvironment('NEXTCLOUD_USERNAME', defaultValue: '');
-      const pass =
-          String.fromEnvironment('NEXTCLOUD_PASSWORD', defaultValue: '');
-      if (url.isEmpty || user.isEmpty || pass.isEmpty) {
-        debugPrint(
-            '⚠️ Nextcloud config missing — media will fall back to Firebase Storage');
-        return;
-      }
-      await NextcloudService().updateConfig(
-        baseUrl: url,
-        username: user,
-        password: pass,
-      );
-      debugPrint('✅ Nextcloud config initialized: $url / $user');
-    } catch (e) {
-      debugPrint('❌ Nextcloud init error: $e');
-    }
-  }
-
   Future<void> _initializeServicesAfterRunApp() async {
     if (_notificationsStarted) return;
     _notificationsStarted = true;
-    await _initializeNextcloud();
     try {
       await _notificationService.initialize();
     } catch (e) {
@@ -698,92 +668,3 @@ class _SehatakAppState extends State<SehatakApp>
       default:
         return;
     }
-    try {
-      nav.pushNamed(route);
-    } catch (e) {
-      debugPrint('🔔 pushNamed($route) failed: $e');
-      try {
-        final context = navigatorKey.currentContext;
-        if (context != null) {
-          final router = GoRouter.maybeOf(context);
-          if (router != null) router.push(route);
-        }
-      } catch (fallbackError) {
-        debugPrint('🔔 notification route fallback failed: $fallbackError');
-      }
-    }
-  }
-
-  Future<void> _openChatFromNotification(
-      String chatId, String? senderId, String? senderName) async {
-    if (chatId.isEmpty) return;
-    final nav = navigatorKey.currentState;
-    if (nav == null) return;
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    var otherId = senderId ?? '';
-    var otherName = senderName ?? 'محادثة';
-    String? otherImage;
-    bool isGroup = false;
-    final chat = await FirebaseFirestore.instance
-        .collection('chats')
-        .doc(chatId)
-        .get();
-    if (chat.exists) {
-      final data = chat.data() ?? {};
-      isGroup = data['isGroup'] == true;
-      final participants =
-          List<String>.from(data['participants'] ?? const <String>[]);
-      if (otherId.isEmpty)
-        otherId = participants.firstWhere((id) => id != uid,
-            orElse: () => '');
-      final details = data['participantDetails'] is Map
-          ? Map<String, dynamic>.from(data['participantDetails'])
-          : <String, dynamic>{};
-      final d = details[otherId] is Map
-          ? Map<String, dynamic>.from(details[otherId])
-          : <String, dynamic>{};
-      otherName = d['name']?.toString() ?? otherName;
-      otherImage = d['photoUrl']?.toString();
-    }
-    if (otherId.isEmpty) return;
-    nav.push(MaterialPageRoute(
-        builder: (_) => ChatRoomScreen(
-            chatId: chatId,
-            otherUserId: otherId,
-            otherUserName: otherName,
-            otherUserImage: otherImage,
-            isGroup: isGroup)));
-  }
-
-  @override
-  Widget build(BuildContext context) => BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, themeState) => Consumer<FontSizeProvider>(
-          builder: (context, fontProvider, child) => MaterialApp.router(
-            title: 'صحتك - Sehatak',
-            debugShowCheckedModeBanner: false,
-            locale: const Locale('ar', 'SA'),
-            theme: ThemeManager.lightTheme,
-            darkTheme: ThemeManager.darkTheme,
-            themeMode: themeState.themeMode,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate
-            ],
-            supportedLocales: const [
-              Locale('ar', 'SA'),
-              Locale('en', 'US')
-            ],
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context)
-                  .copyWith(textScaleFactor: fontProvider.fontScale),
-              child: Directionality(
-                textDirection: TextDirection.rtl,
-                child: child!,
-              ),
-            ),
-            routerConfig: AppRouter.router,
-          ),
-        ),
-      );
-}
