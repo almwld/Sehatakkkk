@@ -232,6 +232,56 @@ app.post('/token', async (req, res) => {
     const roomName = String(req.body?.roomName || '').trim();
     const participantName = String(req.body?.participantName || decodedToken.name || 'مستخدم').trim();
     if (!roomName) return res.status(400).json({ success: false, message: 'roomName is required' });
+
+    // A LiveKit room is issued only for a real, active Firestore call.
+    // The room contract is call_<callId>; never trust an arbitrary room name
+    // supplied by the client.
+    const callIdMatch = /^call_([A-Za-z0-9_-]+)$/.exec(roomName);
+    if (!callIdMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'roomName غير صالح: يجب أن يكون call_<callId>',
+      });
+    }
+    const callId = callIdMatch[1];
+    const callSnapshot = await db.collection('calls').doc(callId).get();
+    if (!callSnapshot.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'المكالمة غير موجودة',
+      });
+    }
+
+    const call = callSnapshot.data() || {};
+    const callerId = String(call.callerId || '');
+    const receiverId = String(call.receiverId || '');
+    const callRoomName = String(
+      call.liveKitRoomName || call.roomName || '',
+    ).trim();
+    const callStatus = String(call.status || '').trim();
+
+    if (callerId !== decodedToken.uid && receiverId !== decodedToken.uid) {
+      return res.status(403).json({
+        success: false,
+        message: 'ليس لديك صلاحية الانضمام إلى هذه المكالمة',
+      });
+    }
+
+    if (callRoomName !== roomName) {
+      return res.status(403).json({
+        success: false,
+        message: 'غرفة LiveKit لا تطابق المكالمة',
+      });
+    }
+
+    if (!['calling', 'ringing', 'accepted', 'connected'].includes(callStatus)) {
+      return res.status(409).json({
+        success: false,
+        message: 'المكالمة لم تعد نشطة',
+        status: callStatus,
+      });
+    }
+
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;
     if (!apiKey || !apiSecret || !LIVEKIT_URL) return res.status(500).json({ success: false, message: 'LiveKit server configuration is incomplete' });
