@@ -47,7 +47,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
 
   final Map<String, Map<String, String>> _mapLayers = {
     'خريطة داكنة': {
-      'url': 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+      'url': 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
       'desc': 'خريطة داكنة احترافية'
     },
     'خريطة الشوارع': {
@@ -665,7 +665,9 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                         },
                       ),
                       children: [
-                        // نفس طبقة الشوارع المفتوحة المستخدمة في «حدد موقعك»
+                        // طبقة داكنة مستقلة عن CARTO لتجنب علامة API key المكررة،
+                        // مع إبقاء بيانات المنشآت فوقها كما هي.
+                        // طبقة الشوارع المفتوحة المستخدمة في «حدد موقعك»
                         TileLayer(
                           urlTemplate: _mapLayers[_selectedLayer]!['url']!,
                           userAgentPackageName: 'com.sehatak.app',
