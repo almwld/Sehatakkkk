@@ -13,6 +13,7 @@ class ReliableMessageService {
     required String chatId,
     required String text,
     String? replyToId,
+    Timestamp? clientTimestamp,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('يجب تسجيل الدخول');
@@ -56,6 +57,7 @@ class ReliableMessageService {
       'text': value,
       'type': 'text',
       'timestamp': FieldValue.serverTimestamp(),
+      'clientTimestamp': clientTimestamp ?? Timestamp.now(),
       'isRead': false,
       'isDelivered': false,
       'deliveredAt': null,
