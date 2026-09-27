@@ -61,6 +61,23 @@ async function sendToUser(uid,payload){
   }
 }
 
+exports.notifyAdminNotification=onDocumentCreated('notifications/{notificationId}',async event=>{
+  const s=event.data;if(!s)return;
+  const n=s.data()||{};
+  const sentByAdmin=String(n.sentByAdmin||'').trim();
+  const uid=String(n.userId||'').trim();
+  if(!sentByAdmin||!uid)return;
+  const data={
+    type:String(n.type||'admin_broadcast'),
+    title:String(n.title||'صحتك'),
+    body:String(n.body||'لديك إشعار جديد'),
+    recipientId:uid,
+    adminId:sentByAdmin,
+    notificationId:event.params.notificationId,
+  };
+  await sendToUser(uid,{data});
+});
+
 exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{messageId}',async event=>{
   const s=event.data;if(!s)return;
   const m=s.data()||{},chatId=event.params.chatId,senderId=String(m.senderId||'');
