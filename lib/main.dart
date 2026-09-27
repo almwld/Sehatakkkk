@@ -281,10 +281,11 @@ class _SehatakAppState extends State<SehatakApp>
         provisional: false,
       );
       await FirebaseMessaging.instance
-          .setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
+        .setForegroundNotificationPresentationOptions(
+        // Local NotificationService renders foreground notifications exactly once.
+        alert: false,
+        badge: false,
+        sound: false,
       );
       debugPrint('🔔 FCM permission: ${settings.authorizationStatus}');
     } catch (e) {
