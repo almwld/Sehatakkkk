@@ -386,27 +386,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       _hasInitialMessageSnapshot = true;
       final wasAwayFromLatest = _scrollController.hasClients && _scrollController.position.pixels > 140;
       setState(() {
-        final canonicalClientTimestamps = messages
-            .where((m) => m.clientTimestamp != null)
-            .map((m) => m.clientTimestamp!.millisecondsSinceEpoch)
-            .toSet();
-
-        final canonicalContentKeys = messages
-            .map((m) => '${m.senderId}|${m.type.name}|${m.text ?? ''}|${m.fileName ?? ''}')
-            .toSet();
-
-        final pendingOptimistic = _messages.where((m) {
-          if (!m.id.startsWith('local_')) return false;
-          final ts = m.clientTimestamp?.millisecondsSinceEpoch;
-          if (ts != null && canonicalClientTimestamps.contains(ts)) return false;
-          final key = '${m.senderId}|${m.type.name}|${m.text ?? ''}|${m.fileName ?? ''}';
-          return !canonicalContentKeys.contains(key);
-        }).toList();
-
-        _messages = <MessageModel>[...messages, ...pendingOptimistic];
-        _messages.sort((a, b) =>
-            (b.timestamp ?? b.clientTimestamp ?? Timestamp(0, 0))
-                .compareTo(a.timestamp ?? a.clientTimestamp ?? Timestamp(0, 0)));
+        // Optimistic and canonical text messages use the exact same Firestore
+        // document ID, so the snapshot replaces the local bubble atomically.
+        _messages = messages;
         _localMedia.removeWhere((m) {
           final outboxId = m['outboxId']?.toString();
           return remoteIds.contains(m['id']) ||
@@ -576,8 +558,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (!mounted || value.isEmpty || uid == null) return;
 
     final now = clientTimestamp ?? Timestamp.now();
-    final optimisticId =
-        'local_text_${now.microsecondsSinceEpoch}_${uid.hashCode}';
+    final optimisticId = 'msg_${now.millisecondsSinceEpoch}';
 
     setState(() {
       // Render the newly sent text immediately. The Firestore listener will
@@ -595,6 +576,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           clientTimestamp: now,
           isRead: false,
           isDelivered: false,
+          status: MessageStatus.sending,
           replyToId: replyToId,
           replyPreview: replyPreview,
         ),
