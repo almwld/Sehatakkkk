@@ -138,17 +138,43 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget _buildContent(String type, bool dark) {
     final m = widget.message;
     switch (type) {
-      case 'image': return _buildImage(m['imageUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? '');
-      case 'video': return _buildVideo(m['videoUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? '');
+      case 'image':
+        return _withStatus(_buildImage(m['imageUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? ''));
+      case 'video':
+        return _withStatus(_buildVideo(m['videoUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? ''));
       case 'audio':
         final url = m['audioUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
-        return _shell(AudioWaveformBubble(audioUrl: url, isMe: widget.isMe, isLocal: _isLocal(url)), dark);
-      case 'file': return _buildFile(m, dark);
-      case 'call': return _buildCall(m, dark);
-      case 'location': return _buildLocation(m, dark);
-      case 'system': return _buildSystem(m);
-      default: return _buildText(m, dark);
+        return _withStatus(_shell(AudioWaveformBubble(audioUrl: url, isMe: widget.isMe, isLocal: _isLocal(url)), dark));
+      case 'file':
+        return _withStatus(_buildFile(m, dark));
+      case 'call':
+        return _withStatus(_buildCall(m, dark));
+      case 'location':
+        return _withStatus(_buildLocation(m, dark));
+      case 'system':
+        return _buildSystem(m);
+      default:
+        return _buildText(m, dark);
     }
+  }
+
+  /// Delivery/read state is part of every message document, including media.
+  /// Keep the same placement used by text messages: for received messages the
+  /// status is rendered before the bubble; for sent messages it stays at the end.
+  Widget _withStatus(Widget bubble) {
+    final m = widget.message;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      textDirection: widget.isMe ? TextDirection.ltr : TextDirection.rtl,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 4, bottom: 7),
+          child: _status(m),
+        ),
+        bubble,
+      ],
+    );
   }
 
   Widget _buildText(Map<String, dynamic> m, bool dark) {
