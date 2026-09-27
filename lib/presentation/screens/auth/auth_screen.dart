@@ -2250,6 +2250,10 @@ class _AuthScreenState extends State<AuthScreen>
     _confirmPasswordController.dispose();
     _licenseController.dispose();
     _experienceController.dispose();
+    _facilityNameController.dispose();
+    _facilityAddressController.dispose();
+    _facilityPhoneController.dispose();
+    _facilityDescriptionController.dispose();
     super.dispose();
   }
 }
