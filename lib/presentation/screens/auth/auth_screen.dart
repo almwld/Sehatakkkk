@@ -43,6 +43,10 @@ class _AuthScreenState extends State<AuthScreen>
       TextEditingController();
   final TextEditingController _licenseController = TextEditingController();
   final TextEditingController _experienceController = TextEditingController();
+  final TextEditingController _facilityNameController = TextEditingController();
+  final TextEditingController _facilityAddressController = TextEditingController();
+  final TextEditingController _facilityPhoneController = TextEditingController();
+  final TextEditingController _facilityDescriptionController = TextEditingController();
 
   bool _obscureText = true;
   bool _obscureConfirmText = true;
@@ -68,6 +72,12 @@ class _AuthScreenState extends State<AuthScreen>
       'name': 'مستخدم',
       'icon': Icons.person_outline,
       'color': 0xFF0D5257,
+    },
+    {
+      'id': 'hospital',
+      'name': 'مشفى',
+      'icon': Icons.local_hospital,
+      'color': 0xFF1565C0,
     },
     {
       'id': 'doctor',
@@ -826,6 +836,7 @@ class _AuthScreenState extends State<AuthScreen>
       await user.updateDisplayName(_nameController.text.trim());
 
       final isDoctor = _selectedRole == 'doctor';
+      final isHospital = _selectedRole == 'hospital';
       final needsVerification = _needsVerification(_selectedRole);
 
       final now = Timestamp.now();
@@ -914,7 +925,30 @@ class _AuthScreenState extends State<AuthScreen>
         userData['isPatient'] = false;
       }
 
-      // نكتب userData مرة أخرى بعد إضافة حقول الطبيب.
+      if (isHospital) {
+        final hospitalRef = firestore.collection('hospitals').doc(user.uid);
+        batch.set(hospitalRef, <String, dynamic>{
+          'userId': user.uid,
+          'ownerId': user.uid,
+          'name': _facilityNameController.text.trim().isEmpty ? _nameController.text.trim() : _facilityNameController.text.trim(),
+          'address': _facilityAddressController.text.trim(),
+          'phone': _facilityPhoneController.text.trim(),
+          'description': _facilityDescriptionController.text.trim(),
+          'isVerified': false,
+          'verificationStatus': 'notSubmitted',
+          'isPublished': false,
+          'isAvailable': false,
+          'services': <String>[],
+          'doctorsCount': 0,
+          'createdAt': now,
+          'updatedAt': now,
+        });
+        userData['hospitalId'] = user.uid;
+        userData['facilityName'] = _facilityNameController.text.trim();
+        userData['facilityAddress'] = _facilityAddressController.text.trim();
+      }
+
+      // نكتب userData مرة أخرى بعد إضافة حقول الدور.
       batch.set(userRef, userData);
 
       await batch.commit();
@@ -1068,6 +1102,11 @@ class _AuthScreenState extends State<AuthScreen>
     Color primaryColor,
   ) {
     final fields = <Widget>[];
+
+    if (_selectedRole == 'hospital') {
+      fields.add(_buildHospitalFields(isDark, primaryColor));
+      fields.add(const SizedBox(height: 16));
+    }
 
     if (_needsVerification(_selectedRole)) {
       fields.add(
