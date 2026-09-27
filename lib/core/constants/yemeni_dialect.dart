@@ -79,7 +79,9 @@ class YemeniDialect {
 
     // ===== الوقت =====
     'صباح': 'الصبح',
-    'ظهر': 'الظهر',
+    // 'ظهر' is already defined in the body-parts section; keep one key so
+    // the dialect map has deterministic semantics.
+
     'عصر': 'العصر',
     'مغرب': 'المغرب',
     'عشاء': 'العشاء',
