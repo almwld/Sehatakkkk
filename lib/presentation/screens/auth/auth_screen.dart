@@ -940,6 +940,14 @@ class _AuthScreenState extends State<AuthScreen>
         userData['hospitalId'] = user.uid;
         userData['facilityName'] = _facilityNameController.text.trim();
         userData['facilityAddress'] = _facilityAddressController.text.trim();
+        batch.set(firestore.collection('health_facilities').doc(user.uid), <String,dynamic>{
+          'ownerId': user.uid, 'userId': user.uid,
+          'facilityName': _facilityNameController.text.trim().isEmpty ? _nameController.text.trim() : _facilityNameController.text.trim(),
+          'facilityType': 'hospital', 'address': _facilityAddressController.text.trim(),
+          'phone': _facilityPhoneController.text.trim(), 'description': _facilityDescriptionController.text.trim(),
+          'isVerified': false, 'verificationStatus': 'notSubmitted', 'isPublished': false,
+          'isAvailable': false, 'createdAt': now, 'updatedAt': now,
+        }, SetOptions(merge: true));
       }
 
       // نكتب userData مرة أخرى بعد إضافة حقول الدور.
