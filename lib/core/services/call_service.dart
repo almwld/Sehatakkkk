@@ -20,6 +20,35 @@ import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 
 class CallService {
+  static const Map<CallStatus, Set<CallStatus>> allowedTransitions = {
+    CallStatus.calling: {
+      CallStatus.ringing,
+      CallStatus.connected,
+      CallStatus.rejected,
+      CallStatus.cancelled,
+      CallStatus.missed,
+      CallStatus.busy,
+    },
+    CallStatus.ringing: {
+      CallStatus.connected,
+      CallStatus.rejected,
+      CallStatus.cancelled,
+      CallStatus.missed,
+      CallStatus.busy,
+    },
+    CallStatus.connected: {
+      CallStatus.ended,
+    },
+    CallStatus.ended: {},
+    CallStatus.missed: {},
+    CallStatus.rejected: {},
+    CallStatus.busy: {},
+    CallStatus.cancelled: {},
+  };
+
+  static bool isTransitionAllowed(CallStatus from, CallStatus to) =>
+      allowedTransitions[from]?.contains(to) ?? false;
+
   static final CallService _instance = CallService._internal();
   factory CallService() => _instance;
   CallService._internal();
@@ -140,7 +169,13 @@ class CallService {
 
   Future<_Ctx?> _state({required String id, required List<CallStatus> allowed, required Map<String,dynamic> data, required bool active, bool ignore = false}) async {
     _Ctx? c;
-    await _retry(() async { await _firestore.runTransaction((tx) async { final ref=_firestore.collection('calls').doc(id); final d=await tx.get(ref); if(!d.exists)return; final raw=d.data() ?? <String,dynamic>{}; final currentStatus=CallStatus.values.firstWhere((x)=>x.name==raw['status'],orElse:()=>CallStatus.calling); if(!allowed.contains(currentStatus)){if(ignore)return;throw Exception('لا يمكن تغيير حالة المكالمة الحالية');} final t=CallType.values.firstWhere((x)=>x.name==raw['callType'],orElse:()=>CallType.audio); c=_Ctx(raw['chatId']?.toString() ?? '',t); tx.update(ref,data); final callerId=raw['callerId']?.toString() ?? ''; final receiverId=raw['receiverId']?.toString() ?? ''; if(callerId.isNotEmpty&&receiverId.isNotEmpty){final lockRef=_firestore.collection('callLocks').doc(_lockId(callerId,receiverId)); tx.set(lockRef,{'participants':[callerId,receiverId],'activeCallId':active?id:null,'status':data['status']?.toString() ?? (active?currentStatus.name:CallStatus.ended.name),'updatedAt':FieldValue.serverTimestamp()},SetOptions(merge:true));} }); return null; });
+    await _retry(() async { await _firestore.runTransaction((tx) async { final ref=_firestore.collection('calls').doc(id); final d=await tx.get(ref); if(!d.exists)return; final raw=d.data() ?? <String,dynamic>{}; final currentStatus=CallStatus.values.firstWhere((x)=>x.name==raw['status'],orElse:()=>CallStatus.calling);
+      final nextStatusName=data['status']?.toString();
+      final nextStatus=CallStatus.values.firstWhere((x)=>x.name==nextStatusName,orElse:()=>currentStatus);
+      if(!allowed.contains(currentStatus) || !isTransitionAllowed(currentStatus,nextStatus)){
+        if(ignore)return;
+        throw StateError('انتقال حالة المكالمة غير مسموح: ${currentStatus.name} -> ${nextStatus.name}');
+      } final t=CallType.values.firstWhere((x)=>x.name==raw['callType'],orElse:()=>CallType.audio); c=_Ctx(raw['chatId']?.toString() ?? '',t); tx.update(ref,data); final callerId=raw['callerId']?.toString() ?? ''; final receiverId=raw['receiverId']?.toString() ?? ''; if(callerId.isNotEmpty&&receiverId.isNotEmpty){final lockRef=_firestore.collection('callLocks').doc(_lockId(callerId,receiverId)); tx.set(lockRef,{'participants':[callerId,receiverId],'activeCallId':active?id:null,'status':data['status']?.toString() ?? (active?currentStatus.name:CallStatus.ended.name),'updatedAt':FieldValue.serverTimestamp()},SetOptions(merge:true));} }); return null; });
     _inCall=active; _current=active?id:null; if(!active) unawaited(CallSoundCoordinator.instance.stopForCall(id)); return c;
   }
 
