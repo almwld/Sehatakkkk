@@ -752,7 +752,7 @@ class _SehatakAppState extends State<SehatakApp>
             ],
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context)
-                  .copyWith(textScaleFactor: fontProvider.fontScale),
+                  .copyWith(textScaler: TextScaler.linear(fontProvider.fontScale)),
               child: Directionality(
                 textDirection: TextDirection.rtl,
                 child: child!,
