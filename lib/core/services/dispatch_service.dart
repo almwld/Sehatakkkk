@@ -28,7 +28,7 @@ class DispatchService {
         final data = doc.data();
         if (data.containsKey('location')) {
           final geoPoint = data['location'] as GeoPoint;
-          final distance = await Geolocator.distanceBetween(
+          final distance = Geolocator.distanceBetween(
             lat, lng,
             geoPoint.latitude, geoPoint.longitude,
           ) / 1000; // تحويل إلى كيلومتر
