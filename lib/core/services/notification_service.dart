@@ -659,3 +659,165 @@ class NotificationService {
             titleColor: const Color(0xFF2DBE68),
             showsUserInterface: true,
             cancelNotification: true,
+          ),
+          AndroidNotificationAction(
+            'call_reject',
+            'رفض',
+            titleColor: const Color(0xFFE53935),
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+          AndroidNotificationAction(
+            'call_message',
+            'رسالة',
+            titleColor: const Color(0xFF2A8F83),
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+        ],
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+    final payload = jsonEncode(<String, dynamic>{
+      'type': 'incoming_call',
+      'data': <String, dynamic>{
+        'callId': callId,
+        'callerName': callerName,
+        'isVideo': isVideo,
+        'callType': isVideo ? 'video' : 'audio',
+      },
+    });
+    await _notifications.show(
+      id,
+      callerName,
+      isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
+      details,
+      payload: payload,
+    );
+  }
+
+  Future<void> cancelIncomingCallNotification(String callId) async {
+    final normalized = callId.trim();
+    if (normalized.isEmpty) return;
+    await initialize(startCallCoordinator: false);
+    await _notifications.cancel(_callNotificationId(normalized));
+  }
+
+  Future<void> cancelChatNotifications(String chatId) async {
+    final normalized = chatId.trim();
+    if (normalized.isEmpty) return;
+    await initialize(startCallCoordinator: false);
+    await _notifications.cancel(_chatNotificationId(normalized));
+  }
+
+  String _encodePayload(String type, Map<String, dynamic>? data) {
+    return jsonEncode(<String, dynamic>{
+      'type': type,
+      'data': data ?? const <String, dynamic>{},
+    });
+  }
+
+  String _channelFor(SehatakNotificationType type) {
+    switch (type) {
+      case SehatakNotificationType.newMessage: return messageChannelId;
+      case SehatakNotificationType.appointment: return appointmentChannelId;
+      case SehatakNotificationType.medication: return medicationChannelId;
+      case SehatakNotificationType.labResult: return labChannelId;
+      case SehatakNotificationType.labRequest: return labRequestChannelId;
+      case SehatakNotificationType.payment: return paymentChannelId;
+      case SehatakNotificationType.invoice: return invoiceChannelId;
+      case SehatakNotificationType.order: return orderChannelId;
+      case SehatakNotificationType.promotional: return promotionalChannelId;
+      case SehatakNotificationType.system: return systemChannelId;
+      case SehatakNotificationType.health: return healthChannelId;
+      case SehatakNotificationType.social: return socialChannelId;
+    }
+  }
+
+  String _channelNameFor(SehatakNotificationType type) {
+    switch (type) {
+      case SehatakNotificationType.newMessage: return 'صحتك - الرسائل';
+      case SehatakNotificationType.appointment: return 'صحتك - المواعيد';
+      case SehatakNotificationType.medication: return 'صحتك - الأدوية';
+      case SehatakNotificationType.labResult: return 'صحتك - التحاليل';
+      case SehatakNotificationType.labRequest: return 'صحتك - طلبات الفحص';
+      case SehatakNotificationType.payment: return 'صحتك - المدفوعات';
+      case SehatakNotificationType.invoice: return 'صحتك - الفواتير';
+      case SehatakNotificationType.order: return 'صحتك - الطلبات';
+      case SehatakNotificationType.promotional: return 'صحتك - العروض';
+      case SehatakNotificationType.system: return 'صحتك - النظام';
+      case SehatakNotificationType.health: return 'صحتك - الصحة';
+      case SehatakNotificationType.social: return 'صحتك - الاجتماعي';
+    }
+  }
+
+  Importance _importanceFor(SehatakNotificationType type) {
+    switch (type) {
+      case SehatakNotificationType.appointment:
+      case SehatakNotificationType.medication:
+      case SehatakNotificationType.labResult:
+      case SehatakNotificationType.labRequest:
+      case SehatakNotificationType.payment:
+      case SehatakNotificationType.invoice:
+      case SehatakNotificationType.order:
+      case SehatakNotificationType.newMessage:
+        return Importance.high;
+      case SehatakNotificationType.promotional:
+      case SehatakNotificationType.system:
+      case SehatakNotificationType.health:
+      case SehatakNotificationType.social:
+        return Importance.defaultImportance;
+    }
+  }
+
+  AndroidNotificationCategory _categoryFor(SehatakNotificationType type) {
+    switch (type) {
+      case SehatakNotificationType.newMessage: return AndroidNotificationCategory.message;
+      case SehatakNotificationType.appointment:
+      case SehatakNotificationType.medication:
+      case SehatakNotificationType.health:
+        return AndroidNotificationCategory.reminder;
+      case SehatakNotificationType.labResult:
+      case SehatakNotificationType.labRequest:
+      case SehatakNotificationType.payment:
+      case SehatakNotificationType.invoice:
+      case SehatakNotificationType.order:
+        return AndroidNotificationCategory.status;
+      case SehatakNotificationType.promotional: return AndroidNotificationCategory.promo;
+      case SehatakNotificationType.system: return AndroidNotificationCategory.service;
+      case SehatakNotificationType.social: return AndroidNotificationCategory.social;
+    }
+  }
+
+  int _notificationId() {
+    return DateTime.now().microsecondsSinceEpoch.remainder(0x7fffffff);
+  }
+
+  int _chatNotificationId(String chatId) => _stableNotificationId('chat:${chatId.trim()}');
+
+  int _typedNotificationId(String type, Map<String, dynamic>? data) {
+    final sourceId = data?['notificationId'] ??
+        data?['messageId'] ?? data?['appointmentId'] ?? data?['orderId'] ??
+        data?['invoiceId'] ?? data?['paymentId'] ?? data?['labId'] ??
+        data?['requestId'];
+    final source = sourceId?.toString().trim();
+    return _stableNotificationId(
+      'typed:$type:${source != null && source.isNotEmpty ? source : jsonEncode(data ?? const <String, dynamic>{})}',
+    );
+  }
+
+  int _callNotificationId(String callId) => _stableNotificationId('call:${callId.trim()}');
+
+  int _stableNotificationId(String value) {
+    var hash = 0x811c9dc5;
+    for (final unit in value.codeUnits) {
+      hash ^= unit;
+      hash = (hash * 0x01000193) & 0x7fffffff;
+    }
+    return hash == 0 ? 1 : hash;
+  }
+}
