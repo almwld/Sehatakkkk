@@ -217,8 +217,12 @@ class NextcloudService {
 
   Future<bool> verifyPublicUrl(String url) async {
     final client = HttpClient();
-    var current = Uri.tryParse(url);
-    if (current == null) return false;
+    Uri current;
+    try {
+      current = Uri.parse(url);
+    } catch (_) {
+      return false;
+    }
     try {
       for (var hop = 0; hop <= 5; hop++) {
         final request = await client.getUrl(current);
