@@ -5,6 +5,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const { AccessToken } = require('livekit-server-sdk');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -29,6 +30,86 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+const NEXTCLOUD_URL = String(process.env.NEXTCLOUD_URL || '').replace(/\/$/, '');
+const NEXTCLOUD_USERNAME = String(process.env.NEXTCLOUD_USERNAME || '');
+const NEXTCLOUD_PASSWORD = String(process.env.NEXTCLOUD_PASSWORD || '');
+const MAX_MEDIA_BYTES = 100 * 1024 * 1024;
+
+function requireNextcloud() {
+  if (!NEXTCLOUD_URL || !NEXTCLOUD_USERNAME || !NEXTCLOUD_PASSWORD) {
+    const error = new Error('Nextcloud server configuration is incomplete');
+    error.statusCode = 503;
+    throw error;
+  }
+}
+
+function sanitizePathPart(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\\/g, '')
+    .replace(/\.\./g, '')
+    .replace(/\//g, '_')
+    .replace(/[^a-zA-Z0-9_\-.\u0600-\u06ff ]/g, '_')
+    .replace(/\s+/g, '_')
+    .slice(0, 180);
+}
+
+function nextcloudAuthHeader() {
+  return 'Basic ' + Buffer.from(
+    NEXTCLOUD_USERNAME + ':' + NEXTCLOUD_PASSWORD
+  ).toString('base64');
+}
+
+function nextcloudDavUrl(remotePath) {
+  const clean = String(remotePath || '')
+    .replace(/^\/+/, '')
+    .split('/')
+    .filter(Boolean)
+    .map(encodeURIComponent)
+    .join('/');
+  return NEXTCLOUD_URL + '/remote.php/dav/files/' +
+    encodeURIComponent(NEXTCLOUD_USERNAME) + '/' + clean;
+}
+
+async function ensureNextcloudDirectories(directory) {
+  requireNextcloud();
+  let current = '';
+  for (const part of String(directory || '').split('/').filter(Boolean)) {
+    current = current ? current + '/' + part : part;
+    const response = await fetch(nextcloudDavUrl(current), {
+      method: 'MKCOL',
+      headers: { Authorization: nextcloudAuthHeader() },
+    });
+    if (![201, 405].includes(response.status)) {
+      throw new Error('Nextcloud MKCOL failed: HTTP ' + response.status);
+    }
+  }
+}
+
+async function createNextcloudShare(remotePath) {
+  requireNextcloud();
+  const response = await fetch(
+    NEXTCLOUD_URL +
+      '/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: nextcloudAuthHeader(),
+        'OCS-APIRequest': 'true',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        path: '/' + String(remotePath).replace(/^\/+/, ''),
+        shareType: '3',
+      }),
+    }
+  );
+  if (!response.ok) return null;
+  const body = await response.json().catch(() => null);
+  const url = body?.ocs?.data?.url;
+  return url ? String(url).replace(/\/$/, '') + '/download' : null;
+}
+
 
 async function verifyFirebaseUser(req) {
   const auth = String(req.headers.authorization || '');
@@ -47,6 +128,103 @@ async function verifyFirebaseUser(req) {
 }
 
 app.get('/health', (_req, res) => res.json({ success: true, service: 'sehatak-livekit-token-server' }));
+app.post(
+  '/media/upload',
+  express.raw({ type: 'application/octet-stream', limit: MAX_MEDIA_BYTES }),
+  async (req, res) => {
+    try {
+      const decodedToken = await verifyFirebaseUser(req);
+      if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+        return res.status(400).json({ success: false, message: 'Media body is required' });
+      }
+      const fileName = sanitizePathPart(req.query.fileName || 'media.bin');
+      const logicalPath = String(req.query.path || 'uploads')
+        .split('/')
+        .map(sanitizePathPart)
+        .filter(Boolean)
+        .slice(0, 8)
+        .join('/');
+      const chatId = String(req.query.chatId || '').trim();
+
+      if (chatId) {
+        const chatSnapshot = await db.collection('chats').doc(chatId).get();
+        const participants = chatSnapshot.exists && Array.isArray(chatSnapshot.data()?.participants)
+          ? chatSnapshot.data().participants.map(String)
+          : [];
+        if (!participants.includes(decodedToken.uid)) {
+          return res.status(403).json({ success: false, message: 'ليس لديك صلاحية رفع الوسائط لهذه المحادثة' });
+        }
+      }
+
+      requireNextcloud();
+      const ownerPath = 'Sehatak/users/' + sanitizePathPart(decodedToken.uid);
+      const directory = ownerPath + '/' + logicalPath;
+      await ensureNextcloudDirectories(directory);
+
+      const remotePath = directory + '/' +
+        crypto.randomUUID() + '_' + fileName;
+      const uploadResponse = await fetch(nextcloudDavUrl(remotePath), {
+        method: 'PUT',
+        headers: {
+          Authorization: nextcloudAuthHeader(),
+          'Content-Type': String(req.query.mimeType || 'application/octet-stream'),
+          'Content-Length': String(req.body.length),
+        },
+        body: req.body,
+      });
+      if (![201, 204].includes(uploadResponse.status)) {
+        return res.status(502).json({
+          success: false,
+          message: 'فشل رفع الوسائط إلى Nextcloud',
+          providerStatus: uploadResponse.status,
+        });
+      }
+
+      const publicUrl = req.query.createShare === 'false'
+        ? null
+        : await createNextcloudShare(remotePath);
+
+      return res.status(201).json({
+        success: true,
+        file: {
+          provider: 'nextcloud',
+          remotePath,
+          fileName,
+          mimeType: String(req.query.mimeType || 'application/octet-stream'),
+          size: req.body.length,
+          url: publicUrl,
+          shareReady: Boolean(publicUrl),
+        },
+      });
+    } catch (error) {
+      const status = Number(error.statusCode) || 500;
+      console.error('Media upload error:', error.message || error);
+      return res.status(status).json({
+        success: false,
+        message: status >= 500 ? 'فشل رفع الوسائط' : error.message,
+      });
+    }
+  }
+);
+
+app.post('/media/share', async (req, res) => {
+  try {
+    const decodedToken = await verifyFirebaseUser(req);
+    const remotePath = String(req.body?.remotePath || '').replace(/^\/+/, '');
+    const prefix = 'Sehatak/users/' + sanitizePathPart(decodedToken.uid) + '/';
+    if (!remotePath.startsWith(prefix)) {
+      return res.status(403).json({ success: false, message: 'ليس لديك صلاحية مشاركة هذا الملف' });
+    }
+    const url = await createNextcloudShare(remotePath);
+    if (!url) return res.status(502).json({ success: false, message: 'تعذر إنشاء رابط المشاركة' });
+    return res.json({ success: true, url });
+  } catch (error) {
+    const status = Number(error.statusCode) || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Share failed' });
+  }
+});
+
+
 
 app.post('/token', async (req, res) => {
   try {
