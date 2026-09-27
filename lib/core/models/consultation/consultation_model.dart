@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/models/consultation/consultation_status.dart';
 
 class ConsultationModel {
