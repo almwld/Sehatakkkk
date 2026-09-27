@@ -58,7 +58,7 @@ class ChatMediaTransferService {
     final root = await getDatabasesPath();
     _db = await openDatabase(
       p.join(root, 'sehatak_chat_outbox.db'),
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE media_outbox (
@@ -78,12 +78,23 @@ class ChatMediaTransferService {
             remote_url TEXT,
             error TEXT,
             attempts INTEGER NOT NULL DEFAULT 0,
+            client_timestamp INTEGER,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL
           )
         ''');
         await db.execute('CREATE INDEX idx_media_outbox_chat ON media_outbox(chat_id, created_at)');
         await db.execute('CREATE INDEX idx_media_outbox_status ON media_outbox(status, created_at)');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          final columns = await db.rawQuery('PRAGMA table_info(media_outbox)');
+          final hasClientTimestamp = columns.any((column) => column['name'] == 'client_timestamp');
+          if (!hasClientTimestamp) {
+            await db.execute('ALTER TABLE media_outbox ADD COLUMN client_timestamp INTEGER');
+            debugPrint('media_outbox migration: added client_timestamp');
+          }
+        }
       },
     );
     return _db!;
@@ -166,6 +177,7 @@ class ChatMediaTransferService {
       'status': 'queued',
       'progress': 0.0,
       'attempts': 0,
+      'client_timestamp': now,
       'created_at': now,
       'updated_at': now,
     });
