@@ -163,6 +163,57 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     _callSubscription = null;
   }
 
+  Future<void> _rejectCall() async {
+    if (_isProcessing) return;
+    if (mounted) setState(() => _isProcessing = true);
+    try {
+      await _callService.rejectCall(widget.callId);
+      if (!mounted) return;
+      _stopAlerting();
+      Navigator.of(context).pop();
+    } catch (e) {
+      debugPrint('rejectCall failed: $e');
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _swipeProgress = 0;
+          _swipeDirection = 0;
+          _swipeLocked = false;
+        });
+        ToastService.showError('تعذر رفض المكالمة: $e');
+      }
+    }
+  }
+
+  void _handleAnswerSwipeUpdate(DragUpdateDetails details) {
+    if (_isProcessing || _swipeLocked) return;
+    final delta = details.delta.dx;
+    if (delta.abs() < 0.1) return;
+
+    final direction = delta.sign;
+    final progressDelta = delta.abs() / 70.0;
+    if (mounted) {
+      setState(() {
+        _swipeDirection = direction;
+        _swipeProgress = (_swipeProgress + progressDelta).clamp(0.0, 1.0);
+      });
+    }
+
+    if (_swipeProgress >= 0.7 && mounted) {
+      _swipeLocked = true;
+      unawaited(_handleAnswerTap());
+    }
+  }
+
+  void _handleAnswerSwipeEnd(DragEndDetails details) {
+    if (_isProcessing || _swipeLocked) return;
+    if (!mounted) return;
+    setState(() {
+      _swipeProgress = 0;
+      _swipeDirection = 0;
+    });
+  }
+
   Future<void> _acceptCall({bool prelocked = false}) async {
     if (_isProcessing && !prelocked) return;
     if (!prelocked) setState(() => _isProcessing = true);
