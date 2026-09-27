@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -208,18 +209,32 @@ class _CallScreenState extends State<CallScreen> {
         });
       }
 
-      if (c.status == CallStatus.connected) {
+      if (c.status == CallStatus.connected || !widget.isOutgoing) {
         await join(c, user);
       } else if (mounted) {
         setState(() => connecting = false);
       }
     } catch (e) {
       ActiveCallRegistry.instance.unregister(callId ?? widget.callId);
+      final failedCallId = callId ?? widget.callId;
+      if (failedCallId != null) {
+        unawaited(
+          FirebaseFirestore.instance
+              .collection('calls')
+              .doc(failedCallId)
+              .update({
+                'status': 'ended',
+                'endedAt': FieldValue.serverTimestamp(),
+                'endedReason': 'livekit_failed',
+              })
+              .catchError((_) {}),
+        );
+      }
       debugPrint('CALL CONNECT $e');
       if (mounted) {
         setState(() {
           connecting = false;
-          error = 'تعذر بدء الاتصال. حاول مرة أخرى';
+          error = e.toString();
         });
         ToastService.showError('تعذر بدء الاتصال. حاول مرة أخرى');
       }
@@ -246,7 +261,7 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Future<void> join(CallModel c, User user) async {
-    if (joined || ending || c.status != CallStatus.connected) return;
+    if (joined || ending || (c.status != CallStatus.connected && widget.isOutgoing)) return;
     try {
       // Request all required permissions in one batch to avoid Android
       // PermissionManager rejecting a second request while the first is active.
@@ -271,6 +286,13 @@ class _CallScreenState extends State<CallScreen> {
             : widget.doctorName,
         isVideo: widget.isVideo,
       );
+      await FirebaseFirestore.instance
+          .collection('calls')
+          .doc(c.id)
+          .update({
+        'status': CallStatus.connected.name,
+        'connectedAt': FieldValue.serverTimestamp(),
+      });
       joined = true;
       timeout?.cancel();
       registry.register(c.id);

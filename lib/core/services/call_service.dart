@@ -157,11 +157,13 @@ class CallService {
     // so the notification request must happen here after the call is persisted.
     try {
       await _notifyIncomingCall(callId: id);
-    } catch (e, st) {
-      // Keep the call document intact so it can still be recovered/retried,
-      // but make the delivery failure visible in logs.
-      debugPrint('❌ CALL NOTIFICATION FAILED callId=$id error=$e');
-      debugPrintStack(stackTrace: st);
+    } catch (e) {
+      await _firestore.collection('calls').doc(id).update({
+        'status': 'failed',
+        'endedAt': FieldValue.serverTimestamp(),
+        'endedReason': 'notify_failed',
+      });
+      rethrow;
     }
     unawaited(_timeline(chatId:chatId,callId:id,text:type == CallType.video ? 'بدء مكالمة فيديو' : 'بدء مكالمة صوتية',status:CallStatus.calling.name,type:type));
     return call;
@@ -183,9 +185,61 @@ class CallService {
     final registry = ActiveCallRegistry.instance;
     final activeId = registry.activeCallId;
     if (registry.hasActiveCall && activeId != id) { debugPrint('CALL ACCEPT BLOCKED id=$id activeCall=$activeId'); await markBusy(id); throw StateError('لا يمكن قبول المكالمة أثناء وجود مكالمة نشطة'); }
-    final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.connected.name,'isAnswered':true,'connectedAt':FieldValue.serverTimestamp()},active:true);
+
+    _Ctx? c;
+    await _retry(() async {
+      await _firestore.runTransaction((tx) async {
+        final ref = _firestore.collection('calls').doc(id);
+        final d = await tx.get(ref);
+        if (!d.exists) throw StateError('المكالمة غير موجودة');
+        final raw = d.data() ?? <String, dynamic>{};
+        final currentStatus = raw['status']?.toString() ?? '';
+        if (currentStatus != CallStatus.calling.name &&
+            currentStatus != CallStatus.ringing.name) {
+          throw StateError('حالة المكالمة غير قابلة للقبول: $currentStatus');
+        }
+        c = _Ctx(
+          raw['chatId']?.toString() ?? '',
+          CallType.values.firstWhere(
+            (x) => x.name == raw['callType'],
+            orElse: () => CallType.audio,
+          ),
+        );
+        tx.update(ref, {
+          'status': 'accepted',
+          'isAnswered': true,
+        });
+        final callerId = raw['callerId']?.toString() ?? '';
+        final receiverId = raw['receiverId']?.toString() ?? '';
+        if (callerId.isNotEmpty && receiverId.isNotEmpty) {
+          final lockRef = _firestore
+              .collection('callLocks')
+              .doc(_lockId(callerId, receiverId));
+          tx.set(
+            lockRef,
+            {
+              'participants': [callerId, receiverId],
+              'activeCallId': id,
+              'status': 'accepted',
+              'updatedAt': FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge: true),
+          );
+        }
+      });
+    });
+    _inCall = true;
+    _current = id;
     await CallSoundCoordinator.instance.stopForCall(id);
-    if (c != null) unawaited(_timeline(chatId:c.chatId,callId:id,text:'تم الاتصال',status:CallStatus.connected.name,type:c.type));
+    if (c != null) {
+      unawaited(_timeline(
+        chatId: c!.chatId,
+        callId: id,
+        text: 'تم قبول المكالمة',
+        status: 'accepted',
+        type: c!.type,
+      ));
+    }
   }
   Future<void> rejectCall(String id) async { final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.rejected.name,'endedAt':FieldValue.serverTimestamp()},active:false); await CallSoundCoordinator.instance.stopForCall(id); unawaited(NotificationService().cancelIncomingCallNotification(id)); if (c != null) unawaited(_timeline(chatId:c.chatId,callId:id,text:'تم رفض المكالمة',status:CallStatus.rejected.name,type:c.type)); }
   Future<void> markBusy(String id) async { final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.busy.name,'endedAt':FieldValue.serverTimestamp(),'busyReason':'receiver_in_call','metadata.busyReason':'receiver_in_call'},active:false,ignore:true); await CallSoundCoordinator.instance.stopForCall(id); unawaited(NotificationService().cancelIncomingCallNotification(id)); if (c != null) unawaited(_timeline(chatId:c.chatId,callId:id,text:'المستخدم مشغول بمكالمة أخرى',status:CallStatus.busy.name,type:c.type)); }
@@ -264,6 +318,20 @@ class CallService {
   Future<void> handleIncomingCall(BuildContext context,RemoteMessage message) async {
     final id=(message.data['callId']??message.data['id'])?.toString().trim();
     if(id==null||id.isEmpty)return;
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final doc = await _firestore.collection('calls').doc(id).get();
+    if (!doc.exists) return;
+
+    final data = doc.data() ?? <String, dynamic>{};
+    final receiverId = data['receiverId']?.toString() ?? '';
+    if (receiverId != uid) {
+      debugPrint('handleIncomingCall: not receiver');
+      return;
+    }
+
     final registry = ActiveCallRegistry.instance;
     if (registry.hasActiveCall && !registry.isActive(id)) { debugPrint('CALL FCM MESSAGE BLOCKED id=$id active=${registry.activeCallId}'); await markBusy(id); return; }
     final callerId=(message.data['callerId']??'').toString();

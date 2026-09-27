@@ -373,7 +373,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                           isMain: true,
                           pulse: true,
                           swipeDistance: _swipeProgress,
-                          onTap: _isProcessing ? null : _acceptCall,
+                          onTap: _isProcessing ? null : _handleAnswerTap,
                           onPanUpdate: _handleAnswerSwipeUpdate,
                           onPanEnd: _handleAnswerSwipeEnd,
                         ),
