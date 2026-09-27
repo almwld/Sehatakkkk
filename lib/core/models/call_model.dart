@@ -21,7 +21,7 @@ class CallModel extends Equatable {
   final int? durationSeconds;
   final bool isAnswered;
   final Map<String, dynamic>? metadata;
-  final List<String>? participants;
+  final List<String> participants;
   final String? liveKitRoomName;
   final bool isVideoCall;
 
@@ -42,7 +42,7 @@ class CallModel extends Equatable {
     this.durationSeconds,
     this.isAnswered = false,
     this.metadata,
-    this.participants,
+    required this.participants,
     this.liveKitRoomName,
     this.isVideoCall = false,
   });
@@ -65,7 +65,11 @@ class CallModel extends Equatable {
       durationSeconds: data['durationSeconds'],
       isAnswered: data['isAnswered'] ?? false,
       metadata: Map<String, dynamic>.from(data['metadata'] ?? {}),
-      participants: List<String>.from(data['participants'] ?? []),
+      participants: data['participants'] is List
+          ? List<String>.from(data['participants'])
+          : <String>[data['callerId']?.toString() ?? '', data['receiverId']?.toString() ?? '']
+              .where((value) => value.isNotEmpty)
+              .toList(),
       liveKitRoomName: data['liveKitRoomName'] ?? data['roomName'],
       isVideoCall: data['isVideoCall'] ?? false,
     );
