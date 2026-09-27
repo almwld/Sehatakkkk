@@ -558,7 +558,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (!mounted || value.isEmpty || uid == null) return;
 
     final now = clientTimestamp ?? Timestamp.now();
-    final optimisticId = 'msg_${now.millisecondsSinceEpoch}';
+    final optimisticId = 'msg_${now.microsecondsSinceEpoch}';
 
     setState(() {
       // Render the newly sent text immediately. The Firestore listener will
