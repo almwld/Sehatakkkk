@@ -47,11 +47,9 @@ class AppConstants {
 }
 
 class NextCloudConfig {
-  static const String baseUrl = String.fromEnvironment(
-    'NEXTCLOUD_URL',
-    defaultValue: '',
+  static const String backendUrl = String.fromEnvironment(
+    'BACKEND_URL',
+    defaultValue: 'https://miraculous-compassion-production-1d54.up.railway.app',
   );
-  static const String username = String.fromEnvironment('NEXTCLOUD_USERNAME');
-  static const String password = String.fromEnvironment('NEXTCLOUD_PASSWORD');
   static const String uploadPath = 'sehatak/uploads';
 }
