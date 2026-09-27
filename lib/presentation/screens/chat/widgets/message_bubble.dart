@@ -169,11 +169,55 @@ class _MessageBubbleState extends State<MessageBubble> {
       textDirection: widget.isMe ? TextDirection.ltr : TextDirection.rtl,
       children: [
         Padding(
-          padding: const EdgeInsets.only(right: 4, bottom: 7),
-          child: _status(m),
+          padding: const EdgeInsetsDirectional.only(end: 7, bottom: 6),
+          child: _mediaStatus(m),
         ),
         bubble,
       ],
+    );
+  }
+
+  /// Media messages need an explicit textual state beside the attachment so
+  /// delivery/read status is visible even when the attachment has no text row.
+  Widget _mediaStatus(Map<String, dynamic> m) {
+    final String label;
+    final IconData icon;
+    final Color color;
+    if (m['isSending'] == true) {
+      label = 'جارٍ الإرسال';
+      icon = Icons.schedule;
+      color = Colors.grey;
+    } else if (m['isRead'] == true) {
+      label = '✓✓ تمت القراءة';
+      icon = Icons.done_all_rounded;
+      color = AppColors.primary;
+    } else if (m['isDelivered'] == true) {
+      label = '✓✓ تم التسليم';
+      icon = Icons.done_all_rounded;
+      color = Colors.grey;
+    } else {
+      label = '✓ تم الإرسال';
+      icon = Icons.done_rounded;
+      color = Colors.grey;
+    }
+
+    return Semantics(
+      label: label,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 3),
+          Text(
+            label.replaceFirst('✓✓ ', '').replaceFirst('✓ ', ''),
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
