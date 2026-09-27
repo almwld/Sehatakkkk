@@ -258,7 +258,6 @@ class ChatMediaTransferService {
             file: file,
             path: 'chats/${job['chat_id']}/${job['folder']}',
             fileName: job['file_name']?.toString(),
-            cancelToken: _cancelToken(id),
             onProgress: (sent, total) {
               if (total > 0) {
                 unawaited(db.update('media_outbox', {
