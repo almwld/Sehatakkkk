@@ -668,3 +668,98 @@ class _SehatakAppState extends State<SehatakApp>
       default:
         return;
     }
+
+    try {
+      nav.pushNamed(route!);
+    } catch (e) {
+      debugPrint('🔔 pushNamed($route) failed: $e');
+      try {
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          final router = GoRouter.maybeOf(context);
+          if (router != null) router.push(route!);
+        }
+      } catch (fallbackError) {
+        debugPrint('🔔 notification route fallback failed: $fallbackError');
+      }
+    }
+  }
+
+  Future<void> _openChatFromNotification(
+      String chatId, String? senderId, String? senderName) async {
+    if (chatId.isEmpty) return;
+    final nav = navigatorKey.currentState;
+    if (nav == null) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    var otherId = senderId ?? '';
+    var otherName = senderName ?? 'محادثة';
+    String? otherImage;
+    bool isGroup = false;
+    final chat =
+        await FirebaseFirestore.instance.collection('chats').doc(chatId).get();
+    if (chat.exists) {
+      final data = chat.data() ?? {};
+      isGroup = data['isGroup'] == true;
+      final participants =
+          List<String>.from(data['participants'] ?? const <String>[]);
+      if (otherId.isEmpty) {
+        otherId = participants.firstWhere(
+          (id) => id != uid,
+          orElse: () => '',
+        );
+      }
+      final details = data['participantDetails'] is Map
+          ? Map<String, dynamic>.from(data['participantDetails'])
+          : <String, dynamic>{};
+      final d = details[otherId] is Map
+          ? Map<String, dynamic>.from(details[otherId])
+          : <String, dynamic>{};
+      otherName = d['name']?.toString() ?? otherName;
+      otherImage = d['photoUrl']?.toString();
+    }
+    if (otherId.isEmpty) return;
+    await nav.push(
+      MaterialPageRoute(
+        builder: (_) => ChatRoomScreen(
+          chatId: chatId,
+          otherUserId: otherId,
+          otherUserName: otherName,
+          otherUserImage: otherImage,
+          isGroup: isGroup,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, themeState) => Consumer<FontSizeProvider>(
+          builder: (context, fontProvider, child) => MaterialApp.router(
+            title: 'صحتك - Sehatak',
+            debugShowCheckedModeBanner: false,
+            locale: const Locale('ar', 'SA'),
+            theme: ThemeManager.lightTheme,
+            darkTheme: ThemeManager.darkTheme,
+            themeMode: themeState.themeMode,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('ar', 'SA'),
+              Locale('en', 'US'),
+            ],
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaleFactor: fontProvider.fontScale),
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
+              ),
+            ),
+            routerConfig: AppRouter.router,
+          ),
+        ),
+      );
+}
