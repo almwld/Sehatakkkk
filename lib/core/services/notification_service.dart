@@ -345,6 +345,9 @@ class NotificationService {
 
   /// Persists every remote FCM notification in the user's notification feed.
   /// The deterministic document id prevents duplicates across FCM handlers.
+  /// Remote notifications are persisted by trusted server-side functions.
+  /// The Flutter client only renders/routes them and never writes canonical
+  /// notification records, preventing client-side notification spoofing.
   Future<void> persistIncomingNotification({
     required String type,
     required String title,
@@ -352,50 +355,8 @@ class NotificationService {
     Map<String, dynamic>? data,
     String? messageId,
   }) async {
-    try {
-      final payload = data ?? const <String, dynamic>{};
-      // Background FCM runs in a separate isolate where FirebaseAuth.currentUser
-      // may be null. Prefer the recipient encoded by the trusted sender.
-      final recipientId = (payload['userId'] ??
-              payload['recipientId'] ??
-              payload['receiverId'])
-          ?.toString()
-          .trim();
-      final authUid = FirebaseAuth.instance.currentUser?.uid;
-      final uid = authUid ??
-          ((recipientId != null && recipientId.isNotEmpty) ? recipientId : null);
-      if (uid == null || uid.isEmpty) return;
-
-      final rawId = (payload['notificationId'] ?? payload['id'] ?? messageId)
-              ?.toString()
-              .trim() ??
-          '';
-      final normalizedId = rawId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
-      final safeId = normalizedId.length > 120
-          ? normalizedId.substring(0, 120)
-          : normalizedId;
-      final docId = 'fcm_' +
-          (safeId.isEmpty
-              ? DateTime.now().millisecondsSinceEpoch.toString()
-              : safeId);
-
-      await FirebaseFirestore.instance
-          .collection('notifications')
-          .doc(docId)
-          .set({
-        'userId': uid,
-        'type': type.isEmpty ? 'system' : type,
-        'title': title.isEmpty ? 'صحتك' : title,
-        'body': body,
-        'data': payload,
-        'messageId': messageId,
-        'source': 'fcm',
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } catch (e) {
-      debugPrint('❌ Persist FCM notification failed: $e');
-    }
+    // Intentionally no Firestore write.
+    // Server-side notification producers write the canonical feed.
   }
 
   Future<void> showTypedNotification({
@@ -698,119 +659,3 @@ class NotificationService {
             titleColor: const Color(0xFF2DBE68),
             showsUserInterface: true,
             cancelNotification: true,
-          ),
-          AndroidNotificationAction(
-            'call_reject',
-            'إنهاء',
-            titleColor: const Color(0xFFE53935),
-            showsUserInterface: true,
-            cancelNotification: true,
-          ),
-          AndroidNotificationAction(
-            'call_message',
-            'مراسلة لاحقاً',
-            titleColor: const Color(0xFF00BCD4),
-            showsUserInterface: true,
-            cancelNotification: true,
-          ),
-        ],
-      ),
-      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: !silent),
-    );
-    await _notifications.show(id, isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة', callerName, details, payload: 'incoming_call:$callId');
-  }
-
-  Future<void> cancelIncomingCallNotification(String callId) {
-    return _notifications.cancel(_callNotificationId(callId));
-  }
-
-  /// Removes the visible chat notification as soon as its conversation is opened.
-  Future<void> cancelChatNotifications(String chatId) async {
-    final id = chatId.trim();
-    if (id.isEmpty) return;
-    await _notifications.cancel(_chatNotificationId(id));
-  }
-
-  Future<void> cancelAllNotifications() async {
-    await _notifications.cancelAll();
-  }
-
-  Future<void> showNotification({required String title, required String body, String? payload}) => showMessageNotification(title: title, body: body, payload: payload);
-
-  String _channelFor(SehatakNotificationType type) {
-    switch (type) {
-      case SehatakNotificationType.newMessage: return messageChannelId;
-      case SehatakNotificationType.appointment: return appointmentChannelId;
-      case SehatakNotificationType.medication: return medicationChannelId;
-      case SehatakNotificationType.labResult: return labChannelId;
-      case SehatakNotificationType.payment: return paymentChannelId;
-      case SehatakNotificationType.invoice: return invoiceChannelId;
-      case SehatakNotificationType.labRequest: return labRequestChannelId;
-      case SehatakNotificationType.order: return orderChannelId;
-      case SehatakNotificationType.promotional: return promotionalChannelId;
-      case SehatakNotificationType.system: return systemChannelId;
-      case SehatakNotificationType.health: return healthChannelId;
-      case SehatakNotificationType.social: return socialChannelId;
-    }
-  }
-
-  String _channelNameFor(SehatakNotificationType type) {
-    switch (type) {
-      case SehatakNotificationType.newMessage: return 'صحتك - الرسائل';
-      case SehatakNotificationType.appointment: return 'صحتك - المواعيد';
-      case SehatakNotificationType.medication: return 'صحتك - الأدوية';
-      case SehatakNotificationType.labResult: return 'صحتك - التحاليل';
-      case SehatakNotificationType.payment: return 'صحتك - المدفوعات';
-      case SehatakNotificationType.invoice: return 'صحتك - الفواتير';
-      case SehatakNotificationType.labRequest: return 'صحتك - طلبات الفحص';
-      case SehatakNotificationType.order: return 'صحتك - الطلبات';
-      case SehatakNotificationType.promotional: return 'صحتك - العروض';
-      case SehatakNotificationType.system: return 'صحتك - النظام';
-      case SehatakNotificationType.health: return 'صحتك - الصحة';
-      case SehatakNotificationType.social: return 'صحتك - الاجتماعي';
-    }
-  }
-
-  Importance _importanceFor(SehatakNotificationType type) {
-    switch (type) {
-      case SehatakNotificationType.newMessage:
-      case SehatakNotificationType.appointment:
-      case SehatakNotificationType.medication:
-      case SehatakNotificationType.labResult:
-      case SehatakNotificationType.payment:
-      case SehatakNotificationType.order:
-      case SehatakNotificationType.invoice:
-      case SehatakNotificationType.labRequest: return Importance.high;
-      case SehatakNotificationType.promotional:
-      case SehatakNotificationType.system:
-      case SehatakNotificationType.health:
-      case SehatakNotificationType.social: return Importance.defaultImportance;
-    }
-  }
-
-  AndroidNotificationCategory _categoryFor(SehatakNotificationType type) {
-    switch (type) {
-      case SehatakNotificationType.newMessage: return AndroidNotificationCategory.message;
-      case SehatakNotificationType.appointment: return AndroidNotificationCategory.event;
-      case SehatakNotificationType.payment:
-      case SehatakNotificationType.invoice: return AndroidNotificationCategory.status;
-      case SehatakNotificationType.labRequest:
-      case SehatakNotificationType.labResult: return AndroidNotificationCategory.progress;
-      case SehatakNotificationType.order: return AndroidNotificationCategory.progress;
-      default: return AndroidNotificationCategory.reminder;
-    }
-  }
-
-  String _encodePayload(String type, Map<String, dynamic>? data) => jsonEncode(<String, dynamic>{'type': type, 'data': data ?? const <String, dynamic>{}});
-
-  int _typedNotificationId(String type, Map<String, dynamic>? data) {
-    final key = '$type:${data?['id'] ?? data?['notificationId'] ?? data?['messageId'] ?? data?['appointmentId'] ?? data?['orderId'] ?? data?['paymentId'] ?? DateTime.now().millisecondsSinceEpoch}';
-    return key.hashCode.abs().remainder(900000000) + 100000;
-  }
-
-  int _chatNotificationId(String chatId) =>
-      ('chat:$chatId').hashCode.abs().remainder(900000000) + 100000;
-
-  int _notificationId() => DateTime.now().millisecondsSinceEpoch.remainder(2147483647);
-  int _callNotificationId(String id) => 1000000000 + id.hashCode.abs().remainder(1000000000);
-}
