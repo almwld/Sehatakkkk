@@ -287,7 +287,6 @@ class MessagesBloc
     emit(MessagesLoading());
 
     _currentChatId = event.chatId;
-    _currentLimit = event.limit;
 
     _lastDocument = null;
     _hasMore = true;
