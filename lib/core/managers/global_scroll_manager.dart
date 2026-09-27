@@ -10,7 +10,6 @@ class GlobalScrollManager extends ChangeNotifier {
   bool _isVisible = true;
   double _lastPosition = 0.0;
   double _pendingDelta = 0.0;
-  String _currentRoute = '';
   final Map<String, double> _savedPositions = <String, double>{};
 
   bool get isVisible => _isVisible;
