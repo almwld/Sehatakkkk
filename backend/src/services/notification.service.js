@@ -68,7 +68,7 @@ async function createNotification({
 /**
  * إرسال إشعار FCM إلى جهاز مستخدم واحد.
  *
- * token يتم قراءته من users/{userId}.fcmToken
+ * tokens يتم قراءتها حصراً من users/{userId}/private/tokens.
  * ولا يتم الوثوق بأي token قادم من Flutter.
  */
 async function sendToUser({
