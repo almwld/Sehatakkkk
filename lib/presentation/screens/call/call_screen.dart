@@ -342,6 +342,13 @@ class _CallScreenState extends State<CallScreen> {
       if (mounted) setState(() { connecting = false; error = null; });
     } catch (e) {
       ActiveCallRegistry.instance.unregister(c.id);
+      // If LiveKit started before a later UI/state step failed, tear down the
+      // media session so audio cannot continue behind an error screen.
+      try {
+        await live.endCall();
+      } catch (cleanupError) {
+        debugPrint('CALL LIVEKIT CLEANUP $cleanupError');
+      }
       final friendly = _friendlyCallError(e);
       debugPrint('CALL LIVEKIT $e');
       if (mounted) {
