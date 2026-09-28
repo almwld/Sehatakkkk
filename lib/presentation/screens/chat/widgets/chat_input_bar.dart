@@ -515,9 +515,12 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 46, maxHeight: 130),
-                      child: TextField(
+                    child: Stack(
+                      alignment: AlignmentDirectional.centerStart,
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 46, maxHeight: 130),
+                          child: TextField(
                         controller: _controller,
                         focusNode: _focus,
                         minLines: 1,
@@ -528,21 +531,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                           hintText: 'اكتب رسالة...',
                           border: InputBorder.none,
                           isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 11),
-                          prefixIcon: IconButton(
-                            tooltip: 'إضافة',
-                            onPressed: _sending ? null : _toggleAttachments,
-                            padding: EdgeInsets.zero,
-                            icon: AnimatedRotation(
-                              turns: _attachments ? .125 : 0,
-                              duration: const Duration(milliseconds: 220),
-                              child: const Icon(Icons.add_rounded),
-                            ),
-                          ),
-                          prefixIconConstraints: const BoxConstraints(
-                            minWidth: 42,
-                            minHeight: 42,
-                          ),
+                          contentPadding: const EdgeInsetsDirectional.fromSTEB(44, 11, 4, 11),
                           suffixIcon: IconButton(
                             tooltip: _hasText ? 'إرسال' : 'تسجيل صوتي',
                             onPressed: _sending
@@ -560,7 +549,21 @@ class _ChatInputBarState extends State<ChatInputBar> {
                             minHeight: 42,
                           ),
                         ),
-                      ),
+                        PositionedDirectional(
+                          start: 2,
+                          child: IconButton(
+                            tooltip: 'إضافة',
+                            onPressed: _sending ? null : _toggleAttachments,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                            icon: AnimatedRotation(
+                              turns: _attachments ? .125 : 0,
+                              duration: const Duration(milliseconds: 220),
+                              child: const Icon(Icons.add_rounded),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
