@@ -16,7 +16,7 @@ class PaymentService {
 
   Stream<WalletModel> getWalletStream() {
     final uid = currentUserId;
-    if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
+    if (uid == null) return Stream.value(_createDefaultWallet('guest'));
     return _db.collection('wallets').doc(uid).snapshots().map((doc) {
       if (!doc.exists) return _createDefaultWallet(uid);
       return WalletModel.fromFirestore(doc.data()!, uid);
