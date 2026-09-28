@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/health/health_medical_visualization.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -37,6 +38,8 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
       setState(() { _readings = readings; _history = history; _loading = false; });
     });
   }
+  Widget _buildMedicalVisual()=>Padding(padding:const EdgeInsets.only(bottom:12),child:Center(child:HealthMedicalVisualization(model:HealthMedicalModel.bloodPressure,size:118,active:true)));
+
   @override void dispose(){_sub?.cancel();_sys.dispose();_dia.dispose();_pulse.dispose();super.dispose();}
 
   Future<void> _save() async{
@@ -61,6 +64,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
       floatingActionButtonLocation:FloatingActionButtonLocation.centerFloat,
       body:_loading?const Center(child:CircularProgressIndicator()):Stack(children:[
         ListView(padding:const EdgeInsets.fromLTRB(16,16,16,100),children:[
+          _buildMedicalVisual(),
           Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:const LinearGradient(colors:[AppColors.primary,AppColors.primaryDark]),borderRadius:BorderRadius.circular(24)),child:Column(children:[
             const Text('آخر قياس مسجل',style:TextStyle(color:Colors.white70)),const SizedBox(height:8),
             Text(last==null?'لا توجد قراءة':'${last['systolic']}/${last['diastolic']}',style:const TextStyle(color:Colors.white,fontSize:34,fontWeight:FontWeight.w900)),
