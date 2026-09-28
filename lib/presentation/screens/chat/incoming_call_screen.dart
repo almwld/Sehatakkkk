@@ -209,7 +209,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
     if (_swipeProgress >= 0.7 && mounted) {
       _swipeLocked = true;
-      unawaited(_handleAnswerTap());
+      unawaited(_handleAnswerTap(fromSwipe: true));
     }
   }
 
@@ -242,8 +242,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     }
   }
 
-  Future<void> _handleAnswerTap() async {
-    if (_isProcessing || _swipeLocked) return;
+  Future<void> _handleAnswerTap({bool fromSwipe = false}) async {
+    if (_isProcessing || (_swipeLocked && !fromSwipe)) return;
     setState(() => _isProcessing = true);
 
     await _pulseController.forward();
@@ -258,7 +258,26 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     _navigateToCall();
   }
 
-  void _navigateToCall() {
+  Future<void> _navigateToCall() async {
+    if (!mounted) return;
+    try {
+      // Mark the call answered before replacing the incoming UI. This prevents
+      // a race where CallScreen starts joining LiveKit while the call is still
+      // in `calling`, and guarantees the caller sees the answer transition.
+      await _callService.acceptCall(widget.callId);
+    } catch (e) {
+      debugPrint('acceptCall before navigation failed: $e');
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _swipeProgress = 0;
+          _swipeDirection = 0;
+          _swipeLocked = false;
+        });
+        ToastService.showError('تعذر قبول المكالمة: $e');
+      }
+      return;
+    }
     if (!mounted) return;
     _stopAlerting();
     widget.onCallAnswered(true);
