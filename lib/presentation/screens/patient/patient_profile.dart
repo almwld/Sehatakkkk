@@ -44,6 +44,18 @@ class _PatientProfileState extends State<PatientProfile> {
   Future<void> _loadUser() async {
     final uid = _profileId;
     if (uid.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _userData = {
+            'name': 'زائر',
+            'bio': 'استكشف خدمات صحتك الصحية من دون اتصال.',
+          };
+          _loading = false;
+        });
+      }
+      return;
+    }
+    if (uid.isEmpty) {
       if (mounted) setState(() => _loading = false);
       return;
     }
@@ -195,7 +207,7 @@ class _PatientProfileState extends State<PatientProfile> {
 
   Widget _storyAvatar(String name, String photo, double radius) {
     return StreamBuilder<UserStatusModel?>(
-      stream: _profileId.isEmpty ? Stream.value(null) : _statusService.streamUserStatus(_profileId),
+      stream: _profileId.isEmpty ? Stream<UserStatusModel?>.value(null) : _statusService.streamUserStatus(_profileId),
       builder: (context, snapshot) {
         final status = snapshot.data;
         final hasStatus = status?.isValid == true && status!.stories.isNotEmpty;
