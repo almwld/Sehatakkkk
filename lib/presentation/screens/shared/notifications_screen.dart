@@ -193,10 +193,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     if (uid == null) {
       return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)),
-          backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+          backgroundColor: Colors.transparent,
           foregroundColor: isDark ? Colors.white : Colors.black87,
           elevation: 0,
         ),
@@ -287,9 +287,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                          color: isDark ? Colors.white.withOpacity(0.07) : Colors.white.withOpacity(0.58),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: isRead ? (isDark ? Colors.grey[800]! : Colors.grey[200]!) : color.withOpacity(0.35), width: isRead ? 1 : 2),
+                          border: Border.all(color: isRead ? (isDark ? Colors.white.withOpacity(0.10) : Colors.white.withOpacity(0.72)) : color.withOpacity(0.42), width: isRead ? 1 : 1.5),
                         ),
                         child: Row(
                           children: [
