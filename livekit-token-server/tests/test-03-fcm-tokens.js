@@ -8,7 +8,7 @@ const { findRealFcmToken } = require('./utils/firebase-helper');
   else {
     try {
       const token = await findRealFcmToken(uid);
-      if (!token) throw new Error('No real fcmToken in users/{uid}');
+      if (!token) throw new Error('No canonical FCM token in users/{uid}/private/tokens');
       r.pass('Real FCM token exists', `length=${token.length}`);
     } catch (e) { r.fail('Real FCM token exists', e); }
   }
