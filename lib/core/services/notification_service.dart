@@ -18,7 +18,7 @@ import '../../firebase_options.dart';
 typedef NotificationTapHandler = Future<void> Function(String? payload);
 
 @pragma('vm:entry-point')
-Future<void> notificationActionBackgroundHandler(NotificationResponse response) async {
+void notificationActionBackgroundHandler(NotificationResponse response) async {
   final action = response.actionId?.trim();
   if (action == null || action.isEmpty) return;
   try {
