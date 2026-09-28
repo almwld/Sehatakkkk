@@ -33,6 +33,7 @@ import 'core/services/active_call_registry.dart';
 import 'core/services/call_sound_coordinator.dart';
 import 'core/services/chat_media_transfer_service.dart';
 import 'core/services/toast_service.dart';
+import 'core/services/shortcuts_service.dart';
 
 import 'app_router.dart';
 
@@ -151,6 +152,8 @@ Future<void> main() async {
         options: DefaultFirebaseOptions.currentPlatform);
     ActiveCallRegistry.instance.reset();
     debugPrint('📞 ActiveCallRegistry reset at startup');
+    await ShortcutsService.instance.init();
+    debugPrint('⚡ App shortcuts initialized');
     debugPrint('✅ Firebase initialized successfully');
   } catch (e) {
     debugPrint('❌ Firebase initialization error: $e');
