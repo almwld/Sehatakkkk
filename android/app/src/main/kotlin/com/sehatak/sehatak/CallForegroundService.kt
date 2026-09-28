@@ -7,9 +7,11 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 
 class CallForegroundService : Service() {
+    private var wakeLock: PowerManager.WakeLock? = null
     companion object {
         const val ACTION_START = "com.sehatak.app.call.START"
         const val EXTRA_CALL_ID = "callId"
@@ -34,6 +36,7 @@ class CallForegroundService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        acquireBoundedWakeLock()
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(com.sehatak.app.R.drawable.ic_notification)
             .setContentTitle(callerName)
@@ -59,7 +62,26 @@ class CallForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        releaseWakeLock()
         super.onDestroy()
+    }
+
+    private fun acquireBoundedWakeLock() {
+        val power = getSystemService(POWER_SERVICE) as PowerManager
+        synchronized(this) {
+            wakeLock?.let { if (it.isHeld) it.release() }
+            wakeLock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Sehatak:IncomingCall").apply {
+                setReferenceCounted(false)
+                acquire(10_000L)
+            }
+        }
+    }
+
+    private fun releaseWakeLock() {
+        synchronized(this) {
+            wakeLock?.let { if (it.isHeld) it.release() }
+            wakeLock = null
+        }
     }
 
     private fun createChannel() {
