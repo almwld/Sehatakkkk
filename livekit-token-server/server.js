@@ -376,7 +376,7 @@ app.post('/call-notification', async (req, res) => {
         ttl: 60 * 1000,
       },
     };
-    console.log(`📤 [${requestId}] sending HIGH-priority DATA-ONLY FCM receiver=${receiverId} tokens=${fcmTokens.length} type=incoming_call isVideo=${isVideo} chatId=${chatId}`);
+    console.log(`📤 [${requestId}] sending HIGH-priority DATA-ONLY FCM receiver=${receiverId} tokens=${fcmTokens.length} type=incoming_call isVideo=${Boolean(call.isVideo || call.isVideoCall)} chatId=${chatId}`);
     try {
       const response = await admin.messaging().sendEachForMulticast(message);
       const invalidTokens = [];
