@@ -786,7 +786,9 @@ class NotificationService {
             'رسالة',
             icon: DrawableResourceAndroidBitmap('ic_call_message'),
             titleColor: const Color(0xFF2A8F83),
-            showsUserInterface: false,
+            // This action must launch the foreground Flutter UI; it is never
+            // executed from the FCM/background isolate.
+            showsUserInterface: true,
             cancelNotification: true,
           ),
         ],

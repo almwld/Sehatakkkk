@@ -223,6 +223,7 @@ class _SehatakAppState extends State<SehatakApp>
   final MethodChannel _callIntentChannel =
       const MethodChannel('com.sehatak.app/call_intent');
   final Set<String> _handledNativeCallIntents = <String>{};
+  final Set<String> _handledCallNotificationActions = <String>{};
 
   @override
   void initState() {
@@ -433,10 +434,21 @@ class _SehatakAppState extends State<SehatakApp>
       }
       if ((action ?? '').startsWith('call_')) {
         final callPayload = actionPayload ?? '';
-        final callId = callPayload.startsWith('incoming_call:')
-            ? callPayload.substring('incoming_call:'.length)
-            : '';
+        String callId = '';
+        if (callPayload.startsWith('incoming_call:')) {
+          callId = callPayload.substring('incoming_call:'.length).trim();
+        } else {
+          try {
+            final decodedPayload = jsonDecode(callPayload);
+            if (decodedPayload is Map) {
+              final data = decodedPayload['data'];
+              if (data is Map) callId = data['callId']?.toString().trim() ?? '';
+            }
+          } catch (_) {}
+        }
         if (callId.isNotEmpty) {
+          final actionKey = '$action:$callId';
+          if (!_handledCallNotificationActions.add(actionKey)) return;
           await _notificationService.cancelIncomingCallNotification(callId);
           if (action == 'call_reject') {
             await _callService.rejectCall(callId);
