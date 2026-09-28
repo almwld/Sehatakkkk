@@ -192,7 +192,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
     if (uid == null) {
-      return const Scaffold(body: Center(child: Text('سجّل الدخول لعرض الإشعارات')));
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+          foregroundColor: isDark ? Colors.white : Colors.black87,
+          elevation: 0,
+        ),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey),
+              SizedBox(height: 16),
+              Text('لا توجد إشعارات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              Text('ستظهر الإشعارات هنا عند استلامها'),
+            ],
+          ),
+        ),
+      );
     }
 
     return Scaffold(
