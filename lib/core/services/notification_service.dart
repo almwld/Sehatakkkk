@@ -558,6 +558,8 @@ class NotificationService {
         category: _categoryFor(family),
         visibility: NotificationVisibility.public,
         styleInformation: style,
+        icon: 'ic_notification',
+        color: const Color(0xFF0A8F83),
       ),
       iOS: DarwinNotificationDetails(
         presentAlert: true,
@@ -710,6 +712,8 @@ class NotificationService {
         styleInformation: style,
         largeIcon:
             avatarBytes == null ? null : ByteArrayAndroidBitmap(avatarBytes),
+        icon: 'ic_notification',
+        color: const Color(0xFF0A8F83),
         actions: actions,
         groupKey: chatId.isEmpty ? null : 'sehatak_chat_${chatId}',
       ),
