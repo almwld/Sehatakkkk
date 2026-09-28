@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const MethodChannel _callForegroundServiceChannel = MethodChannel('com.sehatak.app/call_foreground_service');
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,6 +19,8 @@ import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/presentation/screens/chat/incoming_call_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
+
+const MethodChannel _callForegroundServiceChannel = MethodChannel('com.sehatak.app/call_foreground_service');
 
 class CallService {
   static const Map<CallStatus, Set<CallStatus>> allowedTransitions = {
