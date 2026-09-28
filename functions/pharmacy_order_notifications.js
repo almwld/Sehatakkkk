@@ -7,10 +7,9 @@ function norm(value) {
 }
 
 async function sendFcm(uid, data) {
-  const snap = await db.collection('users').doc(uid).get();
-  const u = snap.data() || {};
-  const tokens = [...(Array.isArray(u.fcmTokens) ? u.fcmTokens : []), u.fcmToken]
-    .map(v => String(v || '').trim()).filter(Boolean);
+  const tokenSnap = await db.collection('users').doc(uid).collection('private').doc('tokens').get();
+  const tokenData = tokenSnap.data() || {};
+  const tokens = Array.isArray(tokenData.tokens) ? tokenData.tokens.map(v => String(v || '').trim()).filter(Boolean) : [];
   if (!tokens.length) return;
   try {
     await admin.messaging().sendEachForMulticast({
