@@ -33,6 +33,18 @@ class _HealthMedicalVisualizationState extends State<HealthMedicalVisualization>
         return 'assets/animations/medical/heart.json';
       case HealthMedicalModel.steps:
         return 'assets/animations/medical/activity.json';
+      case HealthMedicalModel.bloodPressure:
+        return 'assets/animations/medical/blood_pressure.json';
+      case HealthMedicalModel.glucose:
+        return 'assets/animations/medical/glucose.json';
+      case HealthMedicalModel.sleep:
+        return 'assets/animations/medical/sleep.json';
+      case HealthMedicalModel.weight:
+        return 'assets/animations/medical/weight.json';
+      case HealthMedicalModel.oxygen:
+        return 'assets/animations/medical/oxygen.json';
+      case HealthMedicalModel.temperature:
+        return 'assets/animations/medical/temperature.json';
       default:
         return null;
     }
