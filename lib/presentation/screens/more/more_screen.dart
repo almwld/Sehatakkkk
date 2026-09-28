@@ -379,7 +379,7 @@ class _MoreScreenState extends State<MoreScreen>
   Widget _buildVitalsGrid(bool isDark) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      final values = <String, String>{
+      return _buildVitalsCards(isDark, const {
         'ضغط الدم': '120/80',
         'سكر الدم': '95',
         'اللياقة': '85',
@@ -388,14 +388,13 @@ class _MoreScreenState extends State<MoreScreen>
         'النوم': '7.5',
         'النبض': '72',
         'الماء': '6',
-      };
-      return _buildVitalsCards(isDark, values);
+      });
     }
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('health_metrics').doc(uid).snapshots(),
       builder: (context, snapshot) {
         final d = snapshot.data?.data() ?? const <String, dynamic>{};
-        final values = <String, String>{
+        return _buildVitalsCards(isDark, {
           'ضغط الدم': d['systolic'] != null && d['diastolic'] != null ? '${d['systolic']}/${d['diastolic']}' : 'غير متوفر',
           'سكر الدم': d['blood_sugar'] != null ? '${d['blood_sugar']}' : 'غير متوفر',
           'اللياقة': d['steps'] != null ? '${d['steps']}' : 'غير متوفر',
@@ -404,7 +403,11 @@ class _MoreScreenState extends State<MoreScreen>
           'النوم': d['sleep'] != null ? '${d['sleep']}' : 'غير متوفر',
           'النبض': d['heartRate'] != null ? '${d['heartRate']}' : 'غير متوفر',
           'الماء': 'غير متوفر',
-        };
+        });
+      },
+    );
+  }
+
   Widget _buildVitalsCards(bool isDark, Map<String, String> values) {
     return GridView.builder(
       shrinkWrap: true,
@@ -446,23 +449,6 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
-        return GridView.builder(
-          shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4,crossAxisSpacing: 10,mainAxisSpacing: 10,childAspectRatio: .90),
-          itemCount: _vitals.length,
-          itemBuilder: (context,index) {
-            final vital=_vitals[index]; final label=vital['label'] as String; final value=values[label] ?? 'غير متوفر';
-            return GestureDetector(onTap:()=>_navigateTo(vital['screen'] as Widget),child:Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14),border:Border.all(color:(vital['color'] as Color).withOpacity(.18))),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
-              _buildIcon(vital['icon'] as String,size:48),const SizedBox(height:6),
-              Text(value,style:TextStyle(fontSize:14,fontWeight:FontWeight.bold,color:vital['color'] as Color),maxLines:1,overflow:TextOverflow.ellipsis,textAlign:TextAlign.center),
-              Text(vital['unit'] as String,style:TextStyle(fontSize:9,color:isDark?Colors.grey[400]:Colors.grey[600])),
-              const SizedBox(height:2),Text(label,style:TextStyle(fontSize:10,fontWeight:FontWeight.w500,color:isDark?Colors.grey[300]:Colors.grey[700]),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis)
-            ])));
-          },
-        );
-      },
-    );
-  }
   Widget _buildCategoriesBar(bool isDark) {
     return SizedBox(
       height: 40,
