@@ -22,7 +22,9 @@ async function main(){
   const db=admin.firestore();
   const receiver=await db.collection('users').doc(process.env.RECEIVER_UID).get();
   if(!receiver.exists) throw new Error('Receiver user not found');
-  if(typeof receiver.data().fcmToken!=='string' || !receiver.data().fcmToken.trim()) throw new Error('Receiver has no real FCM token');
+  const tokenDoc=await db.collection('users').doc(process.env.RECEIVER_UID).collection('private').doc('tokens').get();
+  const tokens=Array.isArray(tokenDoc.data()?.tokens)?tokenDoc.data().tokens.filter(v=>typeof v==='string'&&v.trim()):[];
+  if(!tokens.length) throw new Error('Receiver has no canonical FCM token');
   const caller=await admin.auth().createUser({email:`notify-test-${Date.now()}@example.invalid`,password:`T${Date.now()}!test`,displayName:'Notification Integration Test'});
   try{
     const custom=await admin.auth().createCustomToken(caller.uid);
