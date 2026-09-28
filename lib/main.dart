@@ -262,6 +262,7 @@ class _SehatakAppState extends State<SehatakApp>
     _notificationsStarted = true;
     try {
       await _notificationService.initialize();
+      await flushPendingNotificationReplies();
     } catch (e) {
       debugPrint('❌ Notification initialization error: $e');
     }
@@ -346,6 +347,7 @@ class _SehatakAppState extends State<SehatakApp>
       Provider.of<UserProvider>(context, listen: false).loadUserSafely();
       unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
       unawaited(_fcmTokenService.syncCurrentToken());
+      unawaited(flushPendingNotificationReplies());
       unawaited(ChatMediaTransferService.instance.processPending());
     } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
       unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
