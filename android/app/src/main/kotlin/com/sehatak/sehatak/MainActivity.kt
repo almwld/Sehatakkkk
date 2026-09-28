@@ -109,7 +109,8 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent) {
+    override fun onNewIntent(intent: Intent?) {
+        if (intent == null) return
         super.onNewIntent(intent)
         setIntent(intent)
         rememberCallIntent(intent)
