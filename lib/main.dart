@@ -220,11 +220,15 @@ class _SehatakAppState extends State<SehatakApp>
   bool _notificationsStarted = false;
   final MethodChannel _platformNavigationChannel =
       const MethodChannel('com.sehatak.app/navigation');
+  final MethodChannel _callIntentChannel =
+      const MethodChannel('com.sehatak.app/call_intent');
+  final Set<String> _handledNativeCallIntents = <String>{};
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _callIntentChannel.setMethodCallHandler(_handleNativeCallIntent);
     _notificationService
         .setNotificationTapHandler(_handleLocalNotificationTap);
     _messageSubscription =
@@ -241,6 +245,7 @@ class _SehatakAppState extends State<SehatakApp>
       if (!mounted) return;
       unawaited(_initializeServicesAfterRunApp());
       if (!_launchPayloadHandled) unawaited(_loadLaunchPayload());
+      unawaited(_loadPendingNativeCallIntent());
     });
     _authNavigationSubscription =
         FirebaseAuth.instance.authStateChanges().listen((user) {
@@ -255,6 +260,37 @@ class _SehatakAppState extends State<SehatakApp>
         unawaited(_fcmTokenService.syncCurrentToken());
       }
     });
+  }
+
+  Future<void> _loadPendingNativeCallIntent() async {
+    try {
+      final pending = await _callIntentChannel.invokeMethod<dynamic>('getPendingCallIntent');
+      if (pending is Map) {
+        final id = pending['callId']?.toString().trim() ?? '';
+        if (id.isNotEmpty) await _routeNativeCallIntent(id);
+      }
+    } catch (e) {
+      debugPrint('📞 pending native call intent unavailable: $e');
+    }
+  }
+
+  Future<void> _handleNativeCallIntent(MethodCall call) async {
+    if (call.method != 'incomingCallIntent') return;
+    final args = call.arguments;
+    final id = args is Map ? args['callId']?.toString().trim() ?? '' : '';
+    if (id.isNotEmpty) await _routeNativeCallIntent(id);
+  }
+
+  Future<void> _routeNativeCallIntent(String callId) async {
+    if (!_handledNativeCallIntents.add(callId)) return;
+    await _callIntentChannel.invokeMethod('clearPendingCallIntent');
+    if (!mounted) return;
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      _handledNativeCallIntents.remove(callId);
+      return;
+    }
+    await _callService.handleIncomingCallById(context, callId);
   }
 
   Future<void> _initializeServicesAfterRunApp() async {

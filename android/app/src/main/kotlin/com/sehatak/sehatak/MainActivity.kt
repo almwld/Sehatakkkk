@@ -11,12 +11,33 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.android.FlutterFragmentActivity
 
 class MainActivity : FlutterFragmentActivity() {
+    private var callIntentChannel: MethodChannel? = null
+    private var pendingCallIntent: String? = null
+    private val callIntentPrefs = "sehatak_call_intent"
+    private val callIntentKey = "pending_call_id"
 
     private val callAudioChannel = "com.sehatak.app/call_audio"
     private val fullScreenChannel = "com.sehatak.app/full_screen_intent"
 
     override fun configureFlutterEngine(flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        callIntentChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.sehatak.app/call_intent")
+        callIntentChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getPendingCallIntent" -> {
+                    val id = pendingCallIntent ?: getSharedPreferences(callIntentPrefs, MODE_PRIVATE).getString(callIntentKey, null)
+                    result.success(if (id.isNullOrBlank()) null else mapOf("callId" to id))
+                }
+                "clearPendingCallIntent" -> {
+                    pendingCallIntent = null
+                    getSharedPreferences(callIntentPrefs, MODE_PRIVATE).edit().remove(callIntentKey).apply()
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
+        rememberCallIntent(intent)
+        emitPendingCallIntent()
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, callAudioChannel).setMethodCallHandler { call, result ->
             val audio = getSystemService(AUDIO_SERVICE) as AudioManager
             when (call.method) {
@@ -86,6 +107,29 @@ class MainActivity : FlutterFragmentActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        rememberCallIntent(intent)
+        emitPendingCallIntent()
+    }
+
+    private fun rememberCallIntent(intent: Intent?) {
+        val callId = intent?.getStringExtra("callId")?.trim()
+            ?: intent?.getStringExtra("call_id")?.trim()
+            ?: intent?.getStringExtra("callId".lowercase())?.trim()
+        if (!callId.isNullOrEmpty()) {
+            pendingCallIntent = callId
+            getSharedPreferences(callIntentPrefs, MODE_PRIVATE).edit().putString(callIntentKey, callId).apply()
+        }
+    }
+
+    private fun emitPendingCallIntent() {
+        val id = pendingCallIntent ?: getSharedPreferences(callIntentPrefs, MODE_PRIVATE).getString(callIntentKey, null)
+        if (id.isNullOrBlank()) return
+        callIntentChannel?.invokeMethod("incomingCallIntent", mapOf("callId" to id))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
