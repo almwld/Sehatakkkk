@@ -300,11 +300,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       ),
     );
 
-    unawaited(
-      _callService.acceptCall(widget.callId).catchError((Object error) {
-        debugPrint('acceptCall failed after navigation: $error');
-      }),
-    );
   }
 
   Future<void> _toggleMute() async {
