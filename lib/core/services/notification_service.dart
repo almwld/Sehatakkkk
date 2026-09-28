@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'call_sound_coordinator.dart';
 import 'chat_service.dart';
 import '../../firebase_options.dart';
@@ -20,11 +21,116 @@ typedef NotificationTapHandler = Future<void> Function(String? payload);
 Future<void> notificationActionBackgroundHandler(NotificationResponse response) async {
   final action = response.actionId?.trim();
   if (action == null || action.isEmpty) return;
-  if (!['message_reply', 'message_read', 'message_mute'].contains(action)) return;
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  } catch (_) {}
-  await handleMessageNotificationAction(action: action, input: response.input, payload: response.payload);
+  } catch (e) {
+    debugPrint('❌ background notification action Firebase init failed: $e');
+    return;
+  }
+  if (action == 'call_answer' || action == 'call_reject' || action == 'call_message') {
+    await handleCallNotificationAction(action: action, payload: response.payload);
+    return;
+  }
+  if (['message_reply', 'message_read', 'message_mute'].contains(action)) {
+    await handleMessageNotificationAction(action: action, input: response.input, payload: response.payload);
+  }
+}
+
+const _pendingReplyKey = 'pending_notification_replies_v1';
+
+Future<Map<String, dynamic>?> _decodeNotificationEnvelope(String? payload) async {
+  if (payload == null || payload.trim().isEmpty) return null;
+  try {
+    final decoded = jsonDecode(payload);
+    if (decoded is! Map) return null;
+    return Map<String, dynamic>.from(decoded);
+  } catch (_) {
+    return null;
+  }
+}
+
+Future<void> _queuePendingReply({
+  required String uid,
+  required String chatId,
+  required String text,
+  String? replyToId,
+}) async {
+  if (uid.isEmpty || chatId.isEmpty || text.trim().isEmpty) return;
+  final prefs = await SharedPreferences.getInstance();
+  final raw = prefs.getStringList(_pendingReplyKey) ?? <String>[];
+  raw.add(jsonEncode(<String, dynamic>{
+    'uid': uid,
+    'chatId': chatId,
+    'text': text.trim(),
+    'replyToId': replyToId,
+    'createdAt': DateTime.now().toUtc().toIso8601String(),
+  }));
+  await prefs.setStringList(_pendingReplyKey, raw);
+}
+
+Future<void> flushPendingNotificationReplies() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null || uid.isEmpty) return;
+  final prefs = await SharedPreferences.getInstance();
+  final raw = prefs.getStringList(_pendingReplyKey) ?? <String>[];
+  if (raw.isEmpty) return;
+  final remaining = <String>[];
+  for (final item in raw) {
+    try {
+      final data = Map<String, dynamic>.from(jsonDecode(item) as Map);
+      final itemUid = data['uid']?.toString() ?? '';
+      if (itemUid != uid) {
+        remaining.add(item);
+        continue;
+      }
+      await ChatService().sendMessage(
+        chatId: data['chatId']?.toString() ?? '',
+        text: data['text']?.toString() ?? '',
+        replyToId: data['replyToId']?.toString().trim().isEmpty == true ? null : data['replyToId']?.toString(),
+        metadata: const <String, dynamic>{'source': 'notification_reply_queue'},
+      );
+    } catch (e) {
+      debugPrint('⚠️ pending notification reply retained: $e');
+      remaining.add(item);
+    }
+  }
+  await prefs.setStringList(_pendingReplyKey, remaining);
+}
+
+Future<void> handleCallNotificationAction({
+  required String action,
+  String? payload,
+}) async {
+  if (!['call_answer', 'call_reject', 'call_message'].contains(action)) return;
+  final envelope = await _decodeNotificationEnvelope(payload);
+  final data = envelope?['data'] is Map
+      ? Map<String, dynamic>.from(envelope!['data'])
+      : <String, dynamic>{};
+  final callId = data['callId']?.toString().trim() ?? '';
+  if (callId.isEmpty) return;
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null || uid.isEmpty) {
+    debugPrint('⚠️ call action skipped: no authenticated UID in background isolate');
+    return;
+  }
+  final ref = FirebaseFirestore.instance.collection('calls').doc(callId);
+  final snap = await ref.get();
+  if (!snap.exists) return;
+  final call = snap.data() ?? <String, dynamic>{};
+  if (String(call['receiverId'] ?? '') != uid) return;
+  final status = String(call['status'] ?? '');
+  if (status != 'calling' && status != 'ringing') return;
+  if (action == 'call_answer') {
+    await ref.update(<String, dynamic>{
+      'status': 'accepted',
+      'isAnswered': true,
+    });
+  } else {
+    await ref.update(<String, dynamic>{
+      'status': 'rejected',
+      'endedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }
 
 Future<void> handleMessageNotificationAction({
@@ -33,14 +139,20 @@ Future<void> handleMessageNotificationAction({
   String? payload,
 }) async {
   if (!['message_reply', 'message_read', 'message_mute'].contains(action)) return;
-  Map<String, dynamic> envelope = <String, dynamic>{};
-  try {
-    final decoded = payload == null ? null : jsonDecode(payload);
-    if (decoded is Map) envelope = Map<String, dynamic>.from(decoded);
-  } catch (_) {}
-  final data = envelope['data'] is Map ? Map<String, dynamic>.from(envelope['data']) : <String, dynamic>{};
+  final envelope = await _decodeNotificationEnvelope(payload);
+  final data = envelope?['data'] is Map
+      ? Map<String, dynamic>.from(envelope!['data'])
+      : <String, dynamic>{};
   final chatId = data['chatId']?.toString().trim() ?? '';
   if (chatId.isEmpty) return;
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  final expectedUid = data['recipientId']?.toString().trim() ?? '';
+  if (uid == null || uid.isEmpty || expectedUid.isEmpty || uid != expectedUid) {
+    if (action == 'message_reply' && expectedUid.isNotEmpty && input?.trim().isNotEmpty == true) {
+      await _queuePendingReply(uid: expectedUid, chatId: chatId, text: input!.trim(), replyToId: data['messageId']?.toString());
+    }
+    return;
+  }
   final chat = ChatService();
   if (action == 'message_read') {
     await chat.markAsRead(chatId);
@@ -264,7 +376,7 @@ class NotificationService {
         } else {
           await handler(response.payload);
         }
-      });
+      }, onDidReceiveBackgroundNotificationResponse: notificationActionBackgroundHandler);
       final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       await android?.createNotificationChannel(_messageChannel);
       await android?.createNotificationChannel(_appointmentChannel);
