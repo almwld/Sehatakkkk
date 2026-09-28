@@ -100,6 +100,12 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
         padding: const EdgeInsets.all(16),
         child: Column(children: [
           _buildTrackingCard(isDark),
+          const SizedBox(height: 12),
+          const HealthMedicalVisualization(
+            model: HealthMedicalModel.sleep,
+            size: 118,
+            active: true,
+          ),
           const SizedBox(height: 20),
           _buildTodayCard(isDark),
           const SizedBox(height: 20),
