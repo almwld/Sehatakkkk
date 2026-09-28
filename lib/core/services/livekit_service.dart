@@ -142,18 +142,36 @@ class LiveKitService {
 
   Future<Room> startCall({required String roomName, String? callerName, bool isVideo = true}) async {
     final result = await connectRoom(roomName: roomName, participantName: callerName);
-    if (isVideo) {
+    if (!isVideo) return result;
+
+    try {
       await enableCamera();
-      final local = result.localParticipant;
-      if (local == null) throw StateError('المشارك المحلي غير متاح');
-      LocalVideoTrack? track;
-      for (final publication in local.videoTracks) {
-        final candidate = publication.track;
-        if (candidate is LocalVideoTrack && publication.source == TrackSource.camera) { track = candidate; break; }
+
+      // WebRTC may create the camera publication a moment after the
+      // setCameraEnabled() future completes. Do not report a false camera
+      // failure while the camera is actually starting.
+      for (var attempt = 0; attempt < 10; attempt++) {
+        final local = result.localParticipant;
+        if (local != null) {
+          for (final publication in local.videoTracks) {
+            final candidate = publication.track;
+            if (candidate is LocalVideoTrack &&
+                publication.source == TrackSource.camera) {
+              return result;
+            }
+          }
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 150));
       }
-      if (track == null) throw StateError('تم الاتصال لكن لم يتم نشر فيديو الكاميرا');
+
+      throw StateError('تم تشغيل الكاميرا لكن لم يظهر مسار الفيديو');
+    } catch (_) {
+      // Never leave microphone/camera/WebRTC running when startup fails.
+      try {
+        await endCall();
+      } catch (_) {}
+      rethrow;
     }
-    return result;
   }
 
   Future<void> enableCamera() async {
