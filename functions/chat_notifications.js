@@ -134,19 +134,6 @@ exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{message
   }));
 });
 
-exports.notifyIncomingCall=onDocumentCreated('calls/{callId}',async event=>{
-  const s=event.data;if(!s)return;
-  const c=s.data()||{},receiverId=String(c.receiverId||''),callerId=String(c.callerId||'');
-  if(!receiverId||!callerId||receiverId===callerId)return;
-  const isVideo=c.callType==='video'||c.isVideoCall===true;
-  const callId=event.params.callId;
-  const chatId=String(c.chatId||'');
-  const data={type:'incoming_call',callId,chatId,callerId,callerName:String(c.callerName||'مستخدم'),callerPhotoUrl:String(c.callerPhotoUrl||''),isVideo:String(isVideo),callType:isVideo?'video':'audio',recipientId:receiverId,title:'مكالمة واردة',body:`مكالمة واردة من ${String(c.callerName||'مستخدم')}`};
-  await archiveNotification(receiverId,{data});
-  await sendToUser(receiverId,{data});
-});
-
-
 function statusChanged(before, after) {
   return String(before?.status || '') !== String(after?.status || '');
 }
