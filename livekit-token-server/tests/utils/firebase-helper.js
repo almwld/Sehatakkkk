@@ -45,9 +45,9 @@ async function getIdTokenForUser(uid) {
 }
 
 async function findRealFcmToken(uid) {
-  const snap = await db().collection('users').doc(uid).get();
-  const token = snap.data()?.fcmToken;
-  return typeof token === 'string' && token.trim() ? token.trim() : null;
+  const snap = await db().collection('users').doc(uid).collection('private').doc('tokens').get();
+  const tokens = snap.data()?.tokens;
+  return Array.isArray(tokens) && typeof tokens[0] === 'string' && tokens[0].trim() ? tokens[0].trim() : null;
 }
 
 module.exports = { admin: getAdmin, db, auth, messaging, createTempUser, deleteUser, getIdTokenForUser, findRealFcmToken };
