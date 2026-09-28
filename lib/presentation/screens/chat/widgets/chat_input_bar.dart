@@ -506,7 +506,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
               : const SizedBox.shrink(key: ValueKey('closed')),
         ),
         Material(
-          color: dark ? const Color(0xFF121A29) : Colors.white,
+          color: Colors.transparent,
           child: SafeArea(
             top: false,
             child: Padding(
@@ -525,10 +525,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   Expanded(
                     child: Container(
                       constraints: const BoxConstraints(minHeight: 46, maxHeight: 130),
-                      decoration: BoxDecoration(
-                        color: dark ? const Color(0xFF26344D) : const Color(0xFFF1F4F5),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
+                      decoration: const BoxDecoration(),
                       child: TextField(
                         controller: _controller,
                         focusNode: _focus,
@@ -547,14 +544,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   const SizedBox(width: 5),
                   GestureDetector(
                     onTap: _hasText ? _sendText : _startRecording,
-                    child: CircleAvatar(
-                      radius: 23,
-                      backgroundColor: _sending ? Colors.grey : AppColors.primary,
-                      child: Icon(
-                        _hasText ? Icons.send_rounded : Icons.mic_rounded,
-                        color: Colors.white,
-                        size: 21,
-                      ),
+                    child: Icon(
+                      _hasText ? Icons.send_rounded : Icons.mic_rounded,
+                      color: _sending ? Colors.grey : AppColors.primary,
+                      size: 27,
                     ),
                   ),
                 ],
@@ -567,7 +560,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
   }
 
   Widget _voiceBar(bool dark) => Material(
-        color: dark ? const Color(0xFF121A29) : Colors.white,
+        color: Colors.transparent,
         child: SafeArea(
           top: false,
           child: Padding(
