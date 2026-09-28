@@ -334,6 +334,74 @@ jobs:
         print("✅ libwebp/cwebp lossless WebP conversion and pixel-wise alpha validation completed")
         PY
 
+    - name: 🧩 Prepare and verify local medical Lottie JSON assets
+      shell: bash
+      run: |
+        set -euo pipefail
+        medical_dir="assets/animations/medical"
+        mkdir -p "$medical_dir"
+
+        # These are bundled local Flutter assets. If a checkout is missing one,
+        # hydrate it from the exact commit being built, never from a floating URL.
+        files=(
+          heart.json
+          activity.json
+          blood_pressure.json
+          glucose.json
+          sleep.json
+          weight.json
+          oxygen.json
+          temperature.json
+        )
+
+        for file in "${files[@]}"; do
+          target="$medical_dir/$file"
+          if [ ! -s "$target" ]; then
+            echo "⬇️ Restoring missing local Lottie: $target"
+            curl --fail --silent --show-error --location \
+              --retry 3 --retry-all-errors \
+              "https://raw.githubusercontent.com/almwld/Sehatakkkk/${GITHUB_SHA}/$target" \
+              --output "$target"
+          fi
+        done
+
+        python - <<'PY'
+        import json
+        from pathlib import Path
+
+        root = Path("assets/animations/medical")
+        files = [
+            "heart.json",
+            "activity.json",
+            "blood_pressure.json",
+            "glucose.json",
+            "sleep.json",
+            "weight.json",
+            "oxygen.json",
+            "temperature.json",
+        ]
+
+        required = {"v", "fr", "ip", "op", "w", "h", "layers", "assets"}
+        for name in files:
+            path = root / name
+            if not path.is_file() or path.stat().st_size == 0:
+                raise SystemExit(f"❌ Missing/empty Lottie asset: {path}")
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except Exception as exc:
+                raise SystemExit(f"❌ Invalid JSON: {path}: {exc}")
+            missing = required - data.keys()
+            if missing:
+                raise SystemExit(f"❌ Invalid Lottie structure: {path}; missing {sorted(missing)}")
+            if not isinstance(data["layers"], list) or not data["layers"]:
+                raise SystemExit(f"❌ Lottie has no renderable layers: {path}")
+            if not isinstance(data["w"], (int, float)) or not isinstance(data["h"], (int, float)):
+                raise SystemExit(f"❌ Invalid Lottie dimensions: {path}")
+            print(f"✅ Lottie verified: {path} ({data['w']}x{data['h']}, v{data['v']}, {len(data['layers'])} layers)")
+        PY
+
+        echo "✅ All 8 medical Lottie animations are present as local, validated Flutter assets."
+
     - name: 🔎 Check asset changes and Flutter dependencies
       shell: bash
       run: |
