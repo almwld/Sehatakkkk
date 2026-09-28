@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/bloc/home/home_bloc.dart';
 import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -45,6 +46,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final GlobalScrollManager _scrollManager;
   bool _isLoggedIn = false, _backPressedOnce = false;
   bool _fullScreenIntentChecked = false;
+  static const String _fullScreenIntentGuidanceSeenKey = 'call_full_screen_guidance_seen_v1';
   Timer? _backExitTimer;
   Timer? _healthRefreshTimer;
   late final Map<int, Widget> _screens;
@@ -94,37 +96,41 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       final canUse = await NotificationService().canUseFullScreenIntent();
       debugPrint('📱 [Home] canUseFullScreenIntent = $canUse');
+      if (canUse != false || !mounted) return;
 
-      // نعرض التحذير فقط إذا رفض النظام الإذن صراحةً.
-      // null يعني تعذر التحقق، لذلك لا نعرض تحذيراً كاذباً.
-      if (canUse == false && mounted) {
-        await Future<void>.delayed(const Duration(milliseconds: 800));
-        if (!mounted) return;
-        await showDialog<void>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('تفعيل المكالمات الواردة'),
-            content: const Text(
-              'لتظهر شاشة المكالمات الواردة عند قفل الجهاز، '
-              'يجب تفعيل "الإشعارات الكاملة" من إعدادات النظام.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('لاحقاً'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(ctx);
-                  await NotificationService().openFullScreenIntentSettings();
-                  _fullScreenIntentChecked = false;
-                },
-                child: const Text('فتح الإعدادات'),
-              ),
-            ],
+      final prefs = await SharedPreferences.getInstance();
+      final alreadySeen = prefs.getBool(_fullScreenIntentGuidanceSeenKey) ?? false;
+      if (alreadySeen || !mounted) return;
+      await prefs.setBool(_fullScreenIntentGuidanceSeenKey, true);
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('تفعيل المكالمات الواردة'),
+          content: const Text(
+            'لإظهار شاشة المكالمة الواردة فوق شاشة القفل، '
+            'يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. '
+            'إذا لم تمنح الإذن، سيستمر إشعار المكالمة العادي بالعمل.',
           ),
-        );
-      }
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('لاحقاً'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await NotificationService().openFullScreenIntentSettings();
+                _fullScreenIntentChecked = false;
+                final updated = await NotificationService().canUseFullScreenIntent();
+                if (updated == true) {
+                  await prefs.remove(_fullScreenIntentGuidanceSeenKey);
+                }
+              },
+              child: const Text('فتح إعدادات النظام'),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
       debugPrint('⚠️ [Home] _checkFullScreenIntentPermission failed: $e');
     }
