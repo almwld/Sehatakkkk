@@ -73,7 +73,6 @@ class _MessageBubbleState extends State<MessageBubble> {
               const SizedBox(height: 16),
               _infoRow(Icons.schedule_rounded, 'أُرسلت', _formatMessageTime(m['timestamp'])),
               _infoRow(Icons.done_all_rounded, 'تم التسليم', m['isDelivered'] == true ? _formatMessageTime(m['deliveredAt']) : 'لم تُسلّم بعد'),
-              _infoRow(Icons.done_all_rounded, 'تمت القراءة', m['isRead'] == true ? _formatMessageTime(m['readAt']) : 'لم تُقرأ بعد'),
               if (m['isEdited'] == true) _infoRow(Icons.edit_outlined, 'الحالة', 'تم تعديل الرسالة'),
             ],
           ),
