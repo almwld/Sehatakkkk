@@ -210,8 +210,11 @@ class CallService {
           ),
         );
         tx.update(ref, {
-          'status': 'accepted',
+          // Acceptance is the media-session boundary: once the receiver
+          // answers, both sides may join LiveKit and publish media.
+          'status': CallStatus.connected.name,
           'isAnswered': true,
+          'connectedAt': FieldValue.serverTimestamp(),
         });
         final callerId = raw['callerId']?.toString() ?? '';
         final receiverId = raw['receiverId']?.toString() ?? '';
@@ -224,7 +227,7 @@ class CallService {
             {
               'participants': [callerId, receiverId],
               'activeCallId': id,
-              'status': 'accepted',
+              'status': CallStatus.connected.name,
               'updatedAt': FieldValue.serverTimestamp(),
             },
             SetOptions(merge: true),
@@ -240,7 +243,7 @@ class CallService {
         chatId: c!.chatId,
         callId: id,
         text: 'تم قبول المكالمة',
-        status: 'accepted',
+        status: CallStatus.connected.name,
         type: c!.type,
       ));
     }
