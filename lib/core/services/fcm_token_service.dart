@@ -112,19 +112,24 @@ class FcmTokenService {
   }
 
   Future<void> _writeToken(String uid, String token) async {
-    debugPrint('🔑 FCM: writing token metadata users/$uid');
+    debugPrint('🔑 FCM: writing token metadata users/$uid/private/tokens');
     try {
-      await _firestore.collection('users').doc(uid).set(
-        {
-          'fcmToken': token,
-          'fcmTokens': FieldValue.arrayUnion([token]),
-          'lastTokenUpdate': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      if (_auth.currentUser?.uid != uid) return;
+      final tokenId = sha256.convert(utf8.encode(token)).toString();
+      await _firestore.collection('users').doc(uid).collection('private').doc('tokens').set({
+        'tokens': FieldValue.arrayUnion([token]),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'lastTokenId': tokenId,
+      }, SetOptions(merge: true));
+      // Legacy fields remain during the migration window.
+      await _firestore.collection('users').doc(uid).set({
+        'fcmToken': token,
+        'fcmTokens': FieldValue.arrayUnion([token]),
+        'lastTokenUpdate': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (e, st) {
       debugPrint('❌ FCM write failed: $e');
-      debugPrint('❌ Firestore path: users/$uid');
+      debugPrint('❌ Firestore path: users/$uid/private/tokens');
       debugPrint('❌ FCM write stack: $st');
       rethrow;
     }
@@ -136,6 +141,6 @@ class FcmTokenService {
     _refreshSubscription = null;
     _authSubscription = null;
     _started = false;
-    _lastSyncedToken = null;
+    _lastSyncedKey = null;
   }
 }
