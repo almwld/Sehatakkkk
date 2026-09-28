@@ -71,8 +71,6 @@ class _MessageBubbleState extends State<MessageBubble> {
             children: [
               const Text('معلومات الرسالة', textAlign: TextAlign.right, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
-              _infoRow(Icons.schedule_rounded, 'أُرسلت', _formatMessageTime(m['timestamp'])),
-              _infoRow(Icons.done_all_rounded, 'تم التسليم', m['isDelivered'] == true ? _formatMessageTime(m['deliveredAt']) : 'لم تُسلّم بعد'),
               if (m['isEdited'] == true) _infoRow(Icons.edit_outlined, 'الحالة', 'تم تعديل الرسالة'),
             ],
           ),
@@ -176,48 +174,19 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  /// Media messages need an explicit textual state beside the attachment so
-  /// delivery/read status is visible even when the attachment has no text row.
+  /// Keep delivery/read state as icons only. The chat UI intentionally
+  /// does not display textual status labels beside media messages.
   Widget _mediaStatus(Map<String, dynamic> m) {
-    final String label;
-    final IconData icon;
-    final Color color;
     if (m['isSending'] == true) {
-      label = 'جارٍ الإرسال';
-      icon = Icons.schedule;
-      color = Colors.grey;
-    } else if (m['isRead'] == true) {
-      label = '✓✓ تمت القراءة';
-      icon = Icons.done_all_rounded;
-      color = AppColors.primary;
-    } else if (m['isDelivered'] == true) {
-      label = '✓✓ تم التسليم';
-      icon = Icons.done_all_rounded;
-      color = Colors.grey;
-    } else {
-      label = '✓ تم الإرسال';
-      icon = Icons.done_rounded;
-      color = Colors.grey;
+      return const Icon(Icons.schedule, size: 14, color: Colors.grey);
     }
-
-    return Semantics(
-      label: label,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 3),
-          Text(
-            label.replaceFirst('✓✓ ', '').replaceFirst('✓ ', ''),
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
+    if (m['isRead'] == true) {
+      return const Icon(Icons.done_all_rounded, size: 15, color: AppColors.primary);
+    }
+    if (m['isDelivered'] == true) {
+      return const Icon(Icons.done_all_rounded, size: 15, color: Colors.grey);
+    }
+    return const Icon(Icons.done_rounded, size: 15, color: Colors.grey);
   }
 
   Widget _buildText(Map<String, dynamic> m, bool dark) {
