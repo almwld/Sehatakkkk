@@ -18,6 +18,11 @@ class ThemeBloc extends Cubit<ThemeState> {
   ThemeBloc({ThemeMode initialMode = ThemeMode.dark})
       : super(ThemeState.initial(initialMode));
 
+  Future<void> restoreSavedThemeMode() async {
+    final mode = await loadSavedThemeMode();
+    if (!isClosed) emit(ThemeState(themeMode: mode));
+  }
+
   Future<void> toggleTheme() async {
     final newMode = state.themeMode == ThemeMode.light
         ? ThemeMode.dark
