@@ -765,7 +765,7 @@ class NotificationService {
         category: AndroidNotificationCategory.call, visibility: NotificationVisibility.public,
         fullScreenIntent: true, ongoing: true, autoCancel: false, onlyAlertOnce: true,
         showWhen: false, ticker: 'مكالمة واردة من $callerName',
-        color: const Color(0xFF2A8F83), colorized: false, icon: smallIcon,
+        color: const Color(0xFF0A8F83), colorized: false, icon: smallIcon,
         actions: <AndroidNotificationAction>[
           // Android displays actions left-to-right in the notification UI.
           // Keep the call controls explicit: answer, end, message/call later.
