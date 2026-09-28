@@ -477,9 +477,7 @@ router.post('/:chatId/call', async (req, res) => {
 
       await db.collection('calls').doc(chatId).set(callData);
 
-      // Cloud Functions observes calls/{callId} and owns the single
-      // notification + FCM delivery path. Keeping it there prevents duplicate
-      // call notifications when both the API and Firestore trigger are active.
+      // Incoming-call FCM is owned by Railway /call-notification.
 
       return res.status(201).json({
         success: true,
