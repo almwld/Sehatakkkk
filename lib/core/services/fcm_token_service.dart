@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,7 +13,7 @@ class FcmTokenService {
   StreamSubscription<String>? _refreshSubscription;
   StreamSubscription<User?>? _authSubscription;
   Future<void>? _syncInFlight;
-  String? _lastSyncedToken;
+  String? _lastSyncedKey;
   bool _started = false;
   FirebaseMessaging get _messaging => FirebaseMessaging.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
@@ -39,7 +41,7 @@ class FcmTokenService {
       if (user != null) {
         unawaited(syncCurrentToken());
       } else {
-        _lastSyncedToken = null;
+        _lastSyncedKey = null;
       }
     });
     if (_auth.currentUser != null) unawaited(syncCurrentToken());
@@ -76,7 +78,8 @@ class FcmTokenService {
       debugPrint('❌ FCM: Firestore write skipped; token empty uid=${user.uid}');
       return;
     }
-    if (_lastSyncedToken == token) {
+    final syncKey = '${user.uid}::$token';
+    if (_lastSyncedKey == syncKey) {
       debugPrint('🔑 FCM: token already synchronized uid=${user.uid}');
       return;
     }
@@ -90,13 +93,13 @@ class FcmTokenService {
     if (previous != null) {
       debugPrint('🔑 FCM: waiting for existing Firestore sync uid=${user.uid}');
       await previous;
-      if (_lastSyncedToken == token) return;
+      if (_lastSyncedKey == syncKey) return;
     }
     final future = _writeToken(user.uid, token);
     _syncInFlight = future;
     try {
       await future;
-      _lastSyncedToken = token;
+      if (_auth.currentUser?.uid == user.uid) _lastSyncedKey = syncKey;
       debugPrint('✅ FCM: token synchronized users/${user.uid}');
     } catch (e, st) {
       debugPrint('❌ FCM: Firestore write failed uid=${user.uid}: $e');
