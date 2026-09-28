@@ -298,13 +298,10 @@ class _CallScreenState extends State<CallScreen> {
             : widget.doctorName,
         isVideo: widget.isVideo,
       );
-      await FirebaseFirestore.instance
-          .collection('calls')
-          .doc(c.id)
-          .update({
-        'status': CallStatus.connected.name,
-        'connectedAt': FieldValue.serverTimestamp(),
-      });
+      // The accept transition is already persisted by CallService.
+      // Do not make the LiveKit media UI depend on a second Firestore write:
+      // if that write fails after WebRTC has started, the old code showed
+      // "call failed" while the microphone/camera kept publishing.
       joined = true;
       timeout?.cancel();
       registry.register(c.id);
