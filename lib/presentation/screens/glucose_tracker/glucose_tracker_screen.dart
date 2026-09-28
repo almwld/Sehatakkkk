@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/health/health_medical_visualization.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +22,8 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
   final _mealOptions = const ['قبل الفطور','بعد الفطور','قبل الغداء','بعد الغداء','قبل العشاء','بعد العشاء'];
 
   @override void initState() { super.initState(); _load(); }
+  Widget _buildMedicalVisual()=>Padding(padding:const EdgeInsets.only(bottom:12),child:Center(child:HealthMedicalVisualization(model:HealthMedicalModel.glucose,size:112,active:true)));
+
   @override void dispose() { _glucoseCtrl.dispose(); super.dispose(); }
 
   Future<void> _load() async {
@@ -72,6 +75,7 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: _loading ? const Center(child: CircularProgressIndicator()) : Stack(children:[
         ListView(padding: const EdgeInsets.fromLTRB(16,16,16,100), children:[
+          _buildMedicalVisual(),
           _hero(latest), const SizedBox(height:16), const Text('القراءات المسجلة',style:TextStyle(fontSize:18,fontWeight:FontWeight.w900)),
           const SizedBox(height:10),
           if(_readings.isEmpty) _empty(dark) else ..._readings.map((r)=>_readingCard(r,dark)),
