@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/health/health_medical_visualization.dart';
 import 'dart:async';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -437,9 +438,10 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                   ),
                 ),
               const SizedBox(height: 12),
-              ScaleTransition(
-                scale: _pulseController,
-                child: Icon(Icons.favorite, size: 86, color: _measuring ? Colors.red : Colors.grey.shade400),
+              HealthMedicalVisualization(
+                model: HealthMedicalModel.heart,
+                size: 170,
+                active: _measuring,
               ),
               const SizedBox(height: 12),
               Text(
