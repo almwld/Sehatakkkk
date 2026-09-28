@@ -352,7 +352,7 @@ app.post('/call-notification', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Receiver not found', requestId });
     }
     const receiver = receiverSnapshot.data() || {};
-    const tokenSnapshot = await db.collection('users').doc(receiverUid).collection('private').doc('tokens').get();
+    const tokenSnapshot = await db.collection('users').doc(receiverId).collection('private').doc('tokens').get();
     const tokenData = tokenSnapshot.data() || {};
     const fcmTokens = Array.isArray(tokenData.tokens) ? tokenData.tokens.map(v => String(v || '').trim()).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i) : [];
     if (!fcmTokens.length) return res.status(200).json({success:true,sent:false,reason:'fcm_token_missing',requestId,receiverId});
@@ -366,10 +366,10 @@ app.post('/call-notification', async (req, res) => {
         callerId,
         receiverId,
         userId: receiverId,
-        callerName,
-        callerPhotoUrl,
-        isVideo: isVideo ? 'true' : 'false',
-        callType: isVideo ? 'video' : 'audio',
+        callerName: String(call.callerName || 'مستخدم'),
+        callerPhotoUrl: String(call.callerPhotoUrl || ''),
+        isVideo: Boolean(call.isVideo || call.isVideoCall) ? 'true' : 'false',
+        callType: String(call.callType || ((call.isVideo || call.isVideoCall) ? 'video' : 'audio')),
       },
       android: {
         priority: 'high',
@@ -563,30 +563,7 @@ async function handleNewMessage(change) {
   }
 }
 
-function startMessageListener() {
-  try {
-    var startTime = new Date();
-    console.log('[msg] listener starting since ' + startTime.toISOString());
-    db.collectionGroup('messages')
-      .where('timestamp', '>=', startTime)
-      .orderBy('timestamp', 'asc')
-      .onSnapshot(
-        function(snap) {
-          snap.docChanges().forEach(function(change) {
-            if (change.type !== 'added') return;
-            handleNewMessage(change).catch(function(err) {
-              console.error('[msg] unhandled: ' + (err.message || err));
-            });
-          });
-        },
-        function(err) { console.error('[msg] snapshot error: ' + (err.message || err)); }
-      );
-    console.log('[msg] listener active.');
-  } catch (err) {
-    console.error('[msg] listener failed: ' + (err.message || err));
-  }
-}
-// ============================================================
+// Message FCM is owned exclusively by the Firebase Firestore trigger.\n// ============================================================
 
 app.use((error, _req, res, _next) => {
   if (error instanceof SyntaxError) return res.status(400).json({ success: false, message: 'Invalid JSON body' });
@@ -597,5 +574,5 @@ app.use((error, _req, res, _next) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Sehatak LiveKit token server running on port ${PORT}`);
   console.log(`LIVEKIT_URL: ${LIVEKIT_URL}`);
-  startMessageListener();
+
 });
