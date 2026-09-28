@@ -1,9 +1,5 @@
 const express = require('express');
 const { getFirestore } = require('../services/firebase.service');
-const {
-  sendNewMessageNotification,
-} = require('../services/notification.service');
-
 const router = express.Router();
 
 /**
@@ -612,43 +608,8 @@ router.post('/:chatId/messages', async (req, res) => {
       unreadCount: currentUnreadCount + 1,
     });
 
-    /*
-     * إرسال إشعار FCM بعد نجاح حفظ الرسالة.
-     *
-     * فشل FCM لا يعني فشل إرسال الرسالة نفسها؛
-     * الرسالة محفوظة بالفعل في Firestore.
-     */
-    if (finalReceiverId) {
-      const senderName =
-        currentUserId === String(chatData?.patientId)
-          ? (chatData?.patientName || req.user?.name || req.user?.displayName || 'مستخدم')
-          : currentUserId === String(chatData?.doctorId)
-            ? (chatData?.doctorName || req.user?.name || req.user?.displayName || 'مستخدم')
-            : (req.user?.name || req.user?.displayName || 'مستخدم');
+    // Message FCM is emitted only by the Firestore trigger in functions/chat_notifications.js.
 
-      const senderPhotoUrl =
-        currentUserId === String(chatData?.patientId)
-          ? (chatData?.patientImage || '')
-          : currentUserId === String(chatData?.doctorId)
-            ? (chatData?.doctorImage || '')
-            : (req.user?.photoURL || '');
-      await sendNewMessageNotification({
-        receiverId: finalReceiverId,
-        chatId,
-        senderId: currentUserId,
-        senderName,
-        senderPhotoUrl,
-        text,
-        type,
-        imageUrl,
-        videoUrl: req.body?.videoUrl ?? null,
-        audioUrl,
-        fileUrl,
-        fileName,
-        fileMimeType: req.body?.fileMimeType ?? fileType,
-        fileSize,
-      });
-    }
 
     return res.status(201).json({
       success: true,
