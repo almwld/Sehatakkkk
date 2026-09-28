@@ -486,25 +486,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 260),
-          reverseDuration: const Duration(milliseconds: 190),
-          transitionBuilder: (child, animation) => SizeTransition(
-            sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-            axisAlignment: 1,
-            child: FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
-                    .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-                child: child,
-              ),
-            ),
-          ),
-          child: _attachments
-              ? _mediaMenu(dark)
-              : const SizedBox.shrink(key: ValueKey('closed')),
-        ),
         Material(
           color: Colors.transparent,
           child: SafeArea(
@@ -524,34 +505,21 @@ class _ChatInputBarState extends State<ChatInputBar> {
                             borderRadius: BorderRadius.circular(24),
                           ),
                           child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 46, maxHeight: 130),
+                            constraints: const BoxConstraints(minHeight: 46, maxHeight: 130),
                             child: TextField(
-                        controller: _controller,
-                        focusNode: _focus,
-                        minLines: 1,
-                        maxLines: 5,
-                        textDirection: TextDirection.rtl,
-                        keyboardType: TextInputType.multiline,
-                        decoration: InputDecoration(
-                          hintText: 'اكتب رسالة...',
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsetsDirectional.fromSTEB(44, 11, 4, 11),
-                          suffixIcon: IconButton(
-                            tooltip: _hasText ? 'إرسال' : 'تسجيل صوتي',
-                            onPressed: _sending
-                                ? null
-                                : (_hasText ? _sendText : _startRecording),
-                            padding: EdgeInsets.zero,
-                            icon: Icon(
-                              _hasText ? Icons.send_rounded : Icons.mic_rounded,
-                              color: _sending ? Colors.grey : AppColors.primary,
-                              size: 25,
+                              controller: _controller,
+                              focusNode: _focus,
+                              minLines: 1,
+                              maxLines: 5,
+                              textDirection: TextDirection.rtl,
+                              keyboardType: TextInputType.multiline,
+                              decoration: const InputDecoration(
+                                hintText: 'اكتب رسالة...',
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsetsDirectional.fromSTEB(44, 11, 4, 11),
+                              ),
                             ),
-                          ),
-                          suffixIconConstraints: const BoxConstraints(
-                            minWidth: 42,
-                            minHeight: 42,
                           ),
                         ),
                         PositionedDirectional(
@@ -571,10 +539,44 @@ class _ChatInputBarState extends State<ChatInputBar> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 5),
+                  GestureDetector(
+                    onTap: _sending
+                        ? null
+                        : (_hasText ? _sendText : _startRecording),
+                    child: Icon(
+                      _hasText ? Icons.send_rounded : Icons.mic_rounded,
+                      color: _sending ? Colors.grey : AppColors.primary,
+                      size: 27,
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
+        ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 260),
+          reverseDuration: const Duration(milliseconds: 190),
+          transitionBuilder: (child, animation) => SizeTransition(
+            sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            axisAlignment: -1,
+            child: FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, -0.08),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                ),
+                child: child,
+              ),
+            ),
+          ),
+          child: _attachments
+              ? _mediaMenu(dark)
+              : const SizedBox.shrink(key: ValueKey('closed')),
         ),
       ],
     );
