@@ -34,7 +34,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
       if(readings.isEmpty&&data['systolic'] is num&&data['diastolic'] is num){
         readings.add({'systolic':data['systolic'],'diastolic':data['diastolic'],'pulse':data['heartRate']??0,'time':data['blood_pressure_at']??''});
       }
-      setState(()=>{_readings=readings,_history=history,_loading=false});
+      setState(() { _readings = readings; _history = history; _loading = false; });
     });
   }
   @override void dispose(){_sub?.cancel();_sys.dispose();_dia.dispose();_pulse.dispose();super.dispose();}
@@ -47,7 +47,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
       final now=DateTime.now(),dateKey=_formatDate(now);
       await HealthMetricsService.update({'systolic':s,'diastolic':d,'heartRate':p??0,'blood_pressure_at':now.toIso8601String(),'blood_pressure_history':{dateKey:{'systolic':s,'diastolic':d,'pulse':p??0,'time':now.toIso8601String()}}});
       if(!mounted)return;
-      setState(()=>{_adding=false,_saving=false});_sys.clear();_dia.clear();_pulse.clear();
+      setState(() { _adding = false; _saving = false; });_sys.clear();_dia.clear();_pulse.clear();
       ToastService.showSuccess('تم حفظ القياس');
     }catch(e){if(!mounted)return;setState(()=>_saving=false);ToastService.showError('فشل الحفظ: $e');}
   }
