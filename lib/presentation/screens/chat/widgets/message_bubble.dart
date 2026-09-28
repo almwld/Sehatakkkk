@@ -141,7 +141,20 @@ class _MessageBubbleState extends State<MessageBubble> {
         return _withStatus(_buildVideo(m['videoUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? ''));
       case 'audio':
         final url = m['audioUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
-        return _withStatus(_shell(AudioWaveformBubble(audioUrl: url, isMe: widget.isMe, isLocal: _isLocal(url)), dark));
+        // Keep the original opaque audio-message bubble appearance from 5777e10.
+        // Delivery/read state remains an icon beside the bubble.
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          textDirection: widget.isMe ? TextDirection.ltr : TextDirection.rtl,
+          children: [
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 7, bottom: 6),
+              child: _mediaStatus(m),
+            ),
+            _shell(AudioWaveformBubble(audioUrl: url, isMe: widget.isMe, isLocal: _isLocal(url)), dark),
+          ],
+        );
       case 'file':
         return _withStatus(_buildFile(m, dark));
       case 'call':
