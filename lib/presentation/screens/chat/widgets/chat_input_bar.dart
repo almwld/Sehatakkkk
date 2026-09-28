@@ -514,18 +514,9 @@ class _ChatInputBarState extends State<ChatInputBar> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  IconButton(
-                    onPressed: _sending ? null : _toggleAttachments,
-                    icon: AnimatedRotation(
-                      turns: _attachments ? .125 : 0,
-                      duration: const Duration(milliseconds: 220),
-                      child: const Icon(Icons.add_circle_outline),
-                    ),
-                  ),
                   Expanded(
-                    child: Container(
+                    child: ConstrainedBox(
                       constraints: const BoxConstraints(minHeight: 46, maxHeight: 130),
-                      decoration: const BoxDecoration(),
                       child: TextField(
                         controller: _controller,
                         focusNode: _focus,
@@ -533,21 +524,43 @@ class _ChatInputBarState extends State<ChatInputBar> {
                         maxLines: 5,
                         textDirection: TextDirection.rtl,
                         keyboardType: TextInputType.multiline,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'اكتب رسالة...',
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 11),
+                          prefixIcon: IconButton(
+                            tooltip: 'إضافة',
+                            onPressed: _sending ? null : _toggleAttachments,
+                            padding: EdgeInsets.zero,
+                            icon: AnimatedRotation(
+                              turns: _attachments ? .125 : 0,
+                              duration: const Duration(milliseconds: 220),
+                              child: const Icon(Icons.add_rounded),
+                            ),
+                          ),
+                          prefixIconConstraints: const BoxConstraints(
+                            minWidth: 42,
+                            minHeight: 42,
+                          ),
+                          suffixIcon: IconButton(
+                            tooltip: _hasText ? 'إرسال' : 'تسجيل صوتي',
+                            onPressed: _sending
+                                ? null
+                                : (_hasText ? _sendText : _startRecording),
+                            padding: EdgeInsets.zero,
+                            icon: Icon(
+                              _hasText ? Icons.send_rounded : Icons.mic_rounded,
+                              color: _sending ? Colors.grey : AppColors.primary,
+                              size: 25,
+                            ),
+                          ),
+                          suffixIconConstraints: const BoxConstraints(
+                            minWidth: 42,
+                            minHeight: 42,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  GestureDetector(
-                    onTap: _hasText ? _sendText : _startRecording,
-                    child: Icon(
-                      _hasText ? Icons.send_rounded : Icons.mic_rounded,
-                      color: _sending ? Colors.grey : AppColors.primary,
-                      size: 27,
                     ),
                   ),
                 ],
