@@ -90,7 +90,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
       const SizedBox(height:12),TextField(controller:_pulse,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'النبض BPM (اختياري)',border:OutlineInputBorder())),const SizedBox(height:16),
       Row(children:[Expanded(child:TextButton(onPressed:_saving?null:()=>setState(()=>_adding=false),child:const Text('إلغاء'))),const SizedBox(width:10),Expanded(child:ElevatedButton(onPressed:_saving?null:_save,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:_saving?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Text('حفظ')))])
     ])
-  ))));
+  )))));
 
   String _formatDate(DateTime d)=>'${d.year}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
   String _time(String s){final d=DateTime.tryParse(s);return d==null?s:'${d.day}/${d.month} ${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')}';}
