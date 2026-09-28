@@ -179,7 +179,7 @@ Future<void> main() async {
               uid: FirebaseAuth.instance.currentUser?.uid ?? '')),
       ChangeNotifierProvider(create: (_) => CartProvider()),
       BlocProvider(create: (_) => AuthBloc()..add(CheckAuthStatus())),
-      BlocProvider(create: (_) => ThemeBloc(initialMode: ThemeMode.dark)..loadSavedThemeMode()),
+      BlocProvider(create: (_) => ThemeBloc(initialMode: ThemeMode.dark)..restoreSavedThemeMode()),
       BlocProvider(create: (_) => HomeBloc()..add(HomeStarted())),
       BlocProvider(create: (_) => ChatBloc()),
       BlocProvider(create: (_) => MessagesBloc()),
