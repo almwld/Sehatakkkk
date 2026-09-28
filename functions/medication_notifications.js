@@ -3,9 +3,9 @@ const admin = require('firebase-admin');
 const db = admin.firestore();
 
 async function sendToUser(uid, data) {
-  const snap = await db.collection('users').doc(uid).get();
-  const u = snap.data() || {};
-  const tokens = [...(Array.isArray(u.fcmTokens) ? u.fcmTokens : []), u.fcmToken].map(v => String(v || '').trim()).filter(Boolean);
+  const tokenSnap = await db.collection('users').doc(uid).collection('private').doc('tokens').get();
+  const tokenData = tokenSnap.data() || {};
+  const tokens = Array.isArray(tokenData.tokens) ? tokenData.tokens.map(v => String(v || '').trim()).filter(Boolean) : [];
   if (!tokens.length) return;
   try {
     await admin.messaging().sendEachForMulticast({tokens, data: Object.fromEntries(Object.entries(data).map(([k,v]) => [k, String(v ?? '')])), android:{priority:'high', ttl:3600000}, apns:{headers:{'apns-priority':'5','apns-push-type':'background'},payload:{aps:{'content-available':1}}}});

@@ -1,3 +1,4 @@
+const admin = require('firebase-admin');
 const { getMessaging, getFirestore } = require('./firebase.service');
 
 /**
@@ -100,8 +101,10 @@ async function sendToUser({
     };
   }
 
-  const userData = userSnapshot.data() || {};
-  const token = userData.fcmToken;
+  const tokenSnapshot = await db.collection('users').doc(String(userId)).collection('private').doc('tokens').get();
+  const tokenData = tokenSnapshot.data() || {};
+  const tokens = Array.isArray(tokenData.tokens) ? tokenData.tokens.map(v => String(v || '').trim()).filter(Boolean) : [];
+  const token = tokens[0] || '';
 
   if (!token || typeof token !== 'string' || !token.trim()) {
     return {
@@ -112,7 +115,7 @@ async function sendToUser({
   }
 
   const message = {
-    token: token.trim(),
+    token,
 
     ...(dataOnly
       ? {}
@@ -174,10 +177,9 @@ async function sendToUser({
         await db
           .collection('users')
           .doc(String(userId))
-          .update({
-            fcmToken: null,
-            lastTokenUpdate: null,
-          });
+          .collection('private')
+          .doc('tokens')
+          .update({tokens: admin.firestore.FieldValue.arrayRemove(token),updatedAt:new Date()});
       } catch (cleanupError) {
         console.error(
           'Failed to remove invalid FCM token:',

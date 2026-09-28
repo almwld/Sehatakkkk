@@ -23,11 +23,16 @@ exports.archiveNotificationUnreadCounter=onDocumentCreated('notifications/{notif
   await db.collection('users').doc(uid).set({unreadNotificationsCount:admin.firestore.FieldValue.increment(1)},{merge:true});
 });
 
+async function getFcmTokens(uid){
+  const snap=await db.collection('users').doc(uid).collection('private').doc('tokens').get();
+  const data=snap.data()||{};
+  return Array.isArray(data.tokens)?data.tokens.map(v=>String(v||'').trim()).filter(Boolean):[];
+}
+
 async function sendToUser(uid,payload){
   if(!uid)return;
   const snap=await db.collection('users').doc(uid).get();
-  const userData=snap.data()||{};
-  const tokens=[...(Array.isArray(userData.fcmTokens)?userData.fcmTokens:[]), userData.fcmToken].map(v=>String(v||'').trim()).filter(Boolean);
+  const tokens=await getFcmTokens(uid);
   if(!tokens.length)return;
   try{
     const type=String(payload.data?.type||'');
@@ -56,7 +61,8 @@ async function sendToUser(uid,payload){
   }catch(e){
     console.error(`FCM send failed for ${uid}:`,e.message);
     if(['messaging/registration-token-not-registered','messaging/invalid-registration-token'].includes(e.code)){
-      await db.collection('users').doc(uid).set({fcmToken:null},{merge:true});
+      const invalid = String(e.token || '').trim();
+      if (invalid) await db.collection('users').doc(uid).collection('private').doc('tokens').update({tokens: admin.firestore.FieldValue.arrayRemove(invalid),updatedAt: admin.firestore.FieldValue.serverTimestamp()});
     }
   }
 }

@@ -50,14 +50,7 @@ class AuthService {
     await _auth.signOut();
   }
 
-  // ✅ تحديث FCM Token
-  Future<void> updateFCMToken(String token) async {
-    final userId = currentUserId;
-    if (userId == null) return;
-    await _firestore.collection('users').doc(userId).update({
-      'fcmToken': token,
-    });
-  }
+  // FCM token synchronization is owned by FcmTokenService.
 
   // ✅ الحصول على ID Token
   Future<String> getIdToken() async {

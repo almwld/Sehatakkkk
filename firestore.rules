@@ -47,6 +47,11 @@ service cloud.firestore {
                 .hasOnly(['fcmToken', 'fcmTokens', 'lastTokenUpdate']));
       allow delete: if isAdmin();
 
+      // Canonical private FCM token storage. Legacy fields remain only for migration.
+      match /private/tokens {
+        allow read, create, update, delete: if isSelf(userId);
+      }
+
       match /vital_history/{historyId} { allow read, write: if isSelf(userId); }
 
       match /favorites/{doctorId} {

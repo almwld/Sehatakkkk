@@ -352,25 +352,11 @@ app.post('/call-notification', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Receiver not found', requestId });
     }
     const receiver = receiverSnapshot.data() || {};
-    const fcmTokens = [...(Array.isArray(receiver.fcmTokens) ? receiver.fcmTokens : []), receiver.fcmToken]
-      .map((value) => String(value || '').trim())
-      .filter(Boolean)
-      .filter((value, index, all) => all.indexOf(value) === index);
+    const tokenSnapshot = await db.collection('users').doc(receiverUid).collection('private').doc('tokens').get();
+    const tokenData = tokenSnapshot.data() || {};
+    const fcmTokens = Array.isArray(tokenData.tokens) ? tokenData.tokens.map(v => String(v || '').trim()).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i) : [];
+    if (!fcmTokens.length) return res.status(200).json({success:true,sent:false,reason:'fcm_token_missing',requestId,receiverId});
 
-    if (!fcmTokens.length) {
-      console.error(`❌ [${requestId}] receiver has no FCM token(s) uid=${receiverId}`);
-      return res.status(200).json({ success: true, sent: false, reason: 'fcm_token_missing', requestId });
-    }
-
-    const isVideo = call.isVideoCall === true || String(call.callType || '') === 'video';
-    const callerName = String(call.callerName || decodedToken.name || 'مستخدم');
-    const callerPhotoUrl = String(call.callerPhotoUrl || '');
-    // Incoming calls intentionally use a HIGH-prIORITY data-only payload.
-    // This lets FirebaseMessaging.onBackgroundMessage run and hand the call
-    // to NotificationService, which owns the IMPORTANCE_MAX + full-screen
-    // notification and call action buttons. A notification payload would let
-    // Android render a normal status-bar notification, but would bypass this
-    // Flutter full-screen call path while the app is backgrounded/terminated.
     const message = {
       tokens: fcmTokens,
       data: {
@@ -400,13 +386,7 @@ app.post('/call-notification', async (req, res) => {
         }
       });
       if (invalidTokens.length) {
-        await db.collection('users').doc(receiverId).set({
-          fcmTokens: admin.firestore.FieldValue.arrayRemove(...invalidTokens),
-          ...(fcmTokens.every((token) => invalidTokens.includes(token))
-            ? { fcmToken: null }
-            : {}),
-          lastTokenUpdate: admin.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true });
+        await db.collection('users').doc(receiverId).collection('private').doc('tokens').update({tokens: admin.firestore.FieldValue.arrayRemove(...invalidTokens),updatedAt: admin.firestore.FieldValue.serverTimestamp()});
       }
       if (response.failureCount === response.successCount + response.failureCount && response.successCount === 0) {
         const firstError = response.responses.find((result) => !result.success)?.error;
