@@ -66,6 +66,18 @@ class _HealthMedicalVisualizationState extends State<HealthMedicalVisualization>
   @override Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final scale = 0.96 + (_controller.value * 0.04);
+    final fallback = Image.asset(
+      _imageAsset,
+      width: widget.size * .82,
+      height: widget.size * .82,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => Icon(
+        Icons.health_and_safety_rounded,
+        size: widget.size * .52,
+        color: AppColors.primary,
+      ),
+    );
+
     final content = _lottieAsset != null
         ? Lottie.asset(
             _lottieAsset!,
@@ -73,6 +85,7 @@ class _HealthMedicalVisualizationState extends State<HealthMedicalVisualization>
             height: widget.size,
             fit: BoxFit.contain,
             controller: _controller,
+            errorBuilder: (_, __, ___) => fallback,
             onLoaded: (composition) {
               _controller.duration = composition.duration;
               if (widget.active) {
@@ -83,8 +96,7 @@ class _HealthMedicalVisualizationState extends State<HealthMedicalVisualization>
               }
             },
           )
-        : Image.asset(_imageAsset, width: widget.size * .82, height: widget.size * .82, fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => Icon(Icons.health_and_safety_rounded, size: widget.size * .52, color: AppColors.primary));
+        : fallback;
     return Container(
       width: widget.size + 20, height: widget.size + 20, padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
