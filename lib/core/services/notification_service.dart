@@ -27,7 +27,7 @@ void notificationActionBackgroundHandler(NotificationResponse response) async {
     debugPrint('❌ background notification action Firebase init failed: $e');
     return;
   }
-  if (action == 'call_answer' || action == 'call_reject' || action == 'call_message') {
+  if (action == 'call_answer' || action == 'call_reject') {
     await handleCallNotificationAction(action: action, payload: response.payload);
     return;
   }
@@ -101,7 +101,7 @@ Future<void> handleCallNotificationAction({
   required String action,
   String? payload,
 }) async {
-  if (!['call_answer', 'call_reject', 'call_message'].contains(action)) return;
+  if (!['call_answer', 'call_reject'].contains(action)) return;
   final envelope = await _decodeNotificationEnvelope(payload);
   final data = envelope?['data'] is Map
       ? Map<String, dynamic>.from(envelope!['data'])
