@@ -518,9 +518,14 @@ class _ChatInputBarState extends State<ChatInputBar> {
                     child: Stack(
                       alignment: AlignmentDirectional.centerStart,
                       children: [
-                        ConstrainedBox(
+                        Container(
+                          decoration: BoxDecoration(
+                            color: dark ? const Color(0xFF121A29) : Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 46, maxHeight: 130),
-                          child: TextField(
+                            child: TextField(
                         controller: _controller,
                         focusNode: _focus,
                         minLines: 1,
