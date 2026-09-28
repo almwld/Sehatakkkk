@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/health/health_medical_visualization.dart';
 import 'package:sehatak/core/services/health_metrics_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
@@ -52,6 +53,16 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
       body: _loading ? const Center(child: CircularProgressIndicator()) : ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Center(
+              child: HealthMedicalVisualization(
+                model: HealthMedicalModel.weight,
+                size: 118,
+                active: true,
+              ),
+            ),
+          ),
           Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(24)), child: Row(children: [
             Container(width: 58, height: 58, decoration: BoxDecoration(color: Colors.white.withOpacity(.14), shape: BoxShape.circle), child: const Icon(Icons.monitor_weight_outlined, color: Colors.white, size: 30)),
             const SizedBox(width: 14),
