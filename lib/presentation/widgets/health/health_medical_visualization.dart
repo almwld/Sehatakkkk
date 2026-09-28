@@ -23,7 +23,16 @@ class _HealthMedicalVisualizationState extends State<HealthMedicalVisualization>
   }
   @override void dispose() { _controller.dispose(); super.dispose(); }
 
-  String? get _lottieAsset => widget.model == HealthMedicalModel.heart ? 'assets/animations/heart_measurement_guide.json' : null;
+  String? get _lottieAsset {
+    switch (widget.model) {
+      case HealthMedicalModel.heart:
+        return 'assets/animations/medical/heart.json';
+      case HealthMedicalModel.steps:
+        return 'assets/animations/medical/activity.json';
+      default:
+        return null;
+    }
+  }
 
   String get _imageAsset {
     switch (widget.model) {
