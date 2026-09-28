@@ -128,7 +128,7 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   VideoTrack? _remoteVideoTrack() {
-    final participants = _room?.remoteParticipants.values ?? const <RemoteParticipant>[];
+    final participants = _room?.participants.values ?? const <RemoteParticipant>[];
     for (final participant in participants) {
       for (final publication in participant.videoTracks) {
         final track = publication.track;
@@ -264,7 +264,7 @@ class _CallScreenState extends State<CallScreen> {
   Widget _buildVideoSurface() {
     final remote = _remoteVideoTrack();
     if (remote != null) {
-      return VideoTrackRenderer(remote, fit: VideoViewFit.cover);
+      return VideoTrackRenderer(remote);
     }
     return const ColoredBox(color: Colors.black);
   }
@@ -279,7 +279,7 @@ class _CallScreenState extends State<CallScreen> {
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: VideoTrackRenderer(local, fit: VideoViewFit.cover),
+      child: VideoTrackRenderer(local),
     );
   }
 
