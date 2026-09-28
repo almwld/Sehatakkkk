@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/health/health_medical_visualization.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
@@ -94,7 +95,18 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
               Expanded(child: _metricCard('السعرات', _calories.toString() + ' kcal', Icons.local_fire_department_outlined, isDark)),
             ]),
             const SizedBox(height: 16),
-            _buildWeeklyChart(isDark),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                HealthMedicalVisualization(
+                  model: HealthMedicalModel.steps,
+                  size: 118,
+                  active: _tracking,
+                ),
+                const SizedBox(width: 10),
+                Expanded(child: _buildWeeklyChart(isDark)),
+              ],
+            ),
             const SizedBox(height: 16),
             _buildActivityRing(isDark, progress, goalRemaining),
             const SizedBox(height: 16),
