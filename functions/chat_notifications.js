@@ -31,7 +31,6 @@ async function getFcmTokens(uid){
 
 async function sendToUser(uid,payload){
   if(!uid)return;
-  const snap=await db.collection('users').doc(uid).get();
   const tokens=await getFcmTokens(uid);
   if(!tokens.length)return;
   try{
@@ -57,6 +56,10 @@ async function sendToUser(uid,payload){
       },
     };
     const response=await admin.messaging().sendEachForMulticast(message);
+    const invalidTokens=response.responses.map((result,index)=>!result.success && ['messaging/registration-token-not-registered','messaging/invalid-registration-token'].includes(result.error?.code)?tokens[index]:'').filter(Boolean);
+    if(invalidTokens.length){
+      await db.collection('users').doc(uid).collection('private').doc('tokens').update({tokens:admin.firestore.FieldValue.arrayRemove(...invalidTokens),updatedAt:admin.firestore.FieldValue.serverTimestamp()});
+    }
     if(response.failureCount){ console.warn(`FCM multicast failures for ${uid}: ${response.failureCount}`); }
   }catch(e){
     console.error(`FCM send failed for ${uid}:`,e.message);
