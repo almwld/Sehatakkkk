@@ -117,8 +117,8 @@ Future<void> handleCallNotificationAction({
   final snap = await ref.get();
   if (!snap.exists) return;
   final call = snap.data() ?? <String, dynamic>{};
-  if (String(call['receiverId'] ?? '') != uid) return;
-  final status = String(call['status'] ?? '');
+  if ((call['receiverId']?.toString() ?? '') != uid) return;
+  final status = call['status']?.toString() ?? '';
   if (status != 'calling' && status != 'ringing') return;
   if (action == 'call_answer') {
     await ref.update(<String, dynamic>{
