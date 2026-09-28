@@ -15,6 +15,10 @@ class HealthMedicalVisualization extends StatefulWidget {
 class _HealthMedicalVisualizationState extends State<HealthMedicalVisualization> with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
 
+  void _startAnimation() {
+    if (widget.active && !_controller.isAnimating) _controller.repeat(reverse: true);
+  }
+
   @override void initState() { super.initState(); if (widget.active) _controller.repeat(reverse: true); }
   @override void didUpdateWidget(covariant HealthMedicalVisualization oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -51,7 +55,22 @@ class _HealthMedicalVisualizationState extends State<HealthMedicalVisualization>
     final dark = Theme.of(context).brightness == Brightness.dark;
     final scale = 0.96 + (_controller.value * 0.04);
     final content = _lottieAsset != null
-        ? Lottie.asset(_lottieAsset!, width: widget.size, height: widget.size, fit: BoxFit.contain, repeat: true)
+        ? Lottie.asset(
+            _lottieAsset!,
+            width: widget.size,
+            height: widget.size,
+            fit: BoxFit.contain,
+            controller: _controller,
+            onLoaded: (composition) {
+              _controller.duration = composition.duration;
+              if (widget.active) {
+                _startAnimation();
+              } else {
+                _controller.stop();
+                _controller.value = 0;
+              }
+            },
+          )
         : Image.asset(_imageAsset, width: widget.size * .82, height: widget.size * .82, fit: BoxFit.contain,
             errorBuilder: (_, __, ___) => Icon(Icons.health_and_safety_rounded, size: widget.size * .52, color: AppColors.primary));
     return Container(
