@@ -770,7 +770,9 @@ class NotificationService {
             'الرد',
             icon: DrawableResourceAndroidBitmap('ic_call_answer'),
             titleColor: const Color(0xFF2DBE68),
-            showsUserInterface: false,
+            // Answer must return to the Flutter UI so the app can open
+            // IncomingCall/CallScreen and complete the LiveKit join.
+            showsUserInterface: true,
             cancelNotification: true,
           ),
           AndroidNotificationAction(
