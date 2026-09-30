@@ -483,29 +483,52 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     if (_recording || _hasRecording) return _voiceBar(dark);
+
+    final surface = dark ? const Color(0xFF16202A) : const Color(0xFFF7FBFA);
+    final field = dark ? const Color(0xFF202C35) : Colors.white;
+    final muted = dark ? const Color(0xFF9FB0B8) : const Color(0xFF6B7C79);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Material(
-          color: Colors.transparent,
+          color: surface,
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+              padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
-                    child: Stack(
-                      alignment: AlignmentDirectional.centerStart,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: dark ? const Color(0xFF121A29) : Colors.white,
-                            borderRadius: BorderRadius.circular(24),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      constraints: const BoxConstraints(minHeight: 46, maxHeight: 132),
+                      decoration: BoxDecoration(
+                        color: field,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: AppColors.primary.withOpacity(dark ? .12 : .08),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            tooltip: 'المرفقات',
+                            onPressed: _sending ? null : _toggleAttachments,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 42,
+                              minHeight: 42,
+                            ),
+                            icon: AnimatedRotation(
+                              turns: _attachments ? .125 : 0,
+                              duration: const Duration(milliseconds: 220),
+                              child: Icon(Icons.add_rounded, color: muted, size: 24),
+                            ),
                           ),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 46, maxHeight: 130),
+                          Expanded(
                             child: TextField(
                               controller: _controller,
                               focusNode: _focus,
@@ -513,41 +536,75 @@ class _ChatInputBarState extends State<ChatInputBar> {
                               maxLines: 5,
                               textDirection: TextDirection.rtl,
                               keyboardType: TextInputType.multiline,
-                              decoration: const InputDecoration(
+                              style: TextStyle(
+                                color: dark ? Colors.white : const Color(0xFF263238),
+                                fontSize: 16,
+                              ),
+                              decoration: InputDecoration(
                                 hintText: 'اكتب رسالة...',
+                                hintStyle: TextStyle(color: muted, fontSize: 15),
                                 border: InputBorder.none,
                                 isDense: true,
-                                contentPadding: EdgeInsetsDirectional.fromSTEB(44, 11, 4, 11),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 11,
+                                  horizontal: 2,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        PositionedDirectional(
-                          start: 2,
-                          child: IconButton(
-                            tooltip: 'إضافة',
-                            onPressed: _sending ? null : _toggleAttachments,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                            icon: AnimatedRotation(
-                              turns: _attachments ? .125 : 0,
-                              duration: const Duration(milliseconds: 220),
-                              child: const Icon(Icons.add_rounded),
+                          if (!_hasText)
+                            IconButton(
+                              tooltip: 'الكاميرا',
+                              onPressed: _sending
+                                  ? null
+                                  : () => _pickImage(ImageSource.camera),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 42,
+                                minHeight: 42,
+                              ),
+                              icon: Icon(
+                                Icons.camera_alt_rounded,
+                                color: muted,
+                                size: 22,
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 5),
-                  GestureDetector(
-                    onTap: _sending
-                        ? null
-                        : (_hasText ? _sendText : _startRecording),
-                    child: Icon(
-                      _hasText ? Icons.send_rounded : Icons.mic_rounded,
-                      color: _sending ? Colors.grey : AppColors.primary,
-                      size: 27,
+                  const SizedBox(width: 7),
+                  Material(
+                    color: AppColors.primary,
+                    shape: const CircleBorder(),
+                    elevation: 1.5,
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: _sending
+                          ? null
+                          : (_hasText ? _sendText : _startRecording),
+                      child: SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Center(
+                          child: _sending
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(
+                                  _hasText
+                                      ? Icons.send_rounded
+                                      : Icons.mic_rounded,
+                                  color: Colors.white,
+                                  size: 23,
+                                ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -559,7 +616,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
           duration: const Duration(milliseconds: 260),
           reverseDuration: const Duration(milliseconds: 190),
           transitionBuilder: (child, animation) => SizeTransition(
-            sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            sizeFactor: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            ),
             axisAlignment: -1,
             child: FadeTransition(
               opacity: animation,
@@ -568,7 +628,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   begin: const Offset(0, -0.08),
                   end: Offset.zero,
                 ).animate(
-                  CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  ),
                 ),
                 child: child,
               ),
@@ -587,43 +650,127 @@ class _ChatInputBarState extends State<ChatInputBar> {
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                IconButton(
-                  onPressed: _sending ? null : _deleteRecording,
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                Material(
+                  color: dark ? const Color(0xFF202C35) : const Color(0xFFF1F6F5),
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _sending ? null : _deleteRecording,
+                    child: const SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Icon(Icons.delete_outline_rounded, size: 21),
+                    ),
+                  ),
                 ),
-                IconButton(
-                  onPressed: _sending || !_recording ? null : _togglePause,
-                  icon: Icon(_paused ? Icons.play_arrow : Icons.pause, color: AppColors.primary),
-                ),
+                const SizedBox(width: 7),
                 Expanded(
                   child: Container(
-                    height: 46,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 9),
                     decoration: BoxDecoration(
-                      color: dark ? const Color(0xFF26344D) : const Color(0xFFF1F4F5),
-                      borderRadius: BorderRadius.circular(23),
+                      color: dark ? const Color(0xFF202C35) : Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(dark ? .14 : .10),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(_recording ? Icons.mic : Icons.mic_none,
-                            color: _recording ? Colors.red : AppColors.primary),
-                        const SizedBox(width: 8),
-                        Text('${_duration.inMinutes.toString().padLeft(2, '0')}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}'),
-                        const SizedBox(width: 10),
-                        const Expanded(child: LinearProgressIndicator(minHeight: 3)),
+                        Material(
+                          color: AppColors.primary,
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: _sending || !_recording ? null : _togglePause,
+                            child: SizedBox(
+                              width: 38,
+                              height: 38,
+                              child: Icon(
+                                _paused
+                                    ? Icons.play_arrow_rounded
+                                    : Icons.pause_rounded,
+                                color: Colors.white,
+                                size: 21,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 9),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                height: 24,
+                                width: double.infinity,
+                                child: CustomPaint(
+                                  painter: _RecordingWaveformPainter(
+                                    progress: _duration.inSeconds == 0
+                                        ? 0
+                                        : (_duration.inSeconds % 60) / 60,
+                                    activeColor: AppColors.primary,
+                                    inactiveColor: dark
+                                        ? Colors.white24
+                                        : const Color(0xFFB8C8C5),
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _recording ? 'تسجيل...' : 'جاهز للإرسال',
+                                    style: TextStyle(
+                                      color: dark
+                                          ? Colors.white70
+                                          : const Color(0xFF526562),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_duration.inMinutes.toString().padLeft(2, '0')}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                                    style: TextStyle(
+                                      color: dark
+                                          ? Colors.white70
+                                          : const Color(0xFF526562),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: _sending ? null : (_recording ? _stopRecording : _sendRecording),
-                  icon: Icon(
-                    _recording ? Icons.stop_circle_outlined : Icons.send_rounded,
-                    color: AppColors.primary,
-                    size: 29,
+                const SizedBox(width: 7),
+                Material(
+                  color: AppColors.primary,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _sending
+                        ? null
+                        : (_recording ? _stopRecording : _sendRecording),
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(
+                        _recording
+                            ? Icons.stop_rounded
+                            : Icons.send_rounded,
+                        color: Colors.white,
+                        size: 23,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -764,3 +911,43 @@ class _ChatInputBarState extends State<ChatInputBar> {
         ),
       );
 }
+
+class _RecordingWaveformPainter extends CustomPainter {
+  const _RecordingWaveformPainter({
+    required this.progress,
+    required this.activeColor,
+    required this.inactiveColor,
+  });
+
+  final double progress;
+  final Color activeColor;
+  final Color inactiveColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+
+    const bars = 42;
+    final spacing = size.width / bars;
+    for (var i = 0; i < bars; i++) {
+      final x = (i + .5) * spacing;
+      final normalized = ((i * 37) % 17 + 3) / 20;
+      final height = size.height * (.25 + normalized * .65);
+      paint.color = i / bars <= progress ? activeColor : inactiveColor;
+      canvas.drawLine(
+        Offset(x, (size.height - height) / 2),
+        Offset(x, (size.height + height) / 2),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RecordingWaveformPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.activeColor != activeColor ||
+      oldDelegate.inactiveColor != inactiveColor;
+}
+
