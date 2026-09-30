@@ -167,12 +167,13 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
                   return Column(children: [
                     SizedBox(
                       height: 32,
-                      child: GestureDetector(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) => GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTapDown: _loading
                             ? null
                             : (details) {
-                                final width = context.size?.width ?? 1.0;
+                                final width = constraints.maxWidth;
                                 final normalized =
                                     (details.localPosition.dx / width).clamp(0.0, 1.0);
                                 _player.seek(
@@ -184,7 +185,7 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
                         onHorizontalDragUpdate: _loading
                             ? null
                             : (details) {
-                                final width = context.size?.width ?? 1.0;
+                                final width = constraints.maxWidth;
                                 final normalized =
                                     (details.localPosition.dx / width).clamp(0.0, 1.0);
                                 _player.seek(
@@ -193,12 +194,13 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
                                   ),
                                 );
                               },
-                        child: CustomPaint(
-                          painter: _VoiceWaveformPainter(
+                          child: CustomPaint(
+                            painter: _VoiceWaveformPainter(
                             progress: max <= 1 ? 0 : value / max,
                             foreground: _foreground,
                             muted: _foreground.withOpacity(.24),
-                            seed: widget.audioUrl.hashCode,
+                              seed: widget.audioUrl.hashCode,
+                            ),
                           ),
                         ),
                       ),
