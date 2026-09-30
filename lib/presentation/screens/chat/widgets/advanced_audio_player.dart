@@ -165,10 +165,44 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
                   final max = duration.inMilliseconds > 0 ? duration.inMilliseconds.toDouble() : 1.0;
                   final value = position.inMilliseconds.clamp(0, max.toInt()).toDouble();
                   return Column(children: [
-                    SizedBox(height: 20, child: SliderTheme(
-                      data: SliderTheme.of(context).copyWith(activeTrackColor: _foreground, inactiveTrackColor: _foreground.withOpacity(.22), thumbColor: _foreground, overlayColor: Colors.transparent, trackHeight: 2.5, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4)),
-                      child: Slider(value: value, min: 0, max: max, onChanged: _loading ? null : (v) => _player.seek(Duration(milliseconds: v.round()))),
-                    )),
+                    SizedBox(
+                      height: 32,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTapDown: _loading
+                            ? null
+                            : (details) {
+                                final width = context.size?.width ?? 1.0;
+                                final normalized =
+                                    (details.localPosition.dx / width).clamp(0.0, 1.0);
+                                _player.seek(
+                                  Duration(
+                                    milliseconds: (max * normalized).round(),
+                                  ),
+                                );
+                              },
+                        onHorizontalDragUpdate: _loading
+                            ? null
+                            : (details) {
+                                final width = context.size?.width ?? 1.0;
+                                final normalized =
+                                    (details.localPosition.dx / width).clamp(0.0, 1.0);
+                                _player.seek(
+                                  Duration(
+                                    milliseconds: (max * normalized).round(),
+                                  ),
+                                );
+                              },
+                        child: CustomPaint(
+                          painter: _VoiceWaveformPainter(
+                            progress: max <= 1 ? 0 : value / max,
+                            foreground: _foreground,
+                            muted: _foreground.withOpacity(.24),
+                            seed: widget.audioUrl.hashCode,
+                          ),
+                        ),
+                      ),
+                    ),
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                       Text(_format(position), style: TextStyle(color: _muted, fontSize: 9)),
                       Text(_format(duration), style: TextStyle(color: _muted, fontSize: 9)),
@@ -208,4 +242,56 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
       ),
     );
   }
+}
+
+
+class _VoiceWaveformPainter extends CustomPainter {
+  const _VoiceWaveformPainter({
+    required this.progress,
+    required this.foreground,
+    required this.muted,
+    required this.seed,
+  });
+
+  final double progress;
+  final Color foreground;
+  final Color muted;
+  final int seed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width <= 0 || size.height <= 0) return;
+    final paint = Paint()
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    const bars = 48;
+    final step = size.width / bars;
+    for (var i = 0; i < bars; i++) {
+      final mix = ((seed.abs() + i * 53) % 31) / 31.0;
+      final height = size.height * (.22 + mix * .68);
+      final x = (i + .5) * step;
+      paint.color = i / bars <= progress ? foreground : muted;
+      canvas.drawLine(
+        Offset(x, (size.height - height) / 2),
+        Offset(x, (size.height + height) / 2),
+        paint,
+      );
+    }
+    final x = size.width * progress.clamp(0.0, 1.0);
+    paint
+      ..color = foreground
+      ..strokeWidth = 1.5;
+    canvas.drawLine(
+      Offset(x, 2),
+      Offset(x, size.height - 2),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _VoiceWaveformPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.foreground != foreground ||
+      oldDelegate.muted != muted ||
+      oldDelegate.seed != seed;
 }
