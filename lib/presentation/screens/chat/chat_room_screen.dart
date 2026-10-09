@@ -134,6 +134,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
   Timer? _pendingRefreshTimer;
   Timer? _typingClearTimer;
+  int _pendingMediaLoadGeneration = 0;
   bool _otherTyping = false;
   List<MessageModel> _messages = [];
   final List<Map<String, dynamic>> _localMedia = [];
@@ -228,22 +229,47 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   }
 
   Future<void> _loadPendingMedia() async {
+    // Ignore stale concurrent reads: a slower outbox query must not overwrite
+    // a newer reconciliation after Firestore has already published the media.
+    final generation = ++_pendingMediaLoadGeneration;
     try {
       final jobs =
           await ChatMediaTransferService.instance.pendingForChat(widget.chatId);
-      if (!mounted) return;
-      final pending = jobs.map(_pendingMap).toList();
-      // Keep optimistic media visible until its Firestore message is observed.
-      // The outbox can become sent before the messages listener receives the
-      // new snapshot; clearing it here makes media disappear and reappear.
+      if (!mounted || generation != _pendingMediaLoadGeneration) return;
+
+      // Reconcile against the latest Firestore snapshot AFTER the await.
+      // Otherwise an old outbox result can resurrect a local audio bubble
+      // beside the canonical message and make the same recording appear twice.
+      final remoteIds = _messages.map((m) => m.id).toSet();
+      final remoteMediaKeys = _messages
+          .map((m) => m.idempotencyKey)
+          .whereType<String>()
+          .where((key) => key.startsWith('media_'))
+          .map((key) => key.substring('media_'.length))
+          .toSet();
+
+      bool alreadyPublished(Map<String, dynamic> media) {
+        final id = media['id']?.toString();
+        final outboxId = media['outboxId']?.toString();
+        return (id != null && remoteIds.contains(id)) ||
+            (outboxId != null && remoteMediaKeys.contains(outboxId));
+      }
+
+      final pending = jobs
+          .map(_pendingMap)
+          .where((media) => !alreadyPublished(media))
+          .toList();
       final pendingIds = pending
           .map((m) => m['outboxId']?.toString())
           .whereType<String>()
           .toSet();
-      final retained = _localMedia.where((m) {
-        final id = m['outboxId']?.toString();
-        return id != null && !pendingIds.contains(id);
+      final retained = _localMedia.where((media) {
+        final id = media['outboxId']?.toString();
+        return !alreadyPublished(media) &&
+            id != null &&
+            !pendingIds.contains(id);
       }).toList();
+
       setState(() {
         _localMedia
           ..clear()
