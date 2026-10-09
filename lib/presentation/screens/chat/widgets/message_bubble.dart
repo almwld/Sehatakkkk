@@ -150,9 +150,8 @@ class _MessageBubbleState extends State<MessageBubble> {
         return _withStatus(_buildVideo(m['videoUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? ''));
       case 'audio':
         final url = m['audioUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
-        // Keep playback controls inside the same bubble shell as text messages.
-        // The timestamp is inside the bubble; delivery state remains outside,
-        // in the same position used by text messages.
+        // Preserve the player's natural dimensions. Only the outer shell is
+        // shared with text messages so the bubble color stays identical.
         return Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -163,36 +162,10 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: _mediaStatus(m),
             ),
             _shell(
-              Padding(
-                padding: const EdgeInsets.fromLTRB(7, 5, 9, 5),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AudioWaveformBubble(
-                      audioUrl: url,
-                      isMe: widget.isMe,
-                      isLocal: _isLocal(url),
-                    ),
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.only(end: 2, top: 1),
-                        child: Text(
-                          _timeLabel(m['timestamp'] ?? m['clientTimestamp']),
-                          style: TextStyle(
-                            color: widget.isMe
-                                ? Colors.white70
-                                : (dark
-                                    ? Colors.white60
-                                    : const Color(0xFF6B7D7D)),
-                            fontSize: 9,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              AudioWaveformBubble(
+                audioUrl: url,
+                isMe: widget.isMe,
+                isLocal: _isLocal(url),
               ),
               dark,
             ),
