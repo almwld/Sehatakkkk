@@ -110,7 +110,8 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _shell(Widget child, bool dark) {
-    final isAudio = widget.message['type']?.toString() == 'audio';
+    // Text and audio messages share one bubble shell: identical fill,
+    // radius, incoming border and elevation. Only their inner content differs.
     final bubbleColor = widget.isMe
         ? AppColors.primary
         : (dark ? const Color(0xFF1A2540) : const Color(0xFFF9FCFB));
@@ -118,25 +119,14 @@ class _MessageBubbleState extends State<MessageBubble> {
       onLongPress: _options,
       child: Container(
         decoration: BoxDecoration(
-          // Keep the audio bubble explicitly opaque; the player itself paints
-          // only its controls and waveform, not the message background.
           color: bubbleColor,
           borderRadius: widget.isFirstInChat
               ? BorderRadius.circular(18)
               : BorderRadius.circular(14),
-          border: isAudio
-              ? Border.all(
-                  color: widget.isMe
-                      ? AppColors.primaryDark
-                      : (dark
-                          ? const Color(0xFF34485F)
-                          : const Color(0xFFC8DEDA)),
-                  width: isAudio && widget.isMe ? 1.0 : .8,
-                )
-              : (!widget.isMe && !dark
-                  ? Border.all(color: const Color(0xFFC8DEDA), width: .8)
-                  : null),
-          boxShadow: (!dark && (isAudio || !widget.isMe))
+          border: !widget.isMe && !dark
+              ? Border.all(color: const Color(0xFFC8DEDA), width: .8)
+              : null,
+          boxShadow: (!dark && !widget.isMe)
               ? const [
                   BoxShadow(
                     color: Color(0x18000000),
@@ -160,8 +150,9 @@ class _MessageBubbleState extends State<MessageBubble> {
         return _withStatus(_buildVideo(m['videoUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? ''));
       case 'audio':
         final url = m['audioUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
-        // Keep the original opaque audio-message bubble appearance from 5777e10.
-        // Delivery/read state remains an icon beside the bubble.
+        // Keep playback controls inside the same bubble shell as text messages.
+        // The timestamp is inside the bubble; delivery state remains outside,
+        // in the same position used by text messages.
         return Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -171,7 +162,40 @@ class _MessageBubbleState extends State<MessageBubble> {
               padding: const EdgeInsetsDirectional.only(end: 7, bottom: 6),
               child: _mediaStatus(m),
             ),
-            _shell(AudioWaveformBubble(audioUrl: url, isMe: widget.isMe, isLocal: _isLocal(url)), dark),
+            _shell(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(7, 5, 9, 5),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AudioWaveformBubble(
+                      audioUrl: url,
+                      isMe: widget.isMe,
+                      isLocal: _isLocal(url),
+                    ),
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 2, top: 1),
+                        child: Text(
+                          _timeLabel(m['timestamp'] ?? m['clientTimestamp']),
+                          style: TextStyle(
+                            color: widget.isMe
+                                ? Colors.white70
+                                : (dark
+                                    ? Colors.white60
+                                    : const Color(0xFF6B7D7D)),
+                            fontSize: 9,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              dark,
+            ),
           ],
         );
       case 'file':
