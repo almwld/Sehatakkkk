@@ -420,7 +420,7 @@ jobs:
     - name: 🔨 Build APK
       run: |
         flutter build apk --release --split-per-abi --no-shrink \
-          --dart-define=BACKEND_URL=https://miraculous-compassion-production-1d54.up.railway.app \
+          --dart-define=BACKEND_URL=https://3o95ld48ul7e-production-djltc9sn.us-central1.suga.run \
           --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud \
           --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
           --dart-define=APP_NAME=صحتك_Sehatak \

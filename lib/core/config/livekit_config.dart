@@ -7,7 +7,7 @@ class LiveKitConfig {
   // يمكن استبداله في بيئات التطوير عبر --dart-define=LIVEKIT_TOKEN_SERVER_URL=...
   static const String tokenServerUrl = String.fromEnvironment(
     'LIVEKIT_TOKEN_SERVER_URL',
-    defaultValue: 'https://miraculous-compassion-production-1d54.up.railway.app',
+    defaultValue: 'https://3o95ld48ul7e-production-djltc9sn.us-central1.suga.run',
   );
 
   static const int videoBitrate = 1000000;
