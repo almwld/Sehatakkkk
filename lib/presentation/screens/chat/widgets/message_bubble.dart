@@ -109,28 +109,47 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  Widget _shell(Widget child, bool dark) => GestureDetector(
+  Widget _shell(Widget child, bool dark) {
+    final isAudio = widget.message['type']?.toString() == 'audio';
+    final bubbleColor = widget.isMe
+        ? AppColors.primary
+        : (dark ? const Color(0xFF1A2540) : const Color(0xFFF9FCFB));
+    return GestureDetector(
       onLongPress: _options,
       child: Container(
-          decoration: BoxDecoration(
-              color: widget.isMe
-                  ? AppColors.primary
-                  : (dark ? const Color(0xFF1A2540) : const Color(0xFFF9FCFB)),
-              borderRadius: widget.isFirstInChat
-                  ? BorderRadius.circular(18)
-                  : BorderRadius.circular(14),
-              border: !widget.isMe && !dark
+        decoration: BoxDecoration(
+          // Keep the audio bubble explicitly opaque; the player itself paints
+          // only its controls and waveform, not the message background.
+          color: bubbleColor,
+          borderRadius: widget.isFirstInChat
+              ? BorderRadius.circular(18)
+              : BorderRadius.circular(14),
+          border: isAudio
+              ? Border.all(
+                  color: widget.isMe
+                      ? AppColors.primaryDark
+                      : (dark
+                          ? const Color(0xFF34485F)
+                          : const Color(0xFFC8DEDA)),
+                  width: isAudio && widget.isMe ? 1.0 : .8,
+                )
+              : (!widget.isMe && !dark
                   ? Border.all(color: const Color(0xFFC8DEDA), width: .8)
-                  : null,
-              boxShadow: !widget.isMe && !dark
-                  ? const [
-                      BoxShadow(
-                          color: Color(0x14000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 1))
-                    ]
                   : null),
-          child: child));
+          boxShadow: (!dark && (isAudio || !widget.isMe))
+              ? const [
+                  BoxShadow(
+                    color: Color(0x18000000),
+                    blurRadius: 5,
+                    offset: Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: child,
+      ),
+    );
+  }
 
   Widget _buildContent(String type, bool dark) {
     final m = widget.message;
