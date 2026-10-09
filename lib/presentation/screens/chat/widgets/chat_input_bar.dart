@@ -374,44 +374,82 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _startRecording() async {
     if (_sending || _recording || _hasRecording || _hasText) return;
-    if (!await _recorder.hasPermission()) {
-      ToastService.showError('يلزم السماح بالوصول إلى الميكروفون.');
-      return;
-    }
-    final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/sehatak_chat_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    String? path;
     try {
+      final permitted = await _recorder.hasPermission();
+      if (!permitted) {
+        if (mounted) {
+          ToastService.showError('يلزم السماح بالوصول إلى الميكروفون.');
+        }
+        return;
+      }
+      if (!mounted) return;
+      final dir = await getTemporaryDirectory();
+      path = '${dir.path}/sehatak_chat_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _recorder.start(
-        const RecordConfig(encoder: AudioEncoder.aacLc),
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          sampleRate: 44100,
+          bitRate: 128000,
+        ),
         path: path,
       );
+      if (!mounted) {
+        try { await _recorder.stop(); } catch (_) {}
+        try { await File(path).delete(); } catch (_) {}
+        return;
+      }
       _duration = Duration.zero;
       _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted && _recording && !_paused) {
-          setState(() => _duration += const Duration(seconds: 1));
-        }
-      });
       setState(() {
         _recording = true;
         _paused = false;
         _recordPath = path;
       });
-    } catch (e) {
-      debugPrint('record start: $e');
-      ToastService.showError('تعذر بدء التسجيل الصوتي.');
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted && _recording && !_paused) {
+          setState(() => _duration += const Duration(seconds: 1));
+        }
+      });
+    } catch (e, st) {
+      debugPrint('record start failed: $e\n$st');
+      _timer?.cancel();
+      try { await _recorder.stop(); } catch (_) {}
+      if (path != null) {
+        try { await File(path).delete(); } catch (_) {}
+      }
+      if (mounted) {
+        setState(() {
+          _recording = false;
+          _paused = false;
+          _recordPath = null;
+          _duration = Duration.zero;
+        });
+        ToastService.showError('تعذر بدء التسجيل الصوتي. تحقق من إذن الميكروفون ثم حاول مجددًا.');
+      }
     }
   }
 
   Future<void> _stopRecording() async {
     if (!_recording) return;
-    _timer?.cancel();
     try {
-      await _recorder.stop();
-    } catch (e) {
-      debugPrint('record stop: $e');
+      final stoppedPath = await _recorder.stop();
+      if (stoppedPath != null && stoppedPath.isNotEmpty) {
+        _recordPath = stoppedPath;
+      }
+      final path = _recordPath;
+      if (path == null || !await File(path).exists()) {
+        throw StateError('recording file missing after recorder stop');
+      }
+      _timer?.cancel();
+      _timer = null;
+      if (mounted) setState(() { _recording = false; _paused = false; });
+    } catch (e, st) {
+      debugPrint('record stop failed: $e\n$st');
+      if (mounted) {
+        ToastService.showError('تعذر إنهاء التسجيل وحفظه. حاول الإيقاف مرة أخرى.');
+      }
     }
-    if (mounted) setState(() { _recording = false; _paused = false; });
   }
 
   Future<void> _togglePause() async {
@@ -430,12 +468,17 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _deleteRecording() async {
     _timer?.cancel();
+    _timer = null;
     try { await _recorder.stop(); } catch (_) {}
     final path = _recordPath;
     _recordPath = null;
     if (path != null) {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (e) {
+        debugPrint('recording cleanup failed: $e');
+      }
     }
     if (mounted) {
       setState(() {
@@ -449,15 +492,29 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _sendRecording() async {
     if (_sending || _recordPath == null) return;
     if (_recording) await _stopRecording();
+    // Do not enqueue an incomplete file if the recorder could not stop cleanly.
+    if (_recording) return;
     final path = _recordPath;
     if (path == null) return;
     final file = File(path);
-    if (!await file.exists() || await file.length() < 1000) {
-      await _deleteRecording();
-      ToastService.showError('التسجيل قصير جدًا.');
+    try {
+      if (!await file.exists()) {
+        throw StateError('recording file missing');
+      }
+      final length = await file.length();
+      if (length < 1000) {
+        await _deleteRecording();
+        ToastService.showError('التسجيل قصير جدًا. سجّل مدة أطول ثم أرسل.');
+        return;
+      }
+    } catch (e) {
+      debugPrint('recording validation failed: $e');
+      if (mounted) ToastService.showError('تعذر قراءة التسجيل المحفوظ. ألغِ التسجيل وحاول مجددًا.');
       return;
     }
-    setState(() => _sending = true);
+
+    if (mounted) setState(() => _sending = true);
+    var enqueued = false;
     try {
       await _enqueueMedia(
         file,
@@ -468,13 +525,19 @@ class _ChatInputBarState extends State<ChatInputBar> {
         mime: 'audio/mp4',
         audioDuration: _duration.inSeconds.toString(),
       );
+      enqueued = true;
       _recordPath = null;
       _duration = Duration.zero;
-    } catch (e) {
-      debugPrint('audio enqueue: $e');
-      ToastService.showError('تعذر تجهيز التسجيل للإرسال.');
+    } catch (e, st) {
+      // Keep the original recording so the user can retry instead of losing it.
+      debugPrint('audio enqueue failed: $e\n$st');
+      if (mounted) {
+        ToastService.showError('تعذر تجهيز التسجيل للإرسال. التسجيل محفوظ؛ حاول الإرسال مرة أخرى.');
+      }
     } finally {
-      try { if (await file.exists()) await file.delete(); } catch (_) {}
+      if (enqueued) {
+        try { if (await file.exists()) await file.delete(); } catch (_) {}
+      }
       if (mounted) setState(() => _sending = false);
     }
   }
