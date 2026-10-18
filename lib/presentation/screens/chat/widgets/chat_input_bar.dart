@@ -448,16 +448,28 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _sendRecording() async {
     if (_sending || _recordPath == null) return;
-    if (_recording) await _stopRecording();
+
+    if (_recording) {
+      await _stopRecording();
+    }
+
     final path = _recordPath;
     if (path == null) return;
+
     final file = File(path);
+
     if (!await file.exists() || await file.length() < 1000) {
       await _deleteRecording();
       ToastService.showError('التسجيل قصير جدًا.');
       return;
     }
+
+    if (!mounted) return;
+
     setState(() => _sending = true);
+
+    var enqueued = false;
+
     try {
       await _enqueueMedia(
         file,
@@ -468,14 +480,36 @@ class _ChatInputBarState extends State<ChatInputBar> {
         mime: 'audio/mp4',
         audioDuration: _duration.inSeconds.toString(),
       );
-      _recordPath = null;
-      _duration = Duration.zero;
+
+      enqueued = true;
+
+      if (mounted) {
+        setState(() {
+          _recordPath = null;
+          _duration = Duration.zero;
+          _recording = false;
+          _paused = false;
+        });
+      }
     } catch (e) {
       debugPrint('audio enqueue: $e');
       ToastService.showError('تعذر تجهيز التسجيل للإرسال.');
     } finally {
-      try { if (await file.exists()) await file.delete(); } catch (_) {}
-      if (mounted) setState(() => _sending = false);
+      // enqueue() has copied the recording into the durable outbox before
+      // returning. Keep the original file if enqueue failed so retry remains possible.
+      if (enqueued) {
+        try {
+          if (await file.exists()) {
+            await file.delete();
+          }
+        } catch (e) {
+          debugPrint('temporary audio cleanup: $e');
+        }
+      }
+
+      if (mounted) {
+        setState(() => _sending = false);
+      }
     }
   }
 
