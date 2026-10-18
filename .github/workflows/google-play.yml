@@ -35,7 +35,7 @@ jobs:
       - name: 💙 Set up Flutter 3.16.0
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.16.0'
+          flutter-version: '3.35.7'
           channel: stable
           cache: true
 
@@ -113,7 +113,7 @@ jobs:
             --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud \
             --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
             --dart-define=APP_NAME=صحتك_Sehatak \
-            --dart-define=APP_VERSION=2.0.0 \
+            --dart-define=APP_VERSION=1.1.1 \
             --dart-define=APP_ENV=production
 
       - name: 🔎 Verify AAB exists and is signed
