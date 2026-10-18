@@ -22,6 +22,15 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+
+    // blurhash 1.1.0 predates AGP 8's mandatory namespace property.
+    // Set its namespace before Android variants are created, without upgrading
+    // its web dependency and breaking this app's pinned Firebase 2.x stack.
+    project.plugins.withId("com.android.library") {
+        if (project.name == "blurhash") {
+            project.android.namespace = "com.raincal.blurhash"
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
