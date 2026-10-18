@@ -1,0 +1,148 @@
+name: 📦 Deploy Sehatak to Google Play
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sehatak-google-play-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build signed AAB and publish to internal testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v5
+
+      - name: ☕ Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 💙 Set up Flutter 3.16.0
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: stable
+          cache: true
+
+      - name: 🔥 Restore Firebase configuration
+        shell: bash
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GOOGLE_SERVICES_JSON:-}" ]; then
+            echo "::error::GOOGLE_SERVICES_JSON secret is missing."
+            exit 1
+          fi
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          python -m json.tool android/app/google-services.json >/dev/null
+          echo "Firebase configuration JSON validated."
+
+      - name: 🔐 Decode and validate production signing key
+        shell: bash
+        env:
+          SEHATAK_KEYSTORE_BASE64: ${{ secrets.SEHATAK_KEYSTORE_BASE64 }}
+          SEHATAK_KEYSTORE_PASSWORD: ${{ secrets.SEHATAK_KEYSTORE_PASSWORD }}
+          SEHATAK_KEY_ALIAS: ${{ secrets.SEHATAK_KEY_ALIAS }}
+          SEHATAK_KEY_PASSWORD: ${{ secrets.SEHATAK_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          : "${SEHATAK_KEYSTORE_BASE64:?SEHATAK_KEYSTORE_BASE64 is missing}"
+          : "${SEHATAK_KEYSTORE_PASSWORD:?SEHATAK_KEYSTORE_PASSWORD is missing}"
+          : "${SEHATAK_KEY_ALIAS:?SEHATAK_KEY_ALIAS is missing}"
+          : "${SEHATAK_KEY_PASSWORD:?SEHATAK_KEY_PASSWORD is missing}"
+
+          install -d -m 700 android/keystore
+          printf '%s' "$SEHATAK_KEYSTORE_BASE64" | base64 --decode > android/keystore/sehatak-release.jks
+          test -s android/keystore/sehatak-release.jks
+          chmod 600 android/keystore/sehatak-release.jks
+
+          keytool -list -keystore android/keystore/sehatak-release.jks \
+            -storepass "$SEHATAK_KEYSTORE_PASSWORD" \
+            -alias "$SEHATAK_KEY_ALIAS" >/dev/null
+
+          keytool -certreq -alias "$SEHATAK_KEY_ALIAS" \
+            -keystore android/keystore/sehatak-release.jks \
+            -storepass "$SEHATAK_KEYSTORE_PASSWORD" \
+            -keypass "$SEHATAK_KEY_PASSWORD" \
+            -file android/keystore/.validation.csr >/dev/null
+          rm -f android/keystore/.validation.csr
+
+          {
+            echo "SEHATAK_KEYSTORE_FILE=$GITHUB_WORKSPACE/android/keystore/sehatak-release.jks"
+            echo "SEHATAK_KEYSTORE_PASSWORD=$SEHATAK_KEYSTORE_PASSWORD"
+            echo "SEHATAK_KEY_ALIAS=$SEHATAK_KEY_ALIAS"
+            echo "SEHATAK_KEY_PASSWORD=$SEHATAK_KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+
+          echo "Production keystore and alias validated."
+
+      - name: 📦 Install Flutter dependencies
+        run: flutter pub get
+
+      - name: 🧪 Validate required local medical animations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in heart.json activity.json blood_pressure.json glucose.json sleep.json weight.json oxygen.json temperature.json; do
+            test -s "assets/animations/medical/$file" || {
+              echo "::error::Missing required asset: assets/animations/medical/$file"
+              exit 1
+            }
+          done
+
+      - name: 🏗️ Build production Android App Bundle
+        run: |
+          flutter build appbundle --release --no-shrink \
+            --dart-define=BACKEND_URL=https://3o95ld48ul7e-production-djltc9sn.us-central1.suga.run \
+            --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.us-central1.livekit.cloud \
+            --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
+            --dart-define=APP_NAME=صحتك_Sehatak \
+            --dart-define=APP_VERSION=2.0.0 \
+            --dart-define=APP_ENV=production
+
+      - name: 🔎 Verify AAB exists and is signed
+        shell: bash
+        run: |
+          set -euo pipefail
+          aab="build/app/outputs/bundle/release/app-release.aab"
+          test -s "$aab"
+          jarsigner -verify -verbose -certs "$aab" >/tmp/aab-signature-check.txt
+          if grep -Eqi 'jar is unsigned|unsigned entries' /tmp/aab-signature-check.txt; then
+            echo "::error::The generated AAB appears unsigned."
+            exit 1
+          fi
+          echo "Signed AAB verified: $(du -h "$aab" | awk '{print $1}')"
+
+      - name: 📤 Upload AAB as a GitHub artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sehatak-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: 🚀 Publish to Google Play internal testing
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON_KEY }}
+          packageName: com.sehatak.app
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          changesNotSentForReview: true
