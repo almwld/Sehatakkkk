@@ -98,7 +98,7 @@ class _MessageBubbleState extends State<MessageBubble> {
       child: Align(
         alignment: widget.isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .82),
+          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .80),
           child: Stack(clipBehavior: Clip.none, children: [
             _buildContent(type, dark),
             if (progress != null && progress >= 0 && progress < 1) Positioned(left: 8, right: 8, bottom: 3, child: LinearProgressIndicator(value: progress, minHeight: 2)),
@@ -120,9 +120,12 @@ class _MessageBubbleState extends State<MessageBubble> {
       child: Container(
         decoration: BoxDecoration(
           color: bubbleColor,
-          borderRadius: widget.isFirstInChat
-              ? BorderRadius.circular(18)
-              : BorderRadius.circular(14),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(12),
+            topRight: const Radius.circular(12),
+            bottomLeft: Radius.circular(widget.isMe ? 12 : 4),
+            bottomRight: Radius.circular(widget.isMe ? 4 : 12),
+          ),
           border: !widget.isMe && !dark
               ? Border.all(color: const Color(0xFFC8DEDA), width: .8)
               : null,
@@ -220,7 +223,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _buildText(Map<String, dynamic> m, bool dark) {
     final bubble = _shell(Padding(
-      padding: const EdgeInsets.fromLTRB(13, 9, 10, 7),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -228,7 +231,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           if (m['isEdited'] == true) _editedMarker(dark),
           if (m['replyPreview'] is Map) _replyPreview(m['replyPreview'] as Map, dark),
           Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Flexible(child: Text(m['text']?.toString() ?? '', style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F)), fontSize: 14))),
+            Flexible(child: Text(m['text']?.toString() ?? '', textDirection: TextDirection.rtl, style: TextStyle(color: widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F)), fontSize: 14, height: 1.6))),
             const SizedBox(width: 6),
             Text(_timeLabel(m['timestamp'] ?? m['clientTimestamp']), style: TextStyle(color: widget.isMe ? Colors.white70 : (dark ? Colors.white60 : const Color(0xFF6B7D7D)), fontSize: 9)),
           ]),
