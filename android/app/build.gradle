@@ -81,9 +81,7 @@ android {
             if (releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword) {
                 signingConfig signingConfigs.release
             } else {
-                // Temporary compatibility fallback until the production keystore is configured.
-                // Once the four SEHATAK_* values or android/key.properties are present, Release uses the production key automatically.
-                signingConfig signingConfigs.debug
+                throw new GradleException("Release signing credentials are missing; refusing to create a debug-signed release.")
             }
         }
     }
