@@ -106,7 +106,7 @@ dependencies:
   rxdart: 0.27.7
   pedometer: 4.0.2
   translator: 1.0.0
-  flutter_screenutil: 5.9.0
+  flutter_screenutil: 5.9.3
   simple_animations: 5.0.2
   flutter_svg: 2.0.10+1
   video_player: 2.8.5
@@ -153,6 +153,11 @@ flutter:
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
     - assets/images/childhealth.webp
+    - assets/icons/
+    - assets/icons/services/
+    - assets/icons/settings/
+    - assets/icons/health/
+    - assets/icons/health/sleep/
     - assets/images/pregnancy_follow_up.webp
     - assets/images/sehatak_chat_wallpaper_auto.svg
     - assets/images/sehatak_chat_wallpaper_dark.svg
