@@ -1,14 +1,16 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
         localProperties.load(reader)
     }
-}
-
-def flutterRoot = localProperties.getProperty('flutter.sdk')
-if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found.")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
@@ -35,11 +37,6 @@ def releaseStoreFile = signingValue('storeFile', 'SEHATAK_KEYSTORE_FILE')
 def releaseStorePassword = signingValue('storePassword', 'SEHATAK_KEYSTORE_PASSWORD')
 def releaseKeyAlias = signingValue('keyAlias', 'SEHATAK_KEY_ALIAS')
 def releaseKeyPassword = signingValue('keyPassword', 'SEHATAK_KEY_PASSWORD')
-
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
-apply plugin: 'com.google.gms.google-services'
 
 android {
     namespace "com.sehatak.app"
