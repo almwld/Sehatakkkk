@@ -3,7 +3,7 @@
 class LiveKitConfig {
   static const String serverUrl = 'wss://platformsehatak-z73p6n5m.livekit.cloud';
 
-  // خادم إصدار التوكن الإنتاجي المستضاف على Railway.
+  // خادم Suga الإنتاجي لإصدار LiveKit tokens وإرسال إشعارات المكالمات.
   // يمكن استبداله في بيئات التطوير عبر --dart-define=LIVEKIT_TOKEN_SERVER_URL=...
   static const String tokenServerUrl = String.fromEnvironment(
     'LIVEKIT_TOKEN_SERVER_URL',
