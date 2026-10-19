@@ -301,8 +301,8 @@ app.post('/token', async (req, res) => {
 });
 
 // Production incoming-call notification endpoint.
-// Flutter creates the canonical calls/{callId} document, then calls this endpoint.
-// Railway verifies the caller and sends FCM directly, so Firebase Cloud Functions/Blaze are not required.
+// Flutter creates calls/{callId}, then calls this Suga endpoint.
+// Suga verifies the caller and sends FCM directly; no duplicate Firestore trigger is required.
 // Incoming calls remain DATA-ONLY so Flutter can own the full-screen call notification
 // and answer/reject actions. Text messages intentionally use notification + data below
 // so Android can place them in the system tray while the app is backgrounded.
