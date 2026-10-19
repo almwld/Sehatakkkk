@@ -3,6 +3,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class DoctorBookingScreen extends StatefulWidget {
@@ -54,6 +55,9 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final doctor = _doctor;
+    final doctorImage = [doctor['photoUrl'], doctor['imageUrl'], doctor['image'], doctor['avatarUrl'], doctor['profileImageUrl']]
+        .map((value) => value?.toString().trim() ?? '')
+        .firstWhere((value) => value.startsWith('https://') || value.startsWith('http://'), orElse: () => ImageKit.doctor1);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -91,7 +95,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                           backgroundColor: AppColors.primary.withOpacity(0.15),
                           child: ClipOval(
                             child: AppImage(
-                              imageUrl: doctor['image'],
+                              imageUrl: doctorImage,
                               width: 72,
                               height: 72,
                               fit: BoxFit.cover,
