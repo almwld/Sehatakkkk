@@ -24,6 +24,7 @@ import 'package:sehatak/presentation/screens/chat/widgets/chat_input_bar.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/doctor_medical_forms_sheet.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/media_upload_status_widget.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String chatId;
@@ -906,15 +907,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: dark ? null : AppColors.primary)),
-                    Text(
-                        _otherTyping
-                            ? 'يكتب الآن...'
-                            : (_online ? 'متصل الآن' : _lastSeenLabel()),
+                    if (_otherTyping)
+                      const TypingIndicator(compact: true)
+                    else
+                      Text(
+                        _online ? 'متصل الآن' : _lastSeenLabel(),
                         style: TextStyle(
-                            fontSize: 11,
-                            color: _otherTyping
-                                ? AppColors.primary
-                                : (_online ? Colors.green : Colors.grey)))
+                          fontSize: 11,
+                          color: _online ? Colors.green : Colors.grey,
+                        ),
+                      )
                   ]))
               ]);
             },
