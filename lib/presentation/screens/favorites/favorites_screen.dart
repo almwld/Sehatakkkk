@@ -54,7 +54,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           'id': doctor.id,
           'name': (data['name'] ?? 'طبيب').toString(),
           'specialty': (data['specialty'] ?? 'طبيب عام').toString(),
-          'photoUrl': (data['photoUrl'] ?? '').toString(),
+          'photoUrl': ImageKit.doctorPhoto(data),
         });
       }
 
@@ -99,9 +99,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       final photoUrl = item['photoUrl'] as String;
 
                       return ListTile(
-                        leading: photoUrl.isNotEmpty
-                            ? CircleAvatar(backgroundImage: NetworkImage(photoUrl))
-                            : CircleAvatar(child: Text(name.characters.first)),
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.primary.withOpacity(.1),
+                          backgroundImage: NetworkImage(photoUrl.isNotEmpty ? photoUrl : ImageKit.doctor1),
+                        ),
                         title: Text(name),
                         subtitle: Text(item['specialty'] as String),
                         trailing: const Icon(Icons.favorite, color: Colors.red),
