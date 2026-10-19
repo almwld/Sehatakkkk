@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -61,6 +63,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   Map<String, dynamic> _cachedUserData = {};
   List<Map<String, dynamic>> _cachedVitals = [];
   bool _dataLoaded = false;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userDataSubscription;
 
   final List<Map<String, dynamic>> _vitals = [
     {
@@ -141,6 +144,27 @@ class _PatientDashboardState extends State<PatientDashboard> {
     super.initState();
     _loadCachedData();
     _loadUserDataInBackground();
+    _listenForBloodTypeChanges();
+  }
+
+  void _listenForBloodTypeChanges() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    _userDataSubscription?.cancel();
+    _userDataSubscription = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .listen((snapshot) {
+      if (!snapshot.exists || !mounted) return;
+      final value = (snapshot.data()?['bloodType'] ?? '').toString().trim();
+      final nextBloodType = value.isEmpty ? 'غير محدد' : value;
+      if (_bloodType == nextBloodType) return;
+      setState(() => _bloodType = nextBloodType);
+      _saveToCache();
+    }, onError: (Object error) {
+      debugPrint('Failed to listen for patient blood type updates: $error');
+    });
   }
 
   Future<void> _loadCachedData() async {
@@ -165,8 +189,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _subscriptionType = cachedSubscriptionType ?? 'مجانية';
           _userAvatar = cachedUserAvatar ?? '';
           _userPhone = cachedUserPhone ?? '';
-          final cached = (cachedBloodType ?? 'O+').trim();
-          _bloodType = cached.isEmpty ? 'O+' : cached;
+          final cached = (cachedBloodType ?? '').trim();
+          _bloodType = cached.isEmpty ? 'غير محدد' : cached;
           _dataLoaded = true;
         });
       }
@@ -226,7 +250,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _patientNumber = data?['patientNumber'] ?? _generatePatientNumber();
           _subscriptionType = data?['subscriptionType'] ?? data?['subscription'] ?? 'مجانية';
           final savedBloodType = (data?['bloodType'] ?? '').toString().trim();
-          _bloodType = savedBloodType.isEmpty ? 'O+' : savedBloodType;
+          _bloodType = savedBloodType.isEmpty ? 'غير محدد' : savedBloodType;
           _isOffline = false;
           _isLoading = false;
         });
@@ -242,7 +266,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _userEmail = user.email ?? '';
           _userRole = 'مريض';
           _subscriptionType = 'مجانية';
-          _bloodType = 'O+';
+          _bloodType = 'غير محدد';
           _isLoading = false;
         });
         await _savePatientNumber();
@@ -374,6 +398,12 @@ class _PatientDashboardState extends State<PatientDashboard> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _userDataSubscription?.cancel();
+    super.dispose();
   }
 
   @override
