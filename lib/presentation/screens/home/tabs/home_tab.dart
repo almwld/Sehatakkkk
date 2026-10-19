@@ -10,6 +10,7 @@ import 'package:sehatak/bloc/home/home_bloc.dart';
 import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:sehatak/bloc/home/home_state.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/models/pharmacy/product_model.dart';
 import 'package:sehatak/core/services/pharmacy_service.dart';
 import 'package:sehatak/presentation/screens/home/widgets/banner_carousel.dart';
@@ -206,7 +207,7 @@ class _HomeTabState extends State<HomeTab>
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 1.35),
         itemBuilder: (_, index) {
           final doctor = doctors[index];
-          final image = (doctor['photoUrl'] ?? doctor['image'] ?? '').toString();
+          final image = (doctor['photoUrl'] ?? doctor['imageUrl'] ?? doctor['image'] ?? doctor['avatarUrl'] ?? ImageKit.doctor1).toString().trim().isNotEmpty ? (doctor['photoUrl'] ?? doctor['imageUrl'] ?? doctor['image'] ?? doctor['avatarUrl'] ?? ImageKit.doctor1).toString().trim() : ImageKit.doctor1;
           final id = (doctor['id'] ?? doctor['uid'] ?? '').toString();
           return InkWell(
             onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'),
