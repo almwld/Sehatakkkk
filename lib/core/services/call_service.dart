@@ -82,7 +82,11 @@ class CallService {
     if (token == null || token.isEmpty) {
       throw Exception('تعذر الحصول على Firebase ID token لإشعار المكالمة');
     }
-    final endpoint = '${_callNotificationEndpoint.replaceFirst(RegExp(r'/
+    final baseEndpoint = _callNotificationEndpoint.endsWith('/')
+        ? _callNotificationEndpoint.substring(0, _callNotificationEndpoint.length - 1)
+        : _callNotificationEndpoint;
+    final response = await http.post(
+      Uri.parse('$baseEndpoint/call-notification'),
       headers: <String, String>{
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
