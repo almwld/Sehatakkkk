@@ -65,5 +65,6 @@ Notification action handling is registered with `onDidReceiveBackgroundNotificat
 
 - Message replies are bound to a UID and queued locally when an authenticated session is not available.
 - A queued reply is sent only when the current Firebase Auth UID exactly matches the queued UID.
-- Call answer/reject actions verify the call document receiver UID before changing state.
+- Reject actions verify the receiver UID and release the call lock.
+- Answer actions return to the foreground Flutter flow so it can request permissions and join LiveKit; a background isolate never marks a call answered on its own.
 - Background call actions update Firestore state directly and do not require a Flutter screen.
