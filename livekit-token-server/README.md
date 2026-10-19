@@ -6,15 +6,15 @@
 - Firebase/Firestore يبقى الـBackend الرئيسي للتطبيق.
 - الخادم لا يخزن بيانات المستخدمين.
 - `LIVEKIT_API_KEY` و`LIVEKIT_API_SECRET` أسرار ولا توضع في Git.
-- مناسب للنشر على Railway من مجلد المستودع نفسه.
+- الخدمة المنشورة على Suga؛ استخدم متغيرات البيئة نفسها عند النشر أو التشغيل المحلي.
 
-## تشغيل Railway
+## إعداد خدمة Suga
 
 اضبط متغيرات الخدمة في Railway:
 
-- `PORT` — Railway يضبطه تلقائياً، ويمكن تركه بدون قيمة.
+- `PORT` — اضبطه على المنفذ المستهدف الذي تتطلبه خدمة Suga (عادةً 80 عند ضبط `SUGA_PUBLIC_TARGET_PORT=80`).
 - `FIREBASE_PROJECT_ID` — معرف مشروع Firebase.
-- `FIREBASE_SERVICE_ACCOUNT_JSON` — JSON لحساب خدمة Firebase كمتغير سري في Railway. لا ترفع ملف الحساب إلى Git.
+- `FIREBASE_SERVICE_ACCOUNT_JSON` — JSON لحساب خدمة Firebase كمتغير سري في Suga. لا ترفع ملف الحساب إلى Git.
 - `LIVEKIT_API_KEY` — مفتاح LiveKit السري.
 - `LIVEKIT_API_SECRET` — سر LiveKit السري.
 - `LIVEKIT_URL` — رابط WebSocket الخاص بـ LiveKit، ويمكن ترك القيمة الافتراضية المستخدمة في الكود.
@@ -49,8 +49,8 @@ npm start
 
 الخادم يتحقق من Firebase ID token ثم يصدر توكن LiveKit بهوية Firebase UID.
 
-## Railway / GitHub
+## Suga / GitHub
 
-المستودع يحتوي على `index.js` في الجذر لأن بعض إعدادات Railway/Node تشغّل افتراضياً `node index.js`. هذا الملف يفوض التنفيذ إلى `livekit-token-server/server.js`.
+المستودع يحتوي على `index.js` في الجذر للتوافق مع إعدادات تشغيل Node التي تستدعي `node index.js`. هذا الملف يفوض التنفيذ إلى `livekit-token-server/server.js`.
 
-GitHub يحفظ الكود، بينما Railway يشغّل الخادم بشكل دائم. لا توجد مفاتيح LiveKit أو Firebase سرية داخل المستودع.
+GitHub يحفظ الكود، بينما Suga يشغّل الخادم بشكل دائم. لا توجد مفاتيح LiveKit أو Firebase سرية داخل المستودع.
