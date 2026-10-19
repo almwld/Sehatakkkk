@@ -66,6 +66,7 @@ class _HomeTabState extends State<HomeTab> {
           'id': doc.id,
           'name': (data['name'] ?? 'طبيب').toString(),
           'specialty': (data['specialty'] ?? 'طبيب عام').toString(),
+          'photoUrl': [data['photoUrl'], data['imageUrl'], data['image'], data['avatarUrl']].map((value) => value?.toString().trim() ?? '').firstWhere((value) => value.startsWith('https://') || value.startsWith('http://'), orElse: () => ImageKit.doctor1),
           'rating': (data['rating'] as num?)?.toDouble() ?? 0.0,
         };
       }).toList();
@@ -412,11 +413,12 @@ class _HomeTabState extends State<HomeTab> {
                         ),
                         child: Row(
                           children: [
-                            CircleAvatar(
-                              backgroundColor: AppColors.primary.withOpacity(0.1),
-                              child: Text(
-                                name.characters.first,
-                                style: const TextStyle(color: AppColors.primary),
+                            ClipOval(
+                              child: AppImage(
+                                imageUrl: doctor['photoUrl']?.toString() ?? ImageKit.doctor1,
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
                               ),
                             ),
                             const SizedBox(width: 12),
