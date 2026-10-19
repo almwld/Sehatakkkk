@@ -450,6 +450,7 @@ jobs:
         echo "✅ Release APK is not debug-signed."
 
     - name: 📤 Upload arm64-v8a
+      if: ${{ false }} # TEMP: publishing disabled while diagnosing release build
       uses: actions/upload-artifact@v4
       with:
         name: app-arm64-v8a-release
@@ -457,6 +458,7 @@ jobs:
         retention-days: 30
 
     - name: 🧪 Upload arm64 APK to Appetize
+      if: ${{ false }} # TEMP: external publishing disabled
       id: appetize
       uses: appetizeio/github-action-appetize@v1.1.0
       with:
@@ -466,6 +468,7 @@ jobs:
         note: "Sehatak CI build ${{ github.sha }}"
 
     - name: 🔗 Publish Appetize test link
+      if: ${{ false }} # TEMP: external publishing disabled
       shell: bash
       run: |
         set -euo pipefail
@@ -480,6 +483,7 @@ jobs:
         echo "Appetize publicKey: $public_key"
 
     - name: 📤 Upload armeabi-v7a
+      if: ${{ false }} # TEMP: publishing disabled while diagnosing release build
       uses: actions/upload-artifact@v4
       with:
         name: app-armeabi-v7a-release
@@ -487,6 +491,7 @@ jobs:
         retention-days: 30
 
     - name: 📤 Upload x86_64
+      if: ${{ false }} # TEMP: publishing disabled while diagnosing release build
       uses: actions/upload-artifact@v4
       with:
         name: app-x86_64-release
