@@ -55,9 +55,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final doctor = _doctor;
-    final doctorImage = [doctor['photoUrl'], doctor['imageUrl'], doctor['image'], doctor['avatarUrl'], doctor['profileImageUrl']]
-        .map((value) => value?.toString().trim() ?? '')
-        .firstWhere((value) => value.startsWith('https://') || value.startsWith('http://'), orElse: () => ImageKit.doctor1);
+    final doctorImage = ImageKit.doctorPhoto(doctor);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
