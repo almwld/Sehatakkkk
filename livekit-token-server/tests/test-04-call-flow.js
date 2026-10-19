@@ -16,10 +16,10 @@ const { callNotify } = require('./utils/railway-client');
     await db().collection('calls').doc(callId).set({callerId:caller.uid,receiverId:receiverUid,participants:[caller.uid,receiverUid],status:'ringing',callType:'audio',isVideoCall:false,createdAt:new Date()});
     const token = await getIdTokenForUser(caller.uid);
     const response = await callNotify(token, callId);
-    if (response.status === 200 && response.body?.success) r.pass('Railway /call-notification', JSON.stringify({sent:response.body.sent,reason:response.body.reason,messageId:response.body.messageId ? 'present' : 'absent'}));
-    else if (response.status === 200 && response.body?.reason === 'fcm_token_missing') r.skip('Railway /call-notification', 'Receiver has no FCM token');
+    if (response.status === 200 && response.body?.success) r.pass('Suga /call-notification', JSON.stringify({sent:response.body.sent,reason:response.body.reason,messageId:response.body.messageId ? 'present' : 'absent'}));
+    else if (response.status === 200 && response.body?.reason === 'fcm_token_missing') r.skip('Suga /call-notification', 'Receiver has no FCM token');
     else throw new Error(`HTTP ${response.status}: ${JSON.stringify(response.body)}`);
-  } catch (e) { r.fail('Railway /call-notification', e); }
+  } catch (e) { r.fail('Suga /call-notification', e); }
   finally {
     try { await db().collection('calls').doc(callId).delete(); } catch (_) {}
     if (caller) { try { await deleteUser(caller.uid); } catch (_) {} }
