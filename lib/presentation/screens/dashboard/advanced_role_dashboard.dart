@@ -126,6 +126,8 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
         'photoUrl': url,
         'imageUrl': url,
         'avatarUrl': url,
+        'photoStorage': 'nextcloud',
+        'profileImageSource': 'nextcloud',
         'profileImageUpdatedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
