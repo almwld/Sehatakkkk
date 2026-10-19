@@ -105,14 +105,7 @@ class DoctorModel extends Equatable {
     final rawFee = data['consultationFee'] ?? data['fee'];
     final rawExperience = data['experienceYears'] ?? data['experience'];
     final resolvedUserId = (data['userId'] ?? data['uid'] ?? id).toString().trim();
-    String? firstNonEmptyUrl(List<String> keys) {
-      for (final key in keys) {
-        final value = data[key]?.toString().trim() ?? '';
-        if (value.isNotEmpty && (value.startsWith('https://') || value.startsWith('http://'))) return value;
-      }
-      return null;
-    }
-    final resolvedPhotoUrl = firstNonEmptyUrl(const ['photoUrl', 'imageUrl', 'image', 'avatarUrl', 'profileImageUrl']) ?? ImageKit.doctor1;
+    final resolvedPhotoUrl = ImageKit.doctorPhoto(data);
 
     return DoctorModel(
       id: id,
