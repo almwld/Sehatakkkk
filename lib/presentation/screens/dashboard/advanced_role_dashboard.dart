@@ -75,7 +75,7 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
     final s = await FirebaseFirestore.instance.collection('users').doc(uid).get();
     final d = s.data() ?? {};
     final m = d['messageSettings'] is Map ? Map<String, dynamic>.from(d['messageSettings']) : {};
-    doctorPhotoUrl = _firstNonEmptyUrl([d['photoUrl'], d['imageUrl'], d['image'], d['avatarUrl']]) ?? ImageKit.doctor1;
+    doctorPhotoUrl = ImageKit.doctorPhoto(d);
     _hospital.text = d['hospital']?.toString() ?? '';
     _clinic.text = d['clinicAddress']?.toString() ?? '';
     _fee.text = d['consultationFee']?.toString() ?? '0';
@@ -92,14 +92,6 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
     vacations = d['vacations'] is List ? d['vacations'].map((e) => e is Map ? Map<String,dynamic>.from(e) : <String,dynamic>{}).toList() : [];
     blockedPatients = d['blockedPatientIds'] is List ? Set<String>.from(d['blockedPatientIds'].map((e) => e.toString())) : {};
     if (mounted) setState(() => loading = false);
-  }
-
-  String? _firstNonEmptyUrl(List<dynamic> values) {
-    for (final raw in values) {
-      final value = raw?.toString().trim() ?? '';
-      if (value.startsWith('https://') || value.startsWith('http://')) return value;
-    }
-    return null;
   }
 
   Future<void> _changeDoctorPhoto() async {
