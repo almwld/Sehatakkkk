@@ -960,7 +960,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         Expanded(
             child: ChatBackground(
                 child: Stack(children: [
-          if (all.isEmpty)
+          if (all.isEmpty && !_otherTyping)
             Center(
                 child: Text('ابدأ المحادثة',
                     style: TextStyle(
@@ -970,11 +970,55 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             ListView.builder(
                 reverse: true,
                 padding: const EdgeInsets.all(8),
-                itemCount: all.length,
+                itemCount: all.length + (_otherTyping ? 1 : 0),
                 controller: _scrollController,
                 itemBuilder: (_, index) {
-                  final message = all[index];
-                  final older = index + 1 < all.length ? all[index + 1] : null;
+                  if (_otherTyping && index == 0) {
+                    final otherImage = image?.trim() ?? '';
+                    return Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        start: 4, end: 64, top: 5, bottom: 8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: AppColors.primary.withOpacity(.12),
+                            backgroundImage: otherImage.isNotEmpty
+                                ? NetworkImage(otherImage)
+                                : null,
+                            child: otherImage.isEmpty
+                                ? const Icon(Icons.person_rounded,
+                                    size: 16, color: AppColors.primary)
+                                : null,
+                          ),
+                          const SizedBox(width: 7),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: dark ? const Color(0xFF1A2540) : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x10000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: const TypingIndicator(compact: true),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  final messageIndex = index - (_otherTyping ? 1 : 0);
+                  final message = all[messageIndex];
+                  final older = messageIndex + 1 < all.length ? all[messageIndex + 1] : null;
                   final currentDate = _messageTime(message['timestamp']);
                   final olderDate = older == null ? null : _messageTime(older['timestamp']);
                   final showDate = older == null || currentDate.year != olderDate!.year || currentDate.month != olderDate.month || currentDate.day != olderDate.day;
@@ -987,12 +1031,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                               id: '', chatId: '', senderId: '', senderName: ''))
                       : null;
                   final status = _uploadStatusFor(message);
-                  final messageId = rawMessageId ?? index.toString();
+                  final messageId = rawMessageId ?? messageIndex.toString();
                   final messageKey = _messageKeys.putIfAbsent(messageId, GlobalKey.new);
                   Widget bubble = MessageBubble(
                       key: ValueKey(messageId),
                       message: message,
-                      isFirstInChat: index == all.length - 1,
+                      isFirstInChat: messageIndex == all.length - 1,
                       isMe: message['senderId'] == _auth.currentUser?.uid ||
                           message['isLocal'] == true,
                       onReply: model == null || model.id.isEmpty
