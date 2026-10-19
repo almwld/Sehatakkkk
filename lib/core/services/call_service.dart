@@ -313,7 +313,9 @@ class CallService {
     if(chatId.isEmpty)return;
     await _startCallForegroundService(normalizedId, data['callerName']?.toString() ?? 'مستخدم');
     if (!context.mounted) return;
-    Navigator.of(context).push(MaterialPageRoute(builder:(_)=>IncomingCallScreen(callId:normalizedId,callerName:data['callerName']?.toString()??'مستخدم',callerId:data['callerId']?.toString()??'',callerImage:data['callerPhotoUrl']?.toString(),isVideo:data['isVideoCall']==true||data['callType']?.toString()=='video',chatId:chatId,onCallAnswered:(_){},)));
+    // Route through the coordinator so FCM taps and Firestore snapshots share
+    // one deduplicated incoming-call screen instead of stacking duplicate routes.
+    await CallSoundCoordinator.instance.presentIncomingCallById(normalizedId);
   }
 
   Future<void> answerIncomingCallById(BuildContext context, String id) async {
@@ -390,7 +392,9 @@ class CallService {
     if(chatId==null||chatId.isEmpty){ToastService.showError('تعذر العثور على المحادثة المرتبطة بالمكالمة');return;}
     if(!context.mounted)return;
     if (registry.hasActiveCall && !registry.isActive(id)) { await markBusy(id); return; }
-    Navigator.of(context).push(MaterialPageRoute(builder:(_)=>IncomingCallScreen(callId:id,callerName:(message.data['callerName']??'مستخدم').toString(),callerId:callerId,callerImage:message.data['callerPhotoUrl']?.toString(),isVideo:message.data['isVideo']?.toString()=='true'||message.data['isVideoCall']?.toString()=='true',chatId:chatId!,onCallAnswered:(_){},)));
+    // Firestore is the canonical source for caller metadata and the coordinator
+    // owns the only incoming UI route (including duplicate-FCM suppression).
+    await CallSoundCoordinator.instance.presentIncomingCallById(id);
   }
   void dispose(){_inCall=false;_current=null;}
 }
