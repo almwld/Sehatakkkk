@@ -44,8 +44,9 @@ class ImageKit {
   /// Canonical doctor avatar resolver. ImageKit is the default; only an explicitly
   /// uploaded Nextcloud profile image may override it.
   static String doctorPhoto(Map<String, dynamic> data) {
-    final source = (data['profileImageSource'] ?? data['photoStorage'] ?? '').toString().trim().toLowerCase();
-    if (source != 'nextcloud') return doctor1;
+    final isNextcloud = [data['profileImageSource'], data['photoStorage']]
+        .any((value) => value?.toString().trim().toLowerCase() == 'nextcloud');
+    if (!isNextcloud) return doctor1;
     for (final key in const ['photoUrl', 'imageUrl', 'image', 'avatarUrl', 'profileImageUrl']) {
       final value = data[key]?.toString().trim() ?? '';
       if (value.startsWith('https://') || value.startsWith('http://')) return value;
