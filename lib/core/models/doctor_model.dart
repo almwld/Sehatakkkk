@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 
 class DoctorModel extends Equatable {
   final String id;
@@ -104,6 +105,14 @@ class DoctorModel extends Equatable {
     final rawFee = data['consultationFee'] ?? data['fee'];
     final rawExperience = data['experienceYears'] ?? data['experience'];
     final resolvedUserId = (data['userId'] ?? data['uid'] ?? id).toString().trim();
+    String? firstNonEmptyUrl(List<String> keys) {
+      for (final key in keys) {
+        final value = data[key]?.toString().trim() ?? '';
+        if (value.isNotEmpty && (value.startsWith('https://') || value.startsWith('http://'))) return value;
+      }
+      return null;
+    }
+    final resolvedPhotoUrl = firstNonEmptyUrl(const ['photoUrl', 'imageUrl', 'image', 'avatarUrl', 'profileImageUrl']) ?? ImageKit.doctor1;
 
     return DoctorModel(
       id: id,
@@ -111,7 +120,7 @@ class DoctorModel extends Equatable {
       name: data['name']?.toString() ?? '',
       specialty: data['specialty']?.toString() ?? '',
       subspecialty: data['subspecialty']?.toString(),
-      photoUrl: data['photoUrl']?.toString() ?? data['image']?.toString(),
+      photoUrl: resolvedPhotoUrl,
       rating: parseDouble(data['rating']),
       reviewsCount: parseInt(rawReviewsCount),
       consultationFee: parseDouble(rawFee),
