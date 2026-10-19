@@ -66,7 +66,7 @@ class _HomeTabState extends State<HomeTab> {
           'id': doc.id,
           'name': (data['name'] ?? 'طبيب').toString(),
           'specialty': (data['specialty'] ?? 'طبيب عام').toString(),
-          'photoUrl': [data['photoUrl'], data['imageUrl'], data['image'], data['avatarUrl']].map((value) => value?.toString().trim() ?? '').firstWhere((value) => value.startsWith('https://') || value.startsWith('http://'), orElse: () => ImageKit.doctor1),
+          'photoUrl': ImageKit.doctorPhoto(data),
           'rating': (data['rating'] as num?)?.toDouble() ?? 0.0,
         };
       }).toList();
