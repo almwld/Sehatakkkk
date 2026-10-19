@@ -14,13 +14,7 @@ class VideoConsultationScreen extends StatefulWidget {
   @override State<VideoConsultationScreen> createState() => _VideoConsultationScreenState();
 }
 class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
-  String _firstImageUrl(Map<String, dynamic> data) {
-    for (final key in const ['photoUrl', 'imageUrl', 'image', 'avatarUrl', 'profileImageUrl']) {
-      final value = data[key]?.toString().trim() ?? '';
-      if (value.startsWith('https://') || value.startsWith('http://')) return value;
-    }
-    return ImageKit.doctor1;
-  }
+  String _firstImageUrl(Map<String, dynamic> data) => ImageKit.doctorPhoto(data);
   List<Map<String,dynamic>> _doctors=[]; bool _isLoading=true; String _selectedFilter='الكل';
   final _filters=['الكل','متاح الآن','الأعلى تقييماً','الأقل سعراً'];
   @override void initState(){super.initState();_loadDoctors();}
