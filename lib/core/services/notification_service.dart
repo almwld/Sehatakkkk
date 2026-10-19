@@ -121,16 +121,36 @@ Future<void> handleCallNotificationAction({
   final status = call['status']?.toString() ?? '';
   if (status != 'calling' && status != 'ringing') return;
   if (action == 'call_answer') {
-    await ref.update(<String, dynamic>{
-      'status': 'accepted',
-      'isAnswered': true,
-    });
-  } else {
-    await ref.update(<String, dynamic>{
+    // Answering requires the foreground Flutter screen to acquire permissions
+    // and join LiveKit. Never mark a call accepted from a background isolate.
+    debugPrint('📞 call_answer deferred to foreground LiveKit flow callId=$callId');
+    return;
+  }
+
+  final callerId = call['callerId']?.toString() ?? '';
+  final receiverId = call['receiverId']?.toString() ?? '';
+  if (callerId.isEmpty || receiverId.isEmpty) return;
+  final ids = <String>[callerId, receiverId]..sort();
+  final lockRef = FirebaseFirestore.instance
+      .collection('callLocks')
+      .doc('${ids[0]}_${ids[1]}');
+  await FirebaseFirestore.instance.runTransaction((transaction) async {
+    final current = await transaction.get(ref);
+    if (!current.exists) return;
+    final latest = current.data() ?? <String, dynamic>{};
+    final latestStatus = latest['status']?.toString() ?? '';
+    if (latestStatus != 'calling' && latestStatus != 'ringing') return;
+    transaction.update(ref, <String, dynamic>{
       'status': 'rejected',
       'endedAt': FieldValue.serverTimestamp(),
     });
-  }
+    transaction.set(lockRef, <String, dynamic>{
+      'participants': <String>[callerId, receiverId],
+      'activeCallId': null,
+      'status': 'rejected',
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  });
 }
 
 Future<void> handleMessageNotificationAction({
