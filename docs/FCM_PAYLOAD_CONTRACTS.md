@@ -31,7 +31,7 @@ The Flutter client writes chat messages directly to Firestore; therefore the Fir
 
 ## Incoming-call notifications
 
-**Producer:** Railway LiveKit token server `POST /call-notification`.
+**Producer:** Suga LiveKit token server `POST /call-notification`.
 
 **Transport:** high-priority data-only FCM.
 
