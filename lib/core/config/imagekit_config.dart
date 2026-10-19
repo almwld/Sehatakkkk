@@ -30,21 +30,21 @@ class ImageKitConfig {
   static const String hospital6 = '$hospitals/hospital_6.png';
 
   // صور مختبرات صنعاء — تُرفع إلى ImageKit تحت /images/labs/
-  static const String lab1 = '$labs/lab_1.jpg';
-  static const String lab2 = '$labs/lab_2.jpg';
-  static const String lab3 = '$labs/lab_3.jpg';
-  static const String lab4 = '$labs/lab_4.jpg';
-  static const String lab5 = '$labs/lab_5.jpg';
-  static const String lab6 = '$labs/lab_6.jpg';
-  static const String lab7 = '$labs/lab_7.jpg';
-  static const String lab8 = '$labs/lab_8.jpg';
-  static const String lab9 = '$labs/lab_9.jpg';
-  static const String lab10 = '$labs/lab_10.jpg';
-  static const String lab11 = '$labs/lab_11.jpg';
-  static const String lab12 = '$labs/lab_12.jpg';
-  static const String lab13 = '$labs/lab_13.jpg';
-  static const String lab14 = '$labs/lab_14.jpg';
-  static const String lab15 = '$labs/lab_15.jpg';
+  static const String lab1 = '$labs/lab_1.png';
+  static const String lab2 = '$labs/lab_2.png';
+  static const String lab3 = '$labs/lab_3.png';
+  static const String lab4 = '$labs/lab_4.png';
+  static const String lab5 = '$labs/lab_5.png';
+  static const String lab6 = '$labs/lab_6.png';
+  static const String lab7 = '$labs/lab_7.png';
+  static const String lab8 = '$labs/lab_8.png';
+  static const String lab9 = '$labs/lab_9.png';
+  static const String lab10 = '$labs/lab_10.png';
+  static const String lab11 = '$labs/lab_11.png';
+  static const String lab12 = '$labs/lab_12.png';
+  static const String lab13 = '$labs/lab_13.png';
+  static const String lab14 = '$labs/lab_14.png';
+  static const String lab15 = '$labs/lab_15.png';
   static const List<String> labList = [
     lab1, lab2, lab3, lab4, lab5, lab6, lab7, lab8,
     lab9, lab10, lab11, lab12, lab13, lab14, lab15,
