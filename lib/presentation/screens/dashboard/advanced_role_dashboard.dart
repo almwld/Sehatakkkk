@@ -1,3 +1,9 @@
+import 'dart:io';
+
+import 'package:image_picker/image_picker.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/core/services/nextcloud_service.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/paramedic/paramedic_field_screen.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -41,7 +47,8 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
   final _appointmentLimit = TextEditingController(text: '20');
   final _service = TextEditingController();
 
-  bool loading = true, saving = false;
+  bool loading = true, saving = false, uploadingPhoto = false;
+  String doctorPhotoUrl = ImageKit.doctor1;
   bool available = false, online = false, newPatients = true, appointments = true;
   bool chat = true, calls = true, video = true, attachments = true;
   String presence = 'المستشفى';
@@ -68,6 +75,7 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
     final s = await FirebaseFirestore.instance.collection('users').doc(uid).get();
     final d = s.data() ?? {};
     final m = d['messageSettings'] is Map ? Map<String, dynamic>.from(d['messageSettings']) : {};
+    doctorPhotoUrl = _firstNonEmptyUrl([d['photoUrl'], d['imageUrl'], d['image'], d['avatarUrl']]) ?? ImageKit.doctor1;
     _hospital.text = d['hospital']?.toString() ?? '';
     _clinic.text = d['clinicAddress']?.toString() ?? '';
     _fee.text = d['consultationFee']?.toString() ?? '0';
@@ -84,6 +92,57 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
     vacations = d['vacations'] is List ? d['vacations'].map((e) => e is Map ? Map<String,dynamic>.from(e) : <String,dynamic>{}).toList() : [];
     blockedPatients = d['blockedPatientIds'] is List ? Set<String>.from(d['blockedPatientIds'].map((e) => e.toString())) : {};
     if (mounted) setState(() => loading = false);
+  }
+
+  String? _firstNonEmptyUrl(List<dynamic> values) {
+    for (final raw in values) {
+      final value = raw?.toString().trim() ?? '';
+      if (value.startsWith('https://') || value.startsWith('http://')) return value;
+    }
+    return null;
+  }
+
+  Future<void> _changeDoctorPhoto() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uploadingPhoto) return;
+    try {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 85, maxWidth: 1200);
+      if (picked == null || !mounted) return;
+      setState(() => uploadingPhoto = true);
+      final file = File(picked.path);
+      final nextcloud = NextcloudService();
+      await nextcloud.loadConfig();
+      final extension = picked.name.contains('.') ? picked.name.split('.').last.toLowerCase() : 'jpg';
+      final upload = await nextcloud.uploadFile(
+        file: file,
+        path: 'sehatak/doctors/$uid',
+        fileName: 'profile_${DateTime.now().millisecondsSinceEpoch}.$extension',
+      );
+      if (!upload.success || (upload.url ?? '').trim().isEmpty) {
+        throw StateError(upload.error ?? 'فشل رفع صورة الطبيب إلى Nextcloud');
+      }
+      final url = upload.url!.trim();
+      final data = <String, dynamic>{
+        'photoUrl': url,
+        'imageUrl': url,
+        'avatarUrl': url,
+        'profileImageUpdatedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      final batch = FirebaseFirestore.instance.batch();
+      batch.set(FirebaseFirestore.instance.collection('users').doc(uid), data, SetOptions(merge: true));
+      batch.set(FirebaseFirestore.instance.collection('doctors').doc(uid), <String, dynamic>{...data, 'userId': uid, 'uid': uid}, SetOptions(merge: true));
+      await batch.commit();
+      if (mounted) {
+        setState(() => doctorPhotoUrl = url);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم رفع صورة الطبيب إلى Nextcloud وتحديث ملفه')));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر تحديث صورة الطبيب: $e')));
+      debugPrint('Doctor photo upload failed: $e');
+    } finally {
+      if (mounted) setState(() => uploadingPhoto = false);
+    }
   }
 
   Future<void> save() async {
@@ -147,7 +206,7 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
     return Scaffold(
       appBar:AppBar(title:const Text('لوحة تحكم الطبيب'),backgroundColor:AppColors.primary,foregroundColor:Colors.white),
       body:ListView(padding:const EdgeInsets.all(16),children:[
-        _hero(),const SizedBox(height:12),_stats(),const SizedBox(height:12),
+        _hero(),const SizedBox(height:12),_doctorPhotoSection(),const SizedBox(height:12),_stats(),const SizedBox(height:12),
         _section('الحالة والتواجد',[
           sw('متاح للحجز والاستشارات',available,(v)=>setState(()=>available=v)),
           sw('متصل الآن',online,(v)=>setState(()=>online=v)),
@@ -188,6 +247,8 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
   }
 
   String vacationLabel(Map<String,dynamic> v){final a=DateTime.tryParse(v['start']?.toString()??'');final b=DateTime.tryParse(v['end']?.toString()??'');if(a==null||b==null)return'إجازة';return'إجازة: '+a.day.toString()+'/'+a.month.toString()+'/'+a.year.toString()+' — '+b.day.toString()+'/'+b.month.toString()+'/'+b.year.toString();}
+  Widget _doctorPhotoSection()=>Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Theme.of(context).cardColor,borderRadius:BorderRadius.circular(18)),child:Row(children:[ClipOval(child:AppImage(imageUrl:doctorPhotoUrl,width:76,height:76,fit:BoxFit.cover,errorWidget:Container(width:76,height:76,color:AppColors.primary.withOpacity(.1),child:const Icon(Icons.medical_services_outlined,color:AppColors.primary,size:34)))),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('الصورة الشخصية للطبيب',style:TextStyle(fontWeight:FontWeight.w900)),const SizedBox(height:4),const Text('الصورة الافتراضية من ImageKit. عند التحديث تُرفع الصورة إلى Nextcloud.',style:TextStyle(fontSize:11,color:Colors.grey)),const SizedBox(height:8),OutlinedButton.icon(onPressed:uploadingPhoto?null:_changeDoctorPhoto,icon:uploadingPhoto?const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.photo_camera_outlined),label:Text(uploadingPhoto?'جارٍ الرفع...':'تغيير الصورة'))]))]));
+
   Widget _hero()=>Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:AppColors.primary,borderRadius:BorderRadius.circular(22)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('مركز التحكم المهني',style:TextStyle(color:Colors.white,fontSize:22,fontWeight:FontWeight.w900)),SizedBox(height:5),Text('الطبيب صاحب القرار في التواجد والدوام والمرضى والرسائل والمواعيد.',style:TextStyle(color:Colors.white70))]));
   Widget _stats(){final uid=FirebaseAuth.instance.currentUser?.uid;if(uid==null)return const SizedBox();return StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('appointments').where('doctorId',isEqualTo:uid).limit(100).snapshots(),builder:(c,a)=>StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('chats').where('participants',arrayContains:uid).limit(100).snapshots(),builder:(c,s){final n=s.data?.docs.where((d)=>(d.data()['participants'] is List)&&(d.data()['participants'] as List).length==2).length??0;return Row(children:[Expanded(child:stat('المواعيد',(a.data?.docs.length??0).toString(),Icons.calendar_month)),const SizedBox(width:7),Expanded(child:stat('المرضى',n.toString(),Icons.people_alt)),const SizedBox(width:7),Expanded(child:stat('رسائل/مريض',_messageLimit.text,Icons.chat))]);}));}
   Widget stat(String t,String v,IconData i)=>Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:Theme.of(context).cardColor,borderRadius:BorderRadius.circular(14)),child:Column(children:[Icon(i,color:AppColors.primary),Text(v,style:const TextStyle(fontWeight:FontWeight.w900)),Text(t,style:const TextStyle(fontSize:9,color:Colors.grey))]));
