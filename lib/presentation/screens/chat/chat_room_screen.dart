@@ -135,6 +135,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
   Timer? _pendingRefreshTimer;
   Timer? _typingClearTimer;
+  Future<void> _typingWriteQueue = Future<void>.value();
+  bool _myTyping = false;
   int _pendingMediaLoadGeneration = 0;
   bool _otherTyping = false;
   List<MessageModel> _messages = [];
@@ -189,19 +191,30 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   Future<void> _setTyping(bool typing) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
+
+    // Keep the expiry timer alive while text changes, but avoid writing the
+    // same typing state to Firestore for every keystroke.
     _typingClearTimer?.cancel();
     if (typing) {
-      _typingClearTimer =
-          Timer(const Duration(seconds: 2), () => _setTyping(false));
+      _typingClearTimer = Timer(
+        const Duration(seconds: 3),
+        () => unawaited(_setTyping(false)),
+      );
     }
-    try {
+    if (_myTyping == typing) return;
+    _myTyping = typing;
+
+    // Serialize writes so a delayed "typing=true" cannot arrive after the
+    // newer "typing=false" update and leave the other user's indicator stuck.
+    _typingWriteQueue = _typingWriteQueue.then((_) async {
       await _firestore
           .collection('chats')
           .doc(widget.chatId)
           .set({'typing.$uid': typing}, SetOptions(merge: true));
-    } catch (e) {
-      debugPrint('typing update: $e');
-    }
+    }).catchError((Object error) {
+      debugPrint('typing update: $error');
+    });
+    await _typingWriteQueue;
   }
 
   
@@ -801,6 +814,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       unawaited(_firestore.collection('users').doc(uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
       unawaited(_markDeliveryAndRead());
     } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      unawaited(_setTyping(false));
       unawaited(_firestore.collection('users').doc(uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
     }
   }
