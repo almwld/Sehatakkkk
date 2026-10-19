@@ -207,7 +207,7 @@ class _HomeTabState extends State<HomeTab>
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 1.35),
         itemBuilder: (_, index) {
           final doctor = doctors[index];
-          final image = [doctor['photoUrl'], doctor['imageUrl'], doctor['image'], doctor['avatarUrl']].map((value) => value?.toString().trim() ?? '').firstWhere((value) => value.startsWith('https://') || value.startsWith('http://'), orElse: () => ImageKit.doctor1);
+          final image = ImageKit.doctorPhoto(doctor);
           final id = (doctor['id'] ?? doctor['uid'] ?? '').toString();
           return InkWell(
             onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'),
