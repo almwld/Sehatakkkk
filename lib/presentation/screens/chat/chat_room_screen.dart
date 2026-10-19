@@ -135,6 +135,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
   Timer? _pendingRefreshTimer;
   Timer? _typingClearTimer;
+  Timer? _typingHeartbeatTimer;
   Future<void> _typingWriteQueue = Future<void>.value();
   bool _myTyping = false;
   int _pendingMediaLoadGeneration = 0;
@@ -192,29 +193,49 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    // Keep the expiry timer alive while text changes, but avoid writing the
-    // same typing state to Firestore for every keystroke.
+    // Refresh the local expiry on every input event, but write the boolean
+    // only when its state changes. A low-frequency heartbeat prevents stale
+    // "typing" indicators if the sender is backgrounded or the process dies.
     _typingClearTimer?.cancel();
     if (typing) {
       _typingClearTimer = Timer(
-        const Duration(seconds: 3),
+        const Duration(seconds: 5),
         () => unawaited(_setTyping(false)),
       );
+      _typingHeartbeatTimer ??= Timer.periodic(
+        const Duration(seconds: 2),
+        (_) => unawaited(_refreshTypingHeartbeat()),
+      );
+    } else {
+      _typingHeartbeatTimer?.cancel();
+      _typingHeartbeatTimer = null;
     }
+
     if (_myTyping == typing) return;
     _myTyping = typing;
 
-    // Serialize writes so a delayed "typing=true" cannot arrive after the
-    // newer "typing=false" update and leave the other user's indicator stuck.
     _typingWriteQueue = _typingWriteQueue.then((_) async {
-      await _firestore
-          .collection('chats')
-          .doc(widget.chatId)
-          .set({'typing.$uid': typing}, SetOptions(merge: true));
+      await _firestore.collection('chats').doc(widget.chatId).set({
+        'typing.$uid': typing,
+        'typingUpdatedAt.$uid': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     }).catchError((Object error) {
       debugPrint('typing update: $error');
     });
     await _typingWriteQueue;
+  }
+
+  Future<void> _refreshTypingHeartbeat() async {
+    if (!_myTyping || !mounted) return;
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      await _firestore.collection('chats').doc(widget.chatId).set({
+        'typingUpdatedAt.$uid': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (error) {
+      debugPrint('typing heartbeat: $error');
+    }
   }
 
   
@@ -368,8 +389,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       final mutedFor = data['mutedFor'];
       final pinnedFor = data['pinnedFor'];
       final typing = data['typing'];
+      final typingUpdatedAt = data['typingUpdatedAt'];
       final otherId = widget.otherUserId;
-      final otherTyping = typing is Map && typing[otherId] == true;
+      final rawTypingTime = typingUpdatedAt is Map
+          ? typingUpdatedAt[otherId]
+          : null;
+      final typingTime = rawTypingTime is Timestamp
+          ? rawTypingTime.toDate()
+          : rawTypingTime is DateTime
+              ? rawTypingTime
+              : null;
+      final typingFresh = typingTime == null ||
+          DateTime.now().difference(typingTime).inSeconds < 7;
+      final otherTyping =
+          typing is Map && typing[otherId] == true && typingFresh;
       if (mounted && _otherTyping != otherTyping)
         setState(() => _otherTyping = otherTyping);
       setState(() {
@@ -828,6 +861,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     }
     _pendingRefreshTimer?.cancel();
     _typingClearTimer?.cancel();
+    _typingHeartbeatTimer?.cancel();
+    _typingHeartbeatTimer = null;
     unawaited(_setTyping(false));
     _messagesSub?.cancel();
     _chatSub?.cancel();
