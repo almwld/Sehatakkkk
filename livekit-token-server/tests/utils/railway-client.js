@@ -1,7 +1,7 @@
-const baseUrl = String(process.env.RAILWAY_URL || '').replace(/\/$/, '');
+const baseUrl = String(process.env.SUGA_URL || process.env.SUGA_BASE_URL || process.env.RAILWAY_URL || '').replace(/\/$/, '');
 
 function requireBaseUrl() {
-  if (!baseUrl) throw new Error('Set RAILWAY_URL to the deployed Railway service URL');
+  if (!baseUrl) throw new Error('Set SUGA_URL to the deployed Suga service URL (legacy RAILWAY_URL is also accepted)');
   return baseUrl;
 }
 
