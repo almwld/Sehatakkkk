@@ -7,18 +7,26 @@ import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 
 class VideoConsultationScreen extends StatefulWidget {
   const VideoConsultationScreen({super.key});
   @override State<VideoConsultationScreen> createState() => _VideoConsultationScreenState();
 }
 class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
+  String _firstImageUrl(Map<String, dynamic> data) {
+    for (final key in const ['photoUrl', 'imageUrl', 'image', 'avatarUrl', 'profileImageUrl']) {
+      final value = data[key]?.toString().trim() ?? '';
+      if (value.startsWith('https://') || value.startsWith('http://')) return value;
+    }
+    return ImageKit.doctor1;
+  }
   List<Map<String,dynamic>> _doctors=[]; bool _isLoading=true; String _selectedFilter='الكل';
   final _filters=['الكل','متاح الآن','الأعلى تقييماً','الأقل سعراً'];
   @override void initState(){super.initState();_loadDoctors();}
   Future<void> _loadDoctors() async { try {
     final snap=await FirebaseFirestore.instance.collection('doctors').where('isActive',isEqualTo:true).limit(50).get();
-    if(!mounted)return; setState((){_doctors=snap.docs.map((d){final x=d.data();return {...x,'id':d.id,'name':x['name']??x['displayName']??'طبيب','specialty':x['specialty']??x['specialization']??'عام','rating':(x['rating'] as num?)?.toDouble()??0.0,'reviews':(x['reviews'] as num?)?.toInt()??0,'price':'${x['consultationPrice']??x['price']??0}','available':x['available']==true,'online':x['online']==true,'image':x['imageUrl']??x['image']??'','nextAvailable':x['nextAvailable']??'غير محدد'};}).toList();_isLoading=false;});
+    if(!mounted)return; setState((){_doctors=snap.docs.map((d){final x=d.data();return {...x,'id':d.id,'name':x['name']??x['displayName']??'طبيب','specialty':x['specialty']??x['specialization']??'عام','rating':(x['rating'] as num?)?.toDouble()??0.0,'reviews':(x['reviews'] as num?)?.toInt()??0,'price':'${x['consultationPrice']??x['price']??0}','available':x['available']==true,'online':x['online']==true,'image':_firstImageUrl(x),'nextAvailable':x['nextAvailable']??'غير محدد'};}).toList();_isLoading=false;});
   } catch(_){if(mounted)setState((){_doctors=[];_isLoading=false;});}}
   List<Map<String,dynamic>> get _filteredDoctors {final l=List<Map<String,dynamic>>.from(_doctors);switch(_selectedFilter){case'متاح الآن':l.retainWhere((d)=>d['online']==true);break;case'الأعلى تقييماً':l.sort((a,b)=>(b['rating'] as double).compareTo(a['rating'] as double));break;case'الأقل سعراً':l.sort((a,b)=>(double.tryParse(a['price'].toString())??double.maxFinite).compareTo(double.tryParse(b['price'].toString())??double.maxFinite));}return l;}
   void _startConsultation(Map<String,dynamic> doctor){showDialog(context:context,builder:(c)=>AlertDialog(title:Text('استشارة مع ${doctor['name']}'),content:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text('التخصص: ${doctor['specialty']}'),const SizedBox(height:8),Text('التقييم: ${doctor['rating']} (${doctor['reviews']} تقييم)'),const SizedBox(height:8),Text('السعر: ${doctor['price']} ر.ي')]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:const Text('إلغاء')),ElevatedButton.icon(onPressed:(){Navigator.pop(c);_chooseCallType(doctor);},icon:const Icon(Icons.call),label:const Text('الاتصال'),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white))]));}
