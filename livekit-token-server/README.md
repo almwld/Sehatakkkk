@@ -10,7 +10,7 @@
 
 ## إعداد خدمة Suga
 
-اضبط متغيرات الخدمة في Railway:
+اضبط متغيرات الخدمة في Suga:
 
 - `PORT` — اضبطه على المنفذ المستهدف الذي تتطلبه خدمة Suga (عادةً 80 عند ضبط `SUGA_PUBLIC_TARGET_PORT=80`).
 - `FIREBASE_PROJECT_ID` — معرف مشروع Firebase.
