@@ -1,58 +1,99 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
-class TypingIndicator extends StatelessWidget {
+/// Shared animated typing state used by the main chat room and other chat UI.
+class TypingIndicator extends StatefulWidget {
   final String name;
+  final bool compact;
 
   const TypingIndicator({
     super.key,
     this.name = '',
+    this.compact = false,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  State<TypingIndicator> createState() => _TypingIndicatorState();
+}
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      alignment: Alignment.centerRight,
+class _TypingIndicatorState extends State<TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final dotColor = dark ? const Color(0xFF8BE0D6) : AppColors.primary;
+    final labelColor = dark ? Colors.grey.shade300 : Colors.grey.shade700;
+
+    return Padding(
+      padding: widget.compact
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (name.isNotEmpty)
-            Text(
-              name,
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+          if (widget.name.isNotEmpty) ...[
+            Flexible(
+              child: Text(
+                widget.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-          if (name.isNotEmpty) const SizedBox(width: 4),
+            const SizedBox(width: 5),
+          ],
           Text(
-            'يكتب',
+            widget.compact ? 'يكتب الآن' : 'يكتب',
             style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-              fontSize: 12,
+              color: labelColor,
+              fontSize: widget.compact ? 11 : 12,
+              fontWeight: widget.compact ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
           const SizedBox(width: 6),
-          _buildDot(0, isDark),
-          _buildDot(1, isDark),
-          _buildDot(2, isDark),
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(3, (index) {
+                final phase = (_controller.value + index / 3) % 1;
+                final scale =
+                    .65 + .35 * (.5 + .5 * math.sin(phase * 2 * math.pi));
+                return Transform.scale(
+                  scale: scale,
+                  child: Container(
+                    width: widget.compact ? 4.5 : 5.5,
+                    height: widget.compact ? 4.5 : 5.5,
+                    margin: EdgeInsetsDirectional.only(
+                      end: index == 2 ? 0 : 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDot(int index, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 1.5),
-      width: 5,
-      height: 5,
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[500] : Colors.grey[400],
-        shape: BoxShape.circle,
       ),
     );
   }
