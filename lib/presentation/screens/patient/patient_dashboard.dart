@@ -63,6 +63,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   Map<String, dynamic> _cachedUserData = {};
   List<Map<String, dynamic>> _cachedVitals = [];
   bool _dataLoaded = false;
+  bool _hasLiveUserData = false;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userDataSubscription;
 
   final List<Map<String, dynamic>> _vitals = [
@@ -158,6 +159,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         .listen((snapshot) {
       if (!snapshot.exists || !mounted) return;
       final value = (snapshot.data()?['bloodType'] ?? '').toString().trim();
+      _hasLiveUserData = true;
       final nextBloodType = value.isEmpty ? 'غير محدد' : value;
       if (_bloodType == nextBloodType) return;
       setState(() => _bloodType = nextBloodType);
@@ -189,8 +191,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _subscriptionType = cachedSubscriptionType ?? 'مجانية';
           _userAvatar = cachedUserAvatar ?? '';
           _userPhone = cachedUserPhone ?? '';
-          final cached = (cachedBloodType ?? '').trim();
-          _bloodType = cached.isEmpty ? 'غير محدد' : cached;
+          if (!_hasLiveUserData) {
+            final cached = (cachedBloodType ?? '').trim();
+            _bloodType = cached.isEmpty ? 'غير محدد' : cached;
+          }
           _dataLoaded = true;
         });
       }
