@@ -216,8 +216,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
     _typingWriteQueue = _typingWriteQueue.then((_) async {
       await _firestore.collection('chats').doc(widget.chatId).set({
-        'typing.$uid': typing,
-        'typingUpdatedAt.$uid': FieldValue.serverTimestamp(),
+        'typing': {uid: typing},
+        'typingUpdatedAt': {uid: FieldValue.serverTimestamp()},
       }, SetOptions(merge: true));
     }).catchError((Object error) {
       debugPrint('typing update: $error');
@@ -231,7 +231,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (uid == null) return;
     try {
       await _firestore.collection('chats').doc(widget.chatId).set({
-        'typingUpdatedAt.$uid': FieldValue.serverTimestamp(),
+        'typingUpdatedAt': {uid: FieldValue.serverTimestamp()},
       }, SetOptions(merge: true));
     } catch (error) {
       debugPrint('typing heartbeat: $error');
