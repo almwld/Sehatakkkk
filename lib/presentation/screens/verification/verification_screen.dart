@@ -72,7 +72,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
   }
 
   Future<void> _submitVerification() async {
-    if (_submitting || _verified) return;
+    if (_submitting || _verified || _status == 'pending') return;
     final u = FirebaseAuth.instance.currentUser;
     if (u == null) {
       ToastService.showError('يجب تسجيل الدخول أولاً');
