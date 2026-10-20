@@ -137,7 +137,8 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: 🚀 Publish to Google Play internal testing
+      - name: 🚀 Publish to Google Play internal testing (temporarily disabled)
+        if: ${{ vars.ENABLE_PLAY_PUBLISH == 'true' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON_KEY }}
