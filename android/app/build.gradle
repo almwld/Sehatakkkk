@@ -41,7 +41,7 @@ def releaseKeyPassword = signingValue('keyPassword', 'SEHATAK_KEY_PASSWORD')
 android {
     namespace "com.sehatak.app"
     compileSdkVersion 36
-    ndkVersion flutter.ndkVersion
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
