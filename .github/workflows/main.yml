@@ -450,7 +450,6 @@ jobs:
         echo "✅ Release APK is not debug-signed."
 
     - name: 📤 Upload arm64-v8a
-      if: ${{ false }} # TEMP: publishing disabled while diagnosing release build
       uses: actions/upload-artifact@v4
       with:
         name: app-arm64-v8a-release
