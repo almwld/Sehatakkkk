@@ -41,7 +41,7 @@ dependencies:
   firebase_crashlytics: 3.4.9
   firebase_app_check: 0.2.1
   google_sign_in: 6.2.1
-  http: 1.2.0
+  http: 1.2.2
   dio: 5.4.0
   retrofit: 4.0.3
   json_annotation: 4.8.1
