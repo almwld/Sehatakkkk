@@ -27,8 +27,6 @@ subprojects {
     // Set its namespace before Android variants are created, without upgrading
     // its web dependency and breaking this app's pinned Firebase 2.x stack.
     project.plugins.withId("com.android.library") {
-        // Keep Android library resource linking compatible with dependencies using API 31+ attrs (for example android:attr/lStar).
-        project.android.compileSdkVersion 36
         if (project.name == "blurhash") {
             project.android.namespace = "com.raincal.blurhash"
         } else if (project.name == "flutter_vibrate") {
@@ -40,11 +38,18 @@ subprojects {
             def vibrateManifest = project.file("src/main/AndroidManifest.xml")
             if (vibrateManifest.exists()) {
                 def manifestText = vibrateManifest.getText("UTF-8")
-                def patchedManifest = manifestText.replaceFirst(/\s+package=["']flutter\.plugins\.vibrate["']/, "")
+                def patchedManifest = manifestText.replaceFirst(/\\s+package=["']flutter\\.plugins\\.vibrate["']/, "")
                 if (patchedManifest != manifestText) {
                     vibrateManifest.setText(patchedManifest, "UTF-8")
                 }
             }
+        }
+
+        // Some legacy Android libraries re-declare compileSdk in their own
+        // build.gradle after the plugin is applied. Enforce the SDK after that
+        // configuration so resources such as android:attr/lStar (API 31) link.
+        project.afterEvaluate {
+            project.android.compileSdkVersion 36
         }
     }
 }
