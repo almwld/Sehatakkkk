@@ -62,7 +62,7 @@ class HomeProductsRow extends StatelessWidget {
                     Stack(
                       children: [
                         AppImage(
-                          imageUrl: product.imageUrl ?? '',
+                          imageUrl: product.resolvedImageUrl,
                           width: 80,
                           height: 80,
                           borderRadius: BorderRadius.circular(12),
