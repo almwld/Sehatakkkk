@@ -3976,7 +3976,7 @@ const featuredImageMetadata = {
 const finalProducts = products.map(product => {
   const imageUrl = resolveProductImage(product);
   const featuredImage = featuredImageMetadata[product.id];
-  const isFeatured = /^med_00([1-9]|10)$/.test(product.id);
+  const isFeatured = /^med_00[1-9]$/.test(product.id) || product.id === 'med_010';
 
   return {
   ...product,
