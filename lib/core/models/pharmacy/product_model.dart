@@ -26,7 +26,7 @@ class ProductModel {
   String get categoryText => switch (category) {
     ProductCategory.painkiller => 'مسكنات', ProductCategory.antibiotic => 'مضادات حيوية', ProductCategory.vitamin => 'فيتامينات', ProductCategory.supplement => 'مكملات غذائية', ProductCategory.medicalDevice => 'أجهزة طبية', ProductCategory.skincare => 'عناية بالبشرة', ProductCategory.baby => 'منتجات أطفال', ProductCategory.diabetes => 'أدوية السكري', ProductCategory.heart => 'أدوية القلب', ProductCategory.bloodPressure => 'أدوية الضغط', ProductCategory.allergy => 'أدوية الحساسية', ProductCategory.digestive => 'أدوية الجهاز الهضمي', ProductCategory.respiratory => 'أدوية الجهاز التنفسي', ProductCategory.neurology => 'أدوية الأعصاب', ProductCategory.dermatology => 'أدوية جلدية', ProductCategory.ophthalmology => 'أدوية العيون', ProductCategory.dental => 'عناية بالأسنان', ProductCategory.womenHealth => 'صحة المرأة', ProductCategory.menHealth => 'صحة الرجل', ProductCategory.elderly => 'رعاية كبار السن', ProductCategory.firstAid => 'إسعافات أولية', ProductCategory.medicalSupplies => 'مستلزمات طبية',
   };
-  String get resolvedImageUrl => ImageKit.productImage(imageUrl: imageUrl, dosageForm: dosageForm, category: categoryText, genericName: genericName);
+  String get resolvedImageUrl => ImageKit.productImage(imageUrl: imageUrl, productId: id, dosageForm: dosageForm, category: categoryText, genericName: genericName);
   Color get categoryColor => Colors.teal;
   double get priceWithDiscount => discount != null ? price * (1 - discount! / 100) : price;
   double get discountAmount => discount != null ? price * discount! / 100 : 0.0;
