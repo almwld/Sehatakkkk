@@ -45,11 +45,11 @@ subprojects {
             }
         }
 
-        // Some legacy Android libraries re-declare compileSdk in their own
-        // build.gradle after the plugin is applied. Enforce the SDK after that
-        // configuration so resources such as android:attr/lStar (API 31) link.
-        project.afterEvaluate {
-            project.android.compileSdkVersion 36
+        // Finalize the Android library DSL after each plugin has evaluated its
+        // own build.gradle, but before AGP creates variants and reads compileSdk.
+        // afterEvaluate is too late: AGP 8.9 has already consumed the DSL by then.
+        project.androidComponents.finalizeDsl { androidExtension ->
+            androidExtension.compileSdk = 36
         }
     }
 }
