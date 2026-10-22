@@ -53,7 +53,7 @@ class _HomeTabState extends State<HomeTab>
   @override
   void initState() {
     super.initState();
-    _products = PharmacyService().getAllProducts();
+    _products = PharmacyService().getFeaturedProducts(limit: 10);
     _weatherFuture = _loadWeather();
     _startTimer = Timer(const Duration(milliseconds: 150), () {
       if (mounted) context.read<HomeBloc>().add(HomeStarted());
@@ -78,7 +78,7 @@ class _HomeTabState extends State<HomeTab>
   Future<void> _refresh() async {
     context.read<HomeBloc>().add(HomeDataRefreshed());
     setState(() {
-      _products = PharmacyService().getAllProducts();
+      _products = PharmacyService().getFeaturedProducts(limit: 10);
       _weatherFuture = _loadWeather();
     });
   }
@@ -241,7 +241,7 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _productsSection(bool dark) => _section(
-        title: 'منتجات الصيدلية',
+        title: 'منتجات مميزة',
         dark: dark,
         more: () => _go(AppRouter.pharmacy),
         child: FutureBuilder<List<ProductModel>>(
