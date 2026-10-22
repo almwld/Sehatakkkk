@@ -54,6 +54,13 @@ class ImageKitConfig {
   static const String medicine2 = '$medicines/medicine_2.png';
   static const String medicine3 = '$medicines/medicine_3.png';
   static const String medicine4 = '$medicines/medicine_4.png';
+  static String medicineByNumber(int number) => '$medicines/med_$number.png';
+  static const List<String> seededMedicineImages = [
+    '$medicines/med_1.png', '$medicines/med_2.png', '$medicines/med_3.png',
+    '$medicines/med_4.png', '$medicines/med_5.png', '$medicines/med_6.png',
+    '$medicines/med_7.png', '$medicines/med_8.png', '$medicines/med_9.png',
+    '$medicines/med_10.png',
+  ];
 
   static const String pharmacy1 = '$pharmacies/pharmacy_1.png';
   static const String pharmacy2 = '$pharmacies/pharmacy_2.png';
