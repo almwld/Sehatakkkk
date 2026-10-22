@@ -14,6 +14,40 @@ class PharmacyService {
     }
   }
 
+  // جلب المنتجات المميزة للواجهة الرئيسية، مع احتياط للبيانات القديمة.
+  Future<List<ProductModel>> getFeaturedProducts({int limit = 10}) async {
+    try {
+      final snap = await _firestore
+          .collection('products')
+          .where('isFeatured', isEqualTo: true)
+          .where('isActive', isEqualTo: true)
+          .orderBy('rating', descending: true)
+          .limit(limit)
+          .get();
+      if (snap.docs.isNotEmpty) {
+        return snap.docs
+            .map((doc) => ProductModel.fromFirestore(doc.data(), doc.id))
+            .toList();
+      }
+    } catch (e) {
+      // Older deployments may not have the composite index yet.
+    }
+
+    final all = await getAllProducts();
+    final featured = all.where((product) {
+      final number = int.tryParse(product.id.replaceFirst('med_', ''));
+      return number != null && number >= 1 && number <= 10;
+    }).toList()
+      ..sort((a, b) {
+        final byRating = b.rating.compareTo(a.rating);
+        if (byRating != 0) return byRating;
+        final aNumber = int.tryParse(a.id.replaceFirst('med_', '')) ?? 999;
+        final bNumber = int.tryParse(b.id.replaceFirst('med_', '')) ?? 999;
+        return aNumber.compareTo(bNumber);
+      });
+    return featured.take(limit).toList();
+  }
+
   // جلب منتجات حسب التصنيف
   Future<List<ProductModel>> getProductsByCategory(ProductCategory category) async {
     try {
