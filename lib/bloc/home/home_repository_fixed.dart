@@ -56,7 +56,44 @@ class HomeRepositoryFixed {
 
   Future<List<Map<String, dynamic>>> getHospitals({int limit = 6}) => _query('hospitals', limit);
 
-  Future<List<Map<String, dynamic>>> getLabs({int limit = 6}) => _query('labs', limit);
+  Future<List<Map<String, dynamic>>> getLabs({int limit = 6}) async {
+    try {
+      final f = firestore;
+      if (f == null) return [];
+      final featured = await f
+          .collection('labs')
+          .where('isFeatured', isEqualTo: true)
+          .where('isActive', isEqualTo: true)
+          .orderBy('rating', descending: true)
+          .limit(limit)
+          .get();
+      if (featured.docs.isNotEmpty) {
+        return featured.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+      }
+    } catch (_) {
+      // Fallback supports existing lab records and installations before index deployment.
+    }
+
+    try {
+      final f = firestore;
+      if (f == null) return [];
+      final snapshot = await f.collection('labs').get();
+      final labs = snapshot.docs
+          .map((d) => <String, dynamic>{'id': d.id, ...d.data()})
+          .where((lab) =>
+              lab['isActive'] != false &&
+              (lab['name']?.toString().trim().isNotEmpty ?? false))
+          .toList();
+      double rating(Map<String, dynamic> lab) {
+        final value = lab['rating'];
+        return value is num ? value.toDouble() : double.tryParse(value?.toString() ?? '') ?? 0;
+      }
+      labs.sort((a, b) => rating(b).compareTo(rating(a)));
+      return labs.take(limit).toList();
+    } catch (_) {
+      return [];
+    }
+  }
 
   Future<List<Map<String, dynamic>>> getPharmacies({int limit = 6}) => _query('pharmacies', limit);
 
