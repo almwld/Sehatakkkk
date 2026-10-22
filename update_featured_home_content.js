@@ -6,9 +6,13 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
-const credentialPath = path.join(__dirname, 'service-account.json');
-if (!fs.existsSync(credentialPath)) {
-  console.error('ملف service-account.json غير موجود. ضعه محلياً ولا ترفعه إلى GitHub.');
+const credentialPath = [
+  path.join(__dirname, 'service-account.json'),
+  path.join(__dirname, 'serviceAccountKey.json'),
+].find(file => fs.existsSync(file));
+
+if (!credentialPath) {
+  console.error('لم يتم العثور على service-account.json أو serviceAccountKey.json. ضعه محلياً ولا ترفعه إلى GitHub.');
   process.exit(1);
 }
 
