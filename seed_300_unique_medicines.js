@@ -3960,12 +3960,39 @@ function resolveProductImage(product) {
 // إضافة الحقول الإضافية المطلوبة للشاشة
 // ============================================================
 
-const finalProducts = products.map(product => ({
+const featuredImageMetadata = {
+  med_001: { imageId: '6a6e9b8d5c7cd75eb824fb25', imageSize: 40622 },
+  med_002: { imageId: '6a6e994a5c7cd75eb80be509', imageSize: 121706 },
+  med_003: { imageId: '6a6e9b825c7cd75eb8247423', imageSize: 40232 },
+  med_004: { imageId: '6a6e9b6b5c7cd75eb823b12e', imageSize: 42484 },
+  med_005: { imageId: '6ad57393ead997d09a3f40b0', imageSize: 41804 },
+  med_006: { imageId: '6ad57393ead997d09a3f40dc', imageSize: 39170 },
+  med_007: { imageId: '6ad57393ead997d09a3f40b3', imageSize: 41804 },
+  med_008: { imageId: '6ad57393ead997d09a3f40d7', imageSize: 39170 },
+  med_009: { imageId: '6ad57393ead997d09a3f40c6', imageSize: 41804 },
+  med_010: { imageId: '6ad57393ead997d09a3f40cc', imageSize: 39170 },
+};
+
+const finalProducts = products.map(product => {
+  const imageUrl = resolveProductImage(product);
+  const featuredImage = featuredImageMetadata[product.id];
+  const isFeatured = /^med_00([1-9]|10)$/.test(product.id);
+
+  return {
   ...product,
-  
-  // صورة موحدة من ImageKit؛ نحافظ على رابط المنتج الصريح إن وُجد.
-  imageUrl: resolveProductImage(product),
+
+  // صور ImageKit المخصصة للمنتجات العشرة الأولى.
+  imageUrl,
+  ...(featuredImage ? {
+    thumbnailUrl: `${imageUrl}?tr=w-200,h-200`,
+    imageId: featuredImage.imageId,
+    imageSize: featuredImage.imageSize,
+    imageDimensions: { width: 1536, height: 1536 },
+  } : {}),
   imageSource: 'imagekit',
+  isFeatured,
+  isActive: true,
+  isPublished: true,
 
   // معلومات المنصة
   productId: product.id,
@@ -3996,7 +4023,8 @@ const finalProducts = products.map(product => ({
   // بيانات زمنية
   updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   createdAt: admin.firestore.FieldValue.serverTimestamp(),
-}));
+  };
+});
 
 // ============================================================
 // تشغيل السكربت
