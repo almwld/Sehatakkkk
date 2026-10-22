@@ -3939,12 +3939,32 @@ const products = [
 ];
 
 // ============================================================
+// قواعد الصور الموحدة: أول 10 منتجات بصور مخصصة، والبقية حسب الشكل الدوائي.
+// يجب أن تكون الملفات موجودة مسبقاً على ImageKit؛ هذا السكربت لا يرفع الصور.
+// ============================================================
+const imageBase = 'https://ik.imagekit.io/fqcynk86c/images/medicines';
+function resolveProductImage(product) {
+  const match = /^med_([0-9]+)$/.exec(String(product.id || ''));
+  const number = match ? Number(match[1]) : 0;
+  if (number >= 1 && number <= 10) return `${imageBase}/med_${number}.png`;
+  const form = String(product.dosageForm || '').trim();
+  if (['شراب', 'قطرات', 'معلق'].includes(form)) return `${imageBase}/medicine_3.png`;
+  if (['كبسولات', 'بودرة', 'أكياس'].includes(form)) return `${imageBase}/medicine_2.png`;
+  if (['حقن', 'كريم', 'مرهم', 'جل', 'لاصقات'].includes(form)) return `${imageBase}/medicine_4.png`;
+  return `${imageBase}/medicine_1.png`;
+}
+
+// ============================================================
 // إضافة الحقول الإضافية المطلوبة للشاشة
 // ============================================================
 
 const finalProducts = products.map(product => ({
   ...product,
   
+  // صورة موحدة من ImageKit؛ نحافظ على رابط المنتج الصريح إن وُجد.
+  imageUrl: String(product.imageUrl || '').trim() || resolveProductImage(product),
+  imageSource: 'imagekit',
+
   // معلومات المنصة
   productId: product.id,
   sourceType: "platform",
