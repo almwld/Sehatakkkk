@@ -3947,6 +3947,8 @@ function resolveProductImage(product) {
   const match = /^med_([0-9]+)$/.exec(String(product.id || ''));
   const number = match ? Number(match[1]) : 0;
   if (number >= 1 && number <= 10) return `${imageBase}/med_${number}.png`;
+  const explicit = String(product.imageUrl || '').trim();
+  if (explicit) return explicit;
   const form = String(product.dosageForm || '').trim();
   if (['شراب', 'قطرات', 'معلق'].includes(form)) return `${imageBase}/medicine_3.png`;
   if (['كبسولات', 'بودرة', 'أكياس'].includes(form)) return `${imageBase}/medicine_2.png`;
@@ -3962,7 +3964,7 @@ const finalProducts = products.map(product => ({
   ...product,
   
   // صورة موحدة من ImageKit؛ نحافظ على رابط المنتج الصريح إن وُجد.
-  imageUrl: String(product.imageUrl || '').trim() || resolveProductImage(product),
+  imageUrl: resolveProductImage(product),
   imageSource: 'imagekit',
 
   // معلومات المنصة
