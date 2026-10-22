@@ -46,7 +46,7 @@ const hours = (open, close) => ({
 
 const labs = [
   {
-    id: 'lab_001', name: 'مختبرات الرازي', nameEn: 'Al-Razi Laboratories',
+    id: 'lab_001', name: 'مختبرات الرازي', nameEn: 'Al-Razi Laboratories', location: 'حدة، صنعاء',
     imageId: '6a6e9b625c7cd75eb8238861', imageSize: 275080,
     imageDimensions: { width: 480, height: 351 },
     phone: '+967 771234568', email: 'info@alrazilabs.ye',
@@ -57,7 +57,7 @@ const labs = [
     rating: 4.8, reviewsCount: 156, testsCount: 45,
   },
   {
-    id: 'lab_002', name: 'مختبرات العولقي', nameEn: 'Al-Awlaqi Laboratories',
+    id: 'lab_002', name: 'مختبرات العولقي', nameEn: 'Al-Awlaqi Laboratories', location: 'الحصبة، صنعاء',
     imageId: '6a6e9b815c7cd75eb82471e4', imageSize: 286621,
     imageDimensions: { width: 480, height: 310 },
     phone: '+967 771234569', email: 'info@alawlaqilabs.ye',
@@ -68,7 +68,7 @@ const labs = [
     rating: 4.7, reviewsCount: 128, testsCount: 38,
   },
   {
-    id: 'lab_003', name: 'مختبرات المأمون', nameEn: 'Al-Mamoon Laboratories',
+    id: 'lab_003', name: 'مختبرات المأمون', nameEn: 'Al-Mamoon Laboratories', location: 'الصافية، صنعاء',
     imageId: '6a6e9bd15c7cd75eb827761f', imageSize: 266345,
     imageDimensions: { width: 480, height: 269 },
     phone: '+967 771234570', email: 'info@almamoonlabs.ye',
