@@ -81,7 +81,8 @@ class HomeRepositoryFixed {
       final labs = snapshot.docs
           .map((d) => <String, dynamic>{'id': d.id, ...d.data()})
           .where((lab) =>
-              lab['isActive'] != false &&
+              lab['isFeatured'] == true &&
+              lab['isActive'] == true &&
               (lab['name']?.toString().trim().isNotEmpty ?? false))
           .toList();
       double rating(Map<String, dynamic> lab) {
