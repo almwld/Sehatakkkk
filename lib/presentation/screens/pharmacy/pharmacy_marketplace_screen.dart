@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/imagekit.dart';
 import '../../../core/config/imagekit_config.dart';
 import '../../../core/services/order_service.dart';
 import '../../../core/services/unified_cart_service.dart';
@@ -386,7 +387,13 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
               ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: (() {
-                    final url = ''.trim();
+                    final url = ImageKit.productImage(
+                      imageUrl: '${p['imageUrl'] ?? p['image'] ?? ''}'.trim(),
+                      productId: '${p['id'] ?? p['productId'] ?? ''}',
+                      dosageForm: '${p['dosageForm'] ?? ''}',
+                      category: '${p['category'] ?? ''}',
+                      genericName: '${p['genericName'] ?? ''}',
+                    );
                     if (!url.startsWith('http')) {
                       return buildImageShimmer(
                         context,
