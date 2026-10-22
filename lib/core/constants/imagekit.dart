@@ -25,12 +25,13 @@ class ImageKit {
   static const String medicineDefault = medicine1;
 
   static String productImage({String? imageUrl, String? productId, String? dosageForm, String? category, String? genericName}) {
-    // Explicit URLs always win; otherwise the first ten canonical product IDs map to dedicated images.
-    if (imageUrl != null && imageUrl.trim().isNotEmpty) return imageUrl.trim();
+    // The first ten canonical IDs always use the dedicated med_1.png..med_10.png set,
+    // even when Firestore still contains an old generic medicine_1..medicine_4 URL.
     final id = (productId ?? '').trim();
     final match = RegExp(r'^med_0*([0-9]+)$').firstMatch(id);
     final number = match == null ? null : int.tryParse(match.group(1)!);
     if (number != null && number >= 1 && number <= 10) return medicineByNumber(number);
+    if (imageUrl != null && imageUrl.trim().isNotEmpty) return imageUrl.trim();
     switch ((dosageForm ?? '').trim()) {
       case 'أقراص': return shapeTablet;
       case 'أقراص فوارة': return shapeTabletEff;
