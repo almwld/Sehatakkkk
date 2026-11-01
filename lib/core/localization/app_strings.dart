@@ -749,6 +749,16 @@ class AppStrings {
       'اكتب رسالة...': ['Write a message...', 'Écrivez un message...'],
       'الكاميرا': ['Camera', 'Caméra'],
       'إرسال': ['Send', 'Envoyer'],
+      'دم': ['Blood', 'Sang'],
+      'بول': ['Urine', 'Urine'],
+      'هرمونات': ['Hormones', 'Hormones'],
+      'فيتامينات': ['Vitamins', 'Vitamines'],
+      'أشعة': ['Radiology', 'Imagerie'],
+      'تحاليل عامة': ['General tests', 'Analyses générales'],
+      'ميكروبيولوجي': ['Microbiology', 'Microbiologie'],
+      'جينية': ['Genetic', 'Génétique'],
+      'أورام': ['Oncology', 'Oncologie'],
+      'تعذر تحميل المختبرات. تحقق من الاتصال وحاول مرة أخرى.': ['Could not load laboratories. Check your connection and try again.', 'Impossible de charger les laboratoires. Vérifiez votre connexion et réessayez.'],
     };
 
     final entry = translations[value];
