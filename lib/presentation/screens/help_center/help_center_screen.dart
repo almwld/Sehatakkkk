@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class HelpCenterScreen extends StatefulWidget {
@@ -9,6 +10,7 @@ class HelpCenterScreen extends StatefulWidget {
 }
 
 class _HelpCenterScreenState extends State<HelpCenterScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final List<Map<String, dynamic>> _faqs = [
     {
       'question': 'كيف يمكنني حجز موعد مع طبيب؟',
@@ -35,7 +37,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('مركز المساعدة'),
+        title: Text(_t('مركز المساعدة')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -53,7 +55,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             ),
             child: ExpansionTile(
               title: Text(
-                faq['question'] as String,
+                _t(faq['question'] as String),
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: isDark ? Colors.white : Colors.black87,
@@ -63,7 +65,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    faq['answer'] as String,
+                    _t(faq['answer'] as String),
                     style: TextStyle(
                       fontSize: 14,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],

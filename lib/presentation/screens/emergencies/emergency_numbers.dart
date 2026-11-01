@@ -1,9 +1,11 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EmergencyNumbers extends StatelessWidget {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
   const EmergencyNumbers({super.key});
 
   Future<void> _makeCall(String number) async {
@@ -33,7 +35,7 @@ class EmergencyNumbers extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'الطوارئ',
+        title: _t(context, 'الطوارئ'),
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -66,8 +68,8 @@ class EmergencyNumbers extends StatelessWidget {
                   size: 48,
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'في حالات الطوارئ، اتصل فوراً',
+                Text(
+                  _t(context, 'في حالات الطوارئ، اتصل فوراً'),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -81,8 +83,8 @@ class EmergencyNumbers extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: () => _makeCall('191'),
                         icon: const Icon(Icons.call, size: 20),
-                        label: const Text(
-                          'اتصل بالإسعاف',
+                        label: Text(
+                          _t(context, 'اتصل بالإسعاف'),
                           style: TextStyle(fontSize: 14),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -100,8 +102,8 @@ class EmergencyNumbers extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => _makeCall('199'),
                         icon: const Icon(Icons.local_police, size: 20),
-                        label: const Text(
-                          'اتصل بالشرطة',
+                        label: Text(
+                          _t(context, 'اتصل بالشرطة'),
                           style: TextStyle(fontSize: 14),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -147,7 +149,7 @@ class EmergencyNumbers extends StatelessWidget {
                       child: Icon(item['icon'] as IconData, color: color, size: 22),
                     ),
                     title: Text(
-                      item['name'] as String,
+                      _t(context, item['name'] as String),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black87,
@@ -155,7 +157,7 @@ class EmergencyNumbers extends StatelessWidget {
                       ),
                     ),
                     subtitle: Text(
-                      item['description'] as String,
+                      _t(context, item['description'] as String),
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],

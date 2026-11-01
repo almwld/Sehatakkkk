@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
@@ -14,6 +15,7 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _watchNotifications(String uid) {
@@ -195,20 +197,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(_t('الإشعارات'), style: const TextStyle(fontWeight: FontWeight.bold)),
           backgroundColor: Colors.transparent,
           foregroundColor: isDark ? Colors.white : Colors.black87,
           elevation: 0,
         ),
-        body: const Center(
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey),
               SizedBox(height: 16),
-              Text('لا توجد إشعارات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(_t('لا توجد إشعارات'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
-              Text('ستظهر الإشعارات هنا عند استلامها'),
+              Text(_t('ستظهر الإشعارات هنا عند استلامها')),
             ],
           ),
         ),
@@ -227,7 +229,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         stream: _watchNotifications(uid),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('تعذر تحميل الإشعارات: ${snapshot.error}'));
+            return Center(child: Text(_t('تعذر تحميل الإشعارات') + ': ${snapshot.error}'));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -242,7 +244,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           final unreadCount = docs.where((doc) => doc.data()['isRead'] != true).length;
 
           if (docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -264,7 +266,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: TextButton.icon(
                     onPressed: () => _markAllRead(uid, docs),
                     icon: const Icon(Icons.done_all),
-                    label: Text('تحديد الكل كمقروء ($unreadCount)'),
+                    label: Text('${_t('تحديد الكل كمقروء')} ($unreadCount)'),
                   ),
                 ),
               Expanded(
@@ -304,7 +306,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(data['title']?.toString() ?? 'صحتك', style: TextStyle(fontWeight: isRead ? FontWeight.w500 : FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+                                  Text(data['title']?.toString() ?? _t('صحتك'), style: TextStyle(fontWeight: isRead ? FontWeight.w500 : FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
                                   const SizedBox(height: 3),
                                   Text(data['body']?.toString() ?? '', maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                                   const SizedBox(height: 4),
