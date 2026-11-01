@@ -445,6 +445,9 @@ jobs:
       run: |
         flutter analyze --no-fatal-warnings --no-fatal-infos
 
+    - name: 🧪 Localization unit tests
+      run: flutter test test/core/localization/app_strings_test.dart
+
     - name: 📦 Install dependencies
       run: flutter pub get
 
