@@ -1946,6 +1946,13 @@ class AppStrings {
       "موعد المختبر": ["Laboratory appointment","Rendez-vous au laboratoire"],
       "حجزت موعد تحليل دم شامل يوم 15 مايو الساعة 8 صباحاً في مختبر الثقة. يجب الصيام 8 ساعات قبل التحليل.": ["I booked a complete blood test for May 15 at 8:00 a.m. at Al-Thiqa Laboratory. I must fast for 8 hours before the test.","J’ai pris rendez-vous pour une analyse sanguine complète le 15 mai à 8 h au laboratoire Al-Thiqa. Je dois être à jeun pendant 8 heures avant l’analyse."],
       "25 أبريل 2026": ["April 25, 2026","25 avril 2026"],
+      'منصة صحتك الشاملة': ['The complete Sehatak platform', 'La plateforme complète Sehatak'],
+      'تطبيق صحي متكامل يقدم خدمات طبية متقدمة تشمل حجز المواعيد، الاستشارات الطبية، متابعة المؤشرات الحيوية، وشراء الأدوية.': ['An integrated healthcare app offering advanced services, including appointment booking, medical consultations, vital-sign tracking, and medicine ordering.', 'Une application de santé intégrée proposant des services avancés : prise de rendez-vous, consultations médicales, suivi des signes vitaux et commande de médicaments.'],
+      'المطور': ['Developed by', 'Développé par'],
+      'فريق صحتك': ['The Sehatak team', 'L’équipe Sehatak'],
+      'المنصة': ['Technology', 'Technologies'],
+      'العام': ['Year', 'Année'],
+      'جميع الحقوق محفوظة': ['All rights reserved', 'Tous droits réservés'],
       "مجهول": ["Unknown","Inconnu"],
     };
 
