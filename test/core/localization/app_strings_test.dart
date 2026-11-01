@@ -93,7 +93,7 @@ void main() {
       expect(english.translate('سجل باستخدام بصمة الإصبع لتأكيد الهوية'),
           'Use your fingerprint to verify your identity');
       expect(english.translate('فشل التحقق من البصمة، حاول مرة أخرى'),
-          'Fingerprint verification failed. Please try again.');
+          'Fingerprint verification failed. Try again.');
       expect(french.translate('تسجيل الدخول بالبصمة'),
           'Connexion par empreinte');
     });
