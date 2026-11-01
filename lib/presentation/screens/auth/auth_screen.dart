@@ -718,7 +718,7 @@ class _AuthScreenState extends State<AuthScreen>
       if (mounted) setState(() => _isLoading = false);
       debugPrint('[GoogleAuth] error: $e');
       if (!firebaseAuthenticated) {
-        ToastService.showError(AppStrings.of(context).translate('تعذر إكمال عملية Google: $e'));
+        ToastService.showError(AppStrings.of(context).translate('تعذر إكمال عملية Google') + ': $e');
       }
     }
   }
