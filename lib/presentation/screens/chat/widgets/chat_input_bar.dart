@@ -374,44 +374,55 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _startRecording() async {
     if (_sending || _recording || _hasRecording || _hasText) return;
-    if (!await _recorder.hasPermission()) {
-      ToastService.showError('يلزم السماح بالوصول إلى الميكروفون.');
-      return;
-    }
-    final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/sehatak_chat_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    String? path;
     try {
+      final permitted = await _recorder.hasPermission();
+      if (!permitted) {
+        if (mounted) ToastService.showError('يلزم السماح بالوصول إلى الميكروفون.');
+        return;
+      }
+      if (!mounted) return;
+      final dir = await getTemporaryDirectory();
+      path = '${dir.path}/sehatak_chat_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _recorder.start(
         const RecordConfig(encoder: AudioEncoder.aacLc),
         path: path,
       );
+      if (!mounted) {
+        try { await _recorder.stop(); } catch (_) {}
+        try { await File(path).delete(); } catch (_) {}
+        return;
+      }
       _duration = Duration.zero;
       _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted && _recording && !_paused) {
-          setState(() => _duration += const Duration(seconds: 1));
-        }
-      });
       setState(() {
         _recording = true;
         _paused = false;
         _recordPath = path;
       });
-    } catch (e) {
-      debugPrint('record start: $e');
-      ToastService.showError('تعذر بدء التسجيل الصوتي.');
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted && _recording && !_paused) {
+          setState(() => _duration += const Duration(seconds: 1));
+        }
+      });
+    } catch (e, st) {
+      debugPrint('record start failed: $e\\n$st');
+      _timer?.cancel();
+      _timer = null;
+      try { await _recorder.stop(); } catch (_) {}
+      if (path != null) {
+        try { await File(path).delete(); } catch (_) {}
+      }
+      if (mounted) {
+        setState(() {
+          _recording = false;
+          _paused = false;
+          _recordPath = null;
+          _duration = Duration.zero;
+        });
+        ToastService.showError('تعذر بدء التسجيل الصوتي. تحقق من إذن الميكروفون ثم حاول مجددًا.');
+      }
     }
-  }
-
-  Future<void> _stopRecording() async {
-    if (!_recording) return;
-    _timer?.cancel();
-    try {
-      await _recorder.stop();
-    } catch (e) {
-      debugPrint('record stop: $e');
-    }
-    if (mounted) setState(() { _recording = false; _paused = false; });
   }
 
   Future<void> _togglePause() async {
@@ -430,12 +441,17 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _deleteRecording() async {
     _timer?.cancel();
+    _timer = null;
     try { await _recorder.stop(); } catch (_) {}
     final path = _recordPath;
     _recordPath = null;
     if (path != null) {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (e) {
+        debugPrint('recording cleanup failed: $e');
+      }
     }
     if (mounted) {
       setState(() {
@@ -448,28 +464,29 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _sendRecording() async {
     if (_sending || _recordPath == null) return;
-
-    if (_recording) {
-      await _stopRecording();
-    }
-
+    if (_recording) await _stopRecording();
+    // Do not enqueue an incomplete file if the recorder could not stop cleanly.
+    if (_recording) return;
     final path = _recordPath;
     if (path == null) return;
-
     final file = File(path);
-
-    if (!await file.exists() || await file.length() < 1000) {
-      await _deleteRecording();
-      ToastService.showError('التسجيل قصير جدًا.');
+    try {
+      if (!await file.exists()) throw StateError('recording file missing');
+      final length = await file.length();
+      if (length < 1000) {
+        await _deleteRecording();
+        if (mounted) ToastService.showError('التسجيل قصير جدًا. سجّل مدة أطول ثم أرسل.');
+        return;
+      }
+    } catch (e) {
+      debugPrint('recording validation failed: $e');
+      if (mounted) ToastService.showError('تعذر قراءة التسجيل المحفوظ. ألغِ التسجيل وحاول مجددًا.');
       return;
     }
 
     if (!mounted) return;
-
     setState(() => _sending = true);
-
     var enqueued = false;
-
     try {
       await _enqueueMedia(
         file,
@@ -480,36 +497,602 @@ class _ChatInputBarState extends State<ChatInputBar> {
         mime: 'audio/mp4',
         audioDuration: _duration.inSeconds.toString(),
       );
-
       enqueued = true;
-
+      _recordPath = null;
+      _duration = Duration.zero;
+      if (mounted) setState(() { _recording = false; _paused = false; });
+    } catch (e, st) {
+      debugPrint('audio enqueue failed: $e\\n$st');
       if (mounted) {
-        setState(() {
-          _recordPath = null;
-          _duration = Duration.zero;
-          _recording = false;
-          _paused = false;
-        });
+        ToastService.showError('تعذر تجهيز التسجيل للإرسال. التسجيل محفوظ؛ حاول الإرسال مرة أخرى.');
+      }
+    } finally {
+      if (enqueued) {
+        try { if (await file.exists()) await file.delete(); } catch (_) {}
+      }
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    if (_recording || _hasRecording) return _voiceBar(dark);
+
+    final surface = dark ? const Color(0xFF16202A) : const Color(0xFFF7FBFA);
+    final field = dark ? const Color(0xFF202C35) : Colors.white;
+    final muted = dark ? const Color(0xFF9FB0B8) : const Color(0xFF6B7C79);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: surface,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      constraints: const BoxConstraints(minHeight: 46, maxHeight: 132),
+                      decoration: BoxDecoration(
+                        color: field,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: AppColors.primary.withOpacity(dark ? .12 : .08),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            tooltip: 'المرفقات',
+                            onPressed: _sending ? null : _toggleAttachments,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 42,
+                              minHeight: 42,
+                            ),
+                            icon: AnimatedRotation(
+                              turns: _attachments ? .125 : 0,
+                              duration: const Duration(milliseconds: 220),
+                              child: Icon(Icons.add_rounded, color: muted, size: 24),
+                            ),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: _controller,
+                              focusNode: _focus,
+                              minLines: 1,
+                              maxLines: 5,
+                              textDirection: TextDirection.rtl,
+                              keyboardType: TextInputType.multiline,
+                              style: TextStyle(
+                                color: dark ? Colors.white : const Color(0xFF263238),
+                                fontSize: 16,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'اكتب رسالة...',
+                                hintStyle: TextStyle(color: muted, fontSize: 15),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 11,
+                                  horizontal: 2,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (!_hasText)
+                            IconButton(
+                              tooltip: 'الكاميرا',
+                              onPressed: _sending
+                                  ? null
+                                  : () => _pickImage(ImageSource.camera),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 42,
+                                minHeight: 42,
+                              ),
+                              icon: Icon(
+                                Icons.camera_alt_rounded,
+                                color: muted,
+                                size: 22,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 7),
+                  Material(
+                    color: AppColors.primary,
+                    shape: const CircleBorder(),
+                    elevation: 1.5,
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: _sending
+                          ? null
+                          : (_hasText ? _sendText : _startRecording),
+                      child: SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Center(
+                          child: _sending
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(
+                                  _hasText
+                                      ? Icons.send_rounded
+                                      : Icons.mic_rounded,
+                                  color: Colors.white,
+                                  size: 23,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 260),
+          reverseDuration: const Duration(milliseconds: 190),
+          transitionBuilder: (child, animation) => SizeTransition(
+            sizeFactor: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            ),
+            axisAlignment: -1,
+            child: FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, -0.08),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  ),
+                ),
+                child: child,
+              ),
+            ),
+          ),
+          child: _attachments
+              ? _mediaMenu(dark)
+              : const SizedBox.shrink(key: ValueKey('closed')),
+        ),
+      ],
+    );
+  }
+
+  Widget _voiceBar(bool dark) => Material(
+        color: Colors.transparent,
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Material(
+                  color: dark ? const Color(0xFF202C35) : const Color(0xFFF1F6F5),
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _sending ? null : _deleteRecording,
+                    child: const SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Icon(Icons.delete_outline_rounded, size: 21),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 9),
+                    decoration: BoxDecoration(
+                      color: dark ? const Color(0xFF202C35) : Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(dark ? .14 : .10),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Material(
+                          color: AppColors.primary,
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: _sending || !_recording ? null : _togglePause,
+                            child: SizedBox(
+                              width: 38,
+                              height: 38,
+                              child: Icon(
+                                _paused
+                                    ? Icons.play_arrow_rounded
+                                    : Icons.pause_rounded,
+                                color: Colors.white,
+                                size: 21,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 9),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                height: 24,
+                                width: double.infinity,
+                                child: CustomPaint(
+                                  painter: _RecordingWaveformPainter(
+                                    progress: _duration.inSeconds == 0
+                                        ? 0
+                                        : (_duration.inSeconds % 60) / 60,
+                                    activeColor: AppColors.primary,
+                                    inactiveColor: dark
+                                        ? Colors.white24
+                                        : const Color(0xFFB8C8C5),
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _recording ? 'تسجيل...' : 'جاهز للإرسال',
+                                    style: TextStyle(
+                                      color: dark
+                                          ? Colors.white70
+                                          : const Color(0xFF526562),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_duration.inMinutes.toString().padLeft(2, '0')}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                                    style: TextStyle(
+                                      color: dark
+                                          ? Colors.white70
+                                          : const Color(0xFF526562),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Material(
+                  color: AppColors.primary,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _sending
+                        ? null
+                        : (_recording ? _stopRecording : _sendRecording),
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(
+                        _recording
+                            ? Icons.stop_rounded
+                            : Icons.send_rounded,
+                        color: Colors.white,
+                        size: 23,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget _mediaMenu(bool dark) => GestureDetector(
+        onVerticalDragEnd: (details) {
+          if ((details.primaryVelocity ?? 0) > 180 && mounted) {
+            setState(() => _attachments = false);
+          }
+        },
+        child: Material(
+        key: const ValueKey('attachments'),
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(8, 0, 8, 2),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
+          decoration: BoxDecoration(
+            color: dark ? const Color(0xFF121A29) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(.10), blurRadius: 16, offset: const Offset(0, -4))],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 34, height: 4, decoration: BoxDecoration(color: dark ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(3))),
+              const SizedBox(height: 8),
+              if (_loadingRecent)
+                const SizedBox(height: 74, child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))))
+              else if (_recentAssets.isNotEmpty)
+                _recentGallery(dark)
+              else
+                const SizedBox(height: 6),
+              const SizedBox(height: 8),
+              _mediaItemPlaceholder,
+            ],
+          ),
+        ),
+      ),
+      );
+
+  Widget get _mediaItemPlaceholder => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _mediaItem(Icons.camera_alt, 'كاميرا', () => _pickImage(ImageSource.camera)),
+          _mediaItem(Icons.photo_library_outlined, 'المعرض', () => _pickImage(ImageSource.gallery)),
+          _mediaItem(Icons.video_library, 'فيديو', _pickVideo),
+          _mediaItem(Icons.attach_file, 'ملف', _pickFile),
+          _mediaItem(Icons.description_outlined, 'نماذج الطبيب', widget.onDoctorMedicalForms ?? () {}),
+          _mediaItem(Icons.location_on_outlined, 'موقعي', () {
+            setState(() => _attachments = false);
+            widget.onShareLocation?.call();
+          }),
+        ],
+      );
+
+  Widget _recentGallery(bool dark) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 4, bottom: 7),
+            child: Row(
+              children: [
+                Icon(Icons.history_rounded, size: 17, color: AppColors.primary),
+                const SizedBox(width: 5),
+                Text(
+                  'الملفات الحديثة',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: dark ? Colors.white : const Color(0xFF263238)),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 76,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              reverse: true,
+              itemCount: _recentAssets.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 7),
+              itemBuilder: (context, index) {
+                final asset = _recentAssets[index];
+                return FutureBuilder<Uint8List?>(
+                  future: asset.thumbnailDataWithSize(const ThumbnailSize(150, 150)),
+                  builder: (context, snapshot) => GestureDetector(
+                    onTap: snapshot.hasData ? () => _sendRecentAsset(asset) : null,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: 76,
+                        height: 76,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (snapshot.hasData)
+                              Image.memory(snapshot.data!, fit: BoxFit.cover)
+                            else
+                              Container(
+                                color: dark ? Colors.white10 : Colors.black12,
+                                child: const Center(child: CircularProgressIndicator(strokeWidth: 1.5)),
+                              ),
+                            if (asset.type == AssetType.video)
+                              Positioned(
+                                bottom: 5,
+                                right: 5,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
+                                  child: const Icon(Icons.play_arrow, color: Colors.white, size: 14),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      );
+
+  Widget _mediaItem(IconData icon, String label, VoidCallback action) => InkWell(
+        onTap: action,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Column(
+            children: [
+              CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.1), child: Icon(icon, color: AppColors.primary)),
+              const SizedBox(height: 3),
+              Text(label, style: const TextStyle(fontSize: 10)),
+            ],
+          ),
+        ),
+      );
+}
+
+class _RecordingWaveformPainter extends CustomPainter {
+  const _RecordingWaveformPainter({
+    required this.progress,
+    required this.activeColor,
+    required this.inactiveColor,
+  });
+
+  final double progress;
+  final Color activeColor;
+  final Color inactiveColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+
+    const bars = 42;
+    final spacing = size.width / bars;
+    for (var i = 0; i < bars; i++) {
+      final x = (i + .5) * spacing;
+      final normalized = ((i * 37) % 17 + 3) / 20;
+      final height = size.height * (.25 + normalized * .65);
+      paint.color = i / bars <= progress ? activeColor : inactiveColor;
+      canvas.drawLine(
+        Offset(x, (size.height - height) / 2),
+        Offset(x, (size.height + height) / 2),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RecordingWaveformPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.activeColor != activeColor ||
+      oldDelegate.inactiveColor != inactiveColor;
+}
+  Future<void> _stopRecording() async {
+    if (!_recording) return;
+    try {
+      final stoppedPath = await _recorder.stop();
+      if (stoppedPath != null && stoppedPath.isNotEmpty) {
+        _recordPath = stoppedPath;
+      }
+      final path = _recordPath;
+      if (path == null || !await File(path).exists()) {
+        throw StateError('recording file missing after recorder stop');
+      }
+      _timer?.cancel();
+      _timer = null;
+      if (mounted) setState(() { _recording = false; _paused = false; });
+    } catch (e, st) {
+      debugPrint('record stop failed: $e\\n$st');
+      if (mounted) {
+        ToastService.showError('تعذر إنهاء التسجيل وحفظه. حاول الإيقاف مرة أخرى.');
+      }
+    }
+  }
+
+  Future<void> _togglePause() async {
+    if (!_recording) return;
+    try {
+      if (_paused) {
+        await _recorder.resume();
+      } else {
+        await _recorder.pause();
+      }
+      if (mounted) setState(() => _paused = !_paused);
+    } catch (e) {
+      debugPrint('record pause/resume: $e');
+    }
+  }
+
+  Future<void> _deleteRecording() async {
+    _timer?.cancel();
+    _timer = null;
+    try { await _recorder.stop(); } catch (_) {}
+    final path = _recordPath;
+    _recordPath = null;
+    if (path != null) {
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (e) {
+        debugPrint('recording cleanup failed: $e');
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _recording = false;
+        _paused = false;
+        _duration = Duration.zero;
+      });
+    }
+  }
+
+  Future<void> _sendRecording() async {
+    if (_sending || _recordPath == null) return;
+    if (_recording) await _stopRecording();
+    // Do not enqueue an incomplete file if the recorder could not stop cleanly.
+    if (_recording) return;
+    final path = _recordPath;
+    if (path == null) return;
+    final file = File(path);
+    try {
+      if (!await file.exists()) throw StateError('recording file missing');
+      final length = await file.length();
+      if (length < 1000) {
+        await _deleteRecording();
+        if (mounted) ToastService.showError('التسجيل قصير جدًا. سجّل مدة أطول ثم أرسل.');
+        return;
       }
     } catch (e) {
-      debugPrint('audio enqueue: $e');
-      ToastService.showError('تعذر تجهيز التسجيل للإرسال.');
-    } finally {
-      // enqueue() has copied the recording into the durable outbox before
-      // returning. Keep the original file if enqueue failed so retry remains possible.
-      if (enqueued) {
-        try {
-          if (await file.exists()) {
-            await file.delete();
-          }
-        } catch (e) {
-          debugPrint('temporary audio cleanup: $e');
-        }
-      }
+      debugPrint('recording validation failed: $e');
+      if (mounted) ToastService.showError('تعذر قراءة التسجيل المحفوظ. ألغِ التسجيل وحاول مجددًا.');
+      return;
+    }
 
+    if (!mounted) return;
+    setState(() => _sending = true);
+    var enqueued = false;
+    try {
+      await _enqueueMedia(
+        file,
+        type: 'audio',
+        folder: 'audio',
+        preview: '🎤 رسالة صوتية',
+        name: file.path.split(Platform.pathSeparator).last,
+        mime: 'audio/mp4',
+        audioDuration: _duration.inSeconds.toString(),
+      );
+      enqueued = true;
+      _recordPath = null;
+      _duration = Duration.zero;
+      if (mounted) setState(() { _recording = false; _paused = false; });
+    } catch (e, st) {
+      debugPrint('audio enqueue failed: $e\\n$st');
       if (mounted) {
-        setState(() => _sending = false);
+        ToastService.showError('تعذر تجهيز التسجيل للإرسال. التسجيل محفوظ؛ حاول الإرسال مرة أخرى.');
       }
+    } finally {
+      if (enqueued) {
+        try { if (await file.exists()) await file.delete(); } catch (_) {}
+      }
+      if (mounted) setState(() => _sending = false);
     }
   }
 
