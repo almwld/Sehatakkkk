@@ -1919,6 +1919,8 @@ class AppStrings {
       "اليوم": ["Today","Aujourd’hui"],
       "أمس": ["Yesterday","Hier"],
       "غداً": ["Tomorrow","Demain"],
+      "تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى": ["Could not load call history. Check your connection and try again.","Impossible de charger l’historique des appels. Vérifiez votre connexion et réessayez."],
+      "لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً": ["No calls yet. Your calls will appear here automatically.","Aucun appel pour le moment. Vos appels apparaîtront ici automatiquement."],
     };
 
     final entry = translations[value];
