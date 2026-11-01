@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/order_model.dart';
@@ -13,6 +14,7 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   String _selectedFilter = 'الكل';
   bool _isLoading = true;
   List<OrderModel> _orders = [];
@@ -41,7 +43,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(title: Text(widget.isProvider ? 'طلبات العملاء' : 'طلباتي'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _loadOrders)]),
+      appBar: CustomAppBar(title: Text(_t(widget.isProvider ? 'طلبات العملاء' : 'طلباتي')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _loadOrders)]),
       body: Column(children: [
         Container(
           padding: const EdgeInsets.all(16),
@@ -56,7 +58,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     margin: const EdgeInsets.only(right: 8),
                     decoration: BoxDecoration(color: selected ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(20), border: Border.all(color: selected ? Colors.transparent : Colors.grey)),
-                    child: Text(filter, style: TextStyle(color: selected ? Colors.white : Colors.grey, fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
+                    child: Text(_t(filter), style: TextStyle(color: selected ? Colors.white : Colors.grey, fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
                   ),
                 );
               }).toList(),
@@ -67,7 +69,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _filteredOrders.isEmpty
-                  ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.shopping_bag_outlined, size: 64, color: dark ? Colors.grey[600] : Colors.grey[300]), const SizedBox(height: 16), Text('لا توجد طلبات', style: TextStyle(fontSize: 16, color: dark ? Colors.grey[400] : Colors.grey[600])), const SizedBox(height: 8), Text('ستظهر طلباتك هنا', style: TextStyle(fontSize: 12, color: dark ? Colors.grey[500] : Colors.grey[400]))]))
+                  ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.shopping_bag_outlined, size: 64, color: dark ? Colors.grey[600] : Colors.grey[300]), const SizedBox(height: 16), Text(_t('لا توجد طلبات'), style: TextStyle(fontSize: 16, color: dark ? Colors.grey[400] : Colors.grey[600])), const SizedBox(height: 8), Text(_t('ستظهر طلباتك هنا'), style: TextStyle(fontSize: 12, color: dark ? Colors.grey[500] : Colors.grey[400]))]))
                   : ListView.builder(padding: const EdgeInsets.all(16), itemCount: _filteredOrders.length, itemBuilder: (context, index) => _buildOrderCard(_filteredOrders[index])),
         ),
       ]),
@@ -84,9 +86,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(.04), blurRadius: 4)], border: Border.all(color: order.statusColor.withOpacity(.3), width: order.status == OrderStatus.pending ? 2 : 1)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: typeColor.withOpacity(.1), shape: BoxShape.circle), child: Icon(order.typeIcon, color: typeColor, size: 20)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(order.id.length > 8 ? 'طلب #${order.id.substring(0, 8)}' : 'طلب #${order.id}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), Text(order.typeText, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600]))])), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: order.statusColor.withOpacity(.1), borderRadius: BorderRadius.circular(8)), child: Row(children: [Icon(order.statusIcon, size: 12, color: order.statusColor), const SizedBox(width: 4), Text(order.statusText, style: TextStyle(fontSize: 10, color: order.statusColor))]))]),
+          Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: typeColor.withOpacity(.1), shape: BoxShape.circle), child: Icon(order.typeIcon, color: typeColor, size: 20)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(order.id.length > 8 ? '${_t('طلب')} #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), Text(_t(order.typeText), style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600]))])), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: order.statusColor.withOpacity(.1), borderRadius: BorderRadius.circular(8)), child: Row(children: [Icon(order.statusIcon, size: 12, color: order.statusColor), const SizedBox(width: 4), Text(_t(order.statusText), style: TextStyle(fontSize: 10, color: order.statusColor))]))]),
           const SizedBox(height: 8),
-          Text('${order.items.length} منتج - ${order.total.toStringAsFixed(0)} ريال', style: TextStyle(fontSize: 13, color: dark ? Colors.grey[300] : Colors.grey[700])),
+          Text('${order.items.length} ${_t('منتج')} - ${AppStrings.of(context).formatCurrency(order.total)}', style: TextStyle(fontSize: 13, color: dark ? Colors.grey[300] : Colors.grey[700])),
           if (order.deliveryAddress != null) Padding(padding: const EdgeInsets.only(top: 4), child: Row(children: [const Icon(Icons.location_on, size: 14, color: Colors.grey), const SizedBox(width: 4), Expanded(child: Text(order.deliveryAddress!, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])))])),
           const SizedBox(height: 8),
           Text(_formatDate(order.createdAt), style: TextStyle(fontSize: 11, color: dark ? Colors.grey[500] : Colors.grey[400])),

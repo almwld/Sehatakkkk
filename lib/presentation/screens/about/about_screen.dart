@@ -1,5 +1,6 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -12,6 +13,7 @@ class AboutScreen extends StatefulWidget {
 }
 
 class _AboutScreenState extends State<AboutScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   String _appVersion = '1.1.0';
   String _buildNumber = '2';
   @override void initState() { super.initState(); _loadAppInfo(); }
@@ -22,7 +24,7 @@ class _AboutScreenState extends State<AboutScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: AppBar(title: const Text('عن التطبيق', style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
+      appBar: AppBar(title: Text(_t('عن التطبيق'), style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -32,11 +34,11 @@ class _AboutScreenState extends State<AboutScreen> {
           const Text('صحتك', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4), Text('Sehatak', style: TextStyle(fontSize: 16, color: AppColors.grey, letterSpacing: 2)),
           const SizedBox(height: 8),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text('الإصدار $_appVersion+$_buildNumber', style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600))),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text('${_t('الإصدار')} $_appVersion+$_buildNumber', style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600))),
           const SizedBox(height: 30),
-          Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(children: [const Text('منصة الرعاية الصحية الشاملة في اليمن', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.center), const SizedBox(height: 12), Text('تطبيق "صحتك" هو منصة طبية متكاملة تهدف إلى تسهيل الوصول إلى الخدمات الصحية في اليمن. نوفر لك إمكانية حجز المواعيد، والاستشارات الطبية، وطلب الأدوية، ومتابعة حالتك الصحية بكل سهولة وأمان.', style: TextStyle(fontSize: 14, color: AppColors.grey, height: 1.6), textAlign: TextAlign.center)])),
+          Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(children: [Text(_t('منصة الرعاية الصحية الشاملة في اليمن'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.center), const SizedBox(height: 12), Text(_t('تطبيق "صحتك" هو منصة طبية متكاملة تهدف إلى تسهيل الوصول إلى الخدمات الصحية في اليمن. نوفر لك إمكانية حجز المواعيد، والاستشارات الطبية، وطلب الأدوية، ومتابعة حالتك الصحية بكل سهولة وأمان.'), style: TextStyle(fontSize: 14, color: AppColors.grey, height: 1.6), textAlign: TextAlign.center)])),
           const SizedBox(height: 24), _buildFeatureSection(isDark), const SizedBox(height: 24), _buildSocialLinks(isDark), const SizedBox(height: 30),
-          Text('© 2026 Sehatak Platform', style: TextStyle(fontSize: 12, color: AppColors.grey)), const SizedBox(height: 4), Text('جميع الحقوق محفوظة', style: TextStyle(fontSize: 11, color: AppColors.grey.withOpacity(0.7))), const SizedBox(height: 30),
+          Text('© 2026 Sehatak Platform', style: TextStyle(fontSize: 12, color: AppColors.grey)), const SizedBox(height: 4), Text(_t('جميع الحقوق محفوظة'), style: TextStyle(fontSize: 11, color: AppColors.grey.withOpacity(0.7))), const SizedBox(height: 30),
         ]),
       ),
     );
@@ -51,7 +53,7 @@ class _AboutScreenState extends State<AboutScreen> {
       {'icon': AppImages.calendarBooking, 'title': 'مواعيد', 'desc': 'إدارة مواعيدك'},
       {'icon': AppImages.servicesMedicalRecords, 'title': 'ملف صحي', 'desc': 'سجلك الطبي متكامل'},
     ];
-    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('الميزات الرئيسية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 12), GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 0.9, crossAxisSpacing: 8, mainAxisSpacing: 8), itemCount: features.length, itemBuilder: (context, index) { final feature = features[index]; return Container(decoration: BoxDecoration(color: isDark ? const Color(0xFF122027) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: isDark ? Colors.white10 : Colors.black12)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Image.asset(feature['icon'] as String, width: 28, height: 28, fit: BoxFit.contain), const SizedBox(height: 4), Text(feature['title'] as String, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)), Text(feature['desc'] as String, style: TextStyle(fontSize: 9, color: AppColors.grey), textAlign: TextAlign.center)])); })]));
+    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t('الميزات الرئيسية'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 12), GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 0.9, crossAxisSpacing: 8, mainAxisSpacing: 8), itemCount: features.length, itemBuilder: (context, index) { final feature = features[index]; return Container(decoration: BoxDecoration(color: isDark ? const Color(0xFF122027) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: isDark ? Colors.white10 : Colors.black12)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Image.asset(feature['icon'] as String, width: 28, height: 28, fit: BoxFit.contain), const SizedBox(height: 4), Text(_t(feature['title'] as String), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)), Text(_t(feature['desc'] as String), style: TextStyle(fontSize: 9, color: AppColors.grey), textAlign: TextAlign.center)])); })]));
   }
 
   Widget _buildSocialLinks(bool isDark) {
@@ -62,8 +64,8 @@ class _AboutScreenState extends State<AboutScreen> {
       {'icon': AppImages.socialYoutube, 'label': 'يوتيوب', 'url': 'https://youtube.com/'},
       {'icon': AppImages.socialLinkedin, 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
     ];
-    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('تواصل معنا', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 12), Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 12, children: socials.map((social) => GestureDetector(onTap: () => _launchUrl(social['url'] as String), child: Column(children: [Container(width: 50, height: 50, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)), child: Center(child: Image.asset(social['icon'] as String, width: 30, height: 30, fit: BoxFit.contain))), const SizedBox(height: 6), Text(social['label'] as String, style: TextStyle(fontSize: 11, color: AppColors.grey))]))).toList())]));
+    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t('تواصل معنا'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 12), Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 12, children: socials.map((social) => GestureDetector(onTap: () => _launchUrl(social['url'] as String), child: Column(children: [Container(width: 50, height: 50, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)), child: Center(child: Image.asset(social['icon'] as String, width: 30, height: 30, fit: BoxFit.contain))), const SizedBox(height: 6), Text(_t(social['label'] as String), style: TextStyle(fontSize: 11, color: AppColors.grey))]))).toList())]));
   }
 
-  Future<void> _launchUrl(String url) async { try { final uri = Uri.parse(url); if (await canLaunchUrl(uri)) { await launchUrl(uri); } else { ToastService.showSuccess('لا يمكن فتح الرابط'); } } catch (e) { ToastService.showError('حدث خطأ: $e'); } }
+  Future<void> _launchUrl(String url) async { try { final uri = Uri.parse(url); if (await canLaunchUrl(uri)) { await launchUrl(uri); } else { ToastService.showSuccess(_t('لا يمكن فتح الرابط')); } } catch (e) { ToastService.showError(_t('حدث خطأ') + ': $e'); } }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -17,6 +18,7 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final PaymentService _payment = PaymentService();
   bool _hideBalance = false;
   double _balance = 0;
@@ -40,12 +42,12 @@ class _WalletScreenState extends State<WalletScreen> {
     final isDark=Theme.of(context).brightness==Brightness.dark;
     return Scaffold(
       backgroundColor:isDark?const Color(0xFF0B1121):const Color(0xFFF8FAFC),
-      appBar:CustomAppBar(title:'المحفظة',backgroundColor:isDark?const Color(0xFF0B1121):Colors.white,foregroundColor:isDark?Colors.white:Colors.black87,elevation:0),
+      appBar:CustomAppBar(title:_t('المحفظة'),backgroundColor:isDark?const Color(0xFF0B1121):Colors.white,foregroundColor:isDark?Colors.white:Colors.black87,elevation:0),
       body:SingleChildScrollView(
         padding:const EdgeInsets.all(16),
         child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
           _buildBalanceCard(isDark),const SizedBox(height:20),_buildActionButtons(isDark),
-          const SizedBox(height:24),const Text('المحافظ المتاحة',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
+          const SizedBox(height:24),Text(_t('المحافظ المتاحة'),style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
           const SizedBox(height:12),_buildWalletsGrid(isDark),const SizedBox(height:24),_buildTransactionsSection(isDark),
         ]),
       ),
@@ -66,7 +68,7 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
           child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
             Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[
-              const Text('الرصيد الحالي',style:TextStyle(color:Colors.white70,fontSize:14)),
+              Text(_t('الرصيد الحالي'),style:TextStyle(color:Colors.white70,fontSize:14)),
               IconButton(onPressed:()=>setState(()=>_hideBalance=!_hideBalance),icon:Icon(_hideBalance?Icons.visibility_off_outlined:Icons.visibility_outlined,color:Colors.white70)),
             ]),
             const SizedBox(height:8),
@@ -79,13 +81,13 @@ class _WalletScreenState extends State<WalletScreen> {
             Row(children:[
               Expanded(child:ElevatedButton.icon(
                 onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const TopUpScreen())),
-                icon:const Icon(Icons.add_rounded,size:18),label:const Text('إضافة رصيد'),
+                icon:const Icon(Icons.add_rounded,size:18),label:Text(_t('إضافة رصيد')),
                 style:ElevatedButton.styleFrom(backgroundColor:Colors.white,foregroundColor:AppColors.primary,padding:const EdgeInsets.symmetric(vertical:12),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))),
               )),
               const SizedBox(width:12),
               Expanded(child:OutlinedButton.icon(
                 onPressed:()=>ToastService.showInfo('جاري تحويل الرصيد...'),
-                icon:const Icon(Icons.send_rounded,size:18),label:const Text('تحويل'),
+                icon:const Icon(Icons.send_rounded,size:18),label:Text(_t('تحويل')),
                 style:OutlinedButton.styleFrom(foregroundColor:Colors.white,side:const BorderSide(color:Colors.white54),padding:const EdgeInsets.symmetric(vertical:12),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))),
               )),
             ]),
@@ -97,10 +99,10 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildActionButtons(bool isDark) {
     final actions = [
-      {'icon': Icons.qr_code_scanner_rounded, 'label': 'مسح QR', 'color': Colors.blue, 'action': 'qr'},
-      {'icon': Icons.history_rounded, 'label': 'السجل', 'color': Colors.green, 'action': 'history'},
-      {'asset': AppImages.walletPayments, 'label': 'بطاقات', 'color': Colors.purple, 'action': 'cards'},
-      {'asset': AppImages.walletIcon, 'label': 'طرق الدفع', 'color': Colors.orange, 'action': 'methods'},
+      {'icon': Icons.qr_code_scanner_rounded, 'label': _t('مسح QR'), 'color': Colors.blue, 'action': 'qr'},
+      {'icon': Icons.history_rounded, 'label': _t('السجل'), 'color': Colors.green, 'action': 'history'},
+      {'asset': AppImages.walletPayments, 'label': _t('بطاقات'), 'color': Colors.purple, 'action': 'cards'},
+      {'asset': AppImages.walletIcon, 'label': _t('طرق الدفع'), 'color': Colors.orange, 'action': 'methods'},
     ];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -137,12 +139,12 @@ class _WalletScreenState extends State<WalletScreen> {
                   builder: (context, snapshot) {
                     final docs = snapshot.data?.docs ?? const [];
                     return ListView(controller: controller, children: [
-                      const Text('سجل المعاملات', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text(_t('سجل المعاملات'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
-                      if (snapshot.hasError) const Text('تعذر تحميل سجل المعاملات.')
+                      if (snapshot.hasError) Text(_t('تعذر تحميل سجل المعاملات.'))
                       else if (docs.isEmpty) const Padding(
                         padding: EdgeInsets.symmetric(vertical: 32),
-                        child: Center(child: Text('لا توجد معاملات حتى الآن.')),
+                        child: Center(child: Text(_t('لا توجد معاملات حتى الآن.'))),
                       ) else ...docs.map((doc) {
                         final data = doc.data();
                         final amount = (data['amount'] as num?)?.toDouble() ?? 0;
@@ -150,8 +152,8 @@ class _WalletScreenState extends State<WalletScreen> {
                         return ListTile(
                           leading: Icon(credit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
                               color: credit ? Colors.green : Colors.red),
-                          title: Text(data['title']?.toString() ?? data['description']?.toString() ?? 'معاملة'),
-                          trailing: Text('${credit ? '+' : ''}${amount.toStringAsFixed(2)} ر.ي',
+                          title: Text(data['title']?.toString() ?? data['description']?.toString() ?? _t('معاملة')),
+                          trailing: Text('${credit ? '+' : ''}${amount.toStringAsFixed(2)} ${_t('ر.ي')}',
                               style: TextStyle(fontWeight: FontWeight.bold, color: credit ? Colors.green : Colors.red)),
                         );
                       }),
@@ -171,9 +173,9 @@ class _WalletScreenState extends State<WalletScreen> {
         await showDialog<void>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-            title: const Text('مسح QR'),
-            content: const Text('قارئ QR يحتاج إلى ربط الكاميرا بخدمة الدفع.'),
-            actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إغلاق'))],
+            title: Text(_t('مسح QR')),
+            content: Text(_t('قارئ QR يحتاج إلى ربط الكاميرا بخدمة الدفع.')),
+            actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t('إغلاق')))],
           ),
         );
         break;
@@ -188,14 +190,14 @@ class _WalletScreenState extends State<WalletScreen> {
       itemBuilder:(context,index){
         final wallet=_wallets[index];
         return GestureDetector(
-          onTap:()=>ToastService.showSuccess('تم اختيار ${wallet['name']}'),
+          onTap:()=>ToastService.showSuccess(_t('تم اختيار') + ' ${wallet['name']}'),
           child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
             Image.asset(wallet['icon'] as String,width:64,height:64,fit:BoxFit.contain,errorBuilder:(context,error,stackTrace)=>Container(
               width:64,height:64,decoration:BoxDecoration(color:AppColors.primary.withOpacity(0.1),shape:BoxShape.circle),
               child:const Icon(Icons.account_balance_wallet_rounded,color:AppColors.primary,size:32))),
             const SizedBox(height:6),
             Text(wallet['name'] as String,style:TextStyle(fontSize:13,fontWeight:FontWeight.w600,color:isDark?Colors.white:Colors.black87),textAlign:TextAlign.center),
-            Text('حساب: ${wallet['account']}',style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[500]),textAlign:TextAlign.center),
+            Text('${_t('حساب')}: ${wallet['account']}',style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[500]),textAlign:TextAlign.center),
           ]),
         );
       },
@@ -208,25 +210,25 @@ class _WalletScreenState extends State<WalletScreen> {
     final stream = FirebaseFirestore.instance.collection('transactions')
       .where('userId', isEqualTo: uid).orderBy('createdAt', descending: true).limit(20).snapshots();
     return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      const Text('المعاملات الأخيرة',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
+      Text(_t('المعاملات الأخيرة'),style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
       const SizedBox(height:8),
       StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
         stream: stream,
         builder:(context,snapshot){
-          if (snapshot.hasError) return const Text('تعذر تحميل سجل المعاملات.');
+          if (snapshot.hasError) return Text(_t('تعذر تحميل سجل المعاملات.'));
           final docs=snapshot.data?.docs ?? const [];
-          if (docs.isEmpty) return const Padding(padding:EdgeInsets.symmetric(vertical:20),child:Center(child:Text('لا توجد معاملات حتى الآن.')));
+          if (docs.isEmpty) return const Padding(padding:EdgeInsets.symmetric(vertical:20),child:Center(child:Text(_t('لا توجد معاملات حتى الآن.'))));
           return ListView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),itemCount:docs.length,itemBuilder:(context,index){
             final data=docs[index].data();
             final amount=(data['amount'] as num?)?.toDouble() ?? 0;
             final isCredit=data['type']=='credit' || amount >= 0;
             final created=data['createdAt'];
             final date=created is Timestamp ? created.toDate() : null;
-            final title=data['title']?.toString() ?? data['description']?.toString() ?? 'معاملة';
+            final title=data['title']?.toString() ?? data['description']?.toString() ?? _t('معاملة');
             return ListTile(
               leading:Icon(isCredit?Icons.arrow_downward_rounded:Icons.arrow_upward_rounded,color:isCredit?Colors.green:Colors.red),
               title:Text(title),
-              subtitle:Text(date == null ? 'التاريخ غير متوفر' : date.toLocal().toString().split('.').first),
+              subtitle:Text(date == null ? _t('التاريخ غير متوفر') : date.toLocal().toString().split('.').first),
               trailing:Text((isCredit?'+':'') + amount.toStringAsFixed(2) + ' ر.ي',style:TextStyle(fontWeight:FontWeight.bold,color:isCredit?Colors.green:Colors.red)),
             );
           });
