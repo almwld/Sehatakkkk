@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -58,7 +59,7 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
               final text = '${d['title'] ?? ''} ${d['doctorName'] ?? ''}'.toLowerCase();
               return typeOk && (query.isEmpty || text.contains(query));
             }).toList();
-            if (docs.isEmpty) return const Center(child: Text('لا توجد تقارير'));
+            if (docs.isEmpty) return Center(child: Text(AppStrings.of(context).translate('لا توجد تقارير')));
             return ListView.builder(padding: const EdgeInsets.all(12), itemCount: docs.length, itemBuilder: (_, i) => _buildReportCard(docs[i].data()));
           },
         )),
