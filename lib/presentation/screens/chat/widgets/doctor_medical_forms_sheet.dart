@@ -23,14 +23,14 @@ Future<void> showDoctorMedicalForms({required BuildContext context,required Stri
     final docId=docs.docs.isNotEmpty?docs.docs.first.id:'';
     await ChatMediaTransferService.instance.enqueue(chatId:chatId,sourceFile:file,type:'file',folder:'medical_documents',preview:'📄 ${_title(form)}',fileName:file.uri.pathSegments.last,fileSize:'PDF',mimeType:'application/pdf');
     if(docId.isNotEmpty)await MedicalDocumentService.instance.saveToLibrary(file:file,documentId:docId,title:_title(form),chatId:chatId,formType:form);
-    if(context.mounted){ToastService.showSuccess('تم إنشاء وإرسال ${_title(form)} كـ PDF.');if(form=='rx'||form=='labs')await _serviceOptions(context,form,docId,patientId);}
-  } catch(e){debugPrint('medical form: $e');if(context.mounted)ToastService.showError('تعذر إنشاء النموذج الطبي.');}
+    if(context.mounted){ToastService.showSuccess('${AppStrings.of(context).translate('تم إنشاء وإرسال')} ${AppStrings.of(context).translate(_title(form))} كـ PDF.');if(form=='rx'||form=='labs')await _serviceOptions(context,form,docId,patientId);}
+  } catch(e){debugPrint('medical form: $e');if(context.mounted)ToastService.showError(AppStrings.of(context).translate('تعذر إنشاء النموذج الطبي.'));}
 }
 String _title(String type)=>{'rx':'الوصفة الطبية','labs':'طلب الفحوصات','report':'التقرير الطبي','sick_leave':'الإجازة المرضية','referral':'الإحالة الطبية'}[type]??'المستند الطبي';
 
 class _FormPicker extends StatelessWidget{const _FormPicker();@override Widget build(BuildContext context)=>SafeArea(child:Column(mainAxisSize:MainAxisSize.min,children:[
  const Padding(padding:EdgeInsets.all(16),child:Text('النماذج الطبية للطبيب',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
- for(final e in const [('rx','💊','وصفة طبية / RX'),('labs','🧪','طلب فحوصات / Laboratory Request'),('report','📋','تقرير طبي / Medical Report'),('sick_leave','🗓️','إجازة مرضية / Sick Leave'),('referral','↗️','إحالة طبية / Medical Referral')])ListTile(leading:Text(e.$2,style:const TextStyle(fontSize:22)),title:Text(e.$3),onTap:()=>Navigator.pop(context,e.$1)),const SizedBox(height:8)]));}
+ for(final e in const [('rx','💊','وصفة طبية / RX'),('labs','🧪','طلب فحوصات / Laboratory Request'),('report','📋','تقرير طبي / Medical Report'),('sick_leave','🗓️','إجازة مرضية / Sick Leave'),('referral','↗️','إحالة طبية / Medical Referral')])ListTile(leading:Text(e.$2,style:const TextStyle(fontSize:22)),title:Text(AppStrings.of(context).translate(e.$3)),onTap:()=>Navigator.pop(context,e.$1)),const SizedBox(height:8)]));}
 
 class _FormEditor extends StatefulWidget{final String type;final String patientName;const _FormEditor({required this.type,required this.patientName});@override State<_FormEditor> createState()=>_FormEditorState();}
 class _FormEditorState extends State<_FormEditor>{
@@ -38,16 +38,16 @@ class _FormEditorState extends State<_FormEditor>{
  @override void initState(){super.initState();for(final k in ['general','diagnosis','history','findings','plan','reason','from','to','days','notes','destination','details'])c[k]=TextEditingController();}
  @override void dispose(){for(final x in c.values)x.dispose();super.dispose();}
  Widget f(String key,String label,{int max=3})=>Padding(padding:const EdgeInsets.only(bottom:10),child:TextField(controller:c[key],maxLines:max,decoration:InputDecoration(labelText:label,border:const OutlineInputBorder())));
- Future<void> addMed()async{final name=TextEditingController(),dose=TextEditingController(),dir=TextEditingController(),notes=TextEditingController();final ok=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(title:const Text('دواء'),content:SingleChildScrollView(child:Column(children:[TextField(controller:name,decoration:const InputDecoration(labelText:'اسم الدواء')),TextField(controller:dose,decoration:const InputDecoration(labelText:'الجرعة')),TextField(controller:dir,decoration:const InputDecoration(labelText:'طريقة/تكرار الاستخدام')),TextField(controller:notes,decoration:const InputDecoration(labelText:'ملاحظات'))])),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('إضافة'))]));if(ok==true&&name.text.trim().isNotEmpty)setState(()=>medications.add({'name':name.text.trim(),'dose':dose.text.trim(),'directions':dir.text.trim(),'notes':notes.text.trim(),'index':'${medications.length+1}'}));for(final x in [name,dose,dir,notes])x.dispose();}
+ Future<void> addMed()async{final name=TextEditingController(),dose=TextEditingController(),dir=TextEditingController(),notes=TextEditingController();final ok=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(title:Text(AppStrings.of(context).translate('دواء')),content:SingleChildScrollView(child:Column(children:[TextField(controller:name,decoration:const InputDecoration(labelText:AppStrings.of(context).translate('اسم الدواء'))),TextField(controller:dose,decoration:const InputDecoration(labelText:AppStrings.of(context).translate('الجرعة'))),TextField(controller:dir,decoration:const InputDecoration(labelText:AppStrings.of(context).translate('طريقة/تكرار الاستخدام'))),TextField(controller:notes,decoration:const InputDecoration(labelText:AppStrings.of(context).translate('ملاحظات')))])),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:Text(AppStrings.of(context).translate('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(context,true),child:Text(AppStrings.of(context).translate('إضافة')))]));if(ok==true&&name.text.trim().isNotEmpty)setState(()=>medications.add({'name':name.text.trim(),'dose':dose.text.trim(),'directions':dir.text.trim(),'notes':notes.text.trim(),'index':'${medications.length+1}'}));for(final x in [name,dose,dir,notes])x.dispose();}
  @override Widget build(BuildContext context){
   Widget body;
-  if(widget.type=='rx')body=Column(children:[for(final m in medications)ListTile(dense:true,title:Text(m['name']!),subtitle:Text('${m['dose']} • ${m['directions']}')),OutlinedButton.icon(onPressed:addMed,icon:const Icon(Icons.add),label:const Text('إضافة دواء')),f('general','تعليمات عامة')]);
+  if(widget.type=='rx')body=Column(children:[for(final m in medications)ListTile(dense:true,title:Text(m['name']!),subtitle:Text('${m['dose']} • ${m['directions']}')),OutlinedButton.icon(onPressed:addMed,icon:const Icon(Icons.add),label:Text(AppStrings.of(context).translate('إضافة دواء'))),f('general',AppStrings.of(context).translate('تعليمات عامة'))]);
   else if (widget.type == 'labs') {
     body = ListView(
       children: [
         for (final group in _labGroups.entries)
           ExpansionTile(
-            title: Text(group.key),
+            title: Text(AppStrings.of(context).translate(group.key)),
             children: [
               for (final t in group.value)
                 CheckboxListTile(
@@ -57,12 +57,12 @@ class _FormEditorState extends State<_FormEditor>{
                 ),
             ],
           ),
-        f('notes', 'ملاحظات'),
+        f('notes', AppStrings.of(context).translate('ملاحظات')),
       ],
     );
   }
-  else body=SingleChildScrollView(child:Column(children:[f(widget.type=='report'?'diagnosis':widget.type=='sick_leave'?'reason':'destination',widget.type=='report'?'التشخيص':widget.type=='sick_leave'?'سبب الإجازة':'الجهة المحال إليها'),if(widget.type=='report')...[f('history','التاريخ المرضي'),f('findings','الفحص والنتائج'),f('plan','الخطة العلاجية')]else if(widget.type=='sick_leave')...[f('from','من'),f('to','إلى'),f('days','عدد الأيام'),f('notes','ملاحظات')]else...[f('reason','سبب الإحالة'),f('details','تفاصيل الإحالة')]]));
-  return AlertDialog(title:Text('${_title(widget.type)} — ${widget.patientName}'),content:SizedBox(width:500,height:MediaQuery.of(context).size.height*.62,child:body),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(context,_values()),child:const Text('إنشاء PDF'))]);
+  else body=SingleChildScrollView(child:Column(children:[f(widget.type=='report'?'diagnosis':widget.type=='sick_leave'?'reason':'destination',AppStrings.of(context).translate(widget.type=='report'?'التشخيص':widget.type=='sick_leave'?'سبب الإجازة':'الجهة المحال إليها')),if(widget.type=='report')...[f('history',AppStrings.of(context).translate('التاريخ المرضي')),f('findings',AppStrings.of(context).translate('الفحص والنتائج')),f('plan',AppStrings.of(context).translate('الخطة العلاجية'))]else if(widget.type=='sick_leave')...[f('from',AppStrings.of(context).translate('من')),f('to',AppStrings.of(context).translate('إلى')),f('days',AppStrings.of(context).translate('عدد الأيام')),f('notes','ملاحظات')]else...[f('reason',AppStrings.of(context).translate('سبب الإحالة')),f('details',AppStrings.of(context).translate('تفاصيل الإحالة'))]]));
+  return AlertDialog(title:Text('${AppStrings.of(context).translate(_title(widget.type))} — ${widget.patientName}'),content:SizedBox(width:500,height:MediaQuery.of(context).size.height*.62,child:body),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:Text(AppStrings.of(context).translate('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(context,_values()),child:Text(AppStrings.of(context).translate('إنشاء PDF')))]);
  }
  Map<String,dynamic> _values()=>{'medications':medications,'tests':tests,for(final e in c.entries)e.key:e.value.text.trim()};
 }
@@ -79,17 +79,17 @@ const Map<String,List<String>> _labGroups={
 Future<void> _serviceOptions(BuildContext context,String form,String documentId,String patientId) async{
  final isLab=form=='labs';final type=isLab?'lab':'pharmacy';
  final choice=await showModalBottomSheet<String>(context:context,showDragHandle:true,builder:(_)=>SafeArea(child:Column(mainAxisSize:MainAxisSize.min,children:[
-  Padding(padding:const EdgeInsets.all(16),child:Text(isLab?'اختيار طريقة تنفيذ الفحوصات':'اختيار طريقة صرف الوصفة',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
-  ListTile(leading:const Icon(Icons.storefront_outlined),title:Text(isLab?'اختيار مختبر من المنصة':'اختيار صيدلية من المنصة'),onTap:()=>Navigator.pop(context,'facility')),
-  ListTile(leading:const Icon(Icons.home_work_outlined),title:Text(isLab?'سحب العينة من المنزل':'توصيل الدواء للمنزل'),onTap:()=>Navigator.pop(context,'home')),
-  ListTile(leading:const Icon(Icons.directions_walk_outlined),title:Text(isLab?'الذهاب إلى المختبر':'الاستلام من الصيدلية'),onTap:()=>Navigator.pop(context,'self')),
+  Padding(padding:const EdgeInsets.all(16),child:Text(AppStrings.of(context).translate(isLab?'اختيار طريقة تنفيذ الفحوصات':'اختيار طريقة صرف الوصفة'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
+  ListTile(leading:const Icon(Icons.storefront_outlined),title:Text(AppStrings.of(context).translate(isLab?'اختيار مختبر من المنصة':'اختيار صيدلية من المنصة')),onTap:()=>Navigator.pop(context,'facility')),
+  ListTile(leading:const Icon(Icons.home_work_outlined),title:Text(AppStrings.of(context).translate(isLab?'سحب العينة من المنزل':'توصيل الدواء للمنزل')),onTap:()=>Navigator.pop(context,'home')),
+  ListTile(leading:const Icon(Icons.directions_walk_outlined),title:Text(AppStrings.of(context).translate(isLab?'الذهاب إلى المختبر':'الاستلام من الصيدلية')),onTap:()=>Navigator.pop(context,'self')),
  ])));
  if(choice==null)return;
  String? fid,fn;
  if(choice=='facility'){
   final names=<Map<String,String>>[];
   for(final collection in isLab?['labs','laboratories']:['pharmacies']){
-   try{final s=await FirebaseFirestore.instance.collection(collection).limit(30).get();for(final d in s.docs){final x=d.data();names.add({'id':d.id,'name':(x['name']??x['title']??'منشأة صحية').toString()});}}catch(_){}
+   try{final s=await FirebaseFirestore.instance.collection(collection).limit(30).get();for(final d in s.docs){final x=d.data();names.add({'id':d.id,'name':(x['name']??x['title']??AppStrings.of(context).translate('منشأة صحية')).toString()});}}catch(_){}
    if(names.isNotEmpty)break;
   }
   if(!context.mounted)return;
