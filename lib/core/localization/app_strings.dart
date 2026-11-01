@@ -1747,6 +1747,19 @@ class AppStrings {
       'تم إضافة تقييمك': ['Your review has been added', 'Votre avis a été ajouté'],
       'معلق': ['On hold', 'En attente'],
       'مقبول': ['Accepted', 'Accepté'],
+      'طب عام': ['General medicine', 'Médecine générale'],
+      'جراحة': ['Surgery', 'Chirurgie'],
+      'قلب': ['Cardiology', 'Cardiologie'],
+      'نساء وتوليد': ['Obstetrics and gynecology', 'Gynécologie-obstétrique'],
+      'مسالك بولية': ['Urology', 'Urologie'],
+      'أطفال وحديثي الولادة': ['Pediatrics and neonatology', 'Pédiatrie et néonatologie'],
+      'أعصاب': ['Neurology', 'Neurologie'],
+      'علاج نفسي': ['Psychotherapy', 'Psychothérapie'],
+      'طب أسرة': ['Family medicine', 'Médecine familiale'],
+      'أمراض جلدية': ['Dermatology', 'Dermatologie'],
+      'طب العيون': ['Ophthalmology', 'Ophtalmologie'],
+      'جراحة عظام': ['Orthopedic surgery', 'Chirurgie orthopédique'],
+      'طب الأسنان': ['Dentistry', 'Dentisterie'],
     };
 
     final entry = translations[value];
