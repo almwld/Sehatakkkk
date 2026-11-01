@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -42,7 +43,7 @@ class _HelpScreenState extends State<HelpScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح وسيلة التواصل')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر فتح وسيلة التواصل'))));
       }
     } catch (_) {
       if (!mounted) return;
@@ -262,7 +263,7 @@ class _EmptyFaq extends StatelessWidget {
         children: [
           Icon(Icons.search_off_rounded, size: 48, color: dark ? Colors.white24 : Colors.black26),
           const SizedBox(height: 8),
-          Text('لا توجد نتائج مطابقة', style: TextStyle(color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w700)),
+          Text(AppStrings.of(context).translate('لا توجد نتائج مطابقة'), style: TextStyle(color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w700)),
         ],
       ),
     );
