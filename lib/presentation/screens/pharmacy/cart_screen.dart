@@ -21,7 +21,7 @@ class _CartScreenState extends State<CartScreen> {
     try {
       final result = await _cart.checkout(deliveryFee: 0, deliveryAddress: _delivery ? _address.text.trim() : null, deliveryRequired: _delivery);
       if (!mounted) return;
-      await showDialog<void>(context: context, builder: (_) => AlertDialog(title: const Text(_t('تم الدفع بنجاح')), content: Text('رقم الطلب: ${result['orderId']}\nالإجمالي: ${result['total']} ر.ي\nرقم الفاتورة: ${result['invoiceId'] ?? '—'}'), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text(_t('متابعة')))]));
+      await showDialog<void>(context: context, builder: (_) => AlertDialog(title: Text(_t('تم الدفع بنجاح')), content: Text('رقم الطلب: ${result['orderId']}\nالإجمالي: ${result['total']} ر.ي\nرقم الفاتورة: ${result['invoiceId'] ?? '—'}'), actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(_t('متابعة')))]));
       setState(() {});
     } catch (e) { if (mounted) ToastService.showError(_t('تعذر إتمام الدفع') + ': $e'); } finally { if (mounted) setState(() => _processing = false); }
   }
@@ -29,12 +29,12 @@ class _CartScreenState extends State<CartScreen> {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final total = _cart.subtotal;
-    if (_cart.items.isEmpty) return Scaffold(appBar: AppBar(title: Text(_t('السلة')), backgroundColor: AppColors.primary, foregroundColor: Colors.white), body: const Center(child: Text('السلة فارغة')));
+    if (_cart.items.isEmpty) return Scaffold(appBar: AppBar(title: Text(_t('السلة')), backgroundColor: AppColors.primary, foregroundColor: Colors.white), body: Center(child: Text(_t('السلة فارغة'))));
     return Scaffold(appBar: AppBar(title: Text(_t('السلة الموحدة')), backgroundColor: AppColors.primary, foregroundColor: Colors.white), backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC), body: ListView(padding: const EdgeInsets.all(16), children: [
       ..._cart.items.map((item) => Card(child: ListTile(title: Text(item.name), subtitle: Text('${item.unitPrice.toStringAsFixed(0)} ر.ي × ${item.quantity}'), trailing: Wrap(spacing: 2, children: [IconButton(onPressed: () => setState(() => _cart.decrement(item.productId)), icon: const Icon(Icons.remove_circle_outline)), Text('${item.quantity}'), IconButton(onPressed: () => setState(() => _cart.increment(item.productId)), icon: const Icon(Icons.add_circle_outline)), IconButton(onPressed: () => setState(() => _cart.remove(item.productId)), icon: const Icon(Icons.delete_outline, color: Colors.red))])))),
       const SizedBox(height: 8),
       SwitchListTile(title: Text(_t('توصيل الطلب')), value: _delivery, onChanged: _processing ? null : (v) => setState(() => _delivery = v)),
-      if (_delivery) TextField(controller: _address, maxLines: 2, decoration: const InputDecoration(labelText: _t('عنوان التوصيل'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
+      if (_delivery) TextField(controller: _address, maxLines: 2, decoration: InputDecoration(labelText: _t('عنوان التوصيل'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
       const SizedBox(height: 16),
       Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_t('المجموع')), Text('${_cart.subtotal.toStringAsFixed(0)} ر.ي')]), const SizedBox(height: 8), Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_t('التوصيل')), Text(_delivery ? _t('تحسب عند التأكيد') : _t('بدون توصيل'))]), const Divider(height: 24), Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_t('الإجمالي'), style: TextStyle(fontWeight: FontWeight.bold)), Text('${_delivery ? _cart.subtotal.toStringAsFixed(0) : total.toStringAsFixed(0)} ر.ي', style: const TextStyle(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.bold))])]))),
       const SizedBox(height: 16),
