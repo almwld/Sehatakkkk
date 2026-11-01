@@ -1939,6 +1939,10 @@ class AppStrings {
       "حساب مهني": ["Professional account","Compte professionnel"],
       "فيديو تعليمي": ["Educational video","Vidéo éducative"],
       "تعليمي": ["Educational","Éducatif"],
+      "تشريح": ["Anatomy","Anatomie"],
+      "أمراض": ["Diseases","Maladies"],
+      "إسعافات": ["First aid","Premiers secours"],
+      "صحة نفسية": ["Mental health","Santé mentale"],
     };
 
     final entry = translations[value];
