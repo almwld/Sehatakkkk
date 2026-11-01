@@ -1937,6 +1937,15 @@ class AppStrings {
       "أمراض": ["Diseases","Maladies"],
       "إسعافات": ["First aid","Premiers secours"],
       "صحة نفسية": ["Mental health","Santé mentale"],
+      "أعراض الصداع": ["Headache symptoms","Symptômes de céphalée"],
+      "صداع في الجانب الأيمن يستمر 2-3 ساعات. يحدث عادة في المساء بعد العمل. لاحظت أنه يزداد مع التوتر وقلة النوم.": ["A headache on the right side lasting 2–3 hours. It usually occurs in the evening after work and seems worse with stress and lack of sleep.","Un mal de tête du côté droit durant 2 à 3 heures. Il survient généralement le soir après le travail et semble s’aggraver avec le stress et le manque de sommeil."],
+      "1 مايو 2026": ["May 1, 2026","1 mai 2026"],
+      "قراءات الضغط الأسبوعية": ["Weekly blood pressure readings","Mesures hebdomadaires de la tension artérielle"],
+      "السبت: 128/82\nالأحد: 132/85\nالإثنين: 126/80\nالثلاثاء: 130/84\nالأربعاء: 125/79\nنصحني الدكتور بمواصلة المراقبة وتقليل الملح.": ["Saturday: 128/82\nSunday: 132/85\nMonday: 126/80\nTuesday: 130/84\nWednesday: 125/79\nMy doctor advised me to continue monitoring and reduce salt intake.","Samedi : 128/82\nDimanche : 132/85\nLundi : 126/80\nMardi : 130/84\nMercredi : 125/79\nMon médecin m’a conseillé de poursuivre la surveillance et de réduire le sel."],
+      "28 أبريل 2026": ["April 28, 2026","28 avril 2026"],
+      "موعد المختبر": ["Laboratory appointment","Rendez-vous au laboratoire"],
+      "حجزت موعد تحليل دم شامل يوم 15 مايو الساعة 8 صباحاً في مختبر الثقة. يجب الصيام 8 ساعات قبل التحليل.": ["I booked a complete blood test for May 15 at 8:00 a.m. at Al-Thiqa Laboratory. I must fast for 8 hours before the test.","J’ai pris rendez-vous pour une analyse sanguine complète le 15 mai à 8 h au laboratoire Al-Thiqa. Je dois être à jeun pendant 8 heures avant l’analyse."],
+      "25 أبريل 2026": ["April 25, 2026","25 avril 2026"],
     };
 
     final entry = translations[value];
