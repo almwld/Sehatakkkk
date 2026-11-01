@@ -170,7 +170,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                 controller: _topicCtrl,
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
-                  labelText: 'عنوان الاستشارة',
+                  labelText: _t('عنوان الاستشارة'),
                   prefixIcon: const Icon(Icons.title, color: AppColors.primary),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -181,7 +181,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                 textAlign: TextAlign.right,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  labelText: 'الوصف',
+                  labelText: _t('الوصف'),
                   prefixIcon: const Icon(Icons.note, color: AppColors.primary),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
