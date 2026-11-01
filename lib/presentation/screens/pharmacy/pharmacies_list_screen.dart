@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_dimensions.dart';
 import 'pharmacy_products_screen.dart';
 
@@ -25,7 +24,7 @@ class PharmaciesListScreen extends StatelessWidget {
         actions: [IconButton(icon: const Icon(Icons.filter_list), onPressed: () {})],
       ),
       body: pharmacies.isEmpty
-          ? Center(child: Text(_t(context, 'لا توجد صيدليات متاحة حالياً'))
+          ? Center(child: Text(_t(context, 'لا توجد صيدليات متاحة حالياً')))
           : ListView.builder(
               padding: const EdgeInsets.all(AppDimensions.paddingL),
               itemCount: pharmacies.length,
