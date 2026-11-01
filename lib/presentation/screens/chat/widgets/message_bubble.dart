@@ -386,7 +386,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final url = m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
     final name = (m['fileName']?.toString().trim().isNotEmpty == true)
         ? m['fileName'].toString()
-        : 'ملف';
+        : _t('ملف');
     final mime = (m['fileMimeType']?.toString() ?? '').toLowerCase();
     final ext = name.contains('.') ? name.split('.').last.toLowerCase() : '';
     final isPdf = ext == 'pdf' || mime == 'application/pdf';
@@ -418,11 +418,11 @@ class _MessageBubbleState extends State<MessageBubble> {
         showDragHandle: true,
         builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
           Padding(padding: const EdgeInsets.all(16), child: Text(
-            isLab ? 'كيف تريد تنفيذ الفحوصات؟' : 'كيف تريد صرف الوصفة؟',
+            isLab ? _t('كيف تريد تنفيذ الفحوصات؟') : _t('كيف تريد صرف الوصفة؟'),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-          ListTile(leading: const Icon(Icons.storefront_outlined), title: Text(isLab ? 'اختيار مختبر من منصة صحتك' : 'اختيار صيدلية من منصة صحتك'), onTap: () => Navigator.pop(ctx, 'facility')),
-          ListTile(leading: const Icon(Icons.home_work_outlined), title: Text(isLab ? 'طلب سحب العينة من المنزل' : 'طلب توصيل الدواء إلى المنزل'), onTap: () => Navigator.pop(ctx, 'home')),
-          ListTile(leading: const Icon(Icons.directions_walk_outlined), title: Text(isLab ? 'سأذهب بنفسي إلى المختبر' : 'سأستلم الدواء من الصيدلية'), onTap: () => Navigator.pop(ctx, 'self')),
+          ListTile(leading: const Icon(Icons.storefront_outlined), title: Text(isLab ? _t('اختيار مختبر من منصة صحتك') : _t('اختيار صيدلية من منصة صحتك')), onTap: () => Navigator.pop(ctx, 'facility')),
+          ListTile(leading: const Icon(Icons.home_work_outlined), title: Text(isLab ? _t('طلب سحب العينة من المنزل') : _t('طلب توصيل الدواء إلى المنزل')), onTap: () => Navigator.pop(ctx, 'home')),
+          ListTile(leading: const Icon(Icons.directions_walk_outlined), title: Text(isLab ? _t('سأذهب بنفسي إلى المختبر') : _t('سأستلم الدواء من الصيدلية')), onTap: () => Navigator.pop(ctx, 'self')),
         ])),
       );
       if (choice == null) return;
@@ -435,7 +435,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             final s = await FirebaseFirestore.instance.collection(collection).limit(30).get();
             for (final d in s.docs) {
               final data = d.data();
-              names.add({'id': d.id, 'name': (data['name'] ?? data['title'] ?? 'منشأة صحية').toString()});
+              names.add({'id': d.id, 'name': (data['name'] ?? data['title'] ?? _t('منشأة صحية')).toString()});
             }
           } catch (_) {}
           if (names.isNotEmpty) break;
@@ -472,7 +472,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         'createdAt': FieldValue.serverTimestamp(),
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isLab ? 'تم إرسال طلب الفحوصات.' : 'تم إرسال الوصفة إلى خدمة الصيدلية.')),
+        SnackBar(content: Text(isLab ? _t('تم إرسال طلب الفحوصات.') : _t('تم إرسال الوصفة إلى خدمة الصيدلية.'))),
       );
     }
 
@@ -499,7 +499,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         chatId: selected, sourceFile: file, type: 'file', folder: 'documents',
         preview: '📄 $name', fileName: name, fileSize: m['fileSize']?.toString(), mimeType: mime,
       );
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تجهيز المستند للإرسال إلى الدردشة المحددة.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم تجهيز المستند للإرسال إلى الدردشة المحددة.'))));
     }
 
     Future<void> _documentActions() async {
@@ -511,14 +511,14 @@ class _MessageBubbleState extends State<MessageBubble> {
           if (name.toLowerCase().contains('_rx.pdf') || name.toLowerCase().contains('_labs.pdf'))
             ListTile(
               leading: Icon(name.toLowerCase().contains('_labs.pdf') ? Icons.biotech_outlined : Icons.local_pharmacy_outlined),
-              title: Text(name.toLowerCase().contains('_labs.pdf') ? 'تنفيذ طلب الفحوصات' : 'تنفيذ الوصفة الطبية'),
+              title: Text(name.toLowerCase().contains('_labs.pdf') ? _t('تنفيذ طلب الفحوصات') : _t('تنفيذ الوصفة الطبية')),
               onTap: () => Navigator.pop(ctx, 'service'),
             ),
-          ListTile(leading: const Icon(Icons.visibility_outlined), title: const Text('فتح المستند'), onTap: () => Navigator.pop(ctx, 'open')),
-          ListTile(leading: const Icon(Icons.share_outlined), title: const Text('مشاركة / إرسال خارج التطبيق'), onTap: () => Navigator.pop(ctx, 'share')),
-          ListTile(leading: const Icon(Icons.save_alt_outlined), title: const Text('حفظ في المكتبة'), onTap: () => Navigator.pop(ctx, 'library')),
-          ListTile(leading: const Icon(Icons.download_outlined), title: const Text('حفظ نسخة على الهاتف'), onTap: () => Navigator.pop(ctx, 'download')),
-          ListTile(leading: const Icon(Icons.send_outlined), title: const Text('إرسال إلى دردشة أخرى'), onTap: () => Navigator.pop(ctx, 'chat')),
+          ListTile(leading: const Icon(Icons.visibility_outlined), title: Text(_t('فتح المستند')), onTap: () => Navigator.pop(ctx, 'open')),
+          ListTile(leading: const Icon(Icons.share_outlined), title: Text(_t('مشاركة / إرسال خارج التطبيق')), onTap: () => Navigator.pop(ctx, 'share')),
+          ListTile(leading: const Icon(Icons.save_alt_outlined), title: Text(_t('حفظ في المكتبة')), onTap: () => Navigator.pop(ctx, 'library')),
+          ListTile(leading: const Icon(Icons.download_outlined), title: Text(_t('حفظ نسخة على الهاتف')), onTap: () => Navigator.pop(ctx, 'download')),
+          ListTile(leading: const Icon(Icons.send_outlined), title: Text(_t('إرسال إلى دردشة أخرى')), onTap: () => Navigator.pop(ctx, 'chat')),
         ])),
       );
       if (action == null) return;
@@ -534,7 +534,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           if (mounted) await showDialog<void>(context: context, builder: (_) => _TextDocumentDialog(title: name, content: text));
         }
       } else if (action == 'share' || action == 'download') {
-        await MedicalDocumentServiceCompat.share(file, download: action == 'download');
+        await MedicalDocumentServiceCompat.share(file, text: _t(action == 'download' ? 'نسخة محفوظة من مستند صحتك' : 'مستند من منصة صحتك'), download: action == 'download');
       } else if (action == 'library') {
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
@@ -542,7 +542,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             'ownerId': uid, 'chatId': m['chatId'], 'fileName': name,
             'fileUrl': url, 'mimeType': mime, 'savedAt': FieldValue.serverTimestamp(),
           });
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ المستند في المكتبة.')));
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم حفظ المستند في المكتبة.'))));
         }
       } else if (action == 'chat') {
         await _sendToAnotherChat(file);
@@ -631,7 +631,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final missed = status == 'missed' || status == 'rejected' || status == 'busy';
     final incoming = !missed && !widget.isMe;
     final icon = missed ? Icons.call_missed : incoming ? Icons.call_received : Icons.call_made;
-    final title = missed ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} فائتة' : incoming ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} واردة' : 'مكالمة ${video ? 'فيديو' : 'صوتية'} صادرة';
+    final title = _t(missed ? (video ? 'مكالمة فيديو فائتة' : 'مكالمة صوتية فائتة') : incoming ? (video ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة') : (video ? 'مكالمة فيديو صادرة' : 'مكالمة صوتية صادرة'));
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
     final ic = missed ? Colors.red : incoming ? Colors.green : Colors.blue;
     return _shell(Padding(padding: const EdgeInsets.all(10), child: Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 48, height: 48, decoration: BoxDecoration(color: ic.withOpacity(.15), shape: BoxShape.circle), child: Icon(icon, color: ic, size: 24)), const SizedBox(width: 12), Flexible(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(color: tc, fontWeight: FontWeight.bold, fontSize: 13)), if (duration.isNotEmpty) ...[const SizedBox(height: 3), Text(duration, style: TextStyle(color: tc.withOpacity(.7), fontSize: 11))]])), const SizedBox(width: 12), InkWell(borderRadius: BorderRadius.circular(20), onTap: () => widget.onCallAgain?.call(video ? 'video' : 'audio'), child: Padding(padding: const EdgeInsets.all(6), child: Icon(video ? Icons.videocam : Icons.call, color: tc, size: 20)))])), dark);
@@ -642,7 +642,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final lng = (m['locationLng'] as num?)?.toDouble();
     final address = (m['locationAddress']?.toString().trim().isNotEmpty == true)
         ? m['locationAddress'].toString()
-        : (m['text']?.toString() ?? 'الموقع');
+        : (m['text']?.toString() ?? _t('الموقع'));
     final meta = m['metadata'] is Map ? Map<String, dynamic>.from(m['metadata'] as Map) : <String, dynamic>{};
     final street = meta['locationStreet']?.toString() ?? '';
     final neighborhood = meta['locationNeighborhood']?.toString() ?? '';
@@ -721,7 +721,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('الموقع المرسل', style: TextStyle(color: tc, fontWeight: FontWeight.w800, fontSize: 12)),
+                          Text(_t('الموقع المرسل'), style: TextStyle(color: tc, fontWeight: FontWeight.w800, fontSize: 12)),
                           const SizedBox(height: 3),
                           Text(address, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(color: tc, fontSize: 12)),
                           if (details.isNotEmpty) ...[
@@ -777,7 +777,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             if ((widget.message['text']?.toString().trim() ?? '').isNotEmpty)
               ListTile(
                 leading: const Icon(Icons.copy),
-                title: const Text('نسخ الرسالة'),
+                title: Text(_t('نسخ الرسالة')),
                 onTap: () async {
                   await Clipboard.setData(ClipboardData(text: widget.message['text'].toString()));
                   if (mounted) Navigator.pop(context);
@@ -794,22 +794,22 @@ class _MessageBubbleState extends State<MessageBubble> {
             if (widget.onReply != null)
               ListTile(
                 leading: const Icon(Icons.reply),
-                title: const Text('رد'),
+                title: Text(_t('رد')),
                 onTap: () {
                   Navigator.pop(context);
                   widget.onReply?.call();
                 },
               ),
             if (widget.onEdit != null && widget.message['isDeleted'] != true && (widget.message['text']?.toString().trim() ?? '').isNotEmpty)
-              ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('تعديل الرسالة'), onTap: () { Navigator.pop(context); widget.onEdit?.call(); }),
+              ListTile(leading: const Icon(Icons.edit_outlined), title: Text(_t('تعديل الرسالة')), onTap: () { Navigator.pop(context); widget.onEdit?.call(); }),
             if (widget.onPin != null)
-              ListTile(leading: Icon((widget.message['isPinned'] == true) ? Icons.push_pin : Icons.push_pin_outlined), title: Text(widget.message['isPinned'] == true ? 'إلغاء تثبيت الرسالة' : 'تثبيت الرسالة'), onTap: () { Navigator.pop(context); widget.onPin?.call(); }),
+              ListTile(leading: Icon((widget.message['isPinned'] == true) ? Icons.push_pin : Icons.push_pin_outlined), title: Text(widget.message['isPinned'] == true ? _t('إلغاء تثبيت الرسالة') : _t('تثبيت الرسالة')), onTap: () { Navigator.pop(context); widget.onPin?.call(); }),
             if (widget.onDeleteForMe != null)
-              ListTile(leading: const Icon(Icons.delete_sweep_outlined), title: const Text('حذف لدي فقط'), onTap: () { Navigator.pop(context); widget.onDeleteForMe?.call(); }),
+              ListTile(leading: const Icon(Icons.delete_sweep_outlined), title: Text(_t('حذف لدي فقط')), onTap: () { Navigator.pop(context); widget.onDeleteForMe?.call(); }),
             if (widget.onDelete != null)
               ListTile(
                 leading: const Icon(Icons.delete_outline),
-                title: const Text('حذف للجميع'),
+                title: Text(_t('حذف للجميع')),
                 onTap: () {
                   Navigator.pop(context);
                   widget.onDelete?.call();
@@ -931,7 +931,7 @@ class _JustAudioMessagePlayerState extends State<JustAudioMessagePlayer> {
 }
 
 class MedicalDocumentServiceCompat {
-  static Future<void> share(File file, {bool download = false}) async {
-    await Share.shareXFiles([XFile(file.path)], text: download ? 'نسخة محفوظة من مستند صحتك' : 'مستند من منصة صحتك');
+  static Future<void> share(File file, {required String text, bool download = false}) async {
+    await Share.shareXFiles([XFile(file.path)], text: text);
   }
 }
