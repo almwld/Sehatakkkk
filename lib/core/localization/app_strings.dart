@@ -1317,6 +1317,21 @@ class AppStrings {
       'تم إضافة التقرير': ['Report added', 'Rapport ajouté'],
       'تعذر حفظ التقرير، حاول مرة أخرى': ['Could not save the report. Try again.', 'Impossible d’enregistrer le rapport. Réessayez.'],
       'جاري الحفظ...': ['Saving...', 'Enregistrement...'],
+      'حذف الملاحظة': ['Delete note', 'Supprimer la note'],
+      'هل أنت متأكد من حذف هذه الملاحظة؟': ['Are you sure you want to delete this note?', 'Voulez-vous vraiment supprimer cette note ?'],
+      'أدخل عنوان الملاحظة': ['Enter the note title', 'Saisissez le titre de la note'],
+      'المحتوى': ['Content', 'Contenu'],
+      'اكتب ملاحظتك هنا...': ['Write your note here...', 'Écrivez votre note ici…'],
+      'ملاحظاتي الطبية': ['My medical notes', 'Mes notes médicales'],
+      'بحث في الملاحظات': ['Search notes', 'Rechercher dans les notes'],
+      'ابحث في ملاحظاتك...': ['Search your notes...', 'Rechercher dans vos notes…'],
+      'الأدوية والمستلزمات': ['Medicines and supplies', 'Médicaments et fournitures'],
+      'أدوية': ['Medicines', 'Médicaments'],
+      'مستلزمات صحية': ['Health supplies', 'Fournitures médicales'],
+      'تجميل': ['Beauty', 'Beauté'],
+      'صيدليات': ['Pharmacies', 'Pharmacies'],
+      'ابحث عن دواء، مستلزمات...': ['Search for medicine or supplies...', 'Rechercher un médicament ou des fournitures…'],
+      'ر.ي': ['YER', 'YER'],
     };
 
     final entry = translations[value];
