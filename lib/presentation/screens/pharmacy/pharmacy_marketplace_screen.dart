@@ -23,6 +23,8 @@ class PharmacyMarketplaceScreen extends StatefulWidget {
 
 class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final _search = TextEditingController();
   final _cart = UnifiedCartService.instance;
   late final TabController _tabController;
@@ -86,7 +88,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
       if (mounted) setState(() => _error = null);
       if (_tab == 3) await _loadOrders();
     } catch (_) {
-      if (mounted) setState(() => _error = 'تعذر تحميل بيانات الصيدلية حالياً');
+      if (mounted) setState(() => _error = _t('تعذر تحميل بيانات الصيدلية حالياً'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -278,7 +280,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
             labelColor: AppColors.primary,
             unselectedLabelColor: Colors.grey,
             indicatorColor: AppColors.primary,
-            tabs: _tabLabels.map((t) => Tab(text: t)).toList()),
+            tabs: _tabLabels.map((t) => Tab(text: _t(t))).toList()),
         SizedBox(
             height: 48,
             child: ListView.separated(
@@ -290,7 +292,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                 itemBuilder: (_, i) {
                   final c = _categories[i];
                   return ChoiceChip(
-                      label: Text(c),
+                      label: Text(_t(c)), 
                       selected: _category == c,
                       onSelected: (_) => setState(() => _category = c));
                 })),
@@ -311,7 +313,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   Widget _errorView() => Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(_error!, textAlign: TextAlign.center),
+        Text(_t(_error!), textAlign: TextAlign.center),
         const SizedBox(height: 10),
         ElevatedButton(onPressed: _loadAll, child: Text(AppStrings.of(context).translate('إعادة المحاولة')))
       ]));
@@ -360,7 +362,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
             }));
   }
   Widget _productsTab() => _productList(
-      _visibleProducts, 'لا توجد منتجات منشورة تطابق البحث حالياً');
+      _visibleProducts, _t('لا توجد منتجات منشورة تطابق البحث حالياً'));
   Widget _offersTab() => _productList(_offers, AppStrings.of(context).translate('لا توجد عروض منشورة حالياً'));
 
   Widget _productList(List<Map<String, dynamic>> products, String empty) {
@@ -490,7 +492,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       title: Text('${AppStrings.of(context).translate('طلب')} #$orderId',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
-                          '${o['pharmacyName'] ?? o['providerName'] ?? 'طلب صيدلية'}\n$status'),
+                          '${o['pharmacyName'] ?? o['providerName'] ?? _t('طلب صيدلية')}\n${_t(status)}'),
                       trailing: const Icon(Icons.chevron_left),
                       onTap: () {}));
             }));
