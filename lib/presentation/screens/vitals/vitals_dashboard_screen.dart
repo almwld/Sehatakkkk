@@ -443,7 +443,7 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
               final label = _t(_vitalCards.firstWhere(
                 (card) => card['key'] == key,
                 orElse: () => {'label': key},
-               )['label'] as String;
+              )['label'] as String);
 
               return Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
