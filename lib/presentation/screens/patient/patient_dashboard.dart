@@ -326,11 +326,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
       
       if (image == null) return;
       
-      ToastService.showInfo('⏳ جاري رفع الصورة...');
+      ToastService.showInfo('⏳ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'جاري رفع الصورة...' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Téléversement de l’image…' : 'Uploading image…'}');
       
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+        ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'يرجى تسجيل الدخول أولاً' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Veuillez d’abord vous connecter' : 'Please sign in first'}');
         return;
       }
 
@@ -351,9 +351,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
       });
       
       await _saveToCache();
-      ToastService.showSuccess('✅ تم رفع الصورة بنجاح');
+      ToastService.showSuccess('✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم رفع الصورة بنجاح' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Image téléversée avec succès' : 'Image uploaded successfully'}');
     } catch (e) {
-      ToastService.showError('❌ فشل رفع الصورة: $e');
+      ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'فشل رفع الصورة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Échec du téléversement de l’image' : 'Image upload failed'}: $e');
     }
   }
 
@@ -377,7 +377,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
 ''';
       await Share.share(shareText, subject: 'ملفي الصحي - صحتك');
     } catch (e) {
-      ToastService.showError('❌ فشل مشاركة الملف: $e');
+      ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'فشل مشاركة الملف' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Échec du partage du fichier' : 'File sharing failed'}: $e');
     } finally {
       setState(() => _isSharing = false);
     }
