@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -25,7 +26,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         if (snapshot.hasError) return Center(child: Text('خطأ: ${snapshot.error}'));
         if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
         final reviews = snapshot.data?.docs.map((d) => ReviewModel.fromFirestore(d.data(), d.id)).toList() ?? [];
-        if (reviews.isEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_border, size: 64, color: Colors.grey), const SizedBox(height: 12), const Text('لا توجد تقييمات'), if (!widget.isProvider) ElevatedButton(onPressed: _showAddReviewDialog, child: const Text('أضف تقييمك'))]));
+        if (reviews.isEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_border, size: 64, color: Colors.grey), const SizedBox(height: 12), Text(AppStrings.of(context).translate('لا توجد تقييمات')), if (!widget.isProvider) ElevatedButton(onPressed: _showAddReviewDialog, child: const Text('أضف تقييمك'))]));
         final average = reviews.fold<double>(0, (sum, r) => sum + r.rating) / reviews.length;
         return Column(children: [Padding(padding: const EdgeInsets.all(16), child: Row(children: [Text(average.toStringAsFixed(1), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppColors.primary)), const SizedBox(width: 10), Text('${reviews.length} تقييم')])), Expanded(child: ListView.builder(padding: const EdgeInsets.all(16), itemCount: reviews.length, itemBuilder: (_, i) => _buildReviewCard(reviews[i]))) ]);
       }),
