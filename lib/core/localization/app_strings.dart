@@ -1332,6 +1332,20 @@ class AppStrings {
       'صيدليات': ['Pharmacies', 'Pharmacies'],
       'ابحث عن دواء، مستلزمات...': ['Search for medicine or supplies...', 'Rechercher un médicament ou des fournitures…'],
       'ر.ي': ['YER', 'YER'],
+      'المسعفون الميدانيون': ['Field paramedics', 'Ambulanciers de terrain'],
+      'لوحة المسعف الميداني': ['Field paramedic dashboard', 'Tableau de bord de l’ambulancier'],
+      'طلبات الإسعاف النشطة': ['Active emergency requests', 'Demandes d’urgence actives'],
+      'حالة الاستجابة': ['Response status', 'État de la réponse'],
+      'متاح لاستقبال الطوارئ': ['Available for emergencies', 'Disponible pour les urgences'],
+      'متصل ميدانياً': ['Field connected', 'Connecté sur le terrain'],
+      'أستقبل طلبات الإسعاف': ['I receive ambulance requests', 'Je reçois les demandes d’ambulance'],
+      'مسعف ميداني': ['Field paramedic', 'Ambulancier de terrain'],
+      'ستظهر مواعيدك هنا': ['Your appointments will appear here', 'Vos rendez-vous apparaîtront ici'],
+      'متابعة مواعيد الأدوية': ['Track medication reminders', 'Suivre les rappels de médicaments'],
+      'المستندات': ['Documents', 'Documents'],
+      'إدارة التوثيق': ['Verification management', 'Gestion de la vérification'],
+      'تم التحقق': ['Verified', 'Vérifié'],
+      'غير موثق': ['Not verified', 'Non vérifié'],
     };
 
     final entry = translations[value];
