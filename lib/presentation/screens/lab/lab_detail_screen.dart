@@ -27,11 +27,11 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
   Future<void> _load() async {
     try {
       final snap = await _db.collection('labs').doc(widget.labId).get();
-      if (!snap.exists) throw Exception('المختبر غير موجود');
+      if (!snap.exists) throw Exception(AppStrings.of(context).translate('المختبر غير موجود'));
       if (!mounted) return;
       setState(() { _lab = {'id': snap.id, ...snap.data()!}; _loading = false; });
     } catch (_) {
-      if (mounted) setState(() { _loading = false; _error = 'تعذر تحميل بيانات المختبر من النظام.'; });
+      if (mounted) setState(() { _loading = false; _error = AppStrings.of(context).translate('تعذر تحميل بيانات المختبر من النظام.'); });
     }
   }
 
@@ -44,7 +44,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     final verified = l['isVerified'] == true;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: Text(_s(l['name']).isEmpty ? 'المختبر' : _s(l['name'])), backgroundColor: AppColors.primary, foregroundColor: Colors.white, bottom: TabBar(controller: _tabs, tabs: [Tab(text: AppStrings.of(context).translate('نبذة')), Tab(text: AppStrings.of(context).translate('الفحوصات'))], indicatorColor: Colors.white, labelColor: Colors.white, unselectedLabelColor: Colors.white70)),
+      appBar: AppBar(title: Text(_s(l['name']).isEmpty ? AppStrings.of(context).translate('المختبر') : _s(l['name'])), backgroundColor: AppColors.primary, foregroundColor: Colors.white, bottom: TabBar(controller: _tabs, tabs: [Tab(text: AppStrings.of(context).translate('نبذة')), Tab(text: AppStrings.of(context).translate('الفحوصات'))], indicatorColor: Colors.white, labelColor: Colors.white, unselectedLabelColor: Colors.white70)),
       body: TabBarView(controller: _tabs, children: [_overview(l, image, verified, dark), StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:_db.collection('lab_tests').where('labId',isEqualTo:widget.labId).where('isActive',isEqualTo:true).snapshots(),builder:(context,snap)=>_tests(l,snap.data?.docs.map((x)=>{'id':x.id,...x.data()}).toList()??const [],dark))]),
     );
   }
@@ -57,11 +57,11 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
       const SizedBox(height: 8),
       if (_s(l['description']).isNotEmpty) Text(_s(l['description']), style: TextStyle(height: 1.6, color: dark ? Colors.grey[300] : Colors.grey[700])),
       const SizedBox(height: 12),
-      _row(Icons.location_on, AppStrings.of(context).translate('العنوان'), _s(l['address'] ?? l['location'] ?? 'غير محدد'), dark),
-      _row(Icons.phone, AppStrings.of(context).translate('الهاتف'), _s(l['phone']).isEmpty ? 'غير متوفر' : _s(l['phone']), dark),
-      _row(Icons.email, AppStrings.of(context).translate('البريد'), _s(l['email']).isEmpty ? 'غير متوفر' : _s(l['email']), dark),
-      _row(Icons.star, AppStrings.of(context).translate('التقييم'), '${_n(l['rating']).toStringAsFixed(1)} (${_n(l['reviews'] ?? l['reviewsCount']).toInt()} تقييم)', dark),
-      _row(Icons.home_work, AppStrings.of(context).translate('السحب المنزلي'), (l['homeService'] == true || l['homeCollection'] == true || l['hasHomeService'] == true) ? 'متاح' : 'غير متاح', dark),
+      _row(Icons.location_on, AppStrings.of(context).translate('العنوان'), _s(l['address'] ?? AppStrings.of(context).translate('غير محدد')), dark),
+      _row(Icons.phone, AppStrings.of(context).translate('الهاتف'), _s(l['phone']).isEmpty ? AppStrings.of(context).translate('غير متوفر') : _s(l['phone']), dark),
+      _row(Icons.email, AppStrings.of(context).translate('البريد'), _s(l['email']).isEmpty ? AppStrings.of(context).translate('غير متوفر') : _s(l['email']), dark),
+      _row(Icons.star, AppStrings.of(context).translate('التقييم'), '${_n(l['rating']).toStringAsFixed(1)} (${_n(l['reviews'] ?? l['reviewsCount']).toInt()} ${AppStrings.of(context).translate('تقييم')})', dark),
+      _row(Icons.home_work, AppStrings.of(context).translate('السحب المنزلي'), (l['homeService'] == true || l['homeCollection'] == true || l['hasHomeService'] == true) ? AppStrings.of(context).translate('متاح') : AppStrings.of(context).translate('غير متاح'), dark),
     ])),
     const SizedBox(height: 16),
     _card(dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AppStrings.of(context).translate('الخدمات والتخصصات'), style: TextStyle(fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)), const SizedBox(height: 10), Wrap(spacing: 8, runSpacing: 8, children: _list(l['specialties']).map((x) => Chip(label: Text(_s(x)))).toList())])),
@@ -73,7 +73,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
       final t = tests[i] is Map ? Map<String, dynamic>.from(tests[i]) : {'name': tests[i], 'id': 'test_$i'};
       final testId = _s(t['id']).isEmpty ? 'test_$i' : _s(t['id']);
       final price = _n(t['price']);
-      return Card(color: dark ? const Color(0xFF1A2540) : Colors.white, child: ListTile(leading: const CircleAvatar(backgroundColor: Color(0x1A0A8F83), child: Icon(Icons.science, color: AppColors.primary)), title: Text(_s(t['name']).isEmpty ? 'فحص' : _s(t['name']), style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600)), subtitle: Text(_s(t['description']), style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])), trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(AppStrings.of(context).formatCurrency(price), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), TextButton(onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id']), testId: testId))), child: Text(AppStrings.of(context).translate('حجز')))])));
+      return Card(color: dark ? const Color(0xFF1A2540) : Colors.white, child: ListTile(leading: const CircleAvatar(backgroundColor: Color(0x1A0A8F83), child: Icon(Icons.science, color: AppColors.primary)), title: Text(_s(t['name']).isEmpty ? AppStrings.of(context).translate('فحص') : _s(t['name']), style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600)), subtitle: Text(_s(t['description']), style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])), trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(AppStrings.of(context).formatCurrency(price), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), TextButton(onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id']), testId: testId))), child: Text(AppStrings.of(context).translate('حجز')))])));
     })),
     Container(padding: const EdgeInsets.all(16), color: dark ? const Color(0xFF1A2540) : Colors.white, child: SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: tests.isEmpty ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id'])))), icon: const Icon(Icons.calendar_today), label: Text(AppStrings.of(context).translate('حجز فحص')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))))
   ]);
