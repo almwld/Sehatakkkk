@@ -61,12 +61,12 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
     final filtered = _filteredServices;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(title: const Text('الخدمات المنزلية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
+      appBar: CustomAppBar(title: Text(AppStrings.of(context).translate('الخدمات المنزلية')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: UnifiedSearchBar(controller: _searchController, onChanged: (value) => setState(() => _searchQuery = value.trim()), onClear: _clearSearch, hintText: 'ابحث عن خدمة...', isDark: isDark),
+            child: UnifiedSearchBar(controller: _searchController, onChanged: (value) => setState(() => _searchQuery = value.trim()), onClear: _clearSearch, hintText: AppStrings.of(context).translate('ابحث عن خدمة...'), isDark: isDark),
           ),
           _buildCategoryChips(isDark),
           Expanded(child: filtered.isEmpty ? _buildEmptyState(isDark) : ListView.builder(padding: const EdgeInsets.all(16), itemCount: filtered.length, itemBuilder: (context, index) => _buildServiceCard(filtered[index], isDark))),
@@ -87,7 +87,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
           final isSelected = _selectedCategory == category;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(label: Text(category), selected: isSelected, onSelected: (selected) => setState(() => _selectedCategory = selected ? category : 'الكل'), backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white, selectedColor: AppColors.primary, labelStyle: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300)))),
+            child: FilterChip(label: Text(AppStrings.of(context).translate(category)), selected: isSelected, onSelected: (selected) => setState(() => _selectedCategory = selected ? category : 'الكل'), backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white, selectedColor: AppColors.primary, labelStyle: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300)))),
           );
         },
       ),
@@ -100,7 +100,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
       const SizedBox(height: 16),
       Text(AppStrings.of(context).translate('لا توجد خدمات'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 8),
-      Text('جرب تغيير البحث أو التصنيف', style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+      Text(AppStrings.of(context).translate('جرب تغيير البحث أو التصنيف'), style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600])),
     ]));
   }
 
