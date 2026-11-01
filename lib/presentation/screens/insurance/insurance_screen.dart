@@ -101,7 +101,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('التأمين الصحي'),
+        title: Text(AppStrings.of(context).translate('التأمين الصحي')),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -109,7 +109,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () {
-              ToastService.showSuccess('📋 عرض سياساتي');
+              ToastService.showSuccess(AppStrings.of(context).translate('عرض سياساتي'));
             },
           ),
         ],
@@ -229,7 +229,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            company['type'],
+                            AppStrings.of(context).translate(company['type'].toString()),
                             style: TextStyle(
                               fontSize: 9,
                               color: AppColors.primary,
@@ -309,7 +309,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('تفاصيل', style: TextStyle(fontSize: 12)),
+                  child: Text(AppStrings.of(context).translate('تفاصيل'), style: TextStyle(fontSize: 12)),
                 ),
               ),
               const SizedBox(width: 8),
@@ -323,7 +323,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('اشتراك', style: TextStyle(fontSize: 12)),
+                  child: Text(AppStrings.of(context).translate('اشتراك'), style: TextStyle(fontSize: 12)),
                 ),
               ),
             ],
@@ -430,7 +430,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('الاشتراك الآن'),
+                    child: Text(AppStrings.of(context).translate('الاشتراك الآن')),
                   ),
                 ),
               ],
@@ -445,22 +445,22 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('الاشتراك في ${company['name']}'),
+        title: Text('${AppStrings.of(context).translate('الاشتراك في')} ${company['name']}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('السعر: \$${company['price']}/شهر'),
             const SizedBox(height: 8),
-            Text('التغطية: ${company['coverage']}'),
+            Text('${AppStrings.of(context).translate('التغطية')}: ${company['coverage']}'),
             const SizedBox(height: 8),
-            const Text('هل أنت متأكد من رغبتك في الاشتراك؟'),
+            Text(AppStrings.of(context).translate('هل أنت متأكد من رغبتك في الاشتراك؟')),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(AppStrings.of(context).translate('إلغاء')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -471,7 +471,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('تأكيد الاشتراك'),
+            child: Text(AppStrings.of(context).translate('تأكيد الاشتراك')),
           ),
         ],
       ),
