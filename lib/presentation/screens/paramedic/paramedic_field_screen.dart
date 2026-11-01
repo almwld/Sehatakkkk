@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -100,8 +101,8 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
         return ListView(padding:const EdgeInsets.all(16),children:[
           _hero('المسعفون المتاحون الآن','اعرض المسعفين المتواجدين في مناطق الخدمة والمتاحين للاستجابة للطوارئ.'),
           const SizedBox(height:12),
-          if(snapshot.hasError) Text('تعذر تحميل المسعفين المتاحين: ${snapshot.error}'),
-          if(docs.isEmpty) const Card(child:Padding(padding:EdgeInsets.all(18),child:Text('لا يوجد مسعف متاح حالياً وفق بيانات التواجد المسجلة.'))),
+          if(snapshot.hasError) Text(AppStrings.of(context).translate('تعذر تحميل المسعفين المتاحين') + ': ${snapshot.error}'),
+          if(docs.isEmpty) Card(child:Padding(padding:const EdgeInsets.all(18),child:Text(AppStrings.of(context).translate('لا يوجد مسعف متاح حالياً وفق بيانات التواجد المسجلة.')))),
           ...docs.map((d)=>_paramedicCard(d.id,d.data())),
         ]);
       }),
@@ -127,7 +128,7 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
         const SizedBox(height:20),const Text('طلبات الإسعاف النشطة',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800)),const SizedBox(height:8),
         StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:_requests(uid),builder:(context,snapshot){
           final docs=snapshot.data?.docs??const [];
-          if(docs.isEmpty)return const Card(child:Padding(padding:EdgeInsets.all(16),child:Text('لا توجد طلبات إسعاف نشطة.')));
+          if(docs.isEmpty)return Card(child:Padding(padding:const EdgeInsets.all(16),child:Text(AppStrings.of(context).translate('لا توجد طلبات إسعاف نشطة.'))));
           return Column(children:docs.map((d)=>_requestCard(d.id,d.data())).toList());
         }),
       ]),
