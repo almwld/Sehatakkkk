@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class LabBookingScreen extends StatefulWidget {
@@ -12,6 +13,8 @@ class LabBookingScreen extends StatefulWidget {
 }
 
 class _LabBookingScreenState extends State<LabBookingScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final _db = FirebaseFirestore.instance;
   final _notes = TextEditingController();
   final _collectionAddress = TextEditingController();
@@ -43,17 +46,17 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       if (!mounted) return;
       setState(() { _lab = {'id': snap.id, ...data}; _tests = tests; _loading = false; });
     } catch (_) {
-      if (mounted) setState(() { _loading = false; _error = 'تعذر تحميل بيانات الحجز.'; });
+      if (mounted) setState(() { _loading = false; _error = _t('تعذر تحميل بيانات الحجز.'); });
     }
   }
 
   Future<void> _bookAndPay() async {
-    if (FirebaseAuth.instance.currentUser == null) { _show('يجب تسجيل الدخول أولاً', false); return; }
-    if (_selected.isEmpty || _date == null || _time == null) { _show('اختر الفحوصات والتاريخ والوقت.', false); return; }
-    if (_homeCollection && _collectionAddress.text.trim().isEmpty) { _show('أدخل عنوان سحب العينة المنزلي.', false); return; }
+    if (FirebaseAuth.instance.currentUser == null) { _show(_t('يجب تسجيل الدخول أولاً'), false); return; }
+    if (_selected.isEmpty || _date == null || _time == null) { _show(_t('اختر الفحوصات والتاريخ والوقت.'), false); return; }
+    if (_homeCollection && _collectionAddress.text.trim().isEmpty) { _show(_t('أدخل عنوان سحب العينة المنزلي.'), false); return; }
     final d = _date!, t = _time!;
     final appointment = DateTime(d.year, d.month, d.day, t.hour, t.minute);
-    if (!appointment.isAfter(DateTime.now())) { _show('اختر موعداً مستقبلياً.', false); return; }
+    if (!appointment.isAfter(DateTime.now())) { _show(_t('اختر موعداً مستقبلياً.'), false); return; }
     final date = '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
     final time = '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
     final notes = _notes.text.trim();
@@ -72,12 +75,10 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       });
       final bookingId = ref.id;
       if (!mounted) return;
-      _show('تم إرسال طلب الحجز بنجاح. رقم الحجز: '+bookingId, true);
+      _show(_t('تم إرسال طلب الحجز بنجاح. رقم الحجز: ')+bookingId, true);
       Navigator.pop(context, bookingId);
     } catch (e) {
-      if (mounted) _show('تعذر إرسال الحجز: '+e.toString(), false);
-    } catch (e) {
-      if (mounted) _show('تعذر إتمام العملية: $e', false);
+      if (mounted) _show(_t('تعذر إرسال الحجز: ')+e.toString(), false);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -99,11 +100,11 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
-    if (_error != null) return Scaffold(appBar: AppBar(title: const Text('حجز فحص')), body: Center(child: Text(_error!)));
+    if (_error != null) return Scaffold(appBar: AppBar(title: Text(_t('حجز فحص'))), body: Center(child: Text(_error!)));
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('حجز الفحص'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(_t('حجز الفحص')), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -129,23 +130,23 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
               ),
             );
           }),
-          ListTile(leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: const Text('التاريخ'), subtitle: Text(_date == null ? 'اختر التاريخ' : '${_date!.year}/${_date!.month}/${_date!.day}'), onTap: _pickDate),
-          ListTile(leading: const Icon(Icons.access_time, color: AppColors.primary), title: const Text('الوقت'), subtitle: Text(_time == null ? 'اختر الوقت' : _time!.format(context)), onTap: _pickTime),
+          ListTile(leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: Text(_t('التاريخ')), subtitle: Text(_date == null ? _t('اختر التاريخ') : '${_date!.year}/${_date!.month}/${_date!.day}'), onTap: _pickDate),
+          ListTile(leading: const Icon(Icons.access_time, color: AppColors.primary), title: Text(_t('الوقت')), subtitle: Text(_time == null ? _t('اختر الوقت') : _time!.format(context)), onTap: _pickTime),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             activeColor: AppColors.primary,
-            title: const Text('سحب العينة من المنزل'),
-            subtitle: const Text('يضاف رسم التوصيل ويُنشأ طلب سحب قابل للتتبع'),
+            title: Text(_t('سحب العينة من المنزل')),
+            subtitle: Text(_t('يضاف رسم التوصيل ويُنشأ طلب سحب قابل للتتبع')),
             value: _homeCollection,
             onChanged: _saving ? null : (v) => setState(() => _homeCollection = v),
           ),
           if (_homeCollection)
-            TextField(controller: _collectionAddress, maxLines: 2, decoration: const InputDecoration(labelText: 'عنوان سحب العينة', border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
-          TextField(controller: _notes, maxLines: 3, maxLength: 1000, decoration: const InputDecoration(labelText: 'ملاحظات', border: OutlineInputBorder())),
+            TextField(controller: _collectionAddress, maxLines: 2, decoration: const InputDecoration(labelText: _t('عنوان سحب العينة'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
+          TextField(controller: _notes, maxLines: 3, maxLength: 1000, decoration: const InputDecoration(labelText: _t('ملاحظات'), border: OutlineInputBorder())),
           const SizedBox(height: 12),
-          Card(child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('الإجمالي', style: TextStyle(fontWeight: FontWeight.bold)), Text('${_total.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary))]))),
+          Card(child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_t('الإجمالي'), style: TextStyle(fontWeight: FontWeight.bold)), Text('${_total.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary))]))),
           const SizedBox(height: 16),
-          SizedBox(height: 52, child: ElevatedButton.icon(onPressed: _saving ? null : _bookAndPay, icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.lock_outline), label: Text(_saving ? 'جارٍ الحجز والدفع...' : 'إرسال طلب الحجز'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))),
+          SizedBox(height: 52, child: ElevatedButton.icon(onPressed: _saving ? null : _bookAndPay, icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.lock_outline), label: Text(_saving ? _t('جارٍ الحجز والدفع...') : _t('إرسال طلب الحجز')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))),
         ],
       ),
     );
