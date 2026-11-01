@@ -88,6 +88,9 @@ class AppStrings {
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
     const translations = <String, List<String>>{
+      'زيارة طبية منزلية': ['Home medical visit', 'Visite médicale à domicile'],
+      'احجز زيارة طبيب إلى المنزل': ['Book a doctor home visit', 'Réserver une visite médicale à domicile'],
+      'تعذر تحميل بيانات المختبر من النظام.': ['Could not load laboratory information.', 'Impossible de charger les informations du laboratoire.'],
       'صحو': ['Clear', 'Dégagé'],
       'غائم جزئياً': ['Partly cloudy', 'Partiellement nuageux'],
       'ضباب': ['Fog', 'Brouillard'],
