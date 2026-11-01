@@ -509,6 +509,14 @@ class AppStrings {
       'تكبير الخط': ['Increase text size', 'Augmenter la taille du texte'],
       'صحتك - الإصدار 1.1.0': ['Sehatak - Version 1.1.0', 'Sehatak - Version 1.1.0'],
       'خطأ في تسجيل الخروج': ['Sign-out error', 'Erreur de déconnexion'],
+
+      'ليلة هادئة، مرحباً بعودتك': ['Good night, welcome back', 'Bonne soirée et bon retour'],
+      'سجّل دخولك مجدداً إلى منصة صحتك': ['Sign in to Sehatak again', 'Reconnectez-vous à Sehatak'],
+      'استشارة عامة': ['General consultation', 'Consultation générale'],
+      'استشارة تخصصية': ['Specialist consultation', 'Consultation spécialisée'],
+      'فحص دوري': ['Routine check-up', 'Bilan périodique'],
+      'قابلة وتوليد': ['Midwife', 'Sage-femme'],
+      'علاج فيزيائي': ['Physiotherapist', 'Kinésithérapeute'],
       'اختر طبيباً لبدء المحادثة': ['Choose a doctor to start a conversation', 'Choisissez un médecin pour commencer une discussion'],
     };
     final entry = translations[value];
