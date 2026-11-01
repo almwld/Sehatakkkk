@@ -46,7 +46,7 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _booking == null
-              ? const Center(child: Text(_t('تعذر تحميل نتيجة الحجز.')))
+              ? Center(child: Text(_t('تعذر تحميل نتيجة الحجز.')))
               : _content(_booking!, dark),
     );
   }
@@ -54,7 +54,7 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
   Widget _content(LabBookingModel booking, bool dark) {
     final results = booking.results ?? const <String, dynamic>{};
     if (results.isEmpty && (booking.resultFile == null || booking.resultFile!.isEmpty)) {
-      return const Center(child: Text(_t('لم يتم نشر نتائج هذا الحجز بعد.')));
+      return Center(child: Text(_t('لم يتم نشر نتائج هذا الحجز بعد.')));
     }
 
     return ListView(
