@@ -88,6 +88,21 @@ class AppStrings {
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
     const translations = <String, List<String>>{
+      'السكر': ['Blood glucose', 'Glycémie'],
+      'معدل القلب': ['Heart rate', 'Fréquence cardiaque'],
+      'الأكسجين': ['Oxygen', 'Oxygène'],
+      'درجة الحرارة': ['Temperature', 'Température'],
+      'مرتفع قليلاً': ['Slightly high', 'Légèrement élevé'],
+      'مرتفع': ['High', 'Élevé'],
+      'مرتفع جداً': ['Very high', 'Très élevé'],
+      'عالي': ['High', 'Élevé'],
+      'منخفض': ['Low', 'Bas'],
+      'منخفض قليلاً': ['Slightly low', 'Légèrement bas'],
+      'يحتاج متابعة': ['Needs attention', 'À surveiller'],
+      'الخطوات والسعرات': ['Steps and calories', 'Pas et calories'],
+      'التتبع الصحي': ['Health tracking', 'Suivi de santé'],
+      'آخر القراءات': ['Recent readings', 'Mesures récentes'],
+      'لا توجد قراءات بعد': ['No readings yet', 'Aucune mesure pour le moment'],
       'تم اعتماد المنتج': ['Product approved', 'Produit approuvé'],
       'تم رفض المنتج': ['Product rejected', 'Produit refusé'],
       'تم اعتماد الصيدلية': ['Pharmacy approved', 'Pharmacie approuvée'],
