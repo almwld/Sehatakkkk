@@ -1599,6 +1599,15 @@ class AppStrings {
       'تأكيد': ['Confirm', 'Confirmer'],
       'السابق': ['Previous', 'Précédent'],
       'تحديث': ['Update', 'Mettre à jour'],
+      'الاستشارات': ['Consultations', 'Consultations'],
+      'الاستشارات الطبية': ['Medical consultations', 'Consultations médicales'],
+      'طلب استشارة': ['Request a consultation', 'Demander une consultation'],
+      'اختر الطبيب': ['Choose a doctor', 'Choisir un médecin'],
+      'اختر طبيباً': ['Choose a doctor', 'Choisir un médecin'],
+      'صوتي': ['Audio', 'Audio'],
+      'نصي': ['Text', 'Texte'],
+      'الاستشارات السابقة': ['Previous consultations', 'Consultations précédentes'],
+      'استشارة': ['Consultation', 'Consultation'],
     };
 
     final entry = translations[value];
