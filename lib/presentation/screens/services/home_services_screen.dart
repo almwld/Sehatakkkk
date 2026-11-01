@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/ambulance/ambulance_request_screen.dart';
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
@@ -97,7 +98,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Icon(Icons.home_work_outlined, size: 80, color: isDark ? Colors.grey[600] : Colors.grey[300]),
       const SizedBox(height: 16),
-      Text('لا توجد خدمات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+      Text(AppStrings.of(context).translate('لا توجد خدمات'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 8),
       Text('جرب تغيير البحث أو التصنيف', style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600])),
     ]));
