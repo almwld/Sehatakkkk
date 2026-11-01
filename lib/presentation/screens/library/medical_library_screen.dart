@@ -11,7 +11,7 @@ class MedicalLibraryScreen extends StatelessWidget {
   const MedicalLibraryScreen({super.key});
   @override Widget build(BuildContext context){
     final uid=FirebaseAuth.instance.currentUser?.uid;
-    if(uid==null)return const Scaffold(body:Center(child:Text(AppStrings.of(context).translate('سجل الدخول أولاً'))));
+    if(uid==null)return Scaffold(body:Center(child:Text(AppStrings.of(context).translate('سجل الدخول أولاً'))));
     return Scaffold(
       appBar:AppBar(title:Text(AppStrings.of(context).translate('المكتبة الطبية')),foregroundColor:AppColors.primary),
       body:StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(

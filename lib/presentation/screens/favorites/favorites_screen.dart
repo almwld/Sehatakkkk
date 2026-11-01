@@ -90,7 +90,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _favorites.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(AppStrings.of(context).translate('لا توجد أطباء في المفضلة')),
                 )
               : RefreshIndicator(
