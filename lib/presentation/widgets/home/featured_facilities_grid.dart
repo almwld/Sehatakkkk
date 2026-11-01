@@ -32,7 +32,7 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(children: [
           Expanded(child: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 17, fontWeight: FontWeight.w900))),
-          TextButton(onPressed: () => _seeAll(context), child: const Text('عرض الكل', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700))),
+          TextButton(onPressed: () => _seeAll(context), child: Text(AppStrings.of(context).translate('عرض الكل'), style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700))),
         ])),
         const SizedBox(height: 8),
         if (items.isEmpty)
