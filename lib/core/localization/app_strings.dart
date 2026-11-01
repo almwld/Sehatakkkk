@@ -1731,6 +1731,7 @@ class AppStrings {
       'الأطباء المفضلين': ['Favorite doctors', 'Médecins favoris'],
       'حدث خطأ في تحميل المواعيد': ['An error occurred while loading appointments', 'Une erreur s’est produite lors du chargement des rendez-vous'],
       'الطبيب': ['Doctor', 'Médecin'],
+      'خدمة منزلية': ['Home service', 'Service à domicile'],
     };
 
     final entry = translations[value];
