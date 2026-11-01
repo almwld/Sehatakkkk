@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
@@ -11,6 +12,8 @@ class MedicationAlertsReportScreen extends StatefulWidget {
 }
 
 class _MedicationAlertsReportScreenState extends State<MedicationAlertsReportScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   List<Map<String, dynamic>> _items = [];
   @override void initState() { super.initState(); _load(); }
   Future<void> _load() async {
@@ -23,7 +26,7 @@ class _MedicationAlertsReportScreenState extends State<MedicationAlertsReportScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تقرير التنبيهات'),
+        title: Text(_t('تقرير التنبيهات')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -40,7 +43,7 @@ class _MedicationAlertsReportScreenState extends State<MedicationAlertsReportScr
               SvgPicture.asset(AppAssets.notificationBellIcon, width: 64, height: 64,
                 colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
               const SizedBox(height: 12),
-              const Text('لا توجد تنبيهات محفوظة بعد'),
+              Text(_t('لا توجد تنبيهات محفوظة بعد')),
             ]))
           : ListView.builder(
               padding: const EdgeInsets.all(14),
