@@ -119,9 +119,9 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
           Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Icon(service['icon'] as IconData, color: color, size: 28)),
           const SizedBox(width: 16),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [Expanded(child: Text(service['title'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87))), if (badge != null) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: Colors.blue.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(badge, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.blue)))]),
+            Row(children: [Expanded(child: Text(AppStrings.of(context).translate(service['title'] as String), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87))), if (badge != null) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: Colors.blue.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(AppStrings.of(context).translate(badge), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.blue)))]),
             const SizedBox(height: 4),
-            Text(service['subtitle'] as String, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+            Text(AppStrings.of(context).translate(service['subtitle'] as String), style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600])),
             const SizedBox(height: 6),
             Text(service['category'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
           ])),
