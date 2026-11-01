@@ -118,7 +118,7 @@ class _HeroCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(22)),
-      child: const Row(
+      child: Row(
         children: [
           CircleAvatar(radius: 28, backgroundColor: Colors.white24, child: Icon(Icons.support_agent_rounded, color: Colors.white, size: 32)),
           SizedBox(width: 14),
