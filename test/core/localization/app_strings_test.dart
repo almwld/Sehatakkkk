@@ -193,6 +193,24 @@ void main() {
       );
     });
 
+    test('translates wallet, status, template, and password flows', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+
+      expect(english.translate('تغذية المحفظة'), 'Wallet top-up');
+      expect(english.translate('إرسال طلب التغذية'), 'Submit top-up request');
+      expect(english.translate('إضافة حالة'), 'Add status');
+      expect(english.translate('حفظ وإرسال الحالة'), 'Save and post status');
+      expect(english.translate('قوالب الصور'), 'Image templates');
+      expect(english.translate('كلمة مرور جديدة'), 'New password');
+
+      expect(french.translate('تغذية المحفظة'), 'Recharger le portefeuille');
+      expect(french.translate('إرسال طلب التغذية'), 'Envoyer la demande de recharge');
+      expect(french.translate('إضافة حالة'), 'Ajouter un statut');
+      expect(french.translate('قوالب الصور'), 'Modèles d’images');
+      expect(french.translate('كلمة مرور جديدة'), 'Nouveau mot de passe');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
