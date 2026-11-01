@@ -264,7 +264,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
 
   Future<void> _registerDonor() async {
     if (_nameController.text.isEmpty || _phoneController.text.isEmpty || _ageController.text.isEmpty) {
-      ToastService.showError('الرجاء ملء جميع الحقول');
+      ToastService.showError(_t('الرجاء ملء جميع الحقول'));
       return;
     }
 
@@ -280,13 +280,13 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      ToastService.showSuccess('✅ تم التسجيل كمتبرع! شكراً لك');
+      ToastService.showSuccess('✅ ${_t('تم التسجيل كمتبرع! شكراً لك')}');
 
       _nameController.clear();
       _phoneController.clear();
       _ageController.clear();
     } catch (e) {
-      ToastService.showError('❌ خطأ: $e');
+      ToastService.showError('❌ ${_t('خطأ:')} $e');
     }
 
     setState(() => _isLoading = false);
