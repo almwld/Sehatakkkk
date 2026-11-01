@@ -255,7 +255,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '\$${company['price']}/شهر',
+            Text('${AppStrings.of(context).translate('السعر')}: ${AppStrings.of(context).formatCurrency((company['price'] as num?) ?? 0)}/${AppStrings.of(context).translate('شهر')}'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
