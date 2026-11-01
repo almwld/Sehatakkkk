@@ -773,6 +773,19 @@ class AppStrings {
       'موقع': ['Location', 'Position'],
       'رسالة': ['Message', 'Message'],
       'طبيب': ['Doctor', 'Médecin'],
+      'فحوصات المختبر': ['Laboratory tests', 'Analyses de laboratoire'],
+      'تعذر تحميل الفحوصات الحالية. تحقق من الاتصال وحاول مرة أخرى.': ['Could not load current tests. Check your connection and try again.', 'Impossible de charger les analyses. Vérifiez votre connexion et réessayez.'],
+      'ابحث عن فحص أو تخصص...': ['Search for a test or specialty...', 'Rechercher une analyse ou une spécialité...'],
+      'لا توجد فحوصات منشورة حاليًا.': ['No tests have been published yet.', 'Aucune analyse n’a encore été publiée.'],
+      'لا توجد نتائج مطابقة للبحث.': ['No matching search results.', 'Aucun résultat correspondant.'],
+      'فحص طبي': ['Medical test', 'Analyse médicale'],
+      'السعر حسب المختبر': ['Price set by the laboratory', 'Prix fixé par le laboratoire'],
+      'تقييم المختبر': ['Rate the laboratory', 'Évaluer le laboratoire'],
+      'أضف تقييمك': ['Add your review', 'Ajoutez votre avis'],
+      'اكتب تقييمك هنا...': ['Write your review here...', 'Écrivez votre avis ici...'],
+      'تم إضافة تقييمك بنجاح': ['Your review was added successfully', 'Votre avis a été ajouté avec succès'],
+      'إرسال التقييم': ['Submit review', 'Envoyer l’avis'],
+      'تقييمات المرضى': ['Patient reviews', 'Avis des patients'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
