@@ -1148,6 +1148,8 @@ class AppStrings {
       'الجراحة': ['Surgery', 'Chirurgie'],
       'القسم متاح': ['Department available', 'Service disponible'],
       'إجمالي الإيرادات': ['Total revenue', 'Revenus totaux'],
+      'متوفر — المتبقي': ['Available — remaining', 'Disponible — restant'],
+      'تعذر تحميل بيانات الصيدلية حالياً': ['Could not load pharmacy data right now', 'Impossible de charger les données de la pharmacie'],
     };
 
     final entry = translations[value];
