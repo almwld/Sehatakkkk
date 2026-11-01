@@ -7,6 +7,8 @@ permissions:
 on:
   push:
     branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
   workflow_dispatch:
 
 jobs:
@@ -409,10 +411,42 @@ jobs:
         git diff --check
         flutter pub get
 
+    - name: 🛠️ Normalize legacy flutter_vibrate Android namespace metadata
+      shell: bash
+      run: |
+        set -euo pipefail
+        python - <<'PY'
+        from pathlib import Path
+        import re
+
+        plugin = Path.home() / ".pub-cache/hosted/pub.dev/flutter_vibrate-1.3.0/android"
+        manifest = plugin / "src/main/AndroidManifest.xml"
+        gradle = plugin / "build.gradle"
+        if not manifest.is_file() or not gradle.is_file():
+            raise SystemExit("flutter_vibrate Android sources were not found in the resolved Pub cache")
+
+        manifest_text = manifest.read_text(encoding="utf-8")
+        manifest_text, count = re.subn(r'\s+package="flutter\.plugins\.vibrate"', "", manifest_text, count=1)
+        if count:
+            manifest.write_text(manifest_text, encoding="utf-8")
+
+        gradle_text = gradle.read_text(encoding="utf-8")
+        if not re.search(r"\bnamespace\s+['\"]flutter\.plugins\.vibrate['\"]", gradle_text):
+            gradle_text, count = re.subn(r"(android\s*\{)", r"\1\n    namespace 'flutter.plugins.vibrate'", gradle_text, count=1)
+            if not count:
+                raise SystemExit("Could not declare flutter_vibrate namespace in its Android Gradle module")
+            gradle.write_text(gradle_text, encoding="utf-8")
+
+        print("Validated flutter_vibrate Android namespace metadata without changing dependency versions.")
+        PY
+
     - name: 🧪 Flutter analyze
       shell: bash
       run: |
         flutter analyze --no-fatal-warnings --no-fatal-infos
+
+    - name: 🧪 Localization unit tests
+      run: flutter test test/core/localization/app_strings_test.dart
 
     - name: 📦 Install dependencies
       run: flutter pub get
@@ -482,7 +516,6 @@ jobs:
         echo "Appetize publicKey: $public_key"
 
     - name: 📤 Upload armeabi-v7a
-      if: ${{ false }} # TEMP: publishing disabled while diagnosing release build
       uses: actions/upload-artifact@v4
       with:
         name: app-armeabi-v7a-release
@@ -490,7 +523,6 @@ jobs:
         retention-days: 30
 
     - name: 📤 Upload x86_64
-      if: ${{ false }} # TEMP: publishing disabled while diagnosing release build
       uses: actions/upload-artifact@v4
       with:
         name: app-x86_64-release
