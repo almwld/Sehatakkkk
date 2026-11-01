@@ -19,6 +19,7 @@ import 'package:go_router/go_router.dart';
 import 'firebase_options.dart';
 
 import 'core/providers/font_size_provider.dart';
+import 'core/providers/app_locale_controller.dart';
 import 'core/providers/user_provider.dart';
 import 'core/providers/bot_provider.dart';
 import 'core/providers/wallet_provider.dart';
@@ -170,6 +171,7 @@ Future<void> main() async {
 
   runApp(MultiProvider(
     providers: [
+      ChangeNotifierProvider(create: (_) => AppLocaleController()..load()),
       ChangeNotifierProvider(
           create: (_) => UserProvider()..loadUserSafely()),
       ChangeNotifierProvider(create: (_) => FontSizeProvider()),
@@ -786,33 +788,40 @@ class _SehatakAppState extends State<SehatakApp>
   }
 
   @override
-  Widget build(BuildContext context) => BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, themeState) => Consumer<FontSizeProvider>(
-          builder: (context, fontProvider, child) => MaterialApp.router(
-            title: 'صحتك - Sehatak',
-            debugShowCheckedModeBanner: false,
-            locale: const Locale('ar', 'SA'),
-            theme: ThemeManager.lightTheme,
-            darkTheme: ThemeManager.darkTheme,
-            themeMode: themeState.themeMode,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('ar', 'SA'),
-              Locale('en', 'US'),
-            ],
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context)
-                  .copyWith(textScaler: TextScaler.linear(fontProvider.fontScale)),
-              child: Directionality(
-                textDirection: TextDirection.rtl,
-                child: child!,
+  Widget build(BuildContext context) => Consumer<AppLocaleController>(
+        builder: (context, localeController, _) =>
+            BlocBuilder<ThemeBloc, ThemeState>(
+          builder: (context, themeState) => Consumer<FontSizeProvider>(
+            builder: (context, fontProvider, child) => MaterialApp.router(
+              title: 'Sehatak',
+              debugShowCheckedModeBanner: false,
+              locale: localeController.locale,
+              theme: ThemeManager.lightTheme,
+              darkTheme: ThemeManager.darkTheme,
+              themeMode: themeState.themeMode,
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('ar', 'SA'),
+                Locale('en', 'US'),
+                Locale('fr', 'FR'),
+              ],
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(fontProvider.fontScale),
+                ),
+                child: Directionality(
+                  textDirection: localeController.locale.languageCode == 'ar'
+                      ? TextDirection.rtl
+                      : TextDirection.ltr,
+                  child: child!,
+                ),
               ),
+              routerConfig: AppRouter.router,
             ),
-            routerConfig: AppRouter.router,
           ),
         ),
       );
