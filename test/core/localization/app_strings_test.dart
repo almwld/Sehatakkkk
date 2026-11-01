@@ -1,8 +1,30 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sehatak/core/providers/app_locale_controller.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  test('persists the selected language across controller instances', () async {
+    final controller = AppLocaleController();
+    await controller.setLanguage('fr');
+    expect(controller.locale, const Locale('fr', 'FR'));
+
+    final restored = AppLocaleController();
+    await restored.load();
+    expect(restored.locale, const Locale('fr', 'FR'));
+  });
+
+  test('restores Arabic when no supported language is saved', () async {
+    final controller = AppLocaleController();
+    await controller.load();
+    expect(controller.locale, const Locale('ar', 'SA'));
+  });
+
   group('AppStrings locale translations', () {
     test('translates common healthcare labels to English', () {
       final strings = AppStrings(const Locale('en', 'US'));
