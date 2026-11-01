@@ -25,6 +25,8 @@ class DoctorsListScreen extends StatefulWidget {
 }
 
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final TextEditingController _searchController =
       TextEditingController();
 
@@ -84,7 +86,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
 
     if (user == null) {
       ToastService.showError(
-        '❌ يرجى تسجيل الدخول أولاً',
+        _t('يرجى تسجيل الدخول أولاً'),
       );
       return;
     }
@@ -93,14 +95,14 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
 
     if (doctorUid == null || doctorUid.isEmpty) {
       ToastService.showError(
-        '❌ حساب الطبيب غير مرتبط بحساب المستخدم',
+        _t('حساب الطبيب غير مرتبط بحساب المستخدم'),
       );
       return;
     }
 
     if (doctorUid == user.uid) {
       ToastService.showError(
-        '❌ لا يمكنك الاتصال بنفسك',
+        _t('لا يمكنك الاتصال بنفسك'),
       );
       return;
     }
@@ -182,8 +184,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           ? const Color(0xFF0B1121)
           : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(
-          'الأطباء',
+        title: Text(
+          _t('الأطباء'),
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w800,
@@ -328,7 +330,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                 ),
               ),
               child: Text(
-                specialty,
+                _t(specialty),
                 style: TextStyle(
                   color: selected
                       ? Colors.white
@@ -389,7 +391,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                         onTap: () {
                           final uid = doctor.userId?.trim();
                           if (uid == null || uid.isEmpty) {
-                            ToastService.showError('حساب الطبيب غير مرتبط بملف شخصي');
+                            ToastService.showError(_t('حساب الطبيب غير مرتبط بملف شخصي'));
                             return;
                           }
                           Navigator.of(context, rootNavigator: true).push(
@@ -449,7 +451,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${doctor.consultationFee ?? 0} ر.ي',
+                        AppStrings.of(context).formatCurrency(doctor.consultationFee ?? 0),
                         style: TextStyle(
                           fontSize: 10,
                           color: isDark ? Colors.white : Colors.black87,
@@ -565,8 +567,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
       ),
       child: Text(
         doctor.isAvailable
-            ? 'متاح'
-            : 'غير متاح',
+            ? _t('متاح')
+            : _t('غير متاح'),
         style: TextStyle(
           fontSize: 9,
           color: color,
@@ -603,8 +605,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             const SizedBox(height: 16),
             Text(
               searching
-                  ? 'لا توجد نتائج'
-                  : 'لا يوجد أطباء متاحون',
+                  ? _t('لا توجد نتائج')
+                  : _t('لا يوجد أطباء متاحون'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight:
@@ -617,8 +619,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             const SizedBox(height: 8),
             Text(
               searching
-                  ? 'لم يتم العثور على طبيب يطابق البحث'
-                  : 'سيظهر الأطباء المعتمدون هنا عند توفرهم',
+                  ? _t('لم يتم العثور على طبيب يطابق البحث')
+                  : _t('سيظهر الأطباء المعتمدون هنا عند توفرهم'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -652,7 +654,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'تعذر تحميل الأطباء',
+              _t('تعذر تحميل الأطباء'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight:
