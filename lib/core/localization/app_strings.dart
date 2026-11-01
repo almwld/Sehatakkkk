@@ -1015,6 +1015,12 @@ class AppStrings {
       'مضادات حيوية': ['Antibiotics', 'Antibiotiques'],
       'مضادات الحموضة': ['Antacids', 'Antiacides'],
       'عناية بالبشرة': ['Skin care', 'Soins de la peau'],
+      'بانادول إكسترا': ['Panadol Extra', 'Panadol Extra'],
+      'أموكسيسيلين 500mg': ['Amoxicillin 500 mg', 'Amoxicilline 500 mg'],
+      'فيتامين سي': ['Vitamin C', 'Vitamine C'],
+      'أوميبرازول 20mg': ['Omeprazole 20 mg', 'Oméprazole 20 mg'],
+      'مترونيدازول': ['Metronidazole', 'Métronidazole'],
+      'جل الصبار': ['Aloe vera gel', 'Gel d’aloe vera'],
     };
 
     final entry = translations[value];
