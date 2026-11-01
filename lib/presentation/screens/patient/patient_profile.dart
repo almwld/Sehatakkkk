@@ -97,7 +97,7 @@ class _PatientProfileState extends State<PatientProfile> {
   Future<void> _toggleFollow() async {
     final me = _auth.currentUser;
     if (me == null) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(AppStrings.of(context).translate('سجّل الدخول أولاً للمتابعة'))));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('سجّل الدخول أولاً للمتابعة'))));
       return;
     }
     if (_profileId.isEmpty || _profileId == me.uid || _followBusy) return;
@@ -124,7 +124,7 @@ class _PatientProfileState extends State<PatientProfile> {
       await batch.commit();
       if (mounted) setState(() => _following = !_following);
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(AppStrings.of(context).translate('تعذر تحديث المتابعة'))));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر تحديث المتابعة'))));
     } finally {
       if (mounted) setState(() => _followBusy = false);
     }
