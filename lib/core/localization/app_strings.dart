@@ -79,6 +79,14 @@ class AppStrings {
   /// Translates a literal Arabic UI label without network access. Unknown and
   /// user-generated content is intentionally preserved.
   String translate(String value) {
+    if (value.startsWith('تعذر إكمال عملية Google: ')) {
+      final detail = value.substring('تعذر إكمال عملية Google: '.length);
+      return _pick('تعذر إكمال عملية Google: ', 'Could not complete Google sign-in: ', 'Impossible de terminer la connexion Google : ') + detail;
+    }
+    if (value.startsWith('تعذر فتح المحادثة: ')) {
+      final detail = value.substring('تعذر فتح المحادثة: '.length);
+      return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
+    }
     const translations = <String, List<String>>{
       'صحو': ['Clear', 'Dégagé'],
       'غائم جزئياً': ['Partly cloudy', 'Partiellement nuageux'],
