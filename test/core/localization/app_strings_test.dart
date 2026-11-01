@@ -98,6 +98,15 @@ void main() {
           'Connexion par empreinte');
     });
 
+    test('translates laboratory dashboard actions and statuses', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('لوحة المختبر'), 'Laboratory dashboard');
+      expect(english.translate('إضافة فحص جديد'), 'Add new test');
+      expect(english.translate('تم تحديث حالة الحجز'), 'Booking status updated');
+      expect(french.translate('حالة التوثيق'), 'Statut de vérification');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
