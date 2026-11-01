@@ -47,6 +47,17 @@ void main() {
       expect(strings.translate('متصل الآن'), 'Online now');
     });
 
+    test('translates home and permission prompts to English and French', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('تفعيل المكالمات الواردة'), 'Enable incoming calls');
+      expect(english.translate('لاحقاً'), 'Later');
+      expect(english.translate('فتح إعدادات النظام'), 'Open system settings');
+      expect(french.translate('تفعيل المكالمات الواردة'), 'Activer les appels entrants');
+      expect(french.translate('لاحقاً'), 'Plus tard');
+      expect(french.translate('فتح إعدادات النظام'), 'Ouvrir les paramètres système');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
