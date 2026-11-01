@@ -15,7 +15,7 @@ class PatientPrescriptions extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
 
     if (uid == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: Text(AppStrings.of(context).translate('يرجى تسجيل الدخول'))),
       );
     }
