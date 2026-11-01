@@ -123,7 +123,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
               controller: _weight,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               textAlign: TextAlign.center,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: AppStrings.of(context).translate('الوزن بالكيلوجرام'),
                 border: OutlineInputBorder(),
               ),
@@ -131,8 +131,8 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
             const SizedBox(height: 10),
             TextField(
               controller: _note,
-              decoration: const InputDecoration(
-                labelText: 'ملاحظة اختيارية',
+              decoration: InputDecoration(
+                labelText: AppStrings.of(context).translate('ملاحظة اختيارية'),
                 border: OutlineInputBorder(),
               ),
             ),
