@@ -94,20 +94,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       if (value) {
         final authenticated = await _localAuth.authenticate(
-          localizedReason: 'سجل باستخدام بصمة الإصبع لتأكيد الهوية',
+          localizedReason: AppStrings.of(context).translate('سجل باستخدام بصمة الإصبع لتأكيد الهوية'),
           options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
         );
         if (!authenticated) {
-          ToastService.showError('فشل التحقق من البصمة، حاول مرة أخرى');
+          ToastService.showError(AppStrings.of(context).translate('فشل التحقق من البصمة، حاول مرة أخرى'));
           return;
         }
       }
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('biometric_enabled', value);
       if (mounted) setState(() => _isBiometricEnabled = value);
-      ToastService.showSuccess(value ? 'تم تفعيل تسجيل الدخول بالبصمة' : 'تم إلغاء تفعيل تسجيل الدخول بالبصمة');
+      ToastService.showSuccess(AppStrings.of(context).translate(value ? 'تم تفعيل تسجيل الدخول بالبصمة' : 'تم إلغاء تفعيل تسجيل الدخول بالبصمة'));
     } catch (_) {
-      ToastService.showError('تعذر تحديث إعداد البصمة');
+      ToastService.showError(AppStrings.of(context).translate('تعذر تحديث إعداد البصمة'));
     }
   }
 
@@ -173,7 +173,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _deliveryArea == null
                   ? strings.chooseLocation
                   : (_deliveryAddress == null || _deliveryAddress!.isEmpty
-                      ? 'المحافظة: $_deliveryArea'
+                      ? '${AppStrings.of(context).translate('المحافظة')}: $_deliveryArea'
                       : '$_deliveryArea — $_deliveryAddress'),
               isDark,
               () async {
@@ -189,8 +189,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (_isBiometricSupported) ...[
               _switchTile(
                 _fingerprintIcon,
-                'تسجيل الدخول بالبصمة',
-                _isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع',
+                AppStrings.of(context).translate('تسجيل الدخول بالبصمة'),
+                AppStrings.of(context).translate(_isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع'),
                 isDark,
                 _isBiometricEnabled,
                 _toggleBiometric,
@@ -331,7 +331,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await FirebaseAuth.instance.signOut();
                 if (context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
               } catch (e) {
-                ToastService.showError('خطأ في تسجيل الخروج: $e');
+                ToastService.showError('${AppStrings.of(context).translate('خطأ في تسجيل الخروج')}: $e');
               }
             },
             child: Text(AppStrings.of(context).logout),
