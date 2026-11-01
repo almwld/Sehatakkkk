@@ -2055,6 +2055,15 @@ class AppStrings {
       'العودة للرئيسية': ['Back to home', 'Retour à l’accueil'],
     };
 
+      'معلومات الطلب': ['Order information', 'Informations sur la commande'],
+      'المحفظة الرقمية': ['Digital wallet', 'Portefeuille numérique'],
+      'طريقة التوصيل': ['Delivery method', 'Mode de livraison'],
+      'توصيل صحتك': ['Sehatak delivery', 'Livraison Sehatak'],
+      'لا يوجد عنوان': ['No address provided', 'Aucune adresse fournie'],
+      'ملخص المبلغ': ['Payment summary', 'Récapitulatif du paiement'],
+      'الضريبة': ['Tax', 'Taxe'],
+      'العودة': ['Back', 'Retour'],
+      'تم الطلب:': ['Order placed:', 'Commande passée :'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
