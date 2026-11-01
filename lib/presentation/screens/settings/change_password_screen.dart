@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -11,6 +12,7 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final TextEditingController _currentPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
@@ -23,17 +25,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (_currentPasswordController.text.isEmpty ||
         _newPasswordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
-      ToastService.showError('يرجى ملء جميع الحقول');
+      ToastService.showError(_t('يرجى ملء جميع الحقول'));
       return;
     }
 
     if (_newPasswordController.text != _confirmPasswordController.text) {
-      ToastService.showError('كلمات المرور غير متطابقة');
+      ToastService.showError(_t('كلمات المرور غير متطابقة'));
       return;
     }
 
     if (_newPasswordController.text.length < 6) {
-      ToastService.showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      ToastService.showError(_t('كلمة المرور يجب أن تكون 6 أحرف على الأقل'));
       return;
     }
 
@@ -42,7 +44,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ToastService.showError('يرجى تسجيل الدخول أولاً');
+        ToastService.showError(_t('يرجى تسجيل الدخول أولاً'));
         setState(() => _isLoading = false);
         return;
       }
@@ -64,7 +66,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('تغيير كلمة المرور'),
+        title: Text(
+          _t('تغيير كلمة المرور')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -74,7 +77,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         child: Column(
           children: [
             _buildPasswordField(
-              'كلمة المرور الحالية',
+              _t('كلمة المرور الحالية'),
               _currentPasswordController,
               _obscureCurrent,
               () => setState(() => _obscureCurrent = !_obscureCurrent),
@@ -82,7 +85,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             const SizedBox(height: 16),
             _buildPasswordField(
-              'كلمة المرور الجديدة',
+              _t('كلمة المرور الجديدة'),
               _newPasswordController,
               _obscureNew,
               () => setState(() => _obscureNew = !_obscureNew),
@@ -90,7 +93,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             const SizedBox(height: 16),
             _buildPasswordField(
-              'تأكيد كلمة المرور',
+              _t('تأكيد كلمة المرور'),
               _confirmPasswordController,
               _obscureConfirm,
               () => setState(() => _obscureConfirm = !_obscureConfirm),
@@ -111,7 +114,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('تغيير كلمة المرور'),
+                    : Text(
+          _t('تغيير كلمة المرور')),
               ),
             ),
           ],
