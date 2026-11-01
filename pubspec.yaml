@@ -182,3 +182,4 @@ flutter:
 dependency_overrides:
   google_fonts: 5.1.0
   # record 5.0.0 otherwise resolves an incompatible legacy Linux backend.
+  record_linux: ^1.3.1
