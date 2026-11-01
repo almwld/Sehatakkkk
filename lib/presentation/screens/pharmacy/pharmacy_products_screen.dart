@@ -119,7 +119,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
               const SizedBox(height: 4),
               Text(_t((product['category'] ?? '').toString()), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
               const Spacer(),
-              if (product['requiresPrescription'] as bool) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(_t('يتطلب وصفة'), style: TextStyle(fontSize: 10, color: AppColors.warning))),
+              if (product['requiresPrescription'] == true) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(_t('يتطلب وصفة'), style: TextStyle(fontSize: 10, color: AppColors.warning))),
               const SizedBox(height: 8),
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text(AppStrings.of(context).formatCurrency((product['price'] as num?) ?? 0), style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
