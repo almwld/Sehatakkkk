@@ -483,7 +483,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         Expanded(
           child: _doctorAction(
             asset: AppAssets.chatBubble,
-            label: 'دردشة',
+            label: AppStrings.of(context).translate('دردشة'),
             onTap: () => _startChatWithDoctor(doctor),
             isDark: isDark,
           ),
@@ -492,7 +492,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         Expanded(
           child: _doctorAction(
             asset: AppAssets.chatPhoneCall,
-            label: 'اتصال',
+            label: AppStrings.of(context).translate('اتصال'),
             onTap: () => _startCallWithDoctor(doctor, false),
             isDark: isDark,
           ),
@@ -501,7 +501,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         Expanded(
           child: _doctorAction(
             asset: AppAssets.chatVideoCall,
-            label: 'فيديو',
+            label: AppStrings.of(context).translate('فيديو'),
             onTap: () => _startCallWithDoctor(doctor, true),
             isDark: isDark,
           ),
