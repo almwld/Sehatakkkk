@@ -74,14 +74,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             if (!product.inStock) Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(20)), child: Text(_t('غير متوفر'), style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
           ]),
           const SizedBox(height: 16),
-          _card(isDark, '📝 الوصف', Text(product.description, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey[700], height: 1.5))),
+          _card(isDark, _t('الوصف'), Text(product.description, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey[700], height: 1.5))),
           const SizedBox(height: 12),
-          _card(isDark, '📋 تفاصيل إضافية', Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _buildDetailRow('🏭 المصنع', product.manufacturer ?? _t('غير معروف'), isDark),
-            if (product.dosage != null) _buildDetailRow('💊 الجرعة', product.dosage!, isDark),
-            _buildDetailRow('📦 المخزون', '$stock ${_t('وحدة')}', isDark),
-            _buildDetailRow('📂 التصنيف', _t(product.categoryText), isDark),
-            if (product.prescriptionRequired) _buildDetailRow('⚠️ وصفة طبية', _t('مطلوب'), isDark),
+          _card(isDark, _t('تفاصيل إضافية'), Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _buildDetailRow(_t('المصنع'), product.manufacturer ?? _t('غير معروف'), isDark),
+            if (product.dosage != null) _buildDetailRow(_t('الجرعة'), product.dosage!, isDark),
+            _buildDetailRow(_t('المخزون'), '$stock ${_t('وحدة')}', isDark),
+            _buildDetailRow(_t('التصنيف'), _t(product.categoryText), isDark),
+            if (product.prescriptionRequired) _buildDetailRow(_t('وصفة طبية'), _t('مطلوب'), isDark),
           ])),
           const SizedBox(height: 16),
           if (product.inStock) ...[
