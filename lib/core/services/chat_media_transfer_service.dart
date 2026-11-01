@@ -246,10 +246,26 @@ class ChatMediaTransferService {
     final type = job['type']?.toString() ?? 'file';
     if (_isCancelled(id)) throw MediaUploadCancelled();
 
+    final isFirebaseUrl = url?.contains('firebasestorage.googleapis.com') == true ||
+        url?.contains('firebasestorage.app') == true ||
+        url?.contains('storage.googleapis.com/v0/b/') == true;
+    final hasLegacyFirebasePath = remotePath?.startsWith('firebase://') == true;
+    if ((url == null || url.isEmpty) && hasLegacyFirebasePath || isFirebaseUrl) {
+      // Older queued outbox rows may still point at Firebase Storage. Their
+      // local file is retained until delivery, so migrate them to Nextcloud
+      // instead of retrying the disabled Firebase route forever.
+      remotePath = null;
+      url = null;
+      await db.update('media_outbox', {
+        'remote_path': null,
+        'remote_url': null,
+        'status': 'queued',
+        'progress': 0.0,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      }, where: 'id = ?', whereArgs: [id]);
+    }
+
     if (url == null || url.isEmpty) {
-      if (remotePath?.startsWith('firebase://') == true) {
-        throw StateError('Firebase Storage media uploads are disabled; the item will be retried through Nextcloud.');
-      }
       final nextcloud = NextcloudService();
       await nextcloud.loadConfig();
       NextcloudUploadResult upload;
