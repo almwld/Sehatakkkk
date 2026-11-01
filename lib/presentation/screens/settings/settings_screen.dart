@@ -169,9 +169,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _card(isDark, Column(children: [
             _listTileAsset(
               _locationIcon,
-              'تحديد منطقتك',
+              strings.locationTitle,
               _deliveryArea == null
-                  ? 'اختر محافظتك وحدد موقعك بالتفصيل أو عبر GPS'
+                  ? strings.chooseLocation
                   : (_deliveryAddress == null || _deliveryAddress!.isEmpty
                       ? 'المحافظة: $_deliveryArea'
                       : '$_deliveryArea — $_deliveryAddress'),
@@ -200,8 +200,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
             _listTileAsset(
               AppImages.uiSettingsGear,
-              'الأمان والأجهزة',
-              'إدارة الجلسات وتسجيل الخروج وحذف الحساب',
+              strings.securityDevices,
+              strings.manageSessions,
               isDark,
               () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SecuritySettingsScreen())),
             ),
@@ -235,7 +235,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _card(isDark, Column(children: [
             _listTileAsset(AppImages.uiUserProfile, strings.profile, strings.editPersonalInfo, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
             _divider(isDark),
-            _listTileAsset(_changePasswordIcon, 'تغيير كلمة المرور', 'تحديث كلمة المرور الخاصة بك', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())), tint: false),
+            _listTileAsset(_changePasswordIcon, strings.changePassword, strings.updatePassword, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())), tint: false),
             _divider(isDark),
             _listTileAsset(AppImages.notificationsIcon, strings.notifications, strings.notifications, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()))),
           ])),
@@ -317,9 +317,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(AppStrings.of(context).logout),
-        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+        content: Text(AppStrings.of(context).confirmLogout),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppStrings.of(context).cancel)),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () async {
