@@ -159,14 +159,14 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('نتيجة القياس'),
+        title: Text(AppStrings.of(context).translate('نتيجة القياس')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('$_bpm BPM', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            Text('متوسط القياس: ${_averageBpm.toStringAsFixed(0)} BPM'),
-            Text('جودة الإشارة: ${(_quality * 100).round()}%'),
+            Text('${AppStrings.of(context).translate('متوسط القياس')}: ${_averageBpm.toStringAsFixed(0)} BPM'),
+            Text('${AppStrings.of(context).translate('جودة الإشارة')}: ${(_quality * 100).round()}%'),
             const SizedBox(height: 12),
             const Text(
               'هذه قراءة تقديرية من كاميرا الهاتف وليست بديلاً عن جهاز طبي معتمد أو تقييم الطبيب.',
@@ -175,7 +175,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إغلاق')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppStrings.of(context).translate('إغلاق'))),
         ],
       ),
     );
@@ -194,7 +194,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
             children: [
               const Padding(
                 padding: EdgeInsets.all(16),
-                child: Text('سجل قياسات النبض', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                child: Text(AppStrings.of(context).translate('سجل قياسات النبض'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
               Expanded(
                 child: rows.isEmpty
@@ -210,7 +210,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                           return ListTile(
                             leading: const Icon(Icons.favorite, color: Colors.red),
                             title: Text('$bpm BPM'),
-                            subtitle: Text('${timestamp.day}/${timestamp.month}/${timestamp.year} • جودة $quality%'),
+                            subtitle: Text('${timestamp.day}/${timestamp.month}/${timestamp.year} • ${AppStrings.of(context).translate('جودة الإشارة')} $quality%'),
                           );
                         },
                       ),
@@ -234,8 +234,8 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     final values = periodRows.map((r) => (r['bpm'] as num?)?.toDouble() ?? 0).where((v) => v > 0).toList();
     if (values.isEmpty) {
       return Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
-        Text('تحليل النبض', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 8), Text('بعد أول قياس محفوظ ستظهر هنا الاتجاهات والإحصاءات وجودة الإشارة.'),
+        Text(AppStrings.of(context).translate('تحليل النبض'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        SizedBox(height: 8), Text(AppStrings.of(context).translate('بعد أول قياس محفوظ ستظهر هنا الاتجاهات والإحصاءات وجودة الإشارة.')),
       ])));
     }
     final avg = values.reduce((a, b) => a + b) / values.length;
@@ -261,14 +261,14 @@ class _HeartRateScreenState extends State<HeartRateScreen>
       child: Column(children: [
         Card(child: Padding(padding: const EdgeInsets.fromLTRB(14, 16, 14, 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Expanded(child: Text('اتجاه النبض', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-            Text('${values.length} قياس', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Expanded(child: Text(AppStrings.of(context).translate('اتجاه النبض'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            Text('${values.length} ${AppStrings.of(context).translate('قياس')}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
           ]),
           const SizedBox(height: 10),
           SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [7, 14, 30].map((days) {
             final selected = _analyticsDays == days;
             return Padding(padding: const EdgeInsetsDirectional.only(end: 8), child: ChoiceChip(
-              label: Text(days == 7 ? '7 أيام' : '$days يوم'), selected: selected,
+              label: Text(days == 7 ? '7 ${AppStrings.of(context).translate('أيام')}' : '$days ${AppStrings.of(context).translate('يوم')}'), selected: selected,
               onSelected: (_) => setState(() => _analyticsDays = days),
             ));
           }).toList())),
@@ -288,7 +288,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
             ],
           ))),
           const SizedBox(height: 4),
-          const Text('الخط البرتقالي = متوسط متحرك لآخر 3 قياسات', style: TextStyle(fontSize: 11, color: Colors.grey)),
+          Text(AppStrings.of(context).translate('الخط البرتقالي = متوسط متحرك لآخر 3 قياسات')), style: TextStyle(fontSize: 11, color: Colors.grey)),
         ]))),
         const SizedBox(height: 12),
         Row(children: [
