@@ -784,6 +784,8 @@ class AppStrings {
       'دقيقة مضت': ['minutes ago', 'min'],
       'ساعة مضت': ['hours ago', 'h'],
       'يوم مضى': ['days ago', 'jours'],
+      'الوقت': ['Time', 'Heure'],
+      'تعذر تحميل الأدوية': ['Could not load medications', 'Impossible de charger les médicaments'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
