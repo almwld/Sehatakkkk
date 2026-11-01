@@ -219,7 +219,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         prescriptionId: p['prescriptionId']?.toString());
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStrings.of(context).translate('تمت إضافة المنتج إلى السلة'))));
+        SnackBar(content: Text(AppStrings.of(context).translate('تمت إضافة المنتج إلى السلة'))));
   }
 
   double? _oldPrice(Map<String, dynamic> p) {
@@ -319,7 +319,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
   Widget _storesTab() {
     final stores = _visiblePharmacies;
     if (stores.isEmpty)
-      return const Center(child: Text(AppStrings.of(context).translate('لا توجد صيدليات منشورة تطابق البحث حالياً')));
+      return Center(child: Text(AppStrings.of(context).translate('لا توجد صيدليات منشورة تطابق البحث حالياً')));
     return RefreshIndicator(
         onRefresh: _loadAll,
         child: ListView.builder(
@@ -482,6 +482,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
             itemCount: orders.length,
             itemBuilder: (_, i) {
               final o = orders[i];
+              final orderId = o['id'] ?? o['orderId'] ?? '';
               final status = _statusLabel('${o['status'] ?? ''}');
               return Card(
                   margin: const EdgeInsets.only(bottom: 10),
