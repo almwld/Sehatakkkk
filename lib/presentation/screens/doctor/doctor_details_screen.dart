@@ -480,7 +480,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   decoration: BoxDecoration(color: selected ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(11)),
-                  child: Center(child: Text(_tabs[index], style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w800 : FontWeight.w600, color: selected ? Colors.white : (dark ? Colors.white60 : Colors.black54)))),
+                  child: Center(child: Text(AppStrings.of(context).translate(_tabs[index]), style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w800 : FontWeight.w600, color: selected ? Colors.white : (dark ? Colors.white60 : Colors.black54)))),
                 ),
               ),
             );
@@ -578,7 +578,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             const SizedBox(height: 5),
             Row(children: List.generate(5, (i) => Icon(i < rating.round() ? Icons.star_rounded : Icons.star_border_rounded, color: Colors.amber, size: 18))),
             const SizedBox(height: 4),
-            Text(AppStrings.of(context).translate('$count تقييم'), style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
+            Text('$count ${AppStrings.of(context).translate('تقييم')}', style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
           ])),
         ]),
         const SizedBox(height: 18),
