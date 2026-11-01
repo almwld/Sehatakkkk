@@ -106,7 +106,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('تفعيل المكالمات الواردة'),
+          title: Text(AppStrings.of(context).translate('تفعيل المكالمات الواردة')),
           content: const Text(
             'لإظهار شاشة المكالمة الواردة فوق شاشة القفل، '
             'يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. '
@@ -115,7 +115,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('لاحقاً'),
+              child: Text(AppStrings.of(context).translate('لاحقاً')),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -127,7 +127,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   await prefs.remove(_fullScreenIntentGuidanceSeenKey);
                 }
               },
-              child: const Text('فتح إعدادات النظام'),
+              child: Text(AppStrings.of(context).translate('فتح إعدادات النظام')),
             ),
           ],
         ),
