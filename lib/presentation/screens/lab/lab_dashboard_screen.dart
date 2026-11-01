@@ -8,6 +8,8 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
+String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
 class LabDashboardScreen extends StatefulWidget {
   const LabDashboardScreen({super.key});
   @override State<LabDashboardScreen> createState() => _LabDashboardScreenState();
@@ -20,15 +22,15 @@ class _LabDashboardScreenState extends State<LabDashboardScreen> with SingleTick
   @override void dispose(){_tabs.dispose();super.dispose();}
   @override Widget build(BuildContext context){
     final uid=_uid;
-    if(uid==null)return const Scaffold(body:Center(child:Text('يجب تسجيل الدخول')));
+    if(uid==null)return Scaffold(body:Center(child:Text(_t(context,'يجب تسجيل الدخول'))));
     return Scaffold(
       appBar:AppBar(
-        title:const Text('لوحة المختبر'),backgroundColor:AppColors.primary,foregroundColor:Colors.white,
-        bottom:TabBar(controller:_tabs,isScrollable:true,tabs:const[
-          Tab(icon:Icon(Icons.dashboard_outlined),text:'نظرة عامة'),
-          Tab(icon:Icon(Icons.science_outlined),text:'الفحوصات'),
-          Tab(icon:Icon(Icons.book_online_outlined),text:'الحجوزات'),
-          Tab(icon:Icon(Icons.settings_outlined),text:'الإعدادات'),
+        title:Text(_t(context,'لوحة المختبر')),backgroundColor:AppColors.primary,foregroundColor:Colors.white,
+        bottom:TabBar(controller:_tabs,isScrollable:true,tabs:[
+          Tab(icon:Icon(Icons.dashboard_outlined),text:_t(context,'نظرة عامة')),
+          Tab(icon:Icon(Icons.science_outlined),text:_t(context,'الفحوصات')),
+          Tab(icon:Icon(Icons.book_online_outlined),text:_t(context,'الحجوزات')),
+          Tab(icon:Icon(Icons.settings_outlined),text:_t(context,'الإعدادات')),
         ])),
       body:TabBarView(controller:_tabs,children:[
         _OverviewTab(uid:uid),_TestsTab(uid:uid),_BookingsTab(uid:uid),_SettingsTab(uid:uid)
@@ -46,15 +48,15 @@ class _OverviewTab extends StatelessWidget{
         final docs=b.data?.docs??[];
         int count(String s)=>docs.where((d)=>d.data()['status']?.toString()==s).length;
         return ListView(padding:const EdgeInsets.all(16),children:[
-          _stat('حجوزات جديدة',count('pending').toString(),Icons.notifications_active_outlined),
-          _stat('مكتملة',count('completed').toString(),Icons.check_circle_outline),
-          _stat('الفحوصات النشطة',(t.data?.size??0).toString(),Icons.science_outlined),
-          _stat('إجمالي الحجوزات',docs.length.toString(),Icons.assignment_outlined),
+          _stat(context,'حجوزات جديدة',count('pending').toString(),Icons.notifications_active_outlined),
+          _stat(context,'مكتملة',count('completed').toString(),Icons.check_circle_outline),
+          _stat(context,'الفحوصات النشطة',(t.data?.size??0).toString(),Icons.science_outlined),
+          _stat(context,'إجمالي الحجوزات',docs.length.toString(),Icons.assignment_outlined),
         ]);
       }));
-  Widget _stat(String title,String value,IconData icon)=>Card(margin:const EdgeInsets.only(bottom:12),child:ListTile(
+  Widget _stat(BuildContext context,String title,String value,IconData icon)=>Card(margin:const EdgeInsets.only(bottom:12),child:ListTile(
     leading:CircleAvatar(backgroundColor:AppColors.primary.withOpacity(.12),child:Icon(icon,color:AppColors.primary)),
-    title:Text(title),subtitle:Text(value,style:const TextStyle(fontSize:24,fontWeight:FontWeight.bold))));
+    title:Text(_t(context,title)),subtitle:Text(value,style:const TextStyle(fontSize:24,fontWeight:FontWeight.bold))));
 }
 
 class _TestsTab extends StatelessWidget{
@@ -81,14 +83,14 @@ class _TestsTab extends StatelessWidget{
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  id == null ? 'إضافة فحص جديد' : 'تعديل الفحص',
+                  _t(ctx,id == null ? 'إضافة فحص جديد' : 'تعديل الفحص'),
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: name,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم الفحص',
+                  decoration: InputDecoration(
+                    labelText: _t(ctx,'اسم الفحص'),
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -96,8 +98,8 @@ class _TestsTab extends StatelessWidget{
                 TextField(
                   controller: desc,
                   maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: 'الوصف',
+                  decoration: InputDecoration(
+                    labelText: _t(ctx,'الوصف'),
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -108,8 +110,8 @@ class _TestsTab extends StatelessWidget{
                       child: TextField(
                         controller: price,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'السعر',
+                        decoration: InputDecoration(
+                          labelText: _t(ctx,'السعر'),
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -118,8 +120,8 @@ class _TestsTab extends StatelessWidget{
                     Expanded(
                       child: TextField(
                         controller: duration,
-                        decoration: const InputDecoration(
-                          labelText: 'المدة',
+                        decoration: InputDecoration(
+                          labelText: _t(ctx,'المدة'),
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -132,7 +134,7 @@ class _TestsTab extends StatelessWidget{
                   child: ElevatedButton(
                     onPressed: saving ? null : () async {
                       if (name.text.trim().isEmpty || price.text.trim().isEmpty) {
-                        ToastService.showError('الاسم والسعر مطلوبان');
+                        ToastService.showError(_t(ctx,'الاسم والسعر مطلوبان'));
                         return;
                       }
                       setSheetState(() => saving = true);
@@ -153,12 +155,12 @@ class _TestsTab extends StatelessWidget{
                         await FirebaseFirestore.instance.collection('lab_tests').doc(id).update(data);
                       }
                       if (ctx.mounted) Navigator.pop(ctx);
-                      ToastService.showSuccess(id == null ? 'تمت إضافة الفحص' : 'تم تحديث الفحص');
+                      ToastService.showSuccess(_t(ctx,id == null ? 'تمت إضافة الفحص' : 'تم تحديث الفحص'));
                       } catch (e) {
-                        if (ctx.mounted) { setSheetState(() => saving = false); ToastService.showError('تعذر حفظ الفحص، حاول مرة أخرى'); }
+                        if (ctx.mounted) { setSheetState(() => saving = false); ToastService.showError(_t(ctx,'تعذر حفظ الفحص، حاول مرة أخرى')); }
                       }
                     },
-                    child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : Text(id == null ? 'حفظ' : 'حفظ التعديل'),
+                    child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : Text(_t(ctx,id == null ? 'حفظ' : 'حفظ التعديل')),
                   ),
                 ),
               ],
@@ -183,17 +185,17 @@ class _TestsTab extends StatelessWidget{
         return ListView.builder(padding:const EdgeInsets.all(16),itemCount:docs.length,itemBuilder:(_,i){
           final d=docs[i].data();
           return Card(child:ListTile(leading:const Icon(Icons.science,color:AppColors.primary),
-            title:Text(d['name']?.toString()??'فحص'),
+            title:Text(d['name']?.toString()??_t(context,'فحص')),
             subtitle:Text((d['price']??0).toString()+' ر.ي • '+(d['duration']??'-').toString()),
-            trailing:PopupMenuButton<String>(itemBuilder:(_)=>const[
-              PopupMenuItem(value:'edit',child:Text('تعديل')),PopupMenuItem(value:'delete',child:Text('حذف'))],
+            trailing:PopupMenuButton<String>(itemBuilder:(_)=>[
+              PopupMenuItem(value:'edit',child:Text(_t(context,'تعديل'))),PopupMenuItem(value:'delete',child:Text(_t(context,'حذف')))],
               onSelected:(v)async{
                 if(v=='edit')await _form(context,id:docs[i].id,old:d);
-                if(v=='delete'){await FirebaseFirestore.instance.collection('lab_tests').doc(docs[i].id).delete();ToastService.showSuccess('تم حذف الفحص');}
+                if(v=='delete'){await FirebaseFirestore.instance.collection('lab_tests').doc(docs[i].id).delete();ToastService.showSuccess(_t(context,'تم حذف الفحص'));}
               })));
         });
       }),
-    floatingActionButton:FloatingActionButton.extended(onPressed:()=>_form(context),icon:const Icon(Icons.add),label:const Text('إضافة فحص')));
+    floatingActionButton:FloatingActionButton.extended(onPressed:()=>_form(context),icon:const Icon(Icons.add),label:Text(_t(context,'إضافة فحص'))));
 }
 
 class _BookingsTab extends StatelessWidget{
@@ -202,9 +204,9 @@ class _BookingsTab extends StatelessWidget{
     var q=FirebaseFirestore.instance.collection('lab_bookings').where('labId',isEqualTo:uid);
     return status.isEmpty?q.snapshots():q.where('status',isEqualTo:status).snapshots();
   }
-  Future<void> _status(String id,String status)async{
+  Future<void> _status(BuildContext context,String id,String status)async{
     await FirebaseFirestore.instance.collection('lab_bookings').doc(id).update({'status':status,'updatedAt':FieldValue.serverTimestamp()});
-    ToastService.showSuccess('تم تحديث حالة الحجز');
+    ToastService.showSuccess(_t(context,'تم تحديث حالة الحجز'));
   }
   Future<void> _results(BuildContext context,String id)async{
     final p=await FilePicker.platform.pickFiles(type:FileType.custom,allowedExtensions:['pdf','jpg','jpeg','png']);
@@ -212,10 +214,10 @@ class _BookingsTab extends StatelessWidget{
     try{
       final f=File(p.files.single.path!);final nc=NextcloudService();
       final u=await nc.uploadFile(file:f,path:'sehatak/lab_results/$uid',fileName:DateTime.now().millisecondsSinceEpoch.toString()+'_'+f.uri.pathSegments.last);
-      if(!u.success||u.url==null)throw Exception('فشل رفع الملف');
+      if(!u.success||u.url==null)throw Exception(_t(context,'فشل رفع الملف'));
       await FirebaseFirestore.instance.collection('lab_bookings').doc(id).update({'resultUrl':u.url!,'status':'completed','completedAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp()});
-      ToastService.showSuccess('تم إرسال النتيجة');
-    }catch(e){ToastService.showError('فشل إرسال النتيجة: '+e.toString());}
+      ToastService.showSuccess(_t(context,'تم إرسال النتيجة'));
+    }catch(e){ToastService.showError(_t(context,'فشل إرسال النتيجة')+': '+e.toString());}
   }
   Widget _list(String status)=>StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
     stream:_stream(status),builder:(context,s){
@@ -228,17 +230,17 @@ class _BookingsTab extends StatelessWidget{
       if(docs.isEmpty)return Center(child:Text(AppStrings.of(context).translate('لا توجد حجوزات في هذه الحالة')));
       return ListView.builder(padding:const EdgeInsets.all(16),itemCount:docs.length,itemBuilder:(_,i){
         final d=docs[i].data(),id=docs[i].id,statusValue=d['status']?.toString()??status;
-        return Card(child:ListTile(title:Text(d['patientName']?.toString()??'مريض'),
-          subtitle:Text((d['testName']??'فحص').toString()+' • '+(d['price']??d['totalPrice']??0).toString()+' ر.ي'),
+        return Card(child:ListTile(title:Text(d['patientName']?.toString()??_t(context,'مريض')),
+          subtitle:Text((d['testName']??_t(context,'فحص')).toString()+' • '+(d['price']??d['totalPrice']??0).toString()+' ر.ي'),
           trailing:statusValue=='pending'?Row(mainAxisSize:MainAxisSize.min,children:[
-            IconButton(onPressed:()=>_status(id,'confirmed'),icon:const Icon(Icons.check,color:Colors.green)),
-            IconButton(onPressed:()=>_status(id,'cancelled'),icon:const Icon(Icons.close,color:Colors.red))])
+            IconButton(onPressed:()=>_status(context,id,'confirmed'),icon:const Icon(Icons.check,color:Colors.green)),
+            IconButton(onPressed:()=>_status(context,id,'cancelled'),icon:const Icon(Icons.close,color:Colors.red))])
           :statusValue=='confirmed'?IconButton(onPressed:()=>_results(context,id),icon:const Icon(Icons.upload_file,color:AppColors.primary))
           :const Icon(Icons.check_circle,color:Colors.green)));
       });
     });
   @override Widget build(BuildContext context)=>DefaultTabController(length:4,child:Column(children:[
-    const TabBar(isScrollable:true,tabs:[Tab(text:'جديدة'),Tab(text:'مؤكدة'),Tab(text:'مكتملة'),Tab(text:'ملغاة')]),
+    TabBar(isScrollable:true,tabs:[Tab(text:_t(context,'جديدة')),Tab(text:_t(context,'مؤكدة')),Tab(text:_t(context,'مكتملة')),Tab(text:_t(context,'ملغاة'))]),
     Expanded(child:TabBarView(children:[_list('pending'),_list('confirmed'),_list('completed'),_list('cancelled')]))]));
 }
 
@@ -250,10 +252,10 @@ class _SettingsTab extends StatelessWidget{
       if(!s.hasData)return const Center(child:CircularProgressIndicator());
       final d=s.data!.data()??{};
       return ListView(padding:const EdgeInsets.all(16),children:[
-        ListTile(leading:const Icon(Icons.biotech),title:const Text('اسم المختبر'),subtitle:Text(d['name']?.toString()??'غير محدد')),
-        ListTile(leading:const Icon(Icons.location_on_outlined),title:const Text('العنوان'),subtitle:Text(d['address']?.toString()??d['location']?.toString()??'غير محدد')),
-        ListTile(leading:const Icon(Icons.phone_outlined),title:const Text('الهاتف'),subtitle:Text(d['phone']?.toString()??'غير متوفر')),
-        ListTile(leading:const Icon(Icons.verified_outlined),title:const Text('حالة التوثيق'),subtitle:Text(d['isVerified']==true?'موثق':'قيد المراجعة')),
+        ListTile(leading:const Icon(Icons.biotech),title:Text(_t(context,'اسم المختبر')),subtitle:Text(d['name']?.toString()??_t(context,'غير محدد'))),
+        ListTile(leading:const Icon(Icons.location_on_outlined),title:Text(_t(context,'العنوان')),subtitle:Text(d['address']?.toString()??d['location']?.toString()??_t(context,'غير محدد'))),
+        ListTile(leading:const Icon(Icons.phone_outlined),title:Text(_t(context,'الهاتف')),subtitle:Text(d['phone']?.toString()??_t(context,'غير متوفر'))),
+        ListTile(leading:const Icon(Icons.verified_outlined),title:Text(_t(context,'حالة التوثيق')),subtitle:Text(d['isVerified']==true?_t(context,'موثق'):_t(context,'قيد المراجعة'))),
       ]);
     });
 }
