@@ -20,7 +20,7 @@ class SecuritySettingsScreen extends StatefulWidget {
 class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
-  String _deviceName = _t('الجهاز الحالي');
+  String _deviceName = '';
   bool _busy = false;
 
   @override
@@ -52,7 +52,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         (_) => false,
       );
     } catch (e) {
-      if (mounted) ToastService.showError('تعذر تسجيل الخروج: $e');
+      if (mounted) ToastService.showError('${_t('تعذر تسجيل الخروج:')} $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -91,9 +91,9 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         (_) => false,
       );
     } on FirebaseFunctionsException catch (e) {
-      if (mounted) ToastService.showError('تعذر إبطال الجلسات: ${e.message ?? e.code}');
+      if (mounted) ToastService.showError('${_t('تعذر إبطال الجلسات:')} ${e.message ?? e.code}');
     } catch (e) {
-      if (mounted) ToastService.showError('تعذر إبطال الجلسات: $e');
+      if (mounted) ToastService.showError('${_t('تعذر إبطال الجلسات:')} $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -134,9 +134,9 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         (_) => false,
       );
     } on FirebaseFunctionsException catch (e) {
-      if (mounted) ToastService.showError('تعذر حذف الحساب: ${e.message ?? e.code}');
+      if (mounted) ToastService.showError('${_t('تعذر حذف الحساب:')} ${e.message ?? e.code}');
     } catch (e) {
-      if (mounted) ToastService.showError('تعذر حذف الحساب: $e');
+      if (mounted) ToastService.showError('${_t('تعذر حذف الحساب:')} $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -164,7 +164,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                 backgroundColor: AppColors.primary,
                 child: Icon(Icons.phone_android, color: Colors.white),
               ),
-              title: Text(_deviceName),
+              title: Text(_deviceName.isEmpty ? _t('الجهاز الحالي') : _deviceName),
               subtitle: Text(user?.email ?? _t('الحساب الحالي')),
               trailing: Chip(label: Text(_t('نشطة'))),
             ),
