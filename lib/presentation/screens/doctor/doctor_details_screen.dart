@@ -313,13 +313,13 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     );
   }
 
-  PreferredSizeWidget _appBar(bool dark, {String title = 'تفاصيل الطبيب'}) {
+  PreferredSizeWidget _appBar(bool dark, {String title = ''}) {
     return AppBar(
       backgroundColor: dark ? const Color(0xFF0B1121) : Colors.white,
       foregroundColor: dark ? Colors.white : const Color(0xFF263238),
       elevation: 0,
       centerTitle: true,
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+      title: Text(title.isEmpty ? _t('تفاصيل الطبيب') : title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
       actions: [
         if (_doctor?.userId?.trim().isNotEmpty == true)
           IconButton(
@@ -518,7 +518,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           _card(dark, Column(children: [
             _infoRow(Icons.medical_services_outlined, _t('التخصص'), doctor.specialty, dark),
             _infoRow(Icons.workspace_premium_outlined, _t('الخبرة'), '${doctor.experienceYears ?? 0} ${_t('سنة')}', dark),
-            _infoRow(Icons.payments_outlined, _t('رسوم الكشف'), '${doctor.consultationFee ?? 0} ر.ي', dark),
+            _infoRow(Icons.payments_outlined, _t('رسوم الكشف'), AppStrings.of(context).formatCurrency(doctor.consultationFee ?? 0), dark),
             if ((doctor.hospital ?? '').isNotEmpty) _infoRow(Icons.local_hospital_outlined, _t('المستشفى'), doctor.hospital!, dark),
             if ((doctor.clinicAddress ?? '').isNotEmpty) _infoRow(Icons.location_on_outlined, _t('العنوان'), doctor.clinicAddress!, dark),
           ])),
