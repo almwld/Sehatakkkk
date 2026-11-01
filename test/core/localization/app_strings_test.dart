@@ -185,6 +185,14 @@ void main() {
       expect(french.translate('جميع الخدمات'), 'Tous les services');
     });
 
+    test('translates incoming call permission guidance', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      expect(
+        english.translate('لإظهار شاشة المكالمة الواردة فوق شاشة القفل، يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. إذا لم تمنح الإذن، سيستمر إشعار المكالمة العادي بالعمل.'),
+        'To show incoming calls over the lock screen, allow full-screen notifications in system settings. If you do not grant permission, regular call notifications will continue to work.',
+      );
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
