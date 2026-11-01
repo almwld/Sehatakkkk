@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
 import 'medication_alerts_report_screen.dart';
@@ -15,9 +16,11 @@ class MedicationReminderScreen extends StatefulWidget {
 }
 
 class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final MedicationService _service = MedicationService();
-  final List<String> _filters = const ['الكل', 'المتبقية', 'المكتملة'];
-  String _filter = 'الكل';
+  late final List<String> _filters = [_t('الكل'), _t('المتبقية'), _t('المكتملة')];
+  String _filter = '';
 
   @override
   void initState() {
@@ -32,16 +35,16 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
         ToastService.showSuccess(enabled ? 'تم تفعيل التنبيه' : 'تم إيقاف التنبيه');
       }
     } catch (_) {
-      if (mounted) ToastService.showError('تعذر تحديث التنبيه');
+      if (mounted) ToastService.showError(_t('تعذر تحديث التنبيه'));
     }
   }
 
   Future<void> _taken(String id) async {
     try {
       await _service.markAsTaken(id);
-      if (mounted) ToastService.showSuccess('تم تسجيل تناول الدواء');
+      if (mounted) ToastService.showSuccess(_t('تم تسجيل تناول الدواء'));
     } catch (_) {
-      if (mounted) ToastService.showError('تعذر تسجيل الجرعة');
+      if (mounted) ToastService.showError(_t('تعذر تسجيل الجرعة'));
     }
   }
 
@@ -49,11 +52,11 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('حذف الدواء'),
-        content: const Text('هل تريد حذف هذا الدواء وإلغاء تنبيهاته؟'),
+        title: Text(_t('حذف الدواء')),
+        content: Text(_t('هل تريد حذف هذا الدواء وإلغاء تنبيهاته؟')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('إلغاء'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(_t('حذف'))),
         ],
       ),
     );
@@ -61,7 +64,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
     try {
       await _service.deleteMedication(id);
     } catch (_) {
-      if (mounted) ToastService.showError('تعذر الحذف');
+      if (mounted) ToastService.showError(_t('تعذر الحذف'));
     }
   }
 
@@ -72,7 +75,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('تذكير الأدوية'),
+        title: Text(_t('تذكير الأدوية')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -97,7 +100,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
         stream: _service.watchUpcomingMedications(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('تعذر تحميل الأدوية: ${snapshot.error}'));
+            return Center(child: Text(_t('تعذر تحميل الأدوية: ${snapshot.error}')));
           }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
@@ -105,9 +108,9 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
 
           final all = snapshot.data!;
           List<Map<String, dynamic>> meds = List<Map<String, dynamic>>.from(all);
-          if (_filter == 'المتبقية') {
+          if (_filter == _t('المتبقية')) {
             meds = meds.where((m) => m['taken'] != true).toList();
-          } else if (_filter == 'المكتملة') {
+          } else if (_filter == _t('المكتملة')) {
             meds = meds.where((m) => m['taken'] == true).toList();
           }
 
@@ -143,7 +146,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
                     final filter = _filters[index];
                     return ChoiceChip(
                       label: Text(filter),
-                      selected: _filter == filter,
+                      selected: (_filter.isEmpty ? _t('الكل') : _filter) == filter,
                       onSelected: (_) => setState(() => _filter = filter),
                     );
                   },
@@ -152,7 +155,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
               const SizedBox(height: 8),
               Expanded(
                 child: meds.isEmpty
-                    ? const Center(child: Text('لا توجد أدوية في هذه القائمة'))
+                    ? const Center(child: Text(_t('لا توجد أدوية في هذه القائمة')))
                     : ListView.builder(
                         padding: const EdgeInsets.all(14),
                         itemCount: meds.length,
@@ -182,13 +185,13 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
             OutlinedButton.icon(
               onPressed: () => setState(() {}),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('إعادة المحاولة'),
+              label: Text(_t('إعادة المحاولة')),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () => Navigator.of(context).maybePop(),
               icon: const Icon(Icons.arrow_back_rounded),
-              label: const Text('رجوع'),
+              label: Text(_t('رجوع')),
             ),
           ],
         ),
