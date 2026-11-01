@@ -603,11 +603,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
             Text(
-              'رقم المريض: $_patientNumber',
+              '${AppStrings.of(context).translate('رقم المريض')}: $_patientNumber',
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
             Text(
-              'العمر: 29 سنة • فصيلة الدم: $_bloodType',
+              '${AppStrings.of(context).translate('العمر')}: 29 ${AppStrings.of(context).translate('سنة')} • ${AppStrings.of(context).translate('فصيلة الدم')}: $_bloodType',
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
             const SizedBox(height: 12),
@@ -629,7 +629,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       children: [
         _buildIcon(iconPath, size: 28, color: Colors.white),
         const SizedBox(height: 2),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+        Text(AppStrings.of(context).translate(value), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
         Text(AppStrings.of(context).translate(label), style: const TextStyle(color: Colors.white60, fontSize: 9)),
       ],
     );
@@ -723,7 +723,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         return GridView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:3,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:.9),itemCount:all.length,itemBuilder:(context,index){
           final vital=all[index];final label=vital['label'] as String;final value=values[label]??vital['value'] as String;final color=vital['color'] as Color;
           return GestureDetector(onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>vital['screen'] as Widget)),child:Container(padding:const EdgeInsets.all(8),decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
-            _buildIcon(vital['icon'] as String,size:42,color:color),const SizedBox(height:6),Text(value,style:TextStyle(fontSize:14,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87),maxLines:1,overflow:TextOverflow.ellipsis),Text(AppStrings.of(context).translate(label),style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[600]),maxLines:1,overflow:TextOverflow.ellipsis)
+            _buildIcon(vital['icon'] as String,size:42,color:color),const SizedBox(height:6),Text(AppStrings.of(context).translate(value),style:TextStyle(fontSize:14,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87),maxLines:1,overflow:TextOverflow.ellipsis),Text(AppStrings.of(context).translate(label),style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[600]),maxLines:1,overflow:TextOverflow.ellipsis)
           ])));
         });
       },
@@ -835,7 +835,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           Expanded(
             child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
           ),
-          Text(value, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          Text(AppStrings.of(context).translate(value), style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ],
       ),
     );
