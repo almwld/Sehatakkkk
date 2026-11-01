@@ -132,7 +132,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                cat,
+                AppStrings.of(context).translate(cat),
                 style: TextStyle(
                   color: selected ? Colors.white : AppColors.darkGrey,
                   fontSize: 12,
@@ -198,14 +198,14 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  data['title'] ?? 'فيديو تعليمي',
+                  data['title'] ?? AppStrings.of(context).translate('فيديو تعليمي'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  data['category'] ?? 'تعليمي',
+                  data['category'] ?? AppStrings.of(context).translate('تعليمي'),
                   style: const TextStyle(fontSize: 9, color: AppColors.grey),
                 ),
                 const SizedBox(height: 4),
