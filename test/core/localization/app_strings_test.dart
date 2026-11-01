@@ -177,6 +177,14 @@ void main() {
           'Impossible de charger les produits de la pharmacie pour le moment');
     });
 
+    test('translates home weather and discovery labels', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('صباح الخير'), 'Good morning');
+      expect(english.translate('عواصف رعدية'), 'Thunderstorms');
+      expect(french.translate('جميع الخدمات'), 'Tous les services');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
