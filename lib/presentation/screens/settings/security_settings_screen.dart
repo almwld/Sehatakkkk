@@ -166,7 +166,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               ),
               title: Text(_deviceName),
               subtitle: Text(user?.email ?? _t('الحساب الحالي')),
-              trailing: const Chip(label: Text(_t('نشطة'))),
+              trailing: Chip(label: Text(_t('نشطة'))),
             ),
           ),
           const SizedBox(height: 16),
