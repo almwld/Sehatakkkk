@@ -21,7 +21,7 @@ class _CartScreenState extends State<CartScreen> {
     try {
       final result = await _cart.checkout(deliveryFee: 0, deliveryAddress: _delivery ? _address.text.trim() : null, deliveryRequired: _delivery);
       if (!mounted) return;
-      await showDialog<void>(context: context, builder: (_) => AlertDialog(title: Text(_t('تم الدفع بنجاح')), content: Text('رقم الطلب: ${result['orderId']}\nالإجمالي: ${result['total']} ر.ي\nرقم الفاتورة: ${result['invoiceId'] ?? '—'}'), actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(_t('متابعة')))]));
+      await showDialog<void>(context: context, builder: (_) => AlertDialog(title: Text(_t('تم الدفع بنجاح')), content: Text(_t('رقم الطلب:') + ' ${result['orderId']}\n' + _t('الإجمالي:') + ' ${result['total']} ر.ي\n' + _t('رقم الفاتورة:') + ' ${result['invoiceId'] ?? '—'}'), actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(_t('متابعة')))]));
       setState(() {});
     } catch (e) { if (mounted) ToastService.showError(_t('تعذر إتمام الدفع') + ': $e'); } finally { if (mounted) setState(() => _processing = false); }
   }
