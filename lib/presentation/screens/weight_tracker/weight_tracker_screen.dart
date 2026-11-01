@@ -38,7 +38,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
 
   Future<void> _setTarget() async{
     final c=TextEditingController(text:_target?.toString()??'');
-    final v=await showDialog<double>(context:context,builder:(_)=>AlertDialog(title:Text(AppStrings.of(context).translate('الوزن المستهدف')),content:TextField(controller:c,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'كجم')),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('إلغاء')),ElevatedButton(onPressed:(){final n=double.tryParse(c.text);if(n!=null&&n>0)Navigator.pop(context,n);},child:const Text('حفظ'))]));
+    final v=await showDialog<double>(context:context,builder:(_)=>AlertDialog(title:Text(AppStrings.of(context).translate('الوزن المستهدف')),content:TextField(controller:c,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:AppStrings.of(context).translate('كجم'))),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:Text(AppStrings.of(context).translate('إلغاء'))),ElevatedButton(onPressed:(){final n=double.tryParse(c.text);if(n!=null&&n>0)Navigator.pop(context,n);},child:Text(AppStrings.of(context).translate('حفظ')))]));
     c.dispose();if(v!=null){final p=await SharedPreferences.getInstance();await p.setDouble('target_weight',v);setState(()=>_target=v);}
   }
 
@@ -49,7 +49,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
       appBar: AppBar(title: Text(AppStrings.of(context).translate('تتبع الوزن')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _setTarget, icon: const Icon(Icons.track_changes_outlined))]),
-      floatingActionButton: FloatingActionButton.extended(onPressed: () => _addSheet(dark), backgroundColor: AppColors.primary, icon: const Icon(Icons.add_rounded), label: const Text('إضافة وزن')),
+      floatingActionButton: FloatingActionButton.extended(onPressed: () => _addSheet(dark), backgroundColor: AppColors.primary, icon: const Icon(Icons.add_rounded), label: Text(AppStrings.of(context).translate('إضافة وزن'))),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: _loading ? const Center(child: CircularProgressIndicator()) : ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
@@ -114,8 +114,8 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'إضافة قياس وزن',
+            Text(
+              AppStrings.of(context).translate('إضافة قياس وزن'),
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 14),
