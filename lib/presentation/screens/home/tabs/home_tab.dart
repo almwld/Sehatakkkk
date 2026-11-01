@@ -38,6 +38,8 @@ class HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<HomeTab>
     with AutomaticKeepAliveClientMixin<HomeTab> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   Timer? _startTimer;
   late Future<List<ProductModel>> _products;
   late Future<Map<String, dynamic>> _weatherFuture;
@@ -101,18 +103,18 @@ class _HomeTabState extends State<HomeTab>
         'condition': _weatherText(code),
       };
     } catch (_) {
-      return {'condition': 'تعذر تحديث الطقس الآن'};
+      return {'condition': _t('تعذر تحديث الطقس الآن')};
     }
   }
 
   String _weatherText(int code) {
-    if (code == 0) return 'صحو';
-    if (code <= 3) return 'غائم جزئياً';
-    if (code <= 48) return 'ضباب';
-    if (code <= 67) return 'أمطار';
-    if (code <= 77) return 'ثلوج';
-    if (code <= 82) return 'زخات مطر';
-    return 'عواصف رعدية';
+    if (code == 0) return _t('صحو');
+    if (code <= 3) return _t('غائم جزئياً');
+    if (code <= 48) return _t('ضباب');
+    if (code <= 67) return _t('أمطار');
+    if (code <= 77) return _t('ثلوج');
+    if (code <= 82) return _t('زخات مطر');
+    return _t('عواصف رعدية');
   }
 
   @override
@@ -161,9 +163,9 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _header(HomeState state) {
     final hour = DateTime.now().hour;
-    final greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
-    final name = state.userName.trim().isEmpty ? 'مستخدم' : state.userName.trim();
-    final first = name.characters.isEmpty ? 'ص' : name.characters.first;
+    final greeting = _t(hour < 12 ? 'صباح الخير' : 'مساء الخير');
+    final name = state.userName.trim().isEmpty ? _t('مستخدم') : state.userName.trim();
+    final first = name.characters.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'ص' : 'U') : name.characters.first;
     return Container(
       height: 194,
       padding: EdgeInsets.fromLTRB(18, MediaQuery.of(context).padding.top + 10, 18, 18),
@@ -291,11 +293,11 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _discover(bool dark) {
     final items = [
-      {'name': 'حجز موعد', 'asset': 'assets/images/services/calendar_booking.webp', 'route': AppRouter.appointments},
-      {'name': 'طوارئ', 'asset': 'assets/images/services/emergency.webp', 'route': AppRouter.emergency},
-      {'name': 'خريطة', 'asset': 'assets/images/services/map_location.webp', 'route': AppRouter.map},
-      {'name': 'باقات', 'asset': 'assets/images/services/packages.webp', 'route': AppRouter.packages},
-      {'name': 'جميع الخدمات', 'asset': 'assets/images/ui/all_services.webp', 'route': AppRouter.services},
+      {'name': _t('حجز موعد'), 'asset': 'assets/images/services/calendar_booking.webp', 'route': AppRouter.appointments},
+      {'name': _t('طوارئ'), 'asset': 'assets/images/services/emergency.webp', 'route': AppRouter.emergency},
+      {'name': _t('خريطة'), 'asset': 'assets/images/services/map_location.webp', 'route': AppRouter.map},
+      {'name': _t('باقات'), 'asset': 'assets/images/services/packages.webp', 'route': AppRouter.packages},
+      {'name': _t('جميع الخدمات'), 'asset': 'assets/images/ui/all_services.webp', 'route': AppRouter.services},
     ];
     return _section(
       title: AppStrings.of(context).translate('اكتشف المزيد'),
@@ -371,7 +373,7 @@ class _HomeTabState extends State<HomeTab>
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
                   final item = items[i] as Map<String, dynamic>;
-                  final name = (item['name'] ?? item['pharmacyName'] ?? 'صيدلية').toString();
+                  final name = (item['name'] ?? item['pharmacyName'] ?? _t('صيدلية')).toString();
                   final image = (item['imageUrl'] ?? item['image'] ?? item['photoUrl'] ?? '').toString();
                   final location = (item['location'] ?? item['city'] ?? item['address'] ?? '').toString();
                   return InkWell(
@@ -403,9 +405,9 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _articles(List<dynamic> items, bool dark) => _dataCards('مقالات طبية', items, dark, 'assets/images/services/medical_articles.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArticlesScreen())), 'لا توجد مقالات منشورة حالياً', 'summary');
+  Widget _articles(List<dynamic> items, bool dark) => _dataCards(_t('مقالات طبية'), items, dark, 'assets/images/services/medical_articles.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArticlesScreen())), _t('لا توجد مقالات منشورة حالياً'), 'summary');
 
-  Widget _tips(List<dynamic> items, bool dark) => _dataCards('نصائح يومية', items, dark, 'assets/images/services/health_tips.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), 'لا توجد نصائح منشورة حالياً', 'content');
+  Widget _tips(List<dynamic> items, bool dark) => _dataCards(_t('نصائح يومية'), items, dark, 'assets/images/services/health_tips.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), _t('لا توجد نصائح منشورة حالياً'), 'content');
 
   Widget _dataCards(String title, List<dynamic> items, bool dark, String asset, VoidCallback onMore, String emptyText, String subtitleKey) {
     return _section(
