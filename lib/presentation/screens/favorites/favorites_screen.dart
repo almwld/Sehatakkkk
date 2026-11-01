@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -55,8 +56,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
         loaded.add({
           'id': doctor.id,
-          'name': (data['name'] ?? 'طبيب').toString(),
-          'specialty': (data['specialty'] ?? 'طبيب عام').toString(),
+          'name': (data['name'] ?? AppStrings.of(context).translate('طبيب')).toString(),
+          'specialty': (data['specialty'] ?? AppStrings.of(context).translate('طبيب عام')).toString(),
           'photoUrl': ImageKit.doctorPhoto(data),
         });
       }
@@ -82,7 +83,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفضلة'),
+        title: Text(AppStrings.of(context).translate('المفضلة')),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -90,7 +91,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _favorites.isEmpty
               ? const Center(
-                  child: Text('لا توجد أطباء في المفضلة'),
+                  child: Text(AppStrings.of(context).translate('لا توجد أطباء في المفضلة')),
                 )
               : RefreshIndicator(
                   onRefresh: _loadFavorites,
