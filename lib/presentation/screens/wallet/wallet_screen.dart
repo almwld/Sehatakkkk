@@ -142,8 +142,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       Text(_t('سجل المعاملات'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
                       if (snapshot.hasError) Text(_t('تعذر تحميل سجل المعاملات.'))
-                      else if (docs.isEmpty) const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 32),
+                      else if (docs.isEmpty) Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
                         child: Center(child: Text(_t('لا توجد معاملات حتى الآن.'))),
                       ) else ...docs.map((doc) {
                         final data = doc.data();
