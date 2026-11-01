@@ -205,7 +205,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  data['category'] ?? AppStrings.of(context).translate('تعليمي'),
+                  AppStrings.of(context).translate(data['category']?.toString() ?? 'تعليمي'),
                   style: const TextStyle(fontSize: 9, color: AppColors.grey),
                 ),
                 const SizedBox(height: 4),
