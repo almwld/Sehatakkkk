@@ -24,6 +24,8 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   static const String _unifiedJeebAccount = '536396';
   String _t(String value) => AppStrings.of(context).translate(value);
 
+  String _walletDisplayName(LocalWalletOption wallet) => _t(wallet.name);
+
   void _showTransferInstructions() {
     final amount = widget.amount?.toStringAsFixed(0) ?? '___';
     showDialog<void>(
@@ -69,7 +71,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       return;
     }
 
-    ToastService.showSuccess('${_t('تم اختيار')} ${wallet.name} — ${_t('حساب الدفع الموحد عبر جيب')} $_unifiedJeebAccount');
+    ToastService.showSuccess('${_t('تم اختيار')} ${_walletDisplayName(wallet)} — ${_t('حساب الدفع الموحد عبر جيب')} $_unifiedJeebAccount');
     Navigator.pop(context, wallet);
   }
 
@@ -115,7 +117,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            wallet.name,
+                            _walletDisplayName(wallet),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
