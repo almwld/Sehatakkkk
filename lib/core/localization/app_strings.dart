@@ -88,6 +88,7 @@ class AppStrings {
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
     const translations = <String, List<String>>{
+      'CBC - صورة دم كاملة': ['CBC - Complete Blood Count', 'NFS - Numération formule sanguine'],
       'حجز تحليل': ['Book a test', 'Réserver une analyse'],
       'الأسبوع': ['Week', 'Semaine'],
       'زيارة منزلية': ['Home visit', 'Visite à domicile'],
