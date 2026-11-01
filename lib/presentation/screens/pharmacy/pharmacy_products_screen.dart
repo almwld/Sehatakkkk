@@ -79,7 +79,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
                       ),
               ),
               const SizedBox(height: 12),
-              Text(product['name'] as String, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+              Text(_t(product['name'] as String), style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 4),
               Text(_t(product['category'] as String), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
               const Spacer(),
