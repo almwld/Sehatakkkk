@@ -26,7 +26,6 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   bool _loading = true, _saving = false, _homeCollection = false;
   String? _error;
 
-  String _t(String value) => AppStrings.of(context).translate(value);
   String _money(double value) => '${value.toStringAsFixed(0)} ${_t('ريال')}';
   String _s(dynamic v) => v?.toString().trim() ?? '';
   double _n(dynamic v) => v is num ? v.toDouble() : double.tryParse(_s(v)) ?? 0;
