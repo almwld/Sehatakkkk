@@ -202,7 +202,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       color: selected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF526467)),
                     ),
-                    child: Text(labels[index]),
+                    child: Text(AppStrings.of(context).translate(labels[index])),
                   ),
                 ),
               ),
@@ -250,7 +250,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (chats.isEmpty) {
       return Center(
         child: Text(
-          _search.isEmpty ? 'لا توجد محادثات بعد\nابدأ محادثة مع طبيب من تبويب تواصل صحي' : 'لا توجد نتائج مطابقة',
+          AppStrings.of(context).translate(_search.isEmpty ? 'لا توجد محادثات بعد\nابدأ محادثة مع طبيب من تبويب تواصل صحي' : 'لا توجد نتائج مطابقة'),
           textAlign: TextAlign.center,
           style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
         ),
@@ -457,16 +457,16 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_openingChat) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ToastService.showError('يرجى تسجيل الدخول أولاً');
+      ToastService.showError(AppStrings.of(context).translate('يرجى تسجيل الدخول أولاً'));
       return;
     }
     final doctorId = doctor.userId?.trim();
     if (doctorId == null || doctorId.isEmpty) {
-      ToastService.showError('حساب الطبيب غير صالح');
+      ToastService.showError(AppStrings.of(context).translate('حساب الطبيب غير صالح'));
       return;
     }
     if (doctorId == user.uid) {
-      ToastService.showError('لا يمكنك بدء محادثة مع حسابك');
+      ToastService.showError(AppStrings.of(context).translate('لا يمكنك بدء محادثة مع حسابك'));
       return;
     }
     setState(() => _openingChat = true);
@@ -475,7 +475,7 @@ class _ChatScreenState extends State<ChatScreen> {
         doctorId: doctorId,
         doctorName: doctor.name,
         doctorImage: doctor.photoUrl,
-        patientName: user.displayName ?? 'مستخدم',
+        patientName: user.displayName ?? AppStrings.of(context).translate('مستخدم'),
         patientImage: user.photoURL,
       );
       if (!mounted || chatId.trim().isEmpty) return;
@@ -487,7 +487,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     } catch (e) {
       debugPrint('open chat error: $e');
-      if (mounted) ToastService.showError('تعذر فتح المحادثة: $e');
+      if (mounted) ToastService.showError('${AppStrings.of(context).translate('تعذر فتح المحادثة')}: $e');
     } finally {
       if (mounted) setState(() => _openingChat = false);
     }
@@ -498,7 +498,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final state = context.read<DoctorBloc>().state;
     final doctors = state is DoctorLoaded ? state.doctors : <DoctorModel>[];
     if (doctors.isEmpty) {
-      ToastService.showError('لا يوجد أطباء موثقون متاحون للمحادثة حالياً');
+      ToastService.showError(AppStrings.of(context).translate('لا يوجد أطباء موثقون متاحون للمحادثة حالياً'));
       return;
     }
     await showModalBottomSheet<void>(
