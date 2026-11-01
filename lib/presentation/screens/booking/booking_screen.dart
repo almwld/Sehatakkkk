@@ -27,7 +27,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override void initState() { super.initState(); _loadDoctor(); }
   Future<void> _loadDoctor() async {
     final id = widget.doctorId?.trim();
-    if (id == null || id.isEmpty) { setState(() { _loading = false; _error = _t('لم يتم تحديد الطبيب'); }); return; }
+    if (id == null || id.isEmpty) { setState(() { _loading = false; _error = 'لم يتم تحديد الطبيب'; }); return; }
     try {
       final snap = await FirebaseFirestore.instance.collection('doctors').doc(id).get();
       if (!snap.exists) throw Exception(_t('الطبيب غير موجود'));
@@ -64,7 +64,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override Widget build(BuildContext context) {
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
-    if (_error != null) return Scaffold(appBar: AppBar(title: Text(_t('حجز موعد'))), body: Center(child: Text(_error!)));
+    if (_error != null) return Scaffold(appBar: AppBar(title: Text(_t('حجز موعد'))), body: Center(child: Text(_t(_error!))));
     return Scaffold(appBar: AppBar(title: Text(_t('حجز ودفع الموعد')), backgroundColor: AppColors.primary, foregroundColor: Colors.white), body: ListView(padding: const EdgeInsets.all(16), children: [
       Card(child: ListTile(leading: const CircleAvatar(child: Icon(Icons.medical_services_outlined)), title: Text(_doctorName, style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text(_specialty), trailing: Text(_fee > 0 ? '${_fee.toStringAsFixed(0)} ر.ي' : _t('مجاني'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)))),
       const SizedBox(height: 18),
