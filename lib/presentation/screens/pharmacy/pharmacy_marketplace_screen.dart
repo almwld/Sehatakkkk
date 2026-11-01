@@ -487,7 +487,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
               return Card(
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ListTile(
-                      title: Text(AppStrings.of(context).translate('طلب #${o[')id'] ?? o['orderId'] ?? ''}',
+                      title: Text('${AppStrings.of(context).translate('طلب')} #$orderId',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
                           '${o['pharmacyName'] ?? o['providerName'] ?? 'طلب صيدلية'}\n$status'),
