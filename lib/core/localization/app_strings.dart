@@ -810,7 +810,6 @@ class AppStrings {
       'ستظهر طلباتك هنا': ['Your orders will appear here', 'Vos commandes apparaîtront ici'],
       'التذكيرات': ['Reminders', 'Rappels'],
       'يرجى تسجيل الدخول': ['Please sign in', 'Veuillez vous connecter'],
-      'حدث خطأ': ['An error occurred', 'Une erreur est survenue'],
       'لا توجد تذكيرات': ['No reminders', 'Aucun rappel'],
       'تذكير': ['Reminder', 'Rappel'],
       'إضافة تذكير': ['Add reminder', 'Ajouter un rappel'],
