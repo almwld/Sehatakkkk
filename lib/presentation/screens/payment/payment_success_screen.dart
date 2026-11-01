@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/payment/wallet_models.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
@@ -14,12 +15,14 @@ class PaymentSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final t = strings.translate;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: CustomAppBar(
-        title: 'إيصال الدفع',
+        title: t('إيصال الدفع'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
@@ -43,7 +46,7 @@ class PaymentSuccessScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'تمت العملية بنجاح',
+              t('تمت العملية بنجاح'),
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -71,27 +74,27 @@ class PaymentSuccessScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _buildReceiptRow(
-                    'رقم المعاملة',
+                    t('رقم المعاملة'),
                     transaction.id.substring(0, 8),
                     isDark,
                   ),
                   const Divider(height: 24),
                   _buildReceiptRow(
-                    'المبلغ المدفوع',
-                    '${NumberFormat('#,##0.00', 'ar').format(transaction.amount)} ر.ي',
+                    t('المبلغ المدفوع'),
+                    '${NumberFormat('#,##0.00', strings.locale.languageCode).format(transaction.amount)} ${strings.locale.languageCode == 'ar' ? 'ر.ي' : 'YER'}',
                     isDark,
                     isBold: true,
                   ),
                   const Divider(height: 24),
                   _buildReceiptRow(
-                    'نوع العملية',
+                    t('نوع العملية'),
                     transaction.typeText,
                     isDark,
                   ),
                   const Divider(height: 24),
                   _buildReceiptRow(
-                    'تاريخ العملية',
-                    DateFormat('yyyy/MM/dd - hh:mm a', 'ar').format(
+                    t('تاريخ العملية'),
+                    DateFormat('yyyy/MM/dd - hh:mm a', strings.locale.languageCode).format(
                       transaction.createdAt,
                     ),
                     isDark,
@@ -99,7 +102,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                   if (transaction.referenceNumber != null) ...[
                     const Divider(height: 24),
                     _buildReceiptRow(
-                      'رقم الإشعار',
+                      t('رقم الإشعار'),
                       transaction.referenceNumber!,
                       isDark,
                     ),
@@ -107,7 +110,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                   if (transaction.walletName != null) ...[
                     const Divider(height: 24),
                     _buildReceiptRow(
-                      'المحفظة المستخدمة',
+                      t('المحفظة المستخدمة'),
                       transaction.walletName!,
                       isDark,
                     ),
@@ -129,8 +132,8 @@ class PaymentSuccessScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'العودة للرئيسية',
+                child: Text(
+                  t('العودة للرئيسية'),
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
