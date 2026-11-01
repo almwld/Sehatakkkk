@@ -2104,6 +2104,7 @@ class AppStrings {
       'تعذر إتمام الدفع:': ['Could not complete payment:', 'Impossible de finaliser le paiement :'],
       'تقييم الصيدلية': ['Rate pharmacy', 'Évaluer la pharmacie'],
       'تقييمات العملاء': ['Customer reviews', 'Avis des clients'],
+      'المنتج': ['Product', 'Produit'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
