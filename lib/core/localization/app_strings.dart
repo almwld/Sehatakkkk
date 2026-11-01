@@ -2012,7 +2012,7 @@ class AppStrings {
       'يرجى إدخال الطول والوزن والعمر بقيم صحيحة': ['Enter valid height, weight, and age values', 'Saisissez des valeurs valides pour la taille, le poids et l’âge'],
       'تحقق من قيم الطول والوزن والعمر': ['Check the height, weight, and age values', 'Vérifiez les valeurs de taille, de poids et d’âge'],
       'تم تحديث الملف الشخصي والبيانات الصحية': ['Profile and health information updated', 'Profil et informations de santé mis à jour'],
-      'فشل التحديث: $e': ['Update failed: $e', 'Échec de la mise à jour : $e'],
+      'فشل التحديث: \$e': ['Update failed: \$e', 'Échec de la mise à jour : \$e'],
       'تعديل الملف الشخصي': ['Edit profile', 'Modifier le profil'],
       'الطول (سم)': ['Height (cm)', 'Taille (cm)'],
       'الوزن (كجم)': ['Weight (kg)', 'Poids (kg)'],
