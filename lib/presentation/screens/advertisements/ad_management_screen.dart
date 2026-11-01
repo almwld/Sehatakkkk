@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/ad_model.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
@@ -36,7 +37,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> {
           final ads = snapshot.data!.docs.map((d) => AdModel.fromFirestore(d.data(), d.id)).where((a) => _status == 'الكل' || a.statusText == _status).toList();
           return Column(children: [
             SizedBox(height: 52, child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.all(8), children: ['الكل','قيد المراجعة','نشط','مرفوض','منتهي'].map((x) => Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: ChoiceChip(label: Text(x), selected: _status == x, onSelected: (_) => setState(() => _status = x)))).toList())),
-            Expanded(child: ads.isEmpty ? const Center(child: Text('لا توجد إعلانات')) : ListView.separated(padding: const EdgeInsets.all(12), itemCount: ads.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, i) => _tile(ads[i]))),
+            Expanded(child: ads.isEmpty ? Center(child: Text(AppStrings.of(context).translate('لا توجد إعلانات'))) : ListView.separated(padding: const EdgeInsets.all(12), itemCount: ads.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, i) => _tile(ads[i]))),
           ]);
         },
       ),
