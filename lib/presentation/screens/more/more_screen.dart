@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -326,7 +327,7 @@ class _MoreScreenState extends State<MoreScreen>
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'المزيد',
+        title: AppStrings.of(context).translate('المزيد'),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: _isScrolled ? 1 : 0,
@@ -438,9 +439,9 @@ class _MoreScreenState extends State<MoreScreen>
                 _buildIcon(vital['icon'] as String, size: 48),
                 const SizedBox(height: 6),
                 Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: vital['color'] as Color), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
-                Text(vital['unit'] as String, style: TextStyle(fontSize: 9, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                Text(AppStrings.of(context).translate(vital['unit'] as String), style: TextStyle(fontSize: 9, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                 const SizedBox(height: 2),
-                Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: isDark ? Colors.grey[300] : Colors.grey[700]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(AppStrings.of(context).translate(label), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: isDark ? Colors.grey[300] : Colors.grey[700]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -469,7 +470,7 @@ class _MoreScreenState extends State<MoreScreen>
                 boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))] : [],
               ),
               child: Center(
-                child: Text(category, style: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 12)),
+                child: Text(AppStrings.of(context).translate(category), style: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 12)),
               ),
             ),
           );
@@ -481,7 +482,7 @@ class _MoreScreenState extends State<MoreScreen>
   Widget _buildFilteredServicesGrid(bool isDark) {
     final services = _filteredServices;
     if (services.isEmpty) {
-      return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Text('لا توجد خدمات في هذا القسم', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]))));
+      return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Text(AppStrings.of(context).translate('لا توجد خدمات في هذا القسم'), style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]))));
     }
     return GridView.builder(
       shrinkWrap: true,
@@ -500,9 +501,9 @@ class _MoreScreenState extends State<MoreScreen>
               children: [
                 _buildIcon(service['icon'] as String, size: 44),
                 const SizedBox(height: 8),
-                Text(service['title'] as String, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(AppStrings.of(context).translate(service['title'] as String), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text(service['subtitle'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600]), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(AppStrings.of(context).translate(service['subtitle'] as String), style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600]), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -538,7 +539,7 @@ class _MoreScreenState extends State<MoreScreen>
       child: ElevatedButton.icon(
         onPressed: _showLogoutDialog,
         icon: const Icon(Icons.logout, color: Colors.white, size: 20),
-        label: const Text('تسجيل الخروج', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+        label: Text(AppStrings.of(context).translate('تسجيل الخروج'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
         style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
       ),
     );
@@ -551,24 +552,24 @@ class _MoreScreenState extends State<MoreScreen>
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('تسجيل الخروج'),
+          title: Text(AppStrings.of(context).translate('تسجيل الخروج')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+              Text(AppStrings.of(context).translate('هل أنت متأكد من رغبتك في تسجيل الخروج؟')),
               const SizedBox(height: 12),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: saveAccount,
                 onChanged: (value) => setDialogState(() => saveAccount = value ?? true),
-                title: const Text('حفظ الحساب على هذا الجهاز'),
-                subtitle: const Text('سيظهر الحساب لاحقاً للاختيار عند تسجيل الدخول'),
+                title: Text(AppStrings.of(context).translate('حفظ الحساب على هذا الجهاز')),
+                subtitle: Text(AppStrings.of(context).translate('سيظهر الحساب لاحقاً للاختيار عند تسجيل الدخول')),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(AppStrings.of(context).translate('إلغاء'))),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () async {
@@ -589,7 +590,7 @@ class _MoreScreenState extends State<MoreScreen>
                   ToastService.showError('خطأ في تسجيل الخروج: $e');
                 }
               },
-              child: const Text('تسجيل الخروج'),
+              child: Text(AppStrings.of(context).translate('تسجيل الخروج')),
             ),
           ],
         ),
