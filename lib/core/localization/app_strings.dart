@@ -2105,6 +2105,21 @@ class AppStrings {
       'تقييم الصيدلية': ['Rate pharmacy', 'Évaluer la pharmacie'],
       'تقييمات العملاء': ['Customer reviews', 'Avis des clients'],
       'المنتج': ['Product', 'Produit'],
+      'إيداع': ['Deposit', 'Dépôt'],
+      'سحب': ['Withdrawal', 'Retrait'],
+      'دفع': ['Payment', 'Paiement'],
+      'استرداد': ['Refund', 'Remboursement'],
+      'حاسب الكريمي': ['Al Kuraimi', 'Al Kuraimi'],
+      'فلوسك': ['Floosak', 'Floosak'],
+      'جوالي': ['Jawali', 'Jawali'],
+      'جيب': ['Jeeb', 'Jeeb'],
+      'كاش': ['Cash', 'Cash'],
+      'كاش ون': ['Cash One', 'Cash One'],
+      'موبايل ماني': ['Mobile Money', 'Mobile Money'],
+      'يمن وولت': ['Yemen Wallet', 'Yemen Wallet'],
+      'إيزي': ['Easy', 'Easy'],
+      'الصيدلية تستقبل الطلبات حالياً.': ['The pharmacy is currently accepting orders.', 'La pharmacie accepte actuellement les commandes.'],
+      'الصيدلية مغلقة حالياً. تحقق من ساعات العمل قبل الطلب.': ['The pharmacy is currently closed. Check its opening hours before ordering.', 'La pharmacie est actuellement fermée. Vérifiez ses horaires avant de commander.'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
