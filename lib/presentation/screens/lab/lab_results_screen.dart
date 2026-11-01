@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/lab/lab_booking_model.dart';
 import 'package:sehatak/core/services/lab_service.dart';
@@ -12,6 +13,8 @@ class LabResultsScreen extends StatefulWidget {
 }
 
 class _LabResultsScreenState extends State<LabResultsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final _service = LabService();
   LabBookingModel? _booking;
   bool _loading = true;
@@ -39,11 +42,11 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('نتائج الفحوصات'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(_t('نتائج الفحوصات')), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _booking == null
-              ? const Center(child: Text('تعذر تحميل نتيجة الحجز.'))
+              ? const Center(child: Text(_t('تعذر تحميل نتيجة الحجز.')))
               : _content(_booking!, dark),
     );
   }
@@ -51,7 +54,7 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
   Widget _content(LabBookingModel booking, bool dark) {
     final results = booking.results ?? const <String, dynamic>{};
     if (results.isEmpty && (booking.resultFile == null || booking.resultFile!.isEmpty)) {
-      return const Center(child: Text('لم يتم نشر نتائج هذا الحجز بعد.'));
+      return const Center(child: Text(_t('لم يتم نشر نتائج هذا الحجز بعد.')));
     }
 
     return ListView(
@@ -60,7 +63,7 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
         _header(booking, dark),
         const SizedBox(height: 12),
         if (results.isNotEmpty) ...[
-          Text('النتائج المسجلة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
+          Text(_t('النتائج المسجلة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
           const SizedBox(height: 8),
           ...results.entries.map((entry) => Card(
                 color: dark ? const Color(0xFF1A2540) : Colors.white,
@@ -76,8 +79,8 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
             color: dark ? const Color(0xFF1A2540) : Colors.white,
             child: ListTile(
               leading: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
-              title: const Text('ملف النتيجة'),
-              subtitle: const Text('تم حفظ ملف النتيجة لهذا الحجز.'),
+              title: Text(_t('ملف النتيجة')),
+              subtitle: Text(_t('تم حفظ ملف النتيجة لهذا الحجز.')),
             ),
           ),
         ],
@@ -92,9 +95,9 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(booking.labName, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
             const SizedBox(height: 6),
-            Text('رقم الحجز: ${booking.id}', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700])),
+            Text('${_t('رقم الحجز: ')}${booking.id}', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700])),
             const SizedBox(height: 4),
-            Text('عدد الفحوصات: ${booking.tests.length}', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700])),
+            Text('${_t('عدد الفحوصات: ')}${booking.tests.length}', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700])),
           ]),
         ),
       );
