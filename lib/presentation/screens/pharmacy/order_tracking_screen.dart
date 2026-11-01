@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final String orderId;
@@ -13,6 +14,7 @@ class OrderTrackingScreen extends StatefulWidget {
 
 class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   int _currentStep = 0;
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   final List<Map<String, dynamic>> _steps = [
     {'title': '📤 تم الإرسال', 'subtitle': 'تم إرسال طلبك', 'time': 'الآن', 'icon': Icons.send},
@@ -58,7 +60,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('📦 متابعة الطلب'),
+        title: Text(_t('متابعة الطلب')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -89,7 +91,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       const Icon(Icons.receipt, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Text(
-                        'رقم الطلب: ${widget.orderId}',
+                        '${_t('رقم الطلب:')} ${widget.orderId}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -129,7 +131,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _currentStep == 4 ? 'تم التسليم' : 'جاري المعالجة',
+                          _t(_currentStep == 4 ? 'تم التسليم' : 'جاري المعالجة'),
                           style: TextStyle(
                             color: _currentStep == 4 ? Colors.green : Colors.blue,
                             fontWeight: FontWeight.w600,
@@ -145,8 +147,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             const SizedBox(height: 24),
 
             // ✅ مسار الطلب
-            const Text(
-              '📋 مسار الطلب',
+            Text(
+              _t('📋 مسار الطلب'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -195,7 +197,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            step['title'],
+                            _t(step['title'].toString()),
                             style: TextStyle(
                               fontWeight: isCompleted ? FontWeight.bold : FontWeight.normal,
                               fontSize: 14,
@@ -205,14 +207,14 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             ),
                           ),
                           Text(
-                            step['subtitle'],
+                            _t(step['subtitle'].toString()),
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark ? Colors.grey[400] : Colors.grey[600],
                             ),
                           ),
                           Text(
-                            step['time'],
+                            _t(step['time'].toString()),
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? Colors.grey[500] : Colors.grey[400],
@@ -228,8 +230,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           color: AppColors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          'حالياً',
+                        child: Text(
+                          _t('حالياً'),
                           style: TextStyle(
                             fontSize: 10,
                             color: AppColors.primary,
@@ -258,7 +260,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'سيتم إشعارك عند تحديث حالة الطلب',
+                      _t('سيتم إشعارك عند تحديث حالة الطلب'),
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -283,7 +285,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('العودة'),
+                child: Text(_t('العودة')),
               ),
             ),
           ],
