@@ -138,7 +138,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               const Spacer(),
               ElevatedButton(
                 onPressed: () {
-                  ToastService.showSuccess(context, 'جاري الانضمام...');
+                  ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? 'جاري الانضمام...' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Connexion en cours…' : 'Joining...');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: status == 'مفتوحة' ? AppColors.primary : Colors.grey,
@@ -212,7 +212,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               _topicCtrl.clear();
               _descCtrl.clear();
               Navigator.pop(context);
-              ToastService.showSuccess(context, '✅ تم إنشاء الاستشارة');
+              ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? '✅ تم إنشاء الاستشارة' : AppStrings.of(context).locale.languageCode == 'fr' ? '✅ Consultation créée' : '✅ Consultation created');
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
             child: Text(_t('إنشاء')),
