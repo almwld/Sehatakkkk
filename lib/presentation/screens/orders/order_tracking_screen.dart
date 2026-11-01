@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -21,11 +22,11 @@ class OrderTrackingScreen extends StatelessWidget {
       body:StreamBuilder<DocumentSnapshot<Map<String,dynamic>>>(
         stream:FirebaseFirestore.instance.collection('orders').doc(orderId).snapshots(),
         builder:(context,s){
-          if(s.hasError)return const Center(child:Text('تعذر تحميل حالة الطلب'));
+          if(s.hasError)return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل حالة الطلب')));
           if(!s.hasData)return const Center(child:CircularProgressIndicator());
           final data=s.data!.data();
           if(data==null||!s.data!.exists)return const Center(child:Text('الطلب غير موجود'));
-          if(data['userId']?.toString()!=uid)return const Center(child:Text('لا تملك صلاحية عرض هذا الطلب'));
+          if(data['userId']?.toString()!=uid)return Center(child:Text(AppStrings.of(context).translate('لا تملك صلاحية عرض هذا الطلب')));
           final status=data['status']?.toString()??'pending';
           final current=_step(status);
           final steps=<Map<String,dynamic>>[
