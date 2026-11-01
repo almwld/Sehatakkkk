@@ -2022,7 +2022,6 @@ class AppStrings {
       'تعذر تسجيل الخروج:': ['Could not sign out:', 'Impossible de se déconnecter :'],
       'تعذر إبطال الجلسات:': ['Could not revoke sessions:', 'Impossible de révoquer les sessions :'],
       'تعذر حذف الحساب:': ['Could not delete account:', 'Impossible de supprimer le compte :'],
-      'خطأ:': ['Error:', 'Erreur :'],
       'فشل التحديث:': ['Update failed:', 'Échec de la mise à jour :'],
 
 
