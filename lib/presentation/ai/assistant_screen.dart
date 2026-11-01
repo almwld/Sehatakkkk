@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/services/local_ai/local_medical_ai.dart';
 
 class AIChatbotScreen extends StatefulWidget {
@@ -10,6 +11,8 @@ class AIChatbotScreen extends StatefulWidget {
 }
 
 class _AIChatbotScreenState extends State<AIChatbotScreen> {
+  static const _welcomeMessage = 'مرحباً! 👋\\nأنا المساعد الصحي الذكي. كيف يمكنني مساعدتك اليوم؟';
+  String _t(String value) => AppStrings.of(context).translate(value);
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
@@ -121,12 +124,12 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'المساعد الصحي',
+                Text(
+                  _t('المساعد الصحي'),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  'متصل ✅',
+                  _t('متصل ✅'),
                   style: TextStyle(fontSize: 11, color: Colors.green.shade400),
                 ),
               ],
@@ -149,7 +152,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'اسألني عن صحتك، الأدوية، الأعراض، أو خدمات التطبيق',
+                    _t('اسألني عن صحتك، الأدوية، الأعراض، أو خدمات التطبيق'),
                     style: TextStyle(fontSize: 12, color: AppColors.primary),
                   ),
                 ),
@@ -182,7 +185,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'أسئلة مقترحة:',
+                    _t('أسئلة مقترحة:'),
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -196,7 +199,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                       itemBuilder: (context, index) {
                         return GestureDetector(
                           onTap: () {
-                            _messageController.text = _suggestedQuestions[index];
+                            _messageController.text = _t(_suggestedQuestions[index]);
                             _sendMessage();
                           },
                           child: Container(
@@ -213,7 +216,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                               ),
                             ),
                             child: Text(
-                              _suggestedQuestions[index],
+                              _t(_suggestedQuestions[index]),
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.primary,
@@ -264,7 +267,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'اكتب استفسارك الطبي...',
+                        hintText: _t('اكتب استفسارك الطبي...'),
                         hintStyle: TextStyle(
                           color: isDark ? Colors.grey[500] : Colors.grey[400],
                         ),
@@ -300,6 +303,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
   // ============================================================
   Widget _buildMessageBubble(ChatMessage message, bool isDark) {
     final isUser = message.isUser;
+    final displayText = !isUser && message.text == _welcomeMessage ? _t(_welcomeMessage) : message.text;
 
     return Padding(
       padding: const EdgeInsets.only(
@@ -350,7 +354,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message.text,
+                    displayText,
                     style: TextStyle(
                       color: isUser
                           ? Colors.white
@@ -460,17 +464,17 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
           children: [
             ListTile(
               leading: Icon(Icons.image, color: AppColors.primary),
-              title: const Text('إرفاق صورة'),
+              title: Text(_t('إرفاق صورة')),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
               leading: Icon(Icons.description, color: AppColors.primary),
-              title: const Text('إرفاق ملف'),
+              title: Text(_t('إرفاق ملف')),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
               leading: Icon(Icons.mic, color: AppColors.primary),
-              title: const Text('تسجيل صوتي'),
+              title: Text(_t('تسجيل صوتي')),
               onTap: () => Navigator.pop(context),
             ),
           ],
