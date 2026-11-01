@@ -1,9 +1,9 @@
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,7 +14,9 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  static const _duration = Duration(milliseconds: 3500);
+  static const _lastShownKey = 'sehatak_splash_last_shown_ms';
+  static const _interval = Duration(hours: 12);
+  static const _duration = Duration(seconds: 9);
 
   late final AnimationController _controller;
   late final Animation<double> _fade;
@@ -34,25 +36,47 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _check() async {
-    // Show the splash on every launch for exactly 3.5 seconds.
+    final prefs = await SharedPreferences.getInstance();
+    final lastShownMs = prefs.getInt(_lastShownKey);
+    final now = DateTime.now();
+    final shouldShow = lastShownMs == null ||
+        now.difference(DateTime.fromMillisecondsSinceEpoch(lastShownMs)) >=
+            _interval;
+
+    if (!shouldShow) {
+      _showSplash = false;
+      await _goNext(prefs);
+      return;
+    }
+
+    await prefs.setInt(_lastShownKey, now.millisecondsSinceEpoch);
     try {
       await _audioPlayer.setAsset('assets/audio/splash_sound.mp3');
-      unawaited(_audioPlayer.play());
+      await _audioPlayer.play();
     } catch (_) {}
 
     await Future<void>.delayed(_duration);
-    await _goNext();
+    await _goNext(prefs);
   }
 
   Future<void> _skip() async {
-    await _goNext();
+    final prefs = await SharedPreferences.getInstance();
+    await _goNext(prefs);
   }
 
-  Future<void> _goNext() async {
+  Future<void> _goNext(SharedPreferences prefs) async {
     if (!mounted || _navigated) return;
     _navigated = true;
     await _audioPlayer.stop();
-    context.go('/auth');
+    final loggedIn = FirebaseAuth.instance.currentUser != null;
+    if (!loggedIn) {
+      context.go('/auth');
+      return;
+    }
+
+    // The home screen is the application's gateway. A fresh app launch
+    // must always start from Home, never from the last internal screen.
+    context.go('/');
   }
 
   @override
