@@ -448,9 +448,9 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       Text(
                           available
                               ? (stock <= 5
-                                  ? 'متوفر — المتبقي $stock'
-                                  : 'متوفر')
-                              : 'نفد المخزون',
+                                  ? '${_t('متوفر — المتبقي')} $stock'
+                                  : _t('متوفر'))
+                              : _t('نفد المخزون'),
                           style: TextStyle(
                               fontSize: 11,
                               color: available ? Colors.green : Colors.red)),
