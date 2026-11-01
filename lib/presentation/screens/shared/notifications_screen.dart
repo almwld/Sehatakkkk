@@ -71,13 +71,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   String _formatTime(dynamic value) {
     final date = _timestamp(value);
-    if (date == null) return 'الآن';
+    final strings = AppStrings.of(context);
+    final languageCode = strings.locale.languageCode;
+    if (date == null) return strings.translate('الآن');
     final difference = DateTime.now().difference(date);
-    if (difference.inSeconds < 60) return 'الآن';
-    if (difference.inMinutes < 60) return 'منذ ${difference.inMinutes} دقيقة';
-    if (difference.inHours < 24) return 'منذ ${difference.inHours} ساعة';
-    if (difference.inDays < 7) return 'منذ ${difference.inDays} يوم';
-    return DateFormat('yyyy/MM/dd - HH:mm', 'ar').format(date);
+    if (difference.inSeconds < 60) return strings.translate('الآن');
+    if (difference.inMinutes < 60) {
+      final count = difference.inMinutes;
+      if (languageCode == 'en') return '${count} min ago';
+      if (languageCode == 'fr') return 'Il y a ${count} min';
+      return 'منذ $count دقيقة';
+    }
+    if (difference.inHours < 24) {
+      final count = difference.inHours;
+      if (languageCode == 'en') return '${count} hr ago';
+      if (languageCode == 'fr') return 'Il y a ${count} h';
+      return 'منذ $count ساعة';
+    }
+    if (difference.inDays < 7) {
+      final count = difference.inDays;
+      if (languageCode == 'en') return '${count} days ago';
+      if (languageCode == 'fr') return 'Il y a ${count} jour(s)';
+      return 'منذ $count يوم';
+    }
+    return DateFormat('yyyy/MM/dd - HH:mm', languageCode).format(date);
   }
 
   IconData _iconFor(String type) {
