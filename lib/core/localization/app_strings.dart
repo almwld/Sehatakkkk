@@ -1122,6 +1122,16 @@ class AppStrings {
       'حالة التوثيق': ['Verification status', 'Statut de vérification'],
       'موثق': ['Verified', 'Vérifié'],
       'قيد المراجعة': ['Under review', 'En cours de vérification'],
+      'خدمة Firebase غير جاهزة': ['Firebase service is not ready', 'Le service Firebase n’est pas prêt'],
+      'مكالمة مرئية': ['Video call', 'Appel vidéo'],
+      'غير متاح': ['Unavailable', 'Indisponible'],
+      'أحد': ['Sun', 'Dim'],
+      'إثن': ['Mon', 'Lun'],
+      'ثلاث': ['Tue', 'Mar'],
+      'أربع': ['Wed', 'Mer'],
+      'خميس': ['Thu', 'Jeu'],
+      'جمعة': ['Fri', 'Ven'],
+      'سبت': ['Sat', 'Sam'],
     };
 
     final entry = translations[value];
