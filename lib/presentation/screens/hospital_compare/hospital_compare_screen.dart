@@ -34,9 +34,7 @@ class _HospitalCompareScreenState extends State<HospitalCompareScreen> {
                     ...selected.map(
                       (i) => DataColumn(
                         label: Text(
-                          AppStrings.of(context).translate(
-                            hospitals[i].data()['name']?.toString() ?? 'مستشفى',
-                          ),
+                          hospitals[i].data()['name']?.toString() ?? AppStrings.of(context).translate('مستشفى'),
                         ),
                       ),
                     ),
@@ -50,7 +48,7 @@ class _HospitalCompareScreenState extends State<HospitalCompareScreen> {
             ])),
             const SizedBox(height:16),
             Text('${AppStrings.of(context).translate('اختر للمقارنة')} (${selected.length}/2+)',style:Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight:FontWeight.bold)),
-            ...List.generate(hospitals.length,(i){final h=hospitals[i].data();final selectedNow=_sel.contains(i);return Container(margin:const EdgeInsets.only(bottom:8),padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(12),border:Border.all(color:selectedNow?AppColors.primary:Colors.transparent,width:2)),child:Row(children:[const Icon(Icons.local_hospital,color:AppColors.error,size:28),const SizedBox(width:10),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(h['name']?.toString()??'مستشفى',style:const TextStyle(fontWeight:FontWeight.bold)),Text('${h['beds'] ?? '--'} سرير • ${h['doctors'] ?? '--'} طبيب',style:const TextStyle(fontSize:10,color:AppColors.grey))])),Checkbox(value:selectedNow,activeColor:AppColors.primary,onChanged:(v)=>setState(()=>v==true?_sel.add(i):_sel.remove(i))) ]));}),
+            ...List.generate(hospitals.length,(i){final h=hospitals[i].data();final selectedNow=_sel.contains(i);return Container(margin:const EdgeInsets.only(bottom:8),padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(12),border:Border.all(color:selectedNow?AppColors.primary:Colors.transparent,width:2)),child:Row(children:[const Icon(Icons.local_hospital,color:AppColors.error,size:28),const SizedBox(width:10),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(h['name']?.toString() ?? AppStrings.of(context).translate('مستشفى'),style:const TextStyle(fontWeight:FontWeight.bold)),Text('${h['beds'] ?? '--'} ${AppStrings.of(context).translate('سرير')} • ${h['doctors'] ?? '--'} ${AppStrings.of(context).translate('طبيب')}',style:const TextStyle(fontSize:10,color:AppColors.grey))])),Checkbox(value:selectedNow,activeColor:AppColors.primary,onChanged:(v)=>setState(()=>v==true?_sel.add(i):_sel.remove(i))) ]));}),
           ]));
         },
       ),
