@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:sehatak/core/constants/app_assets.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -278,7 +279,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               children: [
                 Icon(Icons.person_off_outlined, size: 64, color: dark ? Colors.white54 : Colors.black26),
                 const SizedBox(height: 12),
-                Text('تعذر العثور على الطبيب', style: TextStyle(color: dark ? Colors.white : Colors.black87, fontSize: 17, fontWeight: FontWeight.bold)),
+                Text(AppStrings.of(context).translate('تعذر العثور على الطبيب'), style: TextStyle(color: dark ? Colors.white : Colors.black87, fontSize: 17, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -320,7 +321,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       actions: [
         if (_doctor?.userId?.trim().isNotEmpty == true)
           IconButton(
-            tooltip: 'الملف الشخصي',
+            tooltip: AppStrings.of(context).translate('الملف الشخصي'),
             icon: const Icon(Icons.account_circle_outlined),
             onPressed: () {
               final uid = _doctor!.userId!.trim();
@@ -507,11 +508,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if ((doctor.about ?? '').trim().isNotEmpty) ...[
-            _sectionTitle('نبذة عن الطبيب', Icons.person_outline_rounded, dark),
+            _sectionTitle(AppStrings.of(context).translate('نبذة عن الطبيب'), Icons.person_outline_rounded, dark),
             _card(dark, Padding(padding: const EdgeInsets.all(16), child: Text(doctor.about!, style: TextStyle(height: 1.65, fontSize: 13, color: dark ? Colors.white70 : Colors.black54)))),
             const SizedBox(height: 14),
           ],
-          _sectionTitle('المعلومات المهنية', Icons.badge_outlined, dark),
+          _sectionTitle(AppStrings.of(context).translate('المعلومات المهنية'), Icons.badge_outlined, dark),
           _card(dark, Column(children: [
             _infoRow(Icons.medical_services_outlined, 'التخصص', doctor.specialty, dark),
             _infoRow(Icons.workspace_premium_outlined, 'الخبرة', '${doctor.experienceYears ?? 0} سنة', dark),
@@ -521,7 +522,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           ])),
           const SizedBox(height: 14),
           if (doctor.workingHours != null && doctor.workingHours!.isNotEmpty) ...[
-            _sectionTitle('أوقات الدوام', Icons.schedule_rounded, dark),
+            _sectionTitle(AppStrings.of(context).translate('أوقات الدوام'), Icons.schedule_rounded, dark),
             _card(dark, Column(children: doctor.workingHours!.entries.map((entry) {
               final value = entry.value is Map ? Map<String,dynamic>.from(entry.value) : <String,dynamic>{};
               final enabled = value['enabled'] != false;
@@ -531,11 +532,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             const SizedBox(height: 14),
           ],
           if (doctor.services != null && doctor.services!.isNotEmpty) ...[
-            _sectionTitle('الخدمات التي يقدمها الطبيب', Icons.medical_services_outlined, dark),
+            _sectionTitle(AppStrings.of(context).translate('الخدمات التي يقدمها الطبيب'), Icons.medical_services_outlined, dark),
             _card(dark, Padding(padding: const EdgeInsets.all(14), child: Wrap(spacing: 7, runSpacing: 7, children: doctor.services!.map((s) => Chip(label: Text(s), visualDensity: VisualDensity.compact)).toList()))),
             const SizedBox(height: 14),
           ],
-          _sectionTitle('إجراءات سريعة', Icons.flash_on_rounded, dark),
+          _sectionTitle(AppStrings.of(context).translate('إجراءات سريعة'), Icons.flash_on_rounded, dark),
           _card(dark, Column(children: [
             _listAction(AppAssets.chatBubble, 'فتح الدردشة', 'تواصل مباشرة مع الطبيب', _openChat, dark),
             _listAction(AppAssets.chatCalendarBooking, 'حجز موعد', 'اختر الموعد المناسب لك', _bookAppointment, dark),
@@ -554,11 +555,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         const SizedBox(height: 4),
         Icon(Icons.calendar_month_rounded, size: 48, color: AppColors.primary.withOpacity(.75)),
         const SizedBox(height: 10),
-        Text('احجز موعدك مع الطبيب', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
+        Text(AppStrings.of(context).translate('احجز موعدك مع الطبيب'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
         const SizedBox(height: 6),
-        Text('انتقل إلى شاشة الحجز لاختيار التاريخ والوقت والخدمة.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
+        Text(AppStrings.of(context).translate('انتقل إلى شاشة الحجز لاختيار التاريخ والوقت والخدمة.'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
         const SizedBox(height: 16),
-        SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: _bookAppointment, icon: const Icon(Icons.event_available_rounded), label: const Text('حجز موعد الآن'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
+        SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: _bookAppointment, icon: const Icon(Icons.event_available_rounded), label: Text(AppStrings.of(context).translate('حجز موعد الآن')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
       ])),
     );
   }
@@ -573,15 +574,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           Container(width: 76, height: 76, decoration: BoxDecoration(color: Colors.amber.withOpacity(.10), shape: BoxShape.circle), child: Center(child: Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.amber)))),
           const SizedBox(width: 16),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('التقييم العام', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
+            Text(AppStrings.of(context).translate('التقييم العام'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
             const SizedBox(height: 5),
             Row(children: List.generate(5, (i) => Icon(i < rating.round() ? Icons.star_rounded : Icons.star_border_rounded, color: Colors.amber, size: 18))),
             const SizedBox(height: 4),
-            Text('$count تقييم', style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
+            Text(AppStrings.of(context).translate('$count تقييم'), style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
           ])),
         ]),
         const SizedBox(height: 18),
-        Container(width: double.infinity, padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: dark ? Colors.white.withOpacity(.035) : const Color(0xFFF7F9FA), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.primary), const SizedBox(width: 8), Expanded(child: Text('ستظهر التقييمات المكتملة من المرضى هنا عند توفرها.', style: TextStyle(fontSize: 11, color: dark ? Colors.white60 : Colors.black54)))])),
+        Container(width: double.infinity, padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: dark ? Colors.white.withOpacity(.035) : const Color(0xFFF7F9FA), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.primary), const SizedBox(width: 8), Expanded(child: Text(AppStrings.of(context).translate('ستظهر التقييمات المكتملة من المرضى هنا عند توفرها.'), style: TextStyle(fontSize: 11, color: dark ? Colors.white60 : Colors.black54)))])),
       ])),
     );
   }
