@@ -73,9 +73,9 @@ class _WalletScreenState extends State<WalletScreen> {
             ]),
             const SizedBox(height:8),
             Row(children:[
-              const Text('RYE ',style:TextStyle(color:Colors.white,fontSize:22,fontWeight:FontWeight.bold)),
+              
               Text(_hideBalance?'••••':_balance.toStringAsFixed(2),style:const TextStyle(color:Colors.white,fontSize:36,fontWeight:FontWeight.bold)),
-              const SizedBox(width:8),const Text('ر.ي',style:TextStyle(color:Colors.white70,fontSize:16)),
+              const SizedBox(width:8),Text(AppStrings.of(context).locale.languageCode == 'ar' ? 'ر.ي' : 'YER',style:const TextStyle(color:Colors.white70,fontSize:16)),
             ]),
             const SizedBox(height:16),
             Row(children:[
