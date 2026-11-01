@@ -2,11 +2,14 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/providers/cart_provider.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
+
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +20,7 @@ class CartScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('سلة المشتريات'),
+        title: Text(_t(context, 'سلة المشتريات')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -27,7 +30,7 @@ class CartScreen extends StatelessWidget {
               icon: const Icon(Icons.delete_outline),
               onPressed: () {
                 cartProvider.clearCart();
-                ToastService.showError(context, 'تم تفريغ السلة');
+                ToastService.showError(context, _t(context, 'تم تفريغ السلة'));
               },
             ),
         ],
@@ -64,7 +67,7 @@ class CartScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'السلة فارغة',
+            _t(context, 'السلة فارغة'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -73,7 +76,7 @@ class CartScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'أضف منتجات من الصيدلية',
+            _t(context, 'أضف منتجات من الصيدلية'),
             style: TextStyle(
               fontSize: 14,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -90,7 +93,7 @@ class CartScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('تسوق الآن'),
+            child: Text(_t(context, 'تسوق الآن')),
           ),
         ],
       ),
@@ -155,7 +158,7 @@ class CartScreen extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '${item.price.toStringAsFixed(0)} ر.ي',
+                      AppStrings.of(context).formatCurrency(item.price),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -271,15 +274,15 @@ class CartScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'المجموع',
+              Text(
+                _t(context, 'المجموع'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
-                '${cartProvider.finalPrice.toStringAsFixed(0)} ر.ي',
+                AppStrings.of(context).formatCurrency(cartProvider.finalPrice),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -294,14 +297,14 @@ class CartScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'الخصم',
+                  _t(context, 'الخصم'),
                   style: TextStyle(
                     fontSize: 14,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                 ),
                 Text(
-                  '-${discountAmount.toStringAsFixed(0)} ر.ي',
+                  '-${AppStrings.of(context).formatCurrency(discountAmount)}',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.green,
@@ -319,7 +322,7 @@ class CartScreen extends StatelessWidget {
               onPressed: cartProvider.isEmpty
                   ? null
                   : () {
-                      ToastService.showSuccess(context, '✅ تم تأكيد الطلب!');
+                      ToastService.showSuccess(context, _t(context, 'تم تأكيد الطلب!'));
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -330,8 +333,8 @@ class CartScreen extends StatelessWidget {
               ),
               child: Text(
                 cartProvider.isEmpty
-                    ? 'السلة فارغة'
-                    : 'تأكيد الطلب (${cartProvider.itemCount} منتج)',
+                    ? _t(context, 'السلة فارغة')
+                    : '${_t(context, 'تأكيد الطلب')} (${cartProvider.itemCount} ${_t(context, 'منتج')})',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
