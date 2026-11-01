@@ -183,7 +183,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(_page == _pages.length - 1 ? 'ابدأ الآن' : 'التالي', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(AppStrings.of(context).translate(_page == _pages.length - 1 ? 'ابدأ الآن' : 'التالي'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         if (_page < _pages.length - 1) ...[const SizedBox(width: 8), Icon(Icons.arrow_forward_ios, size: 16)],
                       ],
                     ),
