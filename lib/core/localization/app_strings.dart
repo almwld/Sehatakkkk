@@ -1539,6 +1539,8 @@ class AppStrings {
       'مراقبة مستوى السكر في الدم منزلياً': ['Monitor your blood glucose at home', 'Surveillez votre glycémie à domicile'],
       'دليل': ['Guide', 'Guide'],
       'شائع': ['Popular', 'Populaire'],
+      'تم إنشاء وإرسال ': ['Created and sent ', 'Créé et envoyé '],
+      ' كـ PDF.': [' as a PDF.', ' au format PDF.'],
     };
 
     final entry = translations[value];
