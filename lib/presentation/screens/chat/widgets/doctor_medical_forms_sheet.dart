@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/chat_media_transfer_service.dart';
 import 'package:sehatak/core/services/medical_document_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 Future<void> showDoctorMedicalForms({required BuildContext context,required String chatId,required String patientId,required String patientName}) async {
-  if (!await MedicalDocumentService.instance.isVerifiedDoctor()) { ToastService.showError('إنشاء النماذج الطبية متاح للطبيب الموثق فقط.'); return; }
+  if (!await MedicalDocumentService.instance.isVerifiedDoctor()) { ToastService.showError(AppStrings.of(context).translate('إنشاء النماذج الطبية متاح للطبيب الموثق فقط.')); return; }
   final doctorId=FirebaseAuth.instance.currentUser!.uid;
   final doctor=await MedicalDocumentService.instance.userData(doctorId);
   final patient=await MedicalDocumentService.instance.userData(patientId); patient['uid']=patientId;
@@ -92,7 +93,7 @@ Future<void> _serviceOptions(BuildContext context,String form,String documentId,
    if(names.isNotEmpty)break;
   }
   if(!context.mounted)return;
-  final selected=await showModalBottomSheet<Map<String,String>>(context:context,showDragHandle:true,builder:(_)=>SafeArea(child:SizedBox(height:420,child:names.isEmpty?const Center(child:Text('لا توجد منشآت متاحة حالياً')):ListView(children:[for(final n in names)ListTile(leading:Icon(isLab?Icons.biotech:Icons.local_pharmacy),title:Text(n['name']!),onTap:()=>Navigator.pop(context,n))]))));
+  final selected=await showModalBottomSheet<Map<String,String>>(context:context,showDragHandle:true,builder:(_)=>SafeArea(child:SizedBox(height:420,child:names.isEmpty?Center(child:Text(AppStrings.of(context).translate('لا توجد منشآت متاحة حالياً'))):ListView(children:[for(final n in names)ListTile(leading:Icon(isLab?Icons.biotech:Icons.local_pharmacy),title:Text(n['name']!),onTap:()=>Navigator.pop(context,n))]))));
   if(selected==null)return;fid=selected['id'];fn=selected['name'];
  }
  await MedicalDocumentService.instance.createServiceRequest(documentId:documentId,type:type,patientId:patientId,mode:choice,facilityId:fid,facilityName:fn);
