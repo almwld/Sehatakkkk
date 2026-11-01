@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class LabReviewScreen extends StatefulWidget {
@@ -13,6 +14,8 @@ class LabReviewScreen extends StatefulWidget {
 }
 
 class _LabReviewScreenState extends State<LabReviewScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   int _rating = 0;
   final TextEditingController _reviewController = TextEditingController();
 
@@ -25,7 +28,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: '⭐ تقييم المختبر',
+        title: _t('تقييم المختبر'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -52,7 +55,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '📝 أضف تقييمك',
+                    _t('أضف تقييمك'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -76,7 +79,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
                     controller: _reviewController,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: 'اكتب تقييمك هنا...',
+                      hintText: _t('اكتب تقييمك هنا...'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
@@ -94,7 +97,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
                     child: ElevatedButton(
                       onPressed: _rating > 0
                           ? () {
-                              ToastService.showSuccess(context, '✅ تم إضافة تقييمك بنجاح');
+                              ToastService.showSuccess(context, _t('تم إضافة تقييمك بنجاح'));
                               setState(() {
                                 _rating = 0;
                                 _reviewController.clear();
@@ -109,7 +112,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('إرسال التقييم'),
+                      child: Text(_t('إرسال التقييم')),
                     ),
                   ),
                 ],
@@ -119,7 +122,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
 
             // ✅ قائمة التقييمات
             const Text(
-              '🗣️ تقييمات المرضى',
+              _t('تقييمات المرضى'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
