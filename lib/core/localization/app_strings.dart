@@ -1824,6 +1824,9 @@ class AppStrings {
       'منصة صحتك، أولويتنا': ['Sehatak platform, our priority', 'La plateforme Sehatak, notre priorité'],
       'رعاية موثوقة في أي وقت وأي مكان': ['Trusted care anytime, anywhere', 'Des soins fiables à tout moment et partout'],
       'استكشف الآن': ['Explore now', 'Explorer maintenant'],
+      'طبي': ['Medical', 'Médical'],
+      'بسيط': ['Simple', 'Simple'],
+      'كلاسيكي': ['Classic', 'Classique'],
     };
 
     final entry = translations[value];
