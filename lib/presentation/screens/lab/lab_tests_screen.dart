@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/lab/test_booking_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
@@ -11,6 +12,9 @@ class LabTestsScreen extends StatefulWidget {
 }
 
 class _LabTestsScreenState extends State<LabTestsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+  String _money(double value) => '${value.toStringAsFixed(0)} ${_t('ريال')}';
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String _query = '';
 
@@ -36,7 +40,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
       backgroundColor:
           isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'فحوصات المختبر',
+        title: _t('فحوصات المختبر'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -46,7 +50,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return _state(
-              'تعذر تحميل الفحوصات الحالية. تحقق من الاتصال وحاول مرة أخرى.',
+              _t('تعذر تحميل الفحوصات الحالية. تحقق من الاتصال وحاول مرة أخرى.'),
               isDark,
               icon: Icons.error_outline,
             );
@@ -76,7 +80,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                 child: TextField(
                   onChanged: (value) => setState(() => _query = value),
                   decoration: InputDecoration(
-                    hintText: 'ابحث عن فحص أو تخصص...',
+                    hintText: _t('ابحث عن فحص أو تخصص...'),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _query.isEmpty
                         ? null
@@ -97,8 +101,8 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                 child: tests.isEmpty
                     ? _state(
                         snapshot.data!.isEmpty
-                            ? 'لا توجد فحوصات منشورة حاليًا.'
-                            : 'لا توجد نتائج مطابقة للبحث.',
+                            ? _t('لا توجد فحوصات منشورة حاليًا.')
+                            : _t('لا توجد نتائج مطابقة للبحث.'),
                         isDark,
                         icon: Icons.science_outlined,
                       )
@@ -144,7 +148,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
 
   Widget _buildTestCard(
       Map<String, dynamic> test, bool isDark, BuildContext context) {
-    final name = _text(test['name']).isEmpty ? 'فحص طبي' : _text(test['name']);
+    final name = _text(test['name']).isEmpty ? _t('فحص طبي') : _text(test['name']);
     final category = _text(test['category']);
     final description = _text(test['description']);
     final sampleType = _text(test['sampleType']);
@@ -223,8 +227,8 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                     const SizedBox(height: 6),
                     Text(
                       price > 0
-                          ? '${price.toStringAsFixed(0)} ريال'
-                          : 'السعر حسب المختبر',
+                          ? _money(price)
+                          : _t('السعر حسب المختبر'),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
