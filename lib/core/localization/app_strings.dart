@@ -743,6 +743,12 @@ class AppStrings {
       'تعذر تحديث المتابعة': ['Could not update follow status', 'Impossible de mettre à jour le suivi'],
       '📶 غير متصل': ['📶 Offline', '📶 Hors ligne'],
       'الإعدادات': ['Settings', 'Paramètres'],
+      'معاينة الملف الصوتي': ['Preview audio file', 'Prévisualiser le fichier audio'],
+      'معاينة الملف': ['Preview file', 'Prévisualiser le fichier'],
+      'المرفقات': ['Attachments', 'Pièces jointes'],
+      'اكتب رسالة...': ['Write a message...', 'Écrivez un message...'],
+      'الكاميرا': ['Camera', 'Caméra'],
+      'إرسال': ['Send', 'Envoyer'],
     };
 
     final entry = translations[value];
