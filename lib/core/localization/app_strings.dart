@@ -1931,6 +1931,7 @@ class AppStrings {
       "مركبة إسعاف/استجابة": ["Emergency response vehicle","Véhicule d’intervention d’urgence"],
       "الاسم": ["Name","Nom"],
       "منطقة الخدمة": ["Service area","Zone de service"],
+      "التعليقات": ["Comments","Commentaires"],
     };
 
     final entry = translations[value];
