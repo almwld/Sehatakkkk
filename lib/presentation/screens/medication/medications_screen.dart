@@ -211,7 +211,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              ToastService.showSuccess(context, '🛒 تم إضافة المنتجات إلى السلة');
+              ToastService.showSuccess(context, '🛒 ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم إضافة المنتجات إلى السلة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Produits ajoutés au panier' : 'Products added to cart'}');
             },
           ),
         ],
@@ -444,7 +444,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                   height: 28,
                   child: ElevatedButton(
                     onPressed: () {
-                      ToastService.showSuccess(context, '✅ تم إضافة ${item['name']} إلى السلة');
+                      ToastService.showSuccess(context, '✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم إضافة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Ajouté' : 'Added'} ${item['name']} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'إلى السلة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'au panier' : 'to cart'}');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
