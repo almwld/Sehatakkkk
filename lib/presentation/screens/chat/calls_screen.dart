@@ -39,7 +39,7 @@ class _CallsScreenState extends State<CallsScreen> {
           if (_lastCalls.isNotEmpty) {
             return _buildCallsList(context, _lastCalls, currentUid, isDark);
           }
-          return _empty('تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى', isDark);
+          return _empty(_t('تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى'), isDark);
         }
 
         if (snapshot.hasData) {
@@ -47,7 +47,7 @@ class _CallsScreenState extends State<CallsScreen> {
         }
         final calls = snapshot.data ?? _lastCalls;
         if (calls.isEmpty) {
-          return _empty('لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً', isDark);
+          return _empty(_t('لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً'), isDark);
         }
 
         return _buildCallsList(context, calls, currentUid, isDark);
