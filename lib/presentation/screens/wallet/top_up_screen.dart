@@ -146,7 +146,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              _selectedWallet?.name ?? _t('اضغط لاختيار المحفظة المحلية'),
+                              (_selectedWallet == null ? _t('اضغط لاختيار المحفظة المحلية') : _t(_selectedWallet!.name)),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: isDark ? Colors.white : Colors.black87,
