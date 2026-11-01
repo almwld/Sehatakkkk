@@ -207,7 +207,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('تتبع'),
+                          child: Text(_t('تتبع')),
                         ),
                       ],
                     ),
@@ -231,7 +231,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           _t('معلومات الطلب'),
                           style: TextStyle(
                             fontSize: 16,
@@ -266,7 +266,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           _t('عنوان التوصيل'),
                           style: TextStyle(
                             fontSize: 16,
@@ -330,7 +330,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           _t('المنتجات'),
                           style: TextStyle(
                             fontSize: 16,
@@ -419,7 +419,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           _t('ملخص المبلغ'),
                           style: TextStyle(
                             fontSize: 16,
@@ -452,7 +452,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             Navigator.pop(context);
                           },
                           icon: const Icon(Icons.arrow_back),
-                          label: const Text(_t('العودة')),
+                          label: Text(_t('العودة')),
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: AppColors.primary),
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -478,7 +478,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             );
                           },
                           icon: const Icon(Icons.track_changes, color: Colors.white),
-                          label: const Text(_t('تتبع الطلب')),
+                          label: Text(_t('تتبع الطلب')),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
