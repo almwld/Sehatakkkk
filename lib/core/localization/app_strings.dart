@@ -1047,6 +1047,18 @@ class AppStrings {
       'لا توجد مستندات محفوظة في المكتبة': ['No documents saved in the library', 'Aucun document enregistré dans la bibliothèque'],
       'مستند طبي': ['Medical document', 'Document médical'],
       'الملف محفوظ داخل الجهاز': ['File saved on this device', 'Fichier enregistré sur cet appareil'],
+      'تعذر تحميل حالة الطلب': ['Could not load order status', 'Impossible de charger le statut de la commande'],
+      'لا تملك صلاحية عرض هذا الطلب': ['You are not authorized to view this order', 'Vous n’êtes pas autorisé à consulter cette commande'],
+      'تعذر تحميل الفحوصات': ['Could not load tests', 'Impossible de charger les analyses'],
+      'لا توجد فحوصات — أضف أول فحص': ['No tests yet — add the first test', 'Aucune analyse pour le moment — ajoutez la première'],
+      'تعذر تحميل الحجوزات': ['Could not load bookings', 'Impossible de charger les réservations'],
+      'لا توجد حجوزات في هذه الحالة': ['No bookings in this status', 'Aucune réservation dans cet état'],
+      'تعذر فتح وسيلة التواصل': ['Could not open the contact option', 'Impossible d’ouvrir le moyen de contact'],
+      'لا توجد بانرات': ['No banners available', 'Aucune bannière disponible'],
+      'لا يوجد أطباء موثقون متاحون حاليًا': ['No verified doctors are currently available', 'Aucun médecin vérifié n’est disponible actuellement'],
+      'تعذر تحميل المستشفيات حالياً': ['Could not load hospitals right now', 'Impossible de charger les hôpitaux pour le moment'],
+      'لا توجد مستشفيات متاحة حالياً': ['No hospitals are currently available', 'Aucun hôpital n’est actuellement disponible'],
+      'لا توجد تقييمات': ['No reviews yet', 'Aucun avis pour le moment'],
     };
 
     final entry = translations[value];
