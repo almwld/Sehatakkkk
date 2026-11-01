@@ -84,6 +84,7 @@ void main() {
       expect(AppStrings(const Locale('ar', 'SA')).formatCurrency(1250), '1250 ر.ي');
       expect(AppStrings(const Locale('en', 'US')).formatCurrency(1250), '1250 YER');
       expect(AppStrings(const Locale('fr', 'FR')).formatCurrency(1250), '1250 YER');
+      expect(AppStrings(const Locale('en', 'US')).formatCurrency(1250.5), '1250.50 YER');
     });
 
     test('preserves unknown and user-provided content', () {
