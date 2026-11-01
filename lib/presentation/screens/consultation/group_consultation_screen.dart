@@ -19,20 +19,21 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _topicCtrl = TextEditingController();
   final TextEditingController _descCtrl = TextEditingController();
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
     if (user == null) {
       return Scaffold(
-        appBar: CustomAppBar(title: 'الاستشارات الجماعية', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        appBar: CustomAppBar(title: _t('الاستشارات الجماعية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
         body: const Center(child: Text('يرجى تسجيل الدخول')),
       );
     }
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الاستشارات الجماعية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('الاستشارات الجماعية'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -52,7 +53,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+            return Center(child: Text('${_t('حدث خطأ')}: ${snapshot.error}'));
           }
 
           final consultations = snapshot.data?.docs ?? [];
@@ -125,7 +126,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(data['topic'] ?? 'استشارة جماعية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(data['topic'] ?? _t('استشارة جماعية'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text(data['description'] ?? '', style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 8),
@@ -133,7 +134,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
             children: [
               const Icon(Icons.people, size: 14, color: Colors.grey),
               const SizedBox(width: 4),
-              Text('${participants.length} مشارك', style: TextStyle(fontSize: 10, color: Colors.grey)),
+              Text('${participants.length} ${_t('مشارك')}', style: TextStyle(fontSize: 10, color: Colors.grey)),
               const Spacer(),
               ElevatedButton(
                 onPressed: () {
@@ -146,7 +147,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   textStyle: TextStyle(fontSize: 10),
                 ),
-                child: Text(status == 'مفتوحة' ? 'انضم' : 'مغلقة'),
+                child: Text(_t(status == 'مفتوحة' ? 'انضم' : 'مغلقة')),
               ),
             ],
           ),
@@ -160,7 +161,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('استشارة جماعية جديدة', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('استشارة جماعية جديدة'), style: TextStyle(fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -189,7 +190,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(_t('إلغاء'))),
           ElevatedButton(
             onPressed: () async {
               if (_topicCtrl.text.isEmpty) {
@@ -214,7 +215,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               ToastService.showSuccess(context, '✅ تم إنشاء الاستشارة');
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('إنشاء'),
+            child: Text(_t('إنشاء')),
           ),
         ],
       ),
