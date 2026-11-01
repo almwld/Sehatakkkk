@@ -168,6 +168,15 @@ void main() {
       expect(french.translate('الملفات الحديثة'), 'Fichiers récents');
     });
 
+    test('translates pharmacy product loading states', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('لا توجد منتجات متاحة في هذه الصيدلية حالياً'),
+          'No products are currently available at this pharmacy');
+      expect(french.translate('تعذر تحميل منتجات الصيدلية حالياً'),
+          'Impossible de charger les produits de la pharmacie pour le moment');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
