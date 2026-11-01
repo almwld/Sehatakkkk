@@ -125,6 +125,15 @@ void main() {
       expect(french.translate('أنف وأذن وحنجرة'), 'ORL');
     });
 
+    test('translates hospital dashboard metrics and status labels', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('لوحة تحكم المستشفى'), 'Hospital dashboard');
+      expect(english.translate('أحدث الحجوزات'), 'Latest bookings');
+      expect(french.translate('الإيرادات'), 'Revenus');
+      expect(french.translate('مغلق'), 'Fermé');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
