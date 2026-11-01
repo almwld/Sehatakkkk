@@ -432,7 +432,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
               _userRole != 'مريض')
             IconButton(
               icon: const Icon(Icons.dashboard_rounded),
-              tooltip: 'لوحة التحكم',
+              tooltip: AppStrings.of(context).translate('لوحة التحكم'),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -468,12 +468,12 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
                 : const Icon(Icons.share),
             onPressed: _isSharing ? null : _shareProfile,
-            tooltip: 'مشاركة الملف الصحي',
+            tooltip: AppStrings.of(context).translate('مشاركة الملف الصحي'),
           ),
           IconButton(
             icon: const Icon(Icons.qr_code),
             onPressed: _showQRCode,
-            tooltip: 'عرض الباركود',
+            tooltip: AppStrings.of(context).translate('عرض الباركود'),
           ),
         ],
       ),
