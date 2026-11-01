@@ -254,7 +254,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _card(isDark, ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: _localImage(_logoutIcon),
-            title: const Text(strings.logout, style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+            title: Text(strings.logout, style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
             trailing: _arrow(isDark, color: Colors.red),
             onTap: () => _showLogoutDialog(context),
           )),
@@ -316,7 +316,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(strings.logout),
+        title: Text(AppStrings.of(context).logout),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
@@ -334,7 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ToastService.showError('خطأ في تسجيل الخروج: $e');
               }
             },
-            child: const Text(strings.logout),
+            child: Text(AppStrings.of(context).logout),
           ),
         ],
       ),
