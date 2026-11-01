@@ -231,7 +231,7 @@ class _HomeTabState extends State<HomeTab>
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                   Text((doctor['name'] ?? AppStrings.of(context).translate('طبيب')).toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
                   const SizedBox(height: 3),
-                  Text((doctor['specialty'] ?? AppStrings.of(context).translate('تخصص طبي')).toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
+                  Text(AppStrings.of(context).translate((doctor['specialty'] ?? 'تخصص طبي').toString()), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
                   if (doctor['rating'] != null) ...[
                     const SizedBox(height: 4),
                     Row(children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 13), const SizedBox(width: 2), Text(doctor['rating'].toString(), style: TextStyle(fontSize: 9, color: dark ? Colors.white70 : _muted))]),
