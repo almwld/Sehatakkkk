@@ -913,6 +913,16 @@ class AppStrings {
       'فتح': ['Open', 'Ouvrir'],
       'اكتب ما تشعر به أو ما تحتاجه…': ['Describe how you feel or what you need…', 'Décrivez ce que vous ressentez ou ce dont vous avez besoin…'],
       'بدأنا محادثة جديدة. قل لي ما تشعر به أو ما تريد الوصول إليه داخل صحتك.': ['We started a new conversation. Tell me how you feel or what you want to find in Sehatak.', 'Nous avons commencé une nouvelle conversation. Dites-moi ce que vous ressentez ou ce que vous souhaitez trouver dans Sehatak.'],
+      'صحتي': ['My health', 'Ma santé'],
+      'الاستشارة الطبية': ['Medical consultation', 'Consultation médicale'],
+      'الطوارئ': ['Emergency', 'Urgences'],
+      'التبرع بالدم': ['Blood donation', 'Don de sang'],
+      'الخريطة': ['Map', 'Carte'],
+      'الوقاية': ['Prevention', 'Prévention'],
+      'صحة الطفل': ['Child health', 'Santé de l’enfant'],
+      'الملف الصحي': ['Health record', 'Dossier médical'],
+      'الأعراض': ['Symptoms', 'Symptômes'],
+      'الإسعافات الأولية': ['First aid', 'Premiers secours'],
     };
 
     final entry = translations[value];
