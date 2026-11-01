@@ -759,6 +759,7 @@ class AppStrings {
       'جينية': ['Genetic', 'Génétique'],
       'أورام': ['Oncology', 'Oncologie'],
       'تعذر تحميل المختبرات. تحقق من الاتصال وحاول مرة أخرى.': ['Could not load laboratories. Check your connection and try again.', 'Impossible de charger les laboratoires. Vérifiez votre connexion et réessayez.'],
+      'منشور من صحتك': ['Post from Sehatak', 'Publication de Sehatak'],
     };
 
     final entry = translations[value];
