@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/message_model.dart';
 import 'package:sehatak/core/services/chat_service.dart';
@@ -48,7 +49,7 @@ class _MessageSearchScreenState extends State<MessageSearchScreen> {
       if (!mounted || query != _query) return;
       setState(() => _results = results);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر البحث داخل الرسائل')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر البحث داخل الرسائل'))));
     } finally {
       if (mounted && query == _query) setState(() => _loading = false);
     }
@@ -83,9 +84,9 @@ class _MessageSearchScreenState extends State<MessageSearchScreen> {
         actions: [if (_loading) const Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)))],
       ),
       body: _query.isEmpty
-          ? const Center(child: Text('اكتب كلمة أو عبارة للبحث'))
+          ? Center(child: Text(AppStrings.of(context).translate('اكتب كلمة أو عبارة للبحث')))
           : _results.isEmpty && !_loading
-              ? const Center(child: Text('لا توجد رسائل مطابقة'))
+              ? Center(child: Text(AppStrings.of(context).translate('لا توجد رسائل مطابقة')))
               : ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: _results.length,
