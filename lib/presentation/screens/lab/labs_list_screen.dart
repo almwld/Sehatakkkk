@@ -70,7 +70,40 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
 
   Widget _categoriesBar(bool dark) => SizedBox(height: 56, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), itemCount: _categories.length, itemBuilder: (_, index) { final category = _categories[index]; final selected = _selectedCategory == category; return ChoiceChip(label: Text(AppStrings.of(context).translate(category)), selected: selected, onSelected: (_) => setState(() => _selectedCategory = category), selectedColor: AppColors.primary, labelStyle: TextStyle(color: selected ? Colors.white : (dark ? Colors.white : Colors.black87))); }, separatorBuilder: (_, __) => const SizedBox(width: 8)));
 
-  Widget _labsView(List<Map<String, dynamic>> labs, bool dark) { if (_isLoading) return const Center(child: CircularProgressIndicator(color: AppColors.primary)); if (labs.isEmpty) return RefreshIndicator(onRefresh: _loadLabs, child: ListView(children: [const SizedBox(height: 220), Center(child: Text(AppStrings.of(context).translate(_labs.isEmpty ? 'لا توجد مختبرات مسجلة حاليًا.' : 'لا توجد نتائج مطابقة للبحث.'), style: const TextStyle(color: Colors.grey))))])); return RefreshIndicator(onRefresh: _loadLabs, child: ListView.builder(controller: widget.scrollController, padding: const EdgeInsets.fromLTRB(12, 4, 12, 24), itemCount: labs.length, itemBuilder: (_, index) => _labCard(labs[index], dark))); }
+  Widget _labsView(List<Map<String, dynamic>> labs, bool dark) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+    }
+    if (labs.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _loadLabs,
+        child: ListView(
+          children: [
+            const SizedBox(height: 220),
+            Center(
+              child: Text(
+                AppStrings.of(context).translate(
+                  _labs.isEmpty
+                      ? 'لا توجد مختبرات مسجلة حاليًا.'
+                      : 'لا توجد نتائج مطابقة للبحث.',
+                ),
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _loadLabs,
+      child: ListView.builder(
+        controller: widget.scrollController,
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+        itemCount: labs.length,
+        itemBuilder: (_, index) => _labCard(labs[index], dark),
+      ),
+    );
+  }
   String _labImage(Map<String, dynamic> lab) {
     final explicit = _string(lab['imageUrl'] ?? lab['image'] ?? lab['logoUrl'] ?? lab['logo']);
     if (explicit.isNotEmpty) return explicit;
