@@ -432,20 +432,43 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _stopRecording() async {
     if (!_recording) return;
+    var stopCompleted = false;
     try {
       final stoppedPath = await _recorder.stop();
+      stopCompleted = true;
       if (stoppedPath != null && stoppedPath.isNotEmpty) {
         _recordPath = stoppedPath;
       }
       final path = _recordPath;
-      if (path == null || !await File(path).exists()) {
-        throw StateError('recording file missing after recorder stop');
-      }
+      final fileExists = path != null && await File(path).exists();
       _timer?.cancel();
       _timer = null;
-      if (mounted) setState(() { _recording = false; _paused = false; });
+      if (!mounted) return;
+      setState(() {
+        _recording = false;
+        _paused = false;
+        if (!fileExists) _recordPath = null;
+      });
+      if (!fileExists) {
+        ToastService.showError('تعذر إنهاء التسجيل وحفظه. حاول مرة أخرى.');
+      }
     } catch (e, st) {
       debugPrint('record stop failed: $e\n$st');
+      var recorderStillActive = false;
+      try {
+        recorderStillActive = await _recorder.isRecording();
+      } catch (_) {}
+      if (!recorderStillActive || stopCompleted) {
+        _timer?.cancel();
+        _timer = null;
+        if (mounted) {
+          setState(() {
+            _recording = false;
+            _paused = false;
+            _recordPath = null;
+          });
+        }
+      }
       if (mounted) {
         ToastService.showError('تعذر إنهاء التسجيل وحفظه. حاول الإيقاف مرة أخرى.');
       }
