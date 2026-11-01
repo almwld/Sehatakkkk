@@ -370,7 +370,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildImage(String path) {
-    if (path.isEmpty) return const SizedBox(width: 230, height: 100, child: Center(child: Text('تعذر تحميل الصورة')));
+    if (path.isEmpty) return SizedBox(width: 230, height: 100, child: Center(child: Text(AppStrings.of(context).translate('تعذر تحميل الصورة'))));
     final local = _isLocal(path);
     final cleanPath = path.replaceFirst('file://', '');
     final image = local ? Image.file(File(cleanPath), fit: BoxFit.contain) : CachedNetworkImage(imageUrl: path, fit: BoxFit.contain);
@@ -378,7 +378,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildVideo(String path) {
-    if (path.isEmpty) return const SizedBox(width: 230, height: 100, child: Center(child: Text('تعذر تحميل الفيديو')));
+    if (path.isEmpty) return SizedBox(width: 230, height: 100, child: Center(child: Text(AppStrings.of(context).translate('تعذر تحميل الفيديو'))));
     return GestureDetector(onTap: () => showDialog<void>(context: context, builder: (_) => _VideoViewer(url: path, isLocal: _isLocal(path))), child: Container(width: 230, height: 160, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14)), child: const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 50))));
   }
 
