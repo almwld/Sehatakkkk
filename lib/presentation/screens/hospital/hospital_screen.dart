@@ -79,7 +79,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
           const SizedBox(height: 14),
           Text('${_t('الموقع')}: ${h['location'] ?? h['address'] ?? _t('غير محدد')}'),
           if (h['phone'] != null) Text('${_t('الهاتف')}: ${h['phone']}'),
-          if (h['emergency'] == true) const Padding(padding: EdgeInsets.only(top: 10), child: Text(_t('الطوارئ متاحة'), style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
+          if (h['emergency'] == true) Padding(padding: const EdgeInsets.only(top: 10), child: Text(_t('الطوارئ متاحة'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
         ]),
       )),
     );
