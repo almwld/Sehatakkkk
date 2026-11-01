@@ -88,7 +88,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                   const Divider(height: 24),
                   _buildReceiptRow(
                     t('نوع العملية'),
-                    transaction.typeText,
+                    t(transaction.typeText),
                     isDark,
                   ),
                   const Divider(height: 24),
