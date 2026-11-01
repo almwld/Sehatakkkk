@@ -66,13 +66,13 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
     final uid=FirebaseAuth.instance.currentUser?.uid; if(uid==null)return;
     final ref=FirebaseFirestore.instance.collection('users').doc(uid).collection('preferences').doc('delivery');
     await ref.set({'serviceId':service['id']??service['serviceId'],'serviceName':service['name'],'type':service['type'],'updatedAt':FieldValue.serverTimestamp()});
-    if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text(_t('تم حفظ خدمة التوصيل للاستخدام في الطلبات القادمة.'))));
+    if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(_t('تم حفظ خدمة التوصيل للاستخدام في الطلبات القادمة.'))));
   }
 
   Widget _buildTracking(bool dark)=>Padding(padding:const EdgeInsets.all(16),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
     const Icon(Icons.location_searching_rounded,size:64,color:AppColors.primary),const SizedBox(height:16),Text(_t('تتبع طلبك'),style:TextStyle(fontSize:20,fontWeight:FontWeight.bold)),
     const SizedBox(height:8),Text(_t('أدخل رقم طلبك لعرض الحالة الفعلية المسجلة للطلب.'),textAlign:TextAlign.center),const SizedBox(height:20),
     TextField(controller:_orderIdController,textDirection:TextDirection.ltr,decoration:InputDecoration(labelText:_t('رقم الطلب'),border:const OutlineInputBorder())),const SizedBox(height:14),
-    SizedBox(width:double.infinity,height:50,child:ElevatedButton.icon(onPressed:(){final id=_orderIdController.text.trim();if(id.isEmpty){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text(_t('أدخل رقم الطلب أولاً.'))));return;}Navigator.push(context,MaterialPageRoute(builder:(_)=>DeliveryTrackingScreen(orderId:id)));},icon:const Icon(Icons.my_location),label:Text(_t('عرض التتبع')))),
+    SizedBox(width:double.infinity,height:50,child:ElevatedButton.icon(onPressed:(){final id=_orderIdController.text.trim();if(id.isEmpty){ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(_t('أدخل رقم الطلب أولاً.'))));return;}Navigator.push(context,MaterialPageRoute(builder:(_)=>DeliveryTrackingScreen(orderId:id)));},icon:const Icon(Icons.my_location),label:Text(_t('عرض التتبع')))),
   ]));
 }
