@@ -373,8 +373,8 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
             child: Text(AppStrings.of(context).translate('الحالات اليومية'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           ),
           if (_loadingStatuses)
@@ -515,8 +515,8 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             const SizedBox(height: 10),
             Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(4))),
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Align(alignment: Alignment.centerRight, child: Text(AppStrings.of(context).translate('اختر طبيباً لبدء المحادثة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
             ),
             Expanded(
