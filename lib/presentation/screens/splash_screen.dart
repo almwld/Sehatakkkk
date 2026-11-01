@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const _lastShownKey = 'sehatak_splash_last_shown_ms';
   static const _interval = Duration(hours: 12);
-  static const _duration = Duration(seconds: 9);
+  static const _duration = Duration(milliseconds: 3500);
 
   late final AnimationController _controller;
   late final Animation<double> _fade;
