@@ -186,7 +186,7 @@ class _TestsTab extends StatelessWidget{
           final d=docs[i].data();
           return Card(child:ListTile(leading:const Icon(Icons.science,color:AppColors.primary),
             title:Text(d['name']?.toString()??_t(context,'فحص')),
-            subtitle:Text((d['price']??0).toString()+' ر.ي • '+(d['duration']??'-').toString()),
+            subtitle:Text((d['price']??0).toString()+' '+_t(context,'ر.ي')+' • '+(d['duration']??'-').toString()),
             trailing:PopupMenuButton<String>(itemBuilder:(_)=>[
               PopupMenuItem(value:'edit',child:Text(_t(context,'تعديل'))),PopupMenuItem(value:'delete',child:Text(_t(context,'حذف')))],
               onSelected:(v)async{
