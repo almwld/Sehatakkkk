@@ -58,6 +58,12 @@ void main() {
       expect(french.translate('فتح إعدادات النظام'), 'Ouvrir les paramètres système');
     });
 
+    test('formats Yemeni rial consistently for each locale', () {
+      expect(AppStrings(const Locale('ar', 'SA')).formatCurrency(1250), '1250 ر.ي');
+      expect(AppStrings(const Locale('en', 'US')).formatCurrency(1250), '1250 YER');
+      expect(AppStrings(const Locale('fr', 'FR')).formatCurrency(1250), '1250 YER');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
