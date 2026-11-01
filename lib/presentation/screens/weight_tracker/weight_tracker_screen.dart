@@ -124,7 +124,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               textAlign: TextAlign.center,
               decoration: const InputDecoration(
-                labelText: 'الوزن بالكيلوجرام',
+                labelText: AppStrings.of(context).translate('الوزن بالكيلوجرام'),
                 border: OutlineInputBorder(),
               ),
             ),
