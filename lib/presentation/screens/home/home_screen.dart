@@ -107,11 +107,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(AppStrings.of(context).translate('تفعيل المكالمات الواردة')),
-          content: const Text(
-            'لإظهار شاشة المكالمة الواردة فوق شاشة القفل، '
-            'يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. '
-            'إذا لم تمنح الإذن، سيستمر إشعار المكالمة العادي بالعمل.',
-          ),
+          content: Text(AppStrings.of(context).translate('لإظهار شاشة المكالمة الواردة فوق شاشة القفل، يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. إذا لم تمنح الإذن، سيستمر إشعار المكالمة العادي بالعمل.')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
