@@ -72,7 +72,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('معلومات الرسالة', textAlign: TextAlign.right, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(AppStrings.of(context).translate('معلومات الرسالة'), textAlign: TextAlign.right, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
               if (m['isEdited'] == true) _infoRow(Icons.edit_outlined, 'الحالة', 'تم تعديل الرسالة'),
             ],
@@ -105,7 +105,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           child: Stack(clipBehavior: Clip.none, children: [
             _buildContent(type, dark),
             if (progress != null && progress >= 0 && progress < 1) Positioned(left: 8, right: 8, bottom: 3, child: LinearProgressIndicator(value: progress, minHeight: 2)),
-            if (widget.message['hasError'] == true) PositionedDirectional(start: -38, bottom: 5, child: IconButton(tooltip: 'إعادة المحاولة', onPressed: () => widget.message['onRetry']?.call(), icon: const Icon(Icons.refresh, color: Colors.red, size: 22))),
+            if (widget.message['hasError'] == true) PositionedDirectional(start: -38, bottom: 5, child: IconButton(tooltip: AppStrings.of(context).translate('إعادة المحاولة'), onPressed: () => widget.message['onRetry']?.call(), icon: const Icon(Icons.refresh, color: Colors.red, size: 22))),
           ]),
         ),
       ),
@@ -264,7 +264,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _editedMarker(bool dark) => Padding(
     padding: const EdgeInsets.only(bottom: 3),
-    child: Text('معدلة', style: TextStyle(fontSize: 9, color: widget.isMe ? Colors.white60 : (dark ? Colors.white54 : Colors.grey))),
+    child: Text(AppStrings.of(context).translate('معدلة'), style: TextStyle(fontSize: 9, color: widget.isMe ? Colors.white60 : (dark ? Colors.white54 : Colors.grey))),
   );
 
   Widget _pinnedMarker(bool dark) => Padding(
@@ -274,7 +274,7 @@ class _MessageBubbleState extends State<MessageBubble> {
       children: [
         Icon(Icons.push_pin_rounded, size: 13, color: widget.isMe ? Colors.white70 : AppColors.primary),
         const SizedBox(width: 4),
-        Text('مثبتة', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))),
+        Text(AppStrings.of(context).translate('مثبتة'), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))),
       ],
     ),
   );
@@ -492,7 +492,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             final other = parts.firstWhere((x) => x != uid, orElse: () => '');
             final details = data['participantDetails'] is Map ? Map<String,dynamic>.from(data['participantDetails']) : <String,dynamic>{};
             final otherData = details[other] is Map ? Map<String,dynamic>.from(details[other]) : <String,dynamic>{};
-            return ListTile(leading: const Icon(Icons.chat_bubble_outline), title: Text((otherData['name'] ?? 'محادثة').toString()), onTap: () => Navigator.pop(ctx, d.id));
+            return ListTile(leading: const Icon(Icons.chat_bubble_outline), title: Text((otherData['name'] ?? AppStrings.of(context).translate('محادثة')).toString()), onTap: () => Navigator.pop(ctx, d.id));
           }).toList(),
         ))),
       );
@@ -787,7 +787,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               ),
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('معلومات الرسالة'),
+              title: Text(AppStrings.of(context).translate('معلومات الرسالة')),
               onTap: () {
                 Navigator.pop(context);
                 _showMessageInfo();
