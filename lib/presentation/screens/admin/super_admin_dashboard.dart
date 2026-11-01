@@ -49,7 +49,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
       content:SizedBox(width:420,height:420,child:ListView(children:snap.docs.map((d){
         final x=d.data();
         return ListTile(leading:const CircleAvatar(child:Icon(Icons.person)),title:Text(x['name']?.toString()??_t('مستخدم')),
-          subtitle:Text((x['email']?.toString()??'')+' • '+(x['role']?.toString()??'user')),onTap:()=>Navigator.pop(c,d.id));
+          subtitle:Text((x['email']?.toString()??'')+' • '+_t(roles[x['role']?.toString()]??(x['role']?.toString()??'user'))),onTap:()=>Navigator.pop(c,d.id));
       }).toList())),
       actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(_t('إلغاء')))],
     ));
@@ -93,8 +93,8 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
     if(!s.hasData)return const Center(child:CircularProgressIndicator());
     return ListView.separated(padding:const EdgeInsets.all(12),itemCount:s.data!.docs.length,separatorBuilder:(_,__)=>const SizedBox(height:6),itemBuilder:(c,i){
       final d=s.data!.docs[i],x=d.data(),uid=d.id,blocked=x['isSuspended']==true;
-      return Card(child:ListTile(leading:CircleAvatar(child:Icon(blocked?Icons.block:Icons.person)),title:Text(x['name']?.toString()??'مستخدم'),
-        subtitle:Text((x['email']?.toString()??'')+'\nالدور: '+(x['role']?.toString()??'user')+' • '+(blocked?'موقوف':'نشط')),isThreeLine:true,
+      return Card(child:ListTile(leading:CircleAvatar(child:Icon(blocked?Icons.block:Icons.person)),title:Text(x['name']?.toString()??_t('مستخدم')),
+        subtitle:Text((x['email']?.toString()??'')+'\n'+_t('الدور')+': '+_t(roles[x['role']?.toString()]??(x['role']?.toString()??'user'))+' • '+_t(blocked?'موقوف':'نشط')),isThreeLine:true,
         trailing:PopupMenuButton<String>(onSelected:(a)=>_userAction(uid,a),itemBuilder:(_)=>[
           PopupMenuItem(value:blocked?'unblock':'block',child:Text(_t(blocked?'إلغاء الإيقاف':'إيقاف الحساب'))),
           PopupMenuItem(value:x['isVerified']==true?'unverify':'verify',child:Text(_t(x['isVerified']==true?'إلغاء التوثيق':'توثيق الحساب'))),
@@ -109,7 +109,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
     Text(_t('إشعارات فورية'),style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),
     const SizedBox(height:6),Text(_t('مستخدم محدد أو مجموعة حسب الدور أو جميع المستخدمين.')),
     const SizedBox(height:14),
-    DropdownButtonFormField<String>(value:_target,decoration:InputDecoration(labelText:_t('الجمهور')),items:const[
+    DropdownButtonFormField<String>(value:_target,decoration:InputDecoration(labelText:_t('الجمهور')),items:[
       DropdownMenuItem(value:'all',child:Text(_t('كل المستخدمين'))),DropdownMenuItem(value:'role',child:Text(_t('حسب الدور'))),DropdownMenuItem(value:'user',child:Text(_t('مستخدم محدد')))],
       onChanged:(v){if(v!=null)setState(()=>_target=v);}),
     if(_target=='role')Padding(padding:const EdgeInsets.only(top:10),child:DropdownButtonFormField<String>(value:_role,decoration:InputDecoration(labelText:_t('الدور')),items:roles.entries.map((e)=>DropdownMenuItem(value:e.key,child:Text(_t(e.value)))).toList(),onChanged:(v){if(v!=null)setState(()=>_role=v);})),
