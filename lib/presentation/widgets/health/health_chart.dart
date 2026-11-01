@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:intl/intl.dart';
 
 class HealthChart extends StatelessWidget {
@@ -42,7 +43,7 @@ class HealthChart extends StatelessWidget {
               children: [
                 Icon(Icons.show_chart, size: 48, color: Colors.grey[400]),
                 const SizedBox(height: 8),
-                Text('لا توجد بيانات بعد', style: TextStyle(color: Colors.grey[600])),
+                Text(AppStrings.of(context).translate('لا توجد بيانات بعد'), style: TextStyle(color: Colors.grey[600])),
               ],
             ),
           );
