@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/payment/wallet_models.dart';
 import 'package:sehatak/core/services/payment_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -21,6 +22,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
   bool _isLoading = false;
 
   final PaymentService _paymentService = PaymentService();
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   void dispose() {
@@ -36,7 +38,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: CustomAppBar(
-        title: 'تغذية المحفظة',
+        title: _t('تغذية المحفظة'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -62,9 +64,9 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('الرصيد الحالي:', style: TextStyle(fontSize: 16)),
+                        Text(_t('الرصيد الحالي:'), style: TextStyle(fontSize: 16)),
                         Text(
-                          '${currentBalance.toStringAsFixed(0)} ر.ي',
+                          AppStrings.of(context).formatCurrency(currentBalance),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -76,7 +78,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'اختر المحفظة التي قمت بالتحويل منها:',
+                    _t('اختر المحفظة التي قمت بالتحويل منها:'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -144,7 +146,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              _selectedWallet?.name ?? 'اضغط لاختيار المحفظة المحلية',
+                              _selectedWallet?.name ?? _t('اضغط لاختيار المحفظة المحلية'),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: isDark ? Colors.white : Colors.black87,
@@ -177,7 +179,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                               Icon(Icons.info_outline, color: Colors.amber[700]),
                               const SizedBox(width: 8),
                               Text(
-                                'تعليمات التحويل:',
+                                _t('تعليمات التحويل:'),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: isDark ? Colors.amber[200] : Colors.amber[900],
@@ -187,14 +189,14 @@ class _TopUpScreenState extends State<TopUpScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'قم بالتحويل إلى رقم الحساب: ${_selectedWallet!.accountNumber}',
+                            _t('قم بالتحويل إلى رقم الحساب: ') + _selectedWallet!.accountNumber,
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark ? Colors.amber[200] : Colors.amber[900],
                             ),
                           ),
                           Text(
-                            'ثم أدخل رقم الحوالة/الإشعار أدناه. سيتم مراجعة الطلب قبل إضافة الرصيد.',
+                            _t('ثم أدخل رقم الحوالة/الإشعار أدناه. سيتم مراجعة الطلب قبل إضافة الرصيد.'),
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark ? Colors.amber[200] : Colors.amber[900],
@@ -210,15 +212,15 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     enabled: !_isLoading,
                     decoration: InputDecoration(
-                      labelText: 'المبلغ (ر.ي)',
-                      hintText: 'أدخل المبلغ المراد شحنه',
+                      labelText: _t('المبلغ (ر.ي)'),
+                      hintText: _t('أدخل المبلغ المراد شحنه'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       prefixIcon: const Icon(Icons.attach_money),
                     ),
                     validator: (val) {
-                      if (val == null || val.isEmpty) return 'يرجى إدخال المبلغ';
+                      if (val == null || val.isEmpty) return _t('يرجى إدخال المبلغ');
                       final amount = double.tryParse(val);
-                      if (amount == null || amount <= 0) return 'إدخال غير صحيح';
+                      if (amount == null || amount <= 0) return _t('إدخال غير صحيح');
                       return null;
                     },
                   ),
@@ -228,14 +230,14 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     keyboardType: TextInputType.number,
                     enabled: !_isLoading,
                     decoration: InputDecoration(
-                      labelText: 'رقم الإشعار / الحوالة',
-                      hintText: 'أدخل رقم الإشعار من المحفظة',
+                      labelText: _t('رقم الإشعار / الحوالة'),
+                      hintText: _t('أدخل رقم الإشعار من المحفظة'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       prefixIcon: const Icon(Icons.receipt_long),
                     ),
                     validator: (val) {
-                      if (val == null || val.isEmpty) return 'يرجى إدخال رقم الإشعار';
-                      if (val.length < 4) return 'رقم الإشعار قصير جداً';
+                      if (val == null || val.isEmpty) return _t('يرجى إدخال رقم الإشعار');
+                      if (val.length < 4) return _t('رقم الإشعار قصير جداً');
                       return null;
                     },
                   ),
@@ -251,8 +253,8 @@ class _TopUpScreenState extends State<TopUpScreen> {
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'إرسال طلب التغذية',
+                          : Text(
+                              _t('إرسال طلب التغذية'),
                               style: TextStyle(fontSize: 16, color: Colors.white),
                             ),
                     ),
@@ -269,7 +271,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
   Future<void> _submitTopUp() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedWallet == null) {
-      ToastService.showError('يرجى اختيار المحفظة أولاً');
+      ToastService.showError(_t('يرجى اختيار المحفظة أولاً'));
       return;
     }
 
@@ -289,11 +291,11 @@ class _TopUpScreenState extends State<TopUpScreen> {
       );
 
       if (mounted) {
-        ToastService.showSuccess('تم إرسال طلب التغذية للمراجعة، وسيُضاف الرصيد بعد التحقق.');
+        ToastService.showSuccess(_t('تم إرسال طلب التغذية للمراجعة، وسيُضاف الرصيد بعد التحقق.'));
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted) ToastService.showError('فشل إرسال الطلب: $e');
+      if (mounted) ToastService.showError(_t('فشل إرسال الطلب: ') + e.toString());
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
