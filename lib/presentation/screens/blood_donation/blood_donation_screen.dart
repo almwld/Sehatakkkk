@@ -249,7 +249,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                   ),
                 ),
                 title: Text(
-                  data['name'] ?? 'مجهول',
+                  data['name'] ?? _t('مجهول'),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text('${data['city'] ?? ''} • ${data['phone'] ?? ''}'),
