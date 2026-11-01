@@ -438,7 +438,7 @@ class _MoreScreenState extends State<MoreScreen>
               children: [
                 _buildIcon(vital['icon'] as String, size: 48),
                 const SizedBox(height: 6),
-                Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: vital['color'] as Color), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+                Text(AppStrings.of(context).translate(value), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: vital['color'] as Color), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
                 Text(AppStrings.of(context).translate(vital['unit'] as String), style: TextStyle(fontSize: 9, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                 const SizedBox(height: 2),
                 Text(AppStrings.of(context).translate(label), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: isDark ? Colors.grey[300] : Colors.grey[700]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
