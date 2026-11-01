@@ -899,6 +899,20 @@ class AppStrings {
       'الحمل والرضاعة والأطفال والأمراض المزمنة تحتاج إرشاداً غذائياً خاصاً.': ['Pregnancy, breastfeeding, children, and chronic conditions require tailored nutrition guidance.', 'La grossesse, l’allaitement, l’enfance et les maladies chroniques nécessitent des conseils nutritionnels adaptés.'],
       'متى تحتاج مختصاً؟': ['When should you see a specialist?', 'Quand consulter un spécialiste ?'],
       'فقدان أو زيادة وزن غير مقصودة، نقص غذائي مشتبه، اضطراب أكل، مرض مزمن، أو حاجة لخطة غذائية علاجية تستدعي تقييماً فردياً.': ['Unintentional weight loss or gain, suspected nutritional deficiency, eating disorder, chronic illness, or need for therapeutic diet requires individual assessment.', 'Une perte ou prise de poids involontaire, une carence suspectée, un trouble alimentaire, une maladie chronique ou un régime thérapeutique nécessitent une évaluation individuelle.'],
+      'تعذر تنزيل النموذج المحلي. تحقق من الاتصال وحاول مرة أخرى.': ['Could not download the local model. Check your connection and try again.', 'Impossible de télécharger le modèle local. Vérifiez votre connexion et réessayez.'],
+      'لا يوجد مسار متاح لهذه الخدمة حالياً': ['No route is currently available for this service', 'Aucun itinéraire n’est actuellement disponible pour ce service'],
+      'تعذر فتح الخدمة من المسار الحالي': ['Could not open the service from the current route', 'Impossible d’ouvrir le service depuis la page actuelle'],
+      'تنزيل النموذج المحلي': ['Download local model', 'Télécharger le modèle local'],
+      'أعراضي': ['My symptoms', 'Mes symptômes'],
+      'تحاليل': ['Lab tests', 'Analyses'],
+      'خدمات التطبيق': ['App services', 'Services de l’application'],
+      'مساعدة': ['Help', 'Aide'],
+      'يمكن تفعيل النموذج العربي المحلي من زر التنزيل أعلى الشاشة. حجمه نحو 424 MB ويُحفظ خارج التطبيق.': ['You can enable the local Arabic model using the download button above. It is about 424 MB and is stored outside the app.', 'Vous pouvez activer le modèle arabe local avec le bouton de téléchargement ci-dessus. Il fait environ 424 Mo et est stocké en dehors de l’application.'],
+      'تفعيل': ['Enable', 'Activer'],
+      'مركز المساعدة': ['Help center', 'Centre d’aide'],
+      'فتح': ['Open', 'Ouvrir'],
+      'اكتب ما تشعر به أو ما تحتاجه…': ['Describe how you feel or what you need…', 'Décrivez ce que vous ressentez ou ce dont vous avez besoin…'],
+      'بدأنا محادثة جديدة. قل لي ما تشعر به أو ما تريد الوصول إليه داخل صحتك.': ['We started a new conversation. Tell me how you feel or what you want to find in Sehatak.', 'Nous avons commencé une nouvelle conversation. Dites-moi ce que vous ressentez ou ce que vous souhaitez trouver dans Sehatak.'],
     };
 
     final entry = translations[value];
