@@ -1719,6 +1719,15 @@ class AppStrings {
       'الرجاء ملء جميع الحقول': ['Please fill in all fields', 'Veuillez remplir tous les champs'],
       'تم التسجيل كمتبرع! شكراً لك': ['You are registered as a donor! Thank you.', 'Votre inscription comme donneur est confirmée ! Merci.'],
       'خطأ:': ['Error:', 'Erreur :'],
+      'نتيجة القياس': ['Measurement result', 'Résultat de la mesure'],
+      'متوسط القياس': ['Average measurement', 'Mesure moyenne'],
+      'جودة الإشارة': ['Signal quality', 'Qualité du signal'],
+      'اتجاه النبض': ['Pulse trend', 'Tendance du pouls'],
+      'الخط البرتقالي = متوسط متحرك لآخر 3 قياسات': ['Orange line = moving average of the last 3 measurements', 'Ligne orange = moyenne mobile des 3 dernières mesures'],
+      'أدخل وزناً صحيحاً': ['Enter a valid weight', 'Saisissez un poids valide'],
+      'تم تسجيل الوزن': ['Weight recorded', 'Poids enregistré'],
+      'الوزن بالكيلوجرام': ['Weight in kilograms', 'Poids en kilogrammes'],
+      'ملاحظة اختيارية': ['Optional note', 'Note facultative'],
     };
 
     final entry = translations[value];
