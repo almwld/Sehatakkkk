@@ -170,7 +170,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                           dropdownColor: isDark ? const Color(0xFF1A2540) : Colors.white,
                           style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                           items: _cities.map((city) {
-                            return DropdownMenuItem(value: city, child: Text(city));
+                            return DropdownMenuItem(value: city, child: Text(_t(city)));
                           }).toList(),
                           onChanged: (value) => setState(() => _city = value!),
                         ),
