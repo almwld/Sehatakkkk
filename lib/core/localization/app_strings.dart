@@ -1392,6 +1392,19 @@ class AppStrings {
       'آخر وزن مسجل': ['Latest recorded weight', 'Dernier poids enregistré'],
       'الهدف:': ['Goal:', 'Objectif :'],
       'حفظ القياس': ['Save measurement', 'Enregistrer la mesure'],
+      'وصفة طبية / RX': ['Prescription / RX', 'Ordonnance / RX'],
+      'طلب فحوصات / Laboratory Request': ['Laboratory request', 'Demande d’analyses'],
+      'تقرير طبي / Medical Report': ['Medical report', 'Rapport médical'],
+      'إجازة مرضية / Sick Leave': ['Sick leave', 'Arrêt maladie'],
+      'إحالة طبية / Medical Referral': ['Medical referral', 'Orientation médicale'],
+      'تحاليل الدم': ['Blood tests', 'Analyses sanguines'],
+      'الكيمياء الحيوية': ['Biochemistry', 'Biochimie'],
+      'الهرمونات': ['Hormones', 'Hormones'],
+      'البول والبراز': ['Urine and stool', 'Urines et selles'],
+      'الميكروبيولوجي والمناعة': ['Microbiology and immunology', 'Microbiologie et immunologie'],
+      'القلب': ['Cardiology', 'Cardiologie'],
+      'أخرى': ['Other', 'Autre'],
+      'عدد الأيام': ['Number of days', 'Nombre de jours'],
     };
 
     final entry = translations[value];
