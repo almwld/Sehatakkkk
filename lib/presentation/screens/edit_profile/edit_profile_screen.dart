@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
 import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
 
@@ -15,6 +16,7 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -100,7 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (_heightController.text.trim().isNotEmpty && height == null ||
           _weightController.text.trim().isNotEmpty && weight == null ||
           _ageController.text.trim().isNotEmpty && age == null) {
-        ToastService.showError('يرجى إدخال الطول والوزن والعمر بقيم صحيحة');
+        ToastService.showError(_t('يرجى إدخال الطول والوزن والعمر بقيم صحيحة'));
         if (mounted) setState(() => _isSaving = false);
         return;
       }
@@ -108,7 +110,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if ((height != null && (height <= 0 || height > 300)) ||
           (weight != null && (weight <= 0 || weight > 500)) ||
           (age != null && (age < 0 || age > 150))) {
-        ToastService.showError('تحقق من قيم الطول والوزن والعمر');
+        ToastService.showError(_t('تحقق من قيم الطول والوزن والعمر'));
         if (mounted) setState(() => _isSaving = false);
         return;
       }
@@ -170,7 +172,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_isLoading) {
       return Scaffold(
         appBar: CustomAppBar(
-          title: 'تعديل الملف الشخصي',
+          title: _t('تعديل الملف الشخصي'),
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
         ),
@@ -181,7 +183,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: 'تعديل الملف الشخصي',
+        title: _t('تعديل الملف الشخصي'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -189,7 +191,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           TextButton(
             onPressed: _isSaving ? null : _saveProfile,
             child: Text(
-              'حفظ',
+              _t('حفظ'),
               style: TextStyle(
                 color: _isSaving ? AppColors.grey : Colors.white,
                 fontWeight: FontWeight.bold,
@@ -208,14 +210,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // ✅ الحقول
             _buildTextField(
               controller: _nameController,
-              label: 'الاسم الكامل',
+              label: _t('الاسم الكامل'),
               icon: AppAssets.userIcon,
               enabled: !_isSaving,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _phoneController,
-              label: 'رقم الهاتف',
+              label: _t('رقم الهاتف'),
               icon: AppAssets.phoneIcon,
               keyboardType: TextInputType.phone,
               enabled: !_isSaving,
@@ -223,14 +225,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 16),
             _buildTextField(
               controller: _addressController,
-              label: 'العنوان',
+              label: _t('العنوان'),
               icon: AppAssets.locationIcon,
               enabled: !_isSaving,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _heightController,
-              label: 'الطول (سم)',
+              label: _t('الطول (سم)'),
               icon: AppAssets.heightIcon,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               enabled: !_isSaving,
@@ -238,7 +240,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 16),
             _buildTextField(
               controller: _weightController,
-              label: 'الوزن (كجم)',
+              label: _t('الوزن (كجم)'),
               icon: AppAssets.weightIcon,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               enabled: !_isSaving,
@@ -246,7 +248,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 16),
             _buildTextField(
               controller: _ageController,
-              label: 'العمر (سنة)',
+              label: _t('العمر (سنة)'),
               icon: AppAssets.calendarIcon,
               keyboardType: TextInputType.number,
               enabled: !_isSaving,
@@ -256,7 +258,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 16),
             _buildTextField(
               controller: _allergiesController,
-              label: 'الحساسية (إن وجدت)',
+              label: _t('الحساسية (إن وجدت)'),
               icon: AppAssets.warningIcon,
               enabled: !_isSaving,
             ),
@@ -283,8 +285,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'حفظ التغييرات',
+                    : Text(
+          _t('حفظ التغييرات'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -308,7 +310,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       value: selected,
       isExpanded: true,
       decoration: InputDecoration(
-        labelText: 'فصيلة الدم',
+        labelText: _t('فصيلة الدم'),
         prefixIcon: LocalAssetIcon(AppAssets.bloodPressureIcon, color: AppColors.primary, size: 20),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
