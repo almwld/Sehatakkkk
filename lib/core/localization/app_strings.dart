@@ -304,7 +304,6 @@ class AppStrings {
       'رمز QR للملف الصحي': ['Health profile QR code', 'Code QR du dossier de santé'],
       'إغلاق': ['Close', 'Fermer'],
       'لوحة التحكم': ['Dashboard', 'Tableau de bord'],
-      'غير متصل': ['Offline', 'Hors ligne'],
       'مشاركة الملف الصحي': ['Share health profile', 'Partager le dossier de santé'],
       'عرض الباركود': ['Show QR code', 'Afficher le code QR'],
       'الدم': ['Blood', 'Sang'],
@@ -362,8 +361,6 @@ class AppStrings {
       'فصيلة الدم': ['Blood type', 'Groupe sanguin'],
 
       'البصمة': ['Fingerprint', 'Empreinte digitale'],
-      'مستخدم': ['User', 'Utilisateur'],
-      'طبيب': ['Doctor', 'Médecin'],
       'ممرض': ['Nurse', 'Infirmier'],
       'قابلة وتوليد': ['Midwife', 'Sage-femme'],
       'علاج فيزيائي': ['Physiotherapist', 'Kinésithérapeute'],
@@ -738,8 +735,6 @@ class AppStrings {
       'آخر ظهور': ['Last seen', 'Dernière présence'],
       'دقيقة': ['min ago', 'min'],
       'دقائق': ['mins ago', 'min'],
-      'ساعة': ['hr ago', 'h'],
-      'ساعات': ['hrs ago', 'h'],
       'يوم': ['days ago', 'jours'],
       'تعذر العثور على الرسالة الأصلية.': ['Could not find the original message.', 'Impossible de trouver le message d’origine.'],
       'تم العثور على الرسالة الأصلية، مرر المحادثة للوصول إليها.': ['Original message found. Scroll the chat to view it.', 'Message d’origine trouvé. Faites défiler la discussion pour y accéder.'],
@@ -786,6 +781,9 @@ class AppStrings {
       'تم إضافة تقييمك بنجاح': ['Your review was added successfully', 'Votre avis a été ajouté avec succès'],
       'إرسال التقييم': ['Submit review', 'Envoyer l’avis'],
       'تقييمات المرضى': ['Patient reviews', 'Avis des patients'],
+      'دقيقة مضت': ['minutes ago', 'min'],
+      'ساعة مضت': ['hours ago', 'h'],
+      'يوم مضى': ['days ago', 'jours'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
