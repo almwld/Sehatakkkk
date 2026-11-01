@@ -838,6 +838,11 @@ class AppStrings {
       'رقم الطلب': ['Order number', 'Numéro de commande'],
       'أدخل رقم الطلب أولاً.': ['Enter the order number first.', 'Saisissez d’abord le numéro de commande.'],
       'عرض التتبع': ['View tracking', 'Voir le suivi'],
+      'المرافق الصحية': ['Healthcare facilities', 'Établissements de santé'],
+      'خريطة صنعاء': ['Sana’a map', 'Carte de Sanaa'],
+      'اضغط للتفاعل مع الخريطة': ['Tap to interact with the map', 'Appuyez pour interagir avec la carte'],
+      'ابحث عن منشأة صحية (مستشفى، مختبر، صيدلية)...': ['Search for a healthcare facility (hospital, laboratory, pharmacy)...', 'Rechercher un établissement de santé (hôpital, laboratoire, pharmacie)...'],
+      'لا توجد منشآت مطابقة للبحث': ['No matching facilities found', 'Aucun établissement correspondant trouvé'],
     };
 
     final entry = translations[value];
