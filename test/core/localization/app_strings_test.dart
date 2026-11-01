@@ -159,6 +159,15 @@ void main() {
       expect(french.translate('مرفق'), 'Pièce jointe');
     });
 
+    test('translates voice recording and media controls', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('جاهز للإرسال'), 'Ready to send');
+      expect(english.translate('يلزم السماح بالوصول إلى الميكروفون.'),
+          'Microphone permission is required.');
+      expect(french.translate('الملفات الحديثة'), 'Fichiers récents');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
