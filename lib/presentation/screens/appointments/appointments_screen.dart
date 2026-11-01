@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -59,7 +60,7 @@ class _AppointmentsScreenState
           ? const Color(0xFF0B1121)
           : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('المواعيد'),
+        title: Text(AppStrings.of(context).translate('المواعيد')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
