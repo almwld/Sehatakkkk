@@ -136,16 +136,16 @@ class _HomeTabState extends State<HomeTab>
                     SliverToBoxAdapter(child: _quickServices(dark)),
                     SliverToBoxAdapter(child: _doctors(state, dark)),
                     SliverToBoxAdapter(child: _productsSection(dark)),
-                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: 'مستشفيات مميزة', items: state.hospitals, isHospital: true, isDark: dark)),
-                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: 'مختبرات مميزة', items: state.labs, isHospital: false, isDark: dark)),
-                    SliverToBoxAdapter(child: _places('صيدليات مميزة', state.pharmacies, Icons.local_pharmacy_outlined, dark, more: () => _go(AppRouter.pharmacy))),
+                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: AppStrings.of(context).translate('مستشفيات مميزة'), items: state.hospitals, isHospital: true, isDark: dark)),
+                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: AppStrings.of(context).translate('مختبرات مميزة'), items: state.labs, isHospital: false, isDark: dark)),
+                    SliverToBoxAdapter(child: _places(AppStrings.of(context).translate('صيدليات مميزة'), state.pharmacies, Icons.local_pharmacy_outlined, dark, more: () => _go(AppRouter.pharmacy))),
                     SliverToBoxAdapter(child: _articles(state.articles, dark)),
                     SliverToBoxAdapter(child: _tips(state.tips, dark)),
                     SliverToBoxAdapter(child: _discover(dark)),
                     SliverToBoxAdapter(child: _weather(dark)),
                     SliverToBoxAdapter(child: _community(state.communityPosts, dark)),
                     if (state.isLoading) const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(strokeWidth: 2)))),
-                    if (state.hasError) SliverToBoxAdapter(child: _error(state.errorMessage ?? 'حدث خطأ غير متوقع', dark)),
+                    if (state.hasError) SliverToBoxAdapter(child: _error(state.errorMessage ?? AppStrings.of(context).translate('حدث خطأ غير متوقع'), dark)),
                     const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
                 ),
@@ -194,10 +194,10 @@ class _HomeTabState extends State<HomeTab>
   Widget _doctors(HomeState state, bool dark) {
     final doctors = state.doctors.take(6).toList();
     if (doctors.isEmpty) {
-      return _section(title: 'أفضل الأطباء', dark: dark, more: () => _go(AppRouter.doctors), child: _empty('لا يوجد أطباء موثقون متاحون حالياً', dark));
+      return _section(title: AppStrings.of(context).translate('أفضل الأطباء'), dark: dark, more: () => _go(AppRouter.doctors), child: _empty(AppStrings.of(context).translate('لا يوجد أطباء موثقون متاحون حالياً'), dark));
     }
     return _section(
-      title: 'أفضل الأطباء',
+      title: AppStrings.of(context).translate('أفضل الأطباء'),
       dark: dark,
       more: () => _go(AppRouter.doctors),
       child: GridView.builder(
@@ -225,9 +225,9 @@ class _HomeTabState extends State<HomeTab>
                 ),
                 const SizedBox(width: 8),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text((doctor['name'] ?? 'طبيب').toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                  Text((doctor['name'] ?? AppStrings.of(context).translate('طبيب')).toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
                   const SizedBox(height: 3),
-                  Text((doctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
+                  Text((doctor['specialty'] ?? AppStrings.of(context).translate('تخصص طبي')).toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
                   if (doctor['rating'] != null) ...[
                     const SizedBox(height: 4),
                     Row(children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 13), const SizedBox(width: 2), Text(doctor['rating'].toString(), style: TextStyle(fontSize: 9, color: dark ? Colors.white70 : _muted))]),
@@ -242,7 +242,7 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _productsSection(bool dark) => _section(
-        title: 'منتجات مميزة',
+        title: AppStrings.of(context).translate('منتجات مميزة'),
         dark: dark,
         more: () => _go(AppRouter.pharmacy),
         child: FutureBuilder<List<ProductModel>>(
@@ -250,7 +250,7 @@ class _HomeTabState extends State<HomeTab>
           builder: (_, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
             final products = snapshot.data ?? const <ProductModel>[];
-            if (products.isEmpty) return _empty('لا توجد منتجات متاحة حالياً', dark);
+            if (products.isEmpty) return _empty(AppStrings.of(context).translate('لا توجد منتجات متاحة حالياً'), dark);
             return SizedBox(
               height: 210,
               child: ListView.separated(
@@ -296,7 +296,7 @@ class _HomeTabState extends State<HomeTab>
       {'name': 'جميع الخدمات', 'asset': 'assets/images/ui/all_services.webp', 'route': AppRouter.services},
     ];
     return _section(
-      title: 'اكتشف المزيد',
+      title: AppStrings.of(context).translate('اكتشف المزيد'),
       dark: dark,
       child: SizedBox(
         height: 112,
@@ -359,7 +359,7 @@ class _HomeTabState extends State<HomeTab>
       dark: dark,
       more: more,
       child: items.isEmpty
-          ? _empty('لا توجد بيانات متاحة حالياً', dark)
+          ? _empty(AppStrings.of(context).translate('لا توجد بيانات متاحة حالياً'), dark)
           : SizedBox(
               height: 176,
               child: ListView.separated(
@@ -457,7 +457,7 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _weather(bool dark) {
     return _section(
-      title: 'الطقس',
+      title: AppStrings.of(context).translate('الطقس'),
       dark: dark,
       child: FutureBuilder<Map<String, dynamic>>(
         future: _weatherFuture,
@@ -465,7 +465,7 @@ class _HomeTabState extends State<HomeTab>
           if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 92, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
           final data = snapshot.data ?? const <String, dynamic>{};
           final temp = data['temp']?.toString();
-          final condition = data['condition']?.toString() ?? 'غير متوفر';
+          final condition = data['condition']?.toString() ?? AppStrings.of(context).translate('غير متوفر');
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
@@ -486,8 +486,8 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _community(List<dynamic> items, bool dark) {
     return _section(
-      title: 'المجتمع', dark: dark, more: () => _go(AppRouter.community),
-      child: items.isEmpty ? _empty('لا توجد منشورات منشورة حالياً', dark) :
+      title: AppStrings.of(context).translate('المجتمع'), dark: dark, more: () => _go(AppRouter.community),
+      child: items.isEmpty ? _empty(AppStrings.of(context).translate('لا توجد منشورات منشورة حالياً'), dark) :
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Column(children: items.take(3).map((raw) {
           final data = Map<String, dynamic>.from(raw as Map);
           final createdAt = data['createdAt'] is Timestamp ? (data['createdAt'] as Timestamp).toDate() : data['createdAt'] is DateTime ? data['createdAt'] as DateTime : null;
