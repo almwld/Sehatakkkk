@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
@@ -175,7 +176,7 @@ class _HomeTabState extends State<HomeTab>
           _headerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart, Icons.shopping_cart_outlined),
         ]),
         const SizedBox(height: 18),
-        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء، أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
+        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text(AppStrings.of(context).translate('ابحث عن طبيب، دواء، أو خدمة...'), style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
       ]),
     );
   }
@@ -183,7 +184,7 @@ class _HomeTabState extends State<HomeTab>
   Widget _headerActionAsset(String asset, String route, IconData fallbackIcon) => InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), alignment: Alignment.center, child: Image.asset(asset, width: 22, height: 22, errorBuilder: (_, __, ___) => Icon(fallbackIcon, color: Colors.white, size: 21))));
 
   Widget _banner(HomeState state, bool dark) => state.bannerImages.isEmpty
-      ? Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Container(height: 150, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, child: Text('صحتك معك كل يوم', style: TextStyle(color: dark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
+      ? Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Container(height: 150, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, child: Text(AppStrings.of(context).translate('صحتك معك كل يوم'), style: TextStyle(color: dark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
       : Padding(padding: const EdgeInsets.only(top: 14), child: BannerCarousel(images: state.bannerImages, height: 180, autoPlay: true));
 
   Widget _quickServices(bool dark) => QuickServicesWidget(isDark: dark, onNavigate: (screen) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen)));
@@ -274,7 +275,7 @@ class _HomeTabState extends State<HomeTab>
                           const SizedBox(height: 6),
                           Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
                           const Spacer(),
-                          Text('${product.price} ريال', style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
+                          Text(AppStrings.of(context).translate('${product.price} ريال'), style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
@@ -340,7 +341,7 @@ class _HomeTabState extends State<HomeTab>
             child: Row(
               children: [
                 Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text))),
-                if (more != null) TextButton(onPressed: more, child: const Text('المزيد')),
+                if (more != null) TextButton(onPressed: more, child: Text(AppStrings.of(context).translate('المزيد'))),
               ],
             ),
           ),
