@@ -100,7 +100,7 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
       stream:_paramedics(),builder:(context,snapshot){
         final docs=snapshot.data?.docs??const [];
         return ListView(padding:const EdgeInsets.all(16),children:[
-          _hero('المسعفون المتاحون الآن','اعرض المسعفين المتواجدين في مناطق الخدمة والمتاحين للاستجابة للطوارئ.'),
+          _hero(_t('المسعفون المتاحون الآن'),_t('اعرض المسعفين المتواجدين في مناطق الخدمة والمتاحين للاستجابة للطوارئ.')),
           const SizedBox(height:12),
           if(snapshot.hasError) Text(AppStrings.of(context).translate('تعذر تحميل المسعفين المتاحين') + ': ${snapshot.error}'),
           if(docs.isEmpty) Card(child:Padding(padding:const EdgeInsets.all(18),child:Text(AppStrings.of(context).translate('لا يوجد مسعف متاح حالياً وفق بيانات التواجد المسجلة.')))),
