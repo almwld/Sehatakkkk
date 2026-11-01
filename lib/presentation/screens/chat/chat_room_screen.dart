@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_location_picker.dart';
@@ -126,6 +127,8 @@ class _SwipeToReplyState extends State<_SwipeToReply> {
 }
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObserver {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   final _chat = ChatService();
@@ -505,14 +508,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   String _lastSeenLabel() {
     final value = _lastSeen;
-    if (value == null) return 'غير متصل';
+    if (value == null) return _t('غير متصل');
     final now = DateTime.now();
     final diff = now.difference(value);
-    if (diff.inMinutes < 1) return 'آخر ظهور منذ لحظات';
-    if (diff.inMinutes < 60) return 'آخر ظهور منذ ${diff.inMinutes} د';
-    if (diff.inHours < 24) return 'آخر ظهور منذ ${diff.inHours} س';
-    if (diff.inDays < 7) return 'آخر ظهور منذ ${diff.inDays} يوم';
-    return 'آخر ظهور ${value.day.toString().padLeft(2,'0')}/${value.month.toString().padLeft(2,'0')}';
+    if (diff.inMinutes < 1) return _t('آخر ظهور منذ لحظات');
+    if (diff.inMinutes < 60) return '${_t('آخر ظهور منذ')} ${diff.inMinutes} ${_t('دقيقة')}';
+    if (diff.inHours < 24) return '${_t('آخر ظهور منذ')} ${diff.inHours} ${_t('ساعة')}';
+    if (diff.inDays < 7) return '${_t('آخر ظهور منذ')} ${diff.inDays} ${_t('يوم')}';
+    return '${_t('آخر ظهور')} ${value.day.toString().padLeft(2,'0')}/${value.month.toString().padLeft(2,'0')}';
   }
 
   void _call(bool video) {
@@ -578,7 +581,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           .get();
 
       if (!snap.exists || snap.data() == null) {
-        if (mounted) ToastService.showError('تعذر العثور على الرسالة الأصلية.');
+        if (mounted) ToastService.showError(_t('تعذر العثور على الرسالة الأصلية.'));
         return;
       }
 
@@ -607,10 +610,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
           alignment: .45,
         );
       } else if (mounted) {
-        ToastService.showInfo('تم العثور على الرسالة الأصلية، مرر المحادثة للوصول إليها.');
+        ToastService.showInfo(_t('تم العثور على الرسالة الأصلية، مرر المحادثة للوصول إليها.'));
       }
     } catch (e) {
-      if (mounted) ToastService.showError('تعذر فتح الرسالة الأصلية.');
+      if (mounted) ToastService.showError(_t('تعذر فتح الرسالة الأصلية.'));
     }
   }
 
@@ -734,19 +737,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   Future<void> _editMessage(MessageModel message) async {
     final controller=TextEditingController(text: message.text ?? '');
     final result=await showDialog<String>(context:context,builder:(ctx)=>AlertDialog(
-      title:const Text('تعديل الرسالة'),
-      content:TextField(controller:controller,maxLines:5,autofocus:true,decoration:const InputDecoration(hintText:'نص الرسالة')),
-      actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(ctx,controller.text.trim()),child:const Text('حفظ'))]));
+      title:Text(_t('تعديل الرسالة')),
+      content:TextField(controller:controller,maxLines:5,autofocus:true,decoration:InputDecoration(hintText:_t('نص الرسالة'))),
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:Text(_t('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(ctx,controller.text.trim()),child:Text(_t('حفظ')))]));
     controller.dispose();
     if(result==null||result.isEmpty||result==message.text?.trim())return;
-    try{await _chat.editMessage(widget.chatId,message.id,result);}catch(e){if(mounted)ToastService.showError('تعذر تعديل الرسالة.');debugPrint('edit message: $e');}
+    try{await _chat.editMessage(widget.chatId,message.id,result);}catch(e){if(mounted)ToastService.showError(_t('تعذر تعديل الرسالة.'));debugPrint('edit message: $e');}
   }
   Future<void> _confirmDeleteMessage(MessageModel message) async {
     final all=message.senderId==_auth.currentUser?.uid;
     final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(
-      title:Text(all?'حذف الرسالة؟':'حذف الرسالة لديك؟'),
-      content:Text(all?'سيتم حذف الرسالة لدى جميع المشاركين.':'سيتم إخفاء الرسالة لديك فقط.'),
-      actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('حذف'))]));
+      title:Text(all?_t('حذف الرسالة؟'):_t('حذف الرسالة لديك؟')),
+      content:Text(all?_t('سيتم حذف الرسالة لدى جميع المشاركين.'):_t('سيتم إخفاء الرسالة لديك فقط.')),
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:Text(_t('حذف')))]));
     if(ok!=true)return;
     if(all)await _deleteMessage(message);else await _deleteMessageForMe(message);
   }
@@ -757,15 +760,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       showModalBottomSheet<void>(context:context,isScrollControlled:true,builder:(ctx)=>SafeArea(child:SizedBox(
         height:MediaQuery.of(ctx).size.height*.55,
         child:Column(children:[
-          const Padding(padding:EdgeInsets.all(16),child:Text('الرسائل المثبتة',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
-          Expanded(child:items.isEmpty?const Center(child:Text('لا توجد رسائل مثبتة')):ListView.separated(
+          Padding(padding:const EdgeInsets.all(16),child:Text(_t('الرسائل المثبتة'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
+          Expanded(child:items.isEmpty?Center(child:Text(_t('لا توجد رسائل مثبتة')):ListView.separated(
             itemCount:items.length,separatorBuilder:(_,__)=>const Divider(height:1),
             itemBuilder:(_,i){final m=items[i];return ListTile(
               leading:const Icon(Icons.push_pin_outlined,color:AppColors.primary),
-              title:Text(m.text?.isNotEmpty==true?m.text!:'مرفق',maxLines:2,overflow:TextOverflow.ellipsis),
+              title:Text(m.text?.isNotEmpty==true?m.text!:_t('مرفق'),maxLines:2,overflow:TextOverflow.ellipsis),
               subtitle:Text(m.senderName),onTap:()=>Navigator.pop(ctx));}))
         ]))));
-    }catch(e){if(mounted)ToastService.showError('تعذر تحميل الرسائل المثبتة.');debugPrint('pinned messages: $e');}
+    }catch(e){if(mounted)ToastService.showError(_t('تعذر تحميل الرسائل المثبتة.'));debugPrint('pinned messages: $e');}
   }
 
   Future<void> _deleteMessage(MessageModel message) async {
@@ -813,7 +816,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       );
     } catch (e) {
       debugPrint('share chat location: $e');
-      ToastService.showError('تعذر إرسال الموقع حالياً.');
+      ToastService.showError(_t('تعذر إرسال الموقع حالياً.'));
     }
   }
 
@@ -949,7 +952,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    Text(widget.isGroup ? 'المجموعة' : widget.otherUserName,
+                    Text(widget.isGroup ? _t('المجموعة') : widget.otherUserName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -960,7 +963,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                       const TypingIndicator(compact: true)
                     else
                       Text(
-                        _online ? 'متصل الآن' : _lastSeenLabel(),
+                        _online ? _t('متصل الآن') : _lastSeenLabel(),
                         style: TextStyle(
                           fontSize: 11,
                           color: _online ? Colors.green : Colors.grey,
@@ -973,7 +976,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         actions: [
           IconButton(
               onPressed: _searchMessages,
-              tooltip: 'البحث داخل الرسائل',
+              tooltip: _t('البحث داخل الرسائل'),
               icon: Icon(Icons.search_rounded,
                   color: dark ? null : AppColors.primary)),
           if (!widget.isGroup)
@@ -996,12 +999,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                 if (value == 'delete') _deleteChatForMe();
               },
               itemBuilder: (_) => [
-                    const PopupMenuItem(value: 'profile', child: Text('معلومات جهة الاتصال')),
-                    const PopupMenuItem(value: 'pinned', child: Text('الرسائل المثبتة')),
-                    PopupMenuItem(value: 'mute', child: Text(_muted ? 'إلغاء كتم الإشعارات' : 'كتم الإشعارات')),
-                    PopupMenuItem(value: 'pin', child: Text(_pinned ? 'إلغاء تثبيت المحادثة' : 'تثبيت المحادثة')),
+                    PopupMenuItem(value: 'profile', child: Text(_t('معلومات جهة الاتصال'))),
+                    PopupMenuItem(value: 'pinned', child: Text(_t('الرسائل المثبتة'))),
+                    PopupMenuItem(value: 'mute', child: Text(_muted ? _t('إلغاء كتم الإشعارات') : _t('كتم الإشعارات'))),
+                    PopupMenuItem(value: 'pin', child: Text(_pinned ? _t('إلغاء تثبيت المحادثة') : _t('تثبيت المحادثة'))),
                     const PopupMenuDivider(),
-                    const PopupMenuItem(value: 'delete', child: Text('حذف المحادثة لدي')),
+                    PopupMenuItem(value: 'delete', child: Text(_t('حذف المحادثة لدي')),
                   ])
         ],
       ),
@@ -1011,7 +1014,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                 child: Stack(children: [
           if (all.isEmpty && !_otherTyping)
             Center(
-                child: Text('ابدأ المحادثة',
+                child: Text(_t('ابدأ المحادثة'),
                     style: TextStyle(
                         color: dark ? Colors.white70 : const Color(0xFF49615E),
                         fontWeight: FontWeight.w600)))
@@ -1172,7 +1175,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.white, size: 18),
                       SizedBox(width: 5),
-                      Text('رسائل جديدة', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                      Text(_t('رسائل جديدة'), style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                     ]),
                   ),
                 ),
@@ -1274,7 +1277,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    Text('الرد على ${message.senderName}',
+                    Text('${_t('الرد على')} ${message.senderName}',
                         style: const TextStyle(
                             fontSize: 11, fontWeight: FontWeight.w700)),
                     Text(text,
@@ -1291,17 +1294,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   String _replyTypeLabel(MessageType type) {
     switch (type) {
       case MessageType.image:
-        return 'صورة';
+        return _t('صورة');
       case MessageType.video:
-        return 'فيديو';
+        return _t('فيديو');
       case MessageType.audio:
-        return 'رسالة صوتية';
+        return _t('رسالة صوتية');
       case MessageType.file:
-        return 'ملف';
+        return _t('ملف');
       case MessageType.location:
-        return 'موقع';
+        return _t('موقع');
       default:
-        return 'رسالة';
+        return _t('رسالة');
     }
   }
 }
