@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -194,7 +195,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(16),
-                      child: Text('لا توجد استشارات سابقة', style: TextStyle(color: Colors.grey)),
+                      child: Text(AppStrings.of(context).translate('لا توجد استشارات سابقة'), style: TextStyle(color: Colors.grey)),
                     ),
                   );
                 }
