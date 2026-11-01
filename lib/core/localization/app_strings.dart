@@ -1133,6 +1133,21 @@ class AppStrings {
       'جمعة': ['Fri', 'Ven'],
       'سبت': ['Sat', 'Sam'],
       'حساب الطبيب غير مرتبط بملف شخصي': ['Doctor account is not linked to a profile', 'Le compte du médecin n’est pas lié à un profil'],
+      'لوحة تحكم المستشفى': ['Hospital dashboard', 'Tableau de bord de l’hôpital'],
+      'المرضى': ['Patients', 'Patients'],
+      'الإيرادات': ['Revenue', 'Revenus'],
+      'هذا الشهر': ['This month', 'Ce mois-ci'],
+      'الأقسام': ['Departments', 'Services'],
+      'الإحصائيات': ['Statistics', 'Statistiques'],
+      'مرحباً بك في لوحة تحكم المستشفى': ['Welcome to the hospital dashboard', 'Bienvenue dans le tableau de bord de l’hôpital'],
+      'إدارة المرضى والحجوزات والأقسام': ['Manage patients, bookings, and departments', 'Gérez les patients, les réservations et les services'],
+      'مرضى اليوم': ['Today's patients', 'Patients du jour'],
+      'حجوزات اليوم': ['Today's bookings', 'Réservations du jour'],
+      'إجمالي المرضى': ['Total patients', 'Nombre total de patients'],
+      'أحدث الحجوزات': ['Latest bookings', 'Dernières réservations'],
+      'الجراحة': ['Surgery', 'Chirurgie'],
+      'القسم متاح': ['Department available', 'Service disponible'],
+      'إجمالي الإيرادات': ['Total revenue', 'Revenus totaux'],
     };
 
     final entry = translations[value];
