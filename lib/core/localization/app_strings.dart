@@ -1688,6 +1688,7 @@ class AppStrings {
       'الفيديوهات التثقيفية': ['Educational videos', 'Vidéos éducatives'],
       'ابحث عن فيديو...': ['Search for a video...', 'Rechercher une vidéo...'],
       'تشغيل': ['Play', 'Lire'],
+      'حفظ المنتجات': ['Save products', 'Enregistrer les produits'],
     };
 
     final entry = translations[value];
