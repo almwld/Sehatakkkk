@@ -416,7 +416,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    Text('${p['name'] ?? 'منتج'}',
+                    Text('${p['name'] ?? AppStrings.of(context).translate('منتج')}',
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     if (p['companyName'] != null || p['genericName'] != null)
                       Text('${p['companyName'] ?? p['genericName']}',
