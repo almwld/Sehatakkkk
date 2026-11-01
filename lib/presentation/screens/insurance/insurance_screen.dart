@@ -263,7 +263,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                     ),
                   ),
                   Text(
-                    'تغطية ${company['coverage']}',
+                    '${AppStrings.of(context).translate('تغطية')} ${company['coverage']}',
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.green,
@@ -382,7 +382,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                         ),
                       ),
                       Text(
-                        '${company['type']} • ⭐ ${company['rating']} (${company['reviews']} تقييم)',
+                        '${AppStrings.of(context).translate(company['type'].toString())} • ⭐ ${company['rating']} (${company['reviews']} ${AppStrings.of(context).translate('تقييم')})',
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                     ],
