@@ -736,6 +736,7 @@ class AppStrings {
       'منشور': ['Post', 'Publication'],
       'إلغاء': ['Cancel', 'Annuler'],
       'حفظ': ['Save', 'Enregistrer'],
+      'بحث': ['Search', 'Rechercher'],
       'تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى': ['Could not load call history right now.\nCheck your connection and try again.', 'Impossible de charger l’historique des appels.\nVérifiez votre connexion et réessayez.'],
       'لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً': ['No calls yet.\nYour calls will appear here automatically.', 'Aucun appel pour le moment.\nVos appels apparaîtront ici automatiquement.'],
       'طلب': ['Order', 'Commande'],
