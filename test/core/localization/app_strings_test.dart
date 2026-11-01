@@ -87,6 +87,17 @@ void main() {
       expect(AppStrings(const Locale('en', 'US')).formatCurrency(1250.5), '1250.50 YER');
     });
 
+    test('translates biometric settings feedback', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('سجل باستخدام بصمة الإصبع لتأكيد الهوية'),
+          'Authenticate with your fingerprint to confirm your identity');
+      expect(english.translate('فشل التحقق من البصمة، حاول مرة أخرى'),
+          'Fingerprint verification failed. Please try again.');
+      expect(french.translate('تسجيل الدخول بالبصمة'),
+          'Connexion par empreinte');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
