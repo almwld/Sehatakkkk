@@ -88,6 +88,14 @@ class AppStrings {
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
     const translations = <String, List<String>>{
+      'حجز تحليل': ['Book a test', 'Réserver une analyse'],
+      'الأسبوع': ['Week', 'Semaine'],
+      'زيارة منزلية': ['Home visit', 'Visite à domicile'],
+      'سيصلك فريق المختبر إلى منزلك': ['The laboratory team will come to your home', 'L’équipe du laboratoire viendra à votre domicile'],
+      'تأكيد الحجز - ': ['Confirm booking - ', 'Confirmer la réservation - '],
+      'اختر الوقت أولاً': ['Select a time first', 'Choisissez d’abord une heure'],
+      'تم الحجز بنجاح! ✅': ['Booking confirmed successfully! ✅', 'Réservation confirmée ! ✅'],
+      'تم حجز فحص ': ['Test booked: ', 'Analyse réservée : '],
       'لوحة تحكم المشرف': ['Administrator dashboard', 'Tableau de bord administrateur'],
       'المستخدمين': ['Users', 'Utilisateurs'],
       'المقدمين': ['Providers', 'Prestataires'],
