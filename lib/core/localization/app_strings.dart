@@ -211,7 +211,7 @@ class AppStrings {
       'يرجى تسجيل الدخول أولاً': ['Please sign in first', 'Veuillez vous connecter d’abord'],
       'حساب الطبيب غير صالح': ['Invalid doctor account', 'Compte médecin invalide'],
       'لا يمكنك بدء محادثة مع حسابك': ['You cannot start a chat with your own account', 'Vous ne pouvez pas démarrer une discussion avec votre propre compte'],
-      'تعذر فتح المحادثة: $e': ['Could not open chat: $e', 'Impossible d’ouvrir la discussion : $e'],
+      'تعذر فتح المحادثة: \$e': ['Could not open chat: \$e', 'Impossible d’ouvrir la discussion : \$e'],
       'لا يوجد أطباء موثقون متاحون للمحادثة حالياً': ['No verified doctors are available to chat right now', 'Aucun médecin vérifié n’est disponible pour discuter actuellement'],
 
       'رعاية عائلية': ['Family care', 'Soins familiaux'],
