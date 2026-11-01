@@ -11,7 +11,7 @@ class AIChatbotScreen extends StatefulWidget {
 }
 
 class _AIChatbotScreenState extends State<AIChatbotScreen> {
-  static const _welcomeMessage = 'مرحباً! 👋\\nأنا المساعد الصحي الذكي. كيف يمكنني مساعدتك اليوم؟';
+  static const _welcomeMessage = 'مرحباً! 👋\nأنا المساعد الصحي الذكي. كيف يمكنني مساعدتك اليوم؟';
   String _t(String value) => AppStrings.of(context).translate(value);
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
@@ -35,7 +35,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
   void initState() {
     super.initState();
     _messages.add(ChatMessage(
-      text: 'مرحباً! 👋\nأنا المساعد الصحي الذكي. كيف يمكنني مساعدتك اليوم؟',
+      text: _welcomeMessage,
       isUser: false,
       timestamp: DateTime.now(),
     ));
