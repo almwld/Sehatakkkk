@@ -1072,6 +1072,12 @@ class AppStrings {
       'لا توجد طلبات إسعاف نشطة.': ['No active emergency requests.', 'Aucune demande d’urgence active.'],
       'لا توجد ملفات طبية': ['No medical records available', 'Aucun dossier médical disponible'],
       'لا توجد شركات تأمين': ['No insurance companies available', 'Aucune compagnie d’assurance disponible'],
+      'لا توجد فيديوهات': ['No videos available', 'Aucune vidéo disponible'],
+      'لا توجد قياسات محفوظة بعد': ['No measurements have been saved yet', 'Aucune mesure n’a encore été enregistrée'],
+      'لا توجد استشارات سابقة': ['No previous consultations', 'Aucune consultation précédente'],
+      'لا توجد استشارات جماعية': ['No group consultations', 'Aucune consultation de groupe'],
+      'لا توجد منتجات في هذا القسم': ['No products in this category', 'Aucun produit dans cette catégorie'],
+      'لا يوجد متبرعون حالياً': ['No donors are currently available', 'Aucun donneur n’est disponible actuellement'],
     };
 
     final entry = translations[value];
