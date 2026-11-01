@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -172,13 +173,13 @@ class _TestsTab extends StatelessWidget{
     body:StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
       stream:FirebaseFirestore.instance.collection('lab_tests').where('labId',isEqualTo:uid).snapshots(),
       builder:(context,s){
-        if(s.hasError)return Center(child:Text('تعذر تحميل الفحوصات: '+s.error.toString()));
+        if(s.hasError)return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الفحوصات') + ': ' + s.error.toString()));
         if(!s.hasData)return const Center(child:CircularProgressIndicator());
         final docs=[...s.data!.docs]..sort((a,b){
           final x=a.data()['createdAt'],y=b.data()['createdAt'];
           return x is Timestamp&&y is Timestamp?y.compareTo(x):0;
         });
-        if(docs.isEmpty)return const Center(child:Text('لا توجد فحوصات — أضف أول فحص'));
+        if(docs.isEmpty)return Center(child:Text(AppStrings.of(context).translate('لا توجد فحوصات — أضف أول فحص')));
         return ListView.builder(padding:const EdgeInsets.all(16),itemCount:docs.length,itemBuilder:(_,i){
           final d=docs[i].data();
           return Card(child:ListTile(leading:const Icon(Icons.science,color:AppColors.primary),
@@ -218,13 +219,13 @@ class _BookingsTab extends StatelessWidget{
   }
   Widget _list(String status)=>StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
     stream:_stream(status),builder:(context,s){
-      if(s.hasError)return Center(child:Text('تعذر تحميل الحجوزات: '+s.error.toString()));
+      if(s.hasError)return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الحجوزات') + ': ' + s.error.toString()));
       if(!s.hasData)return const Center(child:CircularProgressIndicator());
       final docs=[...s.data!.docs]..sort((a,b){
         final x=a.data()['createdAt'],y=b.data()['createdAt'];
         return x is Timestamp&&y is Timestamp?y.compareTo(x):0;
       });
-      if(docs.isEmpty)return const Center(child:Text('لا توجد حجوزات في هذه الحالة'));
+      if(docs.isEmpty)return Center(child:Text(AppStrings.of(context).translate('لا توجد حجوزات في هذه الحالة')));
       return ListView.builder(padding:const EdgeInsets.all(16),itemCount:docs.length,itemBuilder:(_,i){
         final d=docs[i].data(),id=docs[i].id,statusValue=d['status']?.toString()??status;
         return Card(child:ListTile(title:Text(d['patientName']?.toString()??'مريض'),
