@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/unified_search_bar.dart';
@@ -75,7 +76,7 @@ class _SearchScreenState extends State<SearchScreen> {
     ]));
   }
   Widget _buildResults(bool isDark){
-    if(_results.isEmpty&&_searchQuery.isNotEmpty)return Center(child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[const Icon(Icons.search_off_rounded,size:60,color:AppColors.primary),const SizedBox(height:16),Text('لا توجد نتائج',style:TextStyle(fontSize:18,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87)),const SizedBox(height:8),Text('لم نعثر على أي نتائج لـ "$_searchQuery"',style:const TextStyle(fontSize:13,color:AppColors.grey))]));
+    if(_results.isEmpty&&_searchQuery.isNotEmpty)return Center(child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[const Icon(Icons.search_off_rounded,size:60,color:AppColors.primary),const SizedBox(height:16),Text(AppStrings.of(context).translate('لا توجد نتائج'),style:TextStyle(fontSize:18,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87)),const SizedBox(height:8),Text('لم نعثر على أي نتائج لـ "$_searchQuery"',style:const TextStyle(fontSize:13,color:AppColors.grey))]));
     return ListView.builder(padding:const EdgeInsets.all(12),itemCount:_results.length,itemBuilder:(context,index){final r=_results[index];final color=r['color'] as Color;return GestureDetector(onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>DoctorDetailsScreen(doctorId:r['id']?.toString()??''))),child:Container(margin:const EdgeInsets.only(bottom:8),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(children:[Icon(r['icon'] as IconData,color:color,size:22),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(r['name'],style:const TextStyle(fontWeight:FontWeight.bold)),Text(r['subtitle'],style:const TextStyle(fontSize:12,color:AppColors.grey))]))])));});
   }
 }
