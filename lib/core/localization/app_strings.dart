@@ -1567,6 +1567,11 @@ class AppStrings {
       'خاص': ['Private', 'Privé'],
       'حكومي': ['Government', 'Public'],
       'عرض سياساتي': ['View my policies', 'Voir mes polices'],
+      'تم تسجيل طلب': ['Request submitted', 'Demande envoyée'],
+      '؛ يمكن متابعة حالته من الطلبات.': ['; you can track its status in Orders.', ' ; vous pouvez suivre son statut dans les commandes.'],
+      'كـ PDF.': [' as a PDF.', ' au format PDF.'],
+      'لوحة تحكم': ['Dashboard', 'Tableau de bord'],
+      'لوحة': ['Dashboard', 'Tableau de bord'],
     };
 
     final entry = translations[value];
