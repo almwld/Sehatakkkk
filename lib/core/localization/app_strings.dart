@@ -1732,6 +1732,8 @@ class AppStrings {
       'حدث خطأ في تحميل المواعيد': ['An error occurred while loading appointments', 'Une erreur s’est produite lors du chargement des rendez-vous'],
       'الطبيب': ['Doctor', 'Médecin'],
       'خدمة منزلية': ['Home service', 'Service à domicile'],
+      'ابحث عن طبيب، دواء...': ['Search for a doctor or medicine...', 'Rechercher un médecin ou un médicament...'],
+      'خدمات سريعة': ['Quick services', 'Services rapides'],
     };
 
     final entry = translations[value];
