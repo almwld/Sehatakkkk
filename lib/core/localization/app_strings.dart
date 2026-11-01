@@ -2026,6 +2026,33 @@ class AppStrings {
 
 
       "مجهول": ["Unknown","Inconnu"],
+      'الدفع': ['Payment', 'Paiement'],
+      'تأكيد الطلب': ['Confirm order', 'Confirmer la commande'],
+      'تعليمات التحويل': ['Transfer instructions', 'Instructions de virement'],
+      'حساب الدفع الموحد عبر جيب': ['Unified payment account via Jeeb', 'Compte de paiement unifié via Jeeb'],
+      'رقم الحساب:': ['Account number:', 'Numéro de compte :'],
+      'اسم المستفيد:': ['Beneficiary name:', 'Nom du bénéficiaire :'],
+      'منصة صحتك': ['Sehatak platform', 'Plateforme Sehatak'],
+      'يمكنك التحويل من أي محفظة إلى هذا الحساب.': ['You can transfer from any wallet to this account.', 'Vous pouvez effectuer un virement depuis n’importe quel portefeuille vers ce compte.'],
+      'المبلغ:': ['Amount:', 'Montant :'],
+      'بعد التحويل، أرسل رقم العملية/المرجع ليتم ربط الإيداع بحسابك ومراجعته بأمان.': ['After the transfer, send the transaction/reference number so the deposit can be linked to your account and securely reviewed.', 'Après le virement, envoyez le numéro de transaction/de référence afin que le dépôt soit associé à votre compte et vérifié en toute sécurité.'],
+      'رقم حساب الدفع الموحد:': ['Unified payment account number:', 'Numéro du compte de paiement unifié :'],
+      'نسخ الرقم': ['Copy number', 'Copier le numéro'],
+      'حساب الاستقبال': ['Receiving account', 'Compte de réception'],
+      'رقم التحويل:': ['Transfer number:', 'Numéro de transfert :'],
+      'يتم استقبال التحويل في حساب جيب الموحد': ['Transfers are received in the unified Jeeb account', 'Les virements sont reçus sur le compte Jeeb unifié'],
+      'طرق الدفع والمحافظ': ['Payment methods and wallets', 'Moyens de paiement et portefeuilles'],
+      'كل المحافظ تحول إلى حساب جيب الموحد رقم': ['All wallets transfer to the unified Jeeb account number', 'Tous les portefeuilles effectuent le transfert vers le compte Jeeb unifié numéro'],
+      'عرض تعليمات التحويل إلى حساب جيب الموحد': ['View transfer instructions for the unified Jeeb account', 'Voir les instructions de virement vers le compte Jeeb unifié'],
+      'إيصال الدفع': ['Payment receipt', 'Reçu de paiement'],
+      'تمت العملية بنجاح': ['Payment completed successfully', 'Paiement effectué avec succès'],
+      'رقم المعاملة': ['Transaction number', 'Numéro de transaction'],
+      'المبلغ المدفوع': ['Amount paid', 'Montant payé'],
+      'نوع العملية': ['Transaction type', 'Type de transaction'],
+      'تاريخ العملية': ['Transaction date', 'Date de la transaction'],
+      'رقم الإشعار': ['Reference number', 'Numéro de référence'],
+      'المحفظة المستخدمة': ['Wallet used', 'Portefeuille utilisé'],
+      'العودة للرئيسية': ['Back to home', 'Retour à l’accueil'],
     };
 
     final entry = translations[value];
