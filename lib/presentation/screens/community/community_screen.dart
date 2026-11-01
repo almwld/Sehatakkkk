@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -276,7 +277,7 @@ class _CommunityScreenState extends State<CommunityScreen>
           }
           final docs = snapshot.data!.docs;
           if (docs.isEmpty) {
-            return const Center(child: Text('لا توجد منشورات منشورة حالياً'));
+            return Center(child: Text(AppStrings.of(context).translate('لا توجد منشورات منشورة حالياً')));
           }
           return RefreshIndicator(
             onRefresh: () async => setState(() {}),
@@ -653,7 +654,7 @@ class _CommentsSheet extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (snap.data!.docs.isEmpty) {
-                    return const Center(child: Text('لا توجد تعليقات بعد'));
+                    return Center(child: Text(AppStrings.of(context).translate('لا توجد تعليقات بعد')));
                   }
                   return ListView.separated(
                     padding: const EdgeInsets.all(16),
