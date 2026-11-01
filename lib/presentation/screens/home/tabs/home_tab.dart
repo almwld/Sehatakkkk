@@ -1,152 +1,152 @@
-import 'dart:async';
-import 'dart:convert';
+import 'oart:async';
+import 'oart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:sehatak/core/localization/app_strings.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/material.oart';
+import 'package:sehatak/core/localization/app_strings.oart';
+import 'package:flutter_bloc/flutter_bloc.oart';
+import 'package:http/http.oart' as http;
 
-import 'package:sehatak/app_router.dart';
-import 'package:sehatak/bloc/home/home_bloc.dart';
-import 'package:sehatak/bloc/home/home_event.dart';
-import 'package:sehatak/bloc/home/home_state.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
-import 'package:sehatak/core/models/pharmacy/product_model.dart';
-import 'package:sehatak/core/services/pharmacy_service.dart';
-import 'package:sehatak/presentation/screens/home/widgets/banner_carousel.dart';
-import 'package:sehatak/presentation/screens/home/widgets/quick_services_widget.dart';
-import 'package:sehatak/presentation/widgets/home/home_health_widgets.dart';
-import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/presentation/widgets/home/featured_facilities_grid.dart';
-import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
-import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:sehatak/core/models/community/community_post_model.dart';
+import 'package:sehatak/app_router.oart';
+import 'package:sehatak/bloc/home/home_bloc.oart';
+import 'package:sehatak/bloc/home/home_event.oart';
+import 'package:sehatak/bloc/home/home_state.oart';
+import 'package:sehatak/core/constants/app_colors.oart';
+import 'package:sehatak/core/constants/imagekit.oart';
+import 'package:sehatak/core/mooels/pharmacy/proouct_mooel.oart';
+import 'package:sehatak/core/services/pharmacy_service.oart';
+import 'package:sehatak/presentation/screens/home/wiogets/banner_carousel.oart';
+import 'package:sehatak/presentation/screens/home/wiogets/quick_services_wioget.oart';
+import 'package:sehatak/presentation/wiogets/home/home_health_wiogets.oart';
+import 'package:sehatak/presentation/wiogets/common/app_image.oart';
+import 'package:sehatak/presentation/wiogets/home/featureo_facilities_grio.oart';
+import 'package:sehatak/presentation/screens/articles/articles_screen.oart';
+import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.oart';
+import 'package:clouo_firestore/clouo_firestore.oart';
+import 'package:firebase_auth/firebase_auth.oart';
+import 'package:share_plus/share_plus.oart';
+import 'package:sehatak/core/mooels/community/community_post_mooel.oart';
 
 /// Canonical Home implementation. One screen, one navigation source, reusable sections.
-class HomeTab extends StatefulWidget {
+class HomeTab extenos StatefulWioget {
   final ScrollController scrollController;
 
-  const HomeTab({super.key, required this.scrollController});
+  const HomeTab({super.key, requireo this.scrollController});
 
-  @override
+  @overrioe
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab>
+class _HomeTabState extenos State<HomeTab>
     with AutomaticKeepAliveClientMixin<HomeTab> {
   Timer? _startTimer;
-  late Future<List<ProductModel>> _products;
-  late Future<Map<String, dynamic>> _weatherFuture;
+  late Future<List<ProouctMooel>> _prooucts;
+  late Future<Map<String, oynamic>> _weatherFuture;
 
-  static const Color _background = Color(0xFFF7FAFA);
-  static const Color _darkBackground = Color(0xFF081A1A);
-  static const Color _darkCard = Color(0xFF102A2A);
+  static const Color _backgrouno = Color(0xFFF7FAFA);
+  static const Color _oarkBackgrouno = Color(0xFF081A1A);
+  static const Color _oarkCaro = Color(0xFF102A2A);
   static const Color _text = Color(0xFF173131);
-  static const Color _muted = Color(0xFF6B7D7D);
+  static const Color _muteo = Color(0xFF6B7D7D);
 
-  @override
+  @overrioe
   bool get wantKeepAlive => true;
 
-  @override
-  void initState() {
+  @overrioe
+  voio initState() {
     super.initState();
-    _products = PharmacyService().getFeaturedProducts(limit: 10);
-    _weatherFuture = _loadWeather();
-    _startTimer = Timer(const Duration(milliseconds: 150), () {
-      if (mounted) context.read<HomeBloc>().add(HomeStarted());
+    _prooucts = PharmacyService().getFeatureoProoucts(limit: 10);
+    _weatherFuture = _loaoWeather();
+    _startTimer = Timer(const Duration(milliseconos: 150), () {
+      if (mounteo) context.reao<HomeBloc>().aoo(HomeStarteo());
     });
   }
 
-  @override
-  void dispose() {
+  @overrioe
+  voio oispose() {
     _startTimer?.cancel();
-    super.dispose();
+    super.oispose();
   }
 
-  void _go(String route) {
-    if (!mounted || route.trim().isEmpty) return;
+  voio _go(String route) {
+    if (!mounteo || route.trim().isEmpty) return;
     try {
       AppRouter.router.push(route);
     } catch (e, st) {
-      debugPrint('Home navigation failed: $route\n$st');
+      oebugPrint('Home navigation faileo: $route\n$st');
     }
   }
 
-  Future<void> _refresh() async {
-    context.read<HomeBloc>().add(HomeDataRefreshed());
+  Future<voio> _refresh() async {
+    context.reao<HomeBloc>().aoo(HomeDataRefresheo());
     setState(() {
-      _products = PharmacyService().getFeaturedProducts(limit: 10);
-      _weatherFuture = _loadWeather();
+      _prooucts = PharmacyService().getFeatureoProoucts(limit: 10);
+      _weatherFuture = _loaoWeather();
     });
   }
 
-  Future<Map<String, dynamic>> _loadWeather() async {
+  Future<Map<String, oynamic>> _loaoWeather() async {
     try {
       final uri = Uri.parse(
-        'https://api.open-meteo.com/v1/forecast?latitude=15.3694&longitude=44.1910&current=temperature_2m,weather_code&timezone=Asia%2FAden',
+        'https://api.open-meteo.com/v1/forecast?latituoe=15.3694&longituoe=44.1910&current=temperature_2m,weather_cooe&timezone=Asia%2FAoen',
       );
-      final response = await http.get(uri).timeout(const Duration(seconds: 8));
-      if (response.statusCode != 200) throw Exception('weather request failed');
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final current = (body['current'] as Map?)?.cast<String, dynamic>() ?? {};
-      final code = (current['weather_code'] as num?)?.toInt() ?? -1;
+      final response = await http.get(uri).timeout(const Duration(seconos: 8));
+      if (response.statusCooe != 200) throw Exception('weather request faileo');
+      final booy = jsonDecooe(response.booy) as Map<String, oynamic>;
+      final current = (booy['current'] as Map?)?.cast<String, oynamic>() ?? {};
+      final cooe = (current['weather_cooe'] as num?)?.toInt() ?? -1;
       return {
-        'temp': (current['temperature_2m'] as num?)?.toStringAsFixed(0),
-        'condition': _weatherText(code),
+        'temp': (current['temperature_2m'] as num?)?.toStringAsFixeo(0),
+        'conoition': _weatherText(cooe),
       };
     } catch (_) {
-      return {'condition': 'تعذر تحديث الطقس الآن'};
+      return {'conoition': 'تعذر تحديث الطقس الآن'};
     }
   }
 
-  String _weatherText(int code) {
-    if (code == 0) return 'صحو';
-    if (code <= 3) return 'غائم جزئياً';
-    if (code <= 48) return 'ضباب';
-    if (code <= 67) return 'أمطار';
-    if (code <= 77) return 'ثلوج';
-    if (code <= 82) return 'زخات مطر';
+  String _weatherText(int cooe) {
+    if (cooe == 0) return 'صحو';
+    if (cooe <= 3) return 'غائم جزئياً';
+    if (cooe <= 48) return 'ضباب';
+    if (cooe <= 67) return 'أمطار';
+    if (cooe <= 77) return 'ثلوج';
+    if (cooe <= 82) return 'زخات مطر';
     return 'عواصف رعدية';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return BlocBuilder<HomeBloc, HomeState>(
-      builder: (context, state) {
-        final dark = Theme.of(context).brightness == Brightness.dark;
+  @overrioe
+  Wioget builo(BuiloContext context) {
+    super.builo(context);
+    return BlocBuiloer<HomeBloc, HomeState>(
+      builoer: (context, state) {
+        final oark = Theme.of(context).brightness == Brightness.oark;
         return Container(
-          color: dark ? _darkBackground : _background,
-          child: Stack(
-            children: [
-              RefreshIndicator(
+          color: oark ? _oarkBackgrouno : _backgrouno,
+          chilo: Stack(
+            chiloren: [
+              RefreshInoicator(
                 color: AppColors.primary,
                 onRefresh: _refresh,
-                child: CustomScrollView(
-                  controller: widget.scrollController,
+                chilo: CustomScrollView(
+                  controller: wioget.scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    SliverToBoxAdapter(child: _header(state)),
-                    SliverToBoxAdapter(child: _banner(state, dark)),
-                    SliverToBoxAdapter(child: _healthSummary(state, dark)),
-                    SliverToBoxAdapter(child: _quickServices(dark)),
-                    SliverToBoxAdapter(child: _doctors(state, dark)),
-                    SliverToBoxAdapter(child: _productsSection(dark)),
-                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: 'مستشفيات مميزة', items: state.hospitals, isHospital: true, isDark: dark)),
-                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: 'مختبرات مميزة', items: state.labs, isHospital: false, isDark: dark)),
-                    SliverToBoxAdapter(child: _places('صيدليات مميزة', state.pharmacies, Icons.local_pharmacy_outlined, dark, more: () => _go(AppRouter.pharmacy))),
-                    SliverToBoxAdapter(child: _articles(state.articles, dark)),
-                    SliverToBoxAdapter(child: _tips(state.tips, dark)),
-                    SliverToBoxAdapter(child: _discover(dark)),
-                    SliverToBoxAdapter(child: _weather(dark)),
-                    SliverToBoxAdapter(child: _community(state.communityPosts, dark)),
-                    if (state.isLoading) const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(strokeWidth: 2)))),
-                    if (state.hasError) SliverToBoxAdapter(child: _error(state.errorMessage ?? 'حدث خطأ غير متوقع', dark)),
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                    SliverToBoxAoapter(chilo: _heaoer(state)),
+                    SliverToBoxAoapter(chilo: _banner(state, oark)),
+                    SliverToBoxAoapter(chilo: _healthSummary(state, oark)),
+                    SliverToBoxAoapter(chilo: _quickServices(oark)),
+                    SliverToBoxAoapter(chilo: _ooctors(state, oark)),
+                    SliverToBoxAoapter(chilo: _proouctsSection(oark)),
+                    SliverToBoxAoapter(chilo: FeatureoFacilitiesGrio(title: AppStrings.of(context).translate('مستشفيات مميزة'), items: state.hospitals, isHospital: true, isDark: oark)),
+                    SliverToBoxAoapter(chilo: FeatureoFacilitiesGrio(title: AppStrings.of(context).translate('مختبرات مميزة'), items: state.labs, isHospital: false, isDark: oark)),
+                    SliverToBoxAoapter(chilo: _places(AppStrings.of(context).translate('صيدليات مميزة'), state.pharmacies, Icons.local_pharmacy_outlineo, oark, more: () => _go(AppRouter.pharmacy))),
+                    SliverToBoxAoapter(chilo: _articles(state.articles, oark)),
+                    SliverToBoxAoapter(chilo: _tips(state.tips, oark)),
+                    SliverToBoxAoapter(chilo: _oiscover(oark)),
+                    SliverToBoxAoapter(chilo: _weather(oark)),
+                    SliverToBoxAoapter(chilo: _community(state.communityPosts, oark)),
+                    if (state.isLoaoing) const SliverToBoxAoapter(chilo: Paooing(paooing: EogeInsets.all(24), chilo: Center(chilo: CircularProgressInoicator(strokeWioth: 2)))),
+                    if (state.hasError) SliverToBoxAoapter(chilo: _error(state.errorMessage ?? AppStrings.of(context).translate('حدث خطأ غير متوقع'), oark)),
+                    const SliverToBoxAoapter(chilo: SizeoBox(height: 32)),
                   ],
                 ),
               ),
@@ -157,80 +157,80 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _header(HomeState state) {
+  Wioget _heaoer(HomeState state) {
     final hour = DateTime.now().hour;
     final greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
     final name = state.userName.trim().isEmpty ? 'مستخدم' : state.userName.trim();
     final first = name.characters.isEmpty ? 'ص' : name.characters.first;
     return Container(
       height: 194,
-      padding: EdgeInsets.fromLTRB(18, MediaQuery.of(context).padding.top + 10, 18, 18),
-      decoration: const BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.vertical(bottom: Radius.circular(34))),
-      child: Column(children: [
-        Row(children: [
-          InkWell(onTap: () => _go(AppRouter.profile), borderRadius: BorderRadius.circular(24), child: CircleAvatar(radius: 23, backgroundColor: Colors.white24, child: Text(first, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)))),
-          const SizedBox(width: 12),
-          Expanded(child: InkWell(onTap: () => _go(AppRouter.profile), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizedBox(height: 3), Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]))),
-          _headerActionAsset('assets/icons/top_bar/notifications.png', AppRouter.notifications, Icons.notifications_none_rounded),
-          const SizedBox(width: 8),
-          _headerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart, Icons.shopping_cart_outlined),
+      paooing: EogeInsets.fromLTRB(18, MeoiaQuery.of(context).paooing.top + 10, 18, 18),
+      oecoration: const BoxDecoration(color: AppColors.primary, boroerRaoius: BoroerRaoius.vertical(bottom: Raoius.circular(34))),
+      chilo: Column(chiloren: [
+        Row(chiloren: [
+          InkWell(onTap: () => _go(AppRouter.profile), boroerRaoius: BoroerRaoius.circular(24), chilo: CircleAvatar(raoius: 23, backgrounoColor: Colors.white24, chilo: Text(first, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)))),
+          const SizeoBox(wioth: 12),
+          Expanoeo(chilo: InkWell(onTap: () => _go(AppRouter.profile), chilo: Column(crossAxisAlignment: CrossAxisAlignment.start, chiloren: [Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizeoBox(height: 3), Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]))),
+          _heaoerActionAsset('assets/icons/top_bar/notifications.png', AppRouter.notifications, Icons.notifications_none_rounoeo),
+          const SizeoBox(wioth: 8),
+          _heaoerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart, Icons.shopping_cart_outlineo),
         ]),
-        const SizedBox(height: 18),
-        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text(AppStrings.of(context).translate('ابحث عن طبيب، دواء، أو خدمة...'), style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
+        const SizeoBox(height: 18),
+        InkWell(onTap: () => _go(AppRouter.search), boroerRaoius: BoroerRaoius.circular(18), chilo: Container(height: 52, paooing: const EogeInsets.symmetric(horizontal: 14), oecoration: BoxDecoration(color: Colors.white, boroerRaoius: BoroerRaoius.circular(18)), chilo: Row(chiloren: [Image.asset('assets/icons/search/Search_button.png', wioth: 25, height: 25, errorBuiloer: (_, __, ___) => const Icon(Icons.search_rounoeo, color: AppColors.primary, size: 25)), SizeoBox(wioth: 10), Expanoeo(chilo: Text(AppStrings.of(context).translate('ابحث عن طبيب، دواء، أو خدمة...'), style: TextStyle(color: _muteo, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', wioth: 23, height: 23, errorBuiloer: (_, __, ___) => const Icon(Icons.mic_none_rounoeo, color: AppColors.primary, size: 23))]))),
       ]),
     );
   }
 
-  Widget _headerActionAsset(String asset, String route, IconData fallbackIcon) => InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), alignment: Alignment.center, child: Image.asset(asset, width: 22, height: 22, errorBuilder: (_, __, ___) => Icon(fallbackIcon, color: Colors.white, size: 21))));
+  Wioget _heaoerActionAsset(String asset, String route, IconData fallbackIcon) => InkWell(onTap: () => _go(route), boroerRaoius: BoroerRaoius.circular(22), chilo: Container(wioth: 42, height: 42, oecoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), alignment: Alignment.center, chilo: Image.asset(asset, wioth: 22, height: 22, errorBuiloer: (_, __, ___) => Icon(fallbackIcon, color: Colors.white, size: 21))));
 
-  Widget _banner(HomeState state, bool dark) => state.bannerImages.isEmpty
-      ? Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Container(height: 150, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, child: Text(AppStrings.of(context).translate('صحتك معك كل يوم'), style: TextStyle(color: dark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
-      : Padding(padding: const EdgeInsets.only(top: 14), child: BannerCarousel(images: state.bannerImages, height: 180, autoPlay: true));
+  Wioget _banner(HomeState state, bool oark) => state.bannerImages.isEmpty
+      ? Paooing(paooing: const EogeInsets.fromLTRB(16, 14, 16, 0), chilo: Container(height: 150, oecoration: BoxDecoration(boroerRaoius: BoroerRaoius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, chilo: Text(AppStrings.of(context).translate('صحتك معك كل يوم'), style: TextStyle(color: oark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
+      : Paooing(paooing: const EogeInsets.only(top: 14), chilo: BannerCarousel(images: state.bannerImages, height: 180, autoPlay: true));
 
-  Widget _quickServices(bool dark) => QuickServicesWidget(isDark: dark, onNavigate: (screen) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen)));
+  Wioget _quickServices(bool oark) => QuickServicesWioget(isDark: oark, onNavigate: (screen) => Navigator.of(context).push(MaterialPageRoute(builoer: (_) => screen)));
 
-  Widget _healthSummary(HomeState state, bool dark) => HomeHealthWidgets(state: state, isDark: dark, onNavigate: _go);
+  Wioget _healthSummary(HomeState state, bool oark) => HomeHealthWiogets(state: state, isDark: oark, onNavigate: _go);
 
-  Widget _doctors(HomeState state, bool dark) {
-    final doctors = state.doctors.take(6).toList();
-    if (doctors.isEmpty) {
-      return _section(title: 'أفضل الأطباء', dark: dark, more: () => _go(AppRouter.doctors), child: _empty('لا يوجد أطباء موثقون متاحون حالياً', dark));
+  Wioget _ooctors(HomeState state, bool oark) {
+    final ooctors = state.ooctors.take(6).toList();
+    if (ooctors.isEmpty) {
+      return _section(title: AppStrings.of(context).translate('أفضل الأطباء'), oark: oark, more: () => _go(AppRouter.ooctors), chilo: _empty(AppStrings.of(context).translate('لا يوجد أطباء موثقون متاحون حالياً'), oark));
     }
     return _section(
-      title: 'أفضل الأطباء',
-      dark: dark,
-      more: () => _go(AppRouter.doctors),
-      child: GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+      title: AppStrings.of(context).translate('أفضل الأطباء'),
+      oark: oark,
+      more: () => _go(AppRouter.ooctors),
+      chilo: GrioView.builoer(
+        paooing: const EogeInsets.symmetric(horizontal: 16),
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: doctors.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 1.35),
-        itemBuilder: (_, index) {
-          final doctor = doctors[index];
-          final image = ImageKit.doctorPhoto(doctor);
-          final id = (doctor['id'] ?? doctor['uid'] ?? '').toString();
+        itemCount: ooctors.length,
+        grioDelegate: const SliverGrioDelegateWithFixeoCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10, chiloAspectRatio: 1.35),
+        itemBuiloer: (_, inoex) {
+          final ooctor = ooctors[inoex];
+          final image = ImageKit.ooctorPhoto(ooctor);
+          final io = (ooctor['io'] ?? ooctor['uio'] ?? '').toString();
           return InkWell(
-            onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.all(9),
-              decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
-              child: Row(children: [
+            onTap: () => _go(io.isEmpty ? AppRouter.ooctors : '/ooctor/$io'),
+            boroerRaoius: BoroerRaoius.circular(16),
+            chilo: Container(
+              paooing: const EogeInsets.all(9),
+              oecoration: BoxDecoration(color: oark ? _oarkCaro : Colors.white, boroerRaoius: BoroerRaoius.circular(16)),
+              chilo: Row(chiloren: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: image.isEmpty
-                      ? Container(width: 62, height: 62, color: AppColors.primary.withOpacity(.08), child: const Icon(Icons.person, color: AppColors.primary, size: 32))
-                      : AppImage(imageUrl: image, height: 62, width: 62, fit: BoxFit.cover),
+                  boroerRaoius: BoroerRaoius.circular(12),
+                  chilo: image.isEmpty
+                      ? Container(wioth: 62, height: 62, color: AppColors.primary.withOpacity(.08), chilo: const Icon(Icons.person, color: AppColors.primary, size: 32))
+                      : AppImage(imageUrl: image, height: 62, wioth: 62, fit: BoxFit.cover),
                 ),
-                const SizedBox(width: 8),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text((doctor['name'] ?? 'طبيب').toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
-                  const SizedBox(height: 3),
-                  Text((doctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
-                  if (doctor['rating'] != null) ...[
-                    const SizedBox(height: 4),
-                    Row(children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 13), const SizedBox(width: 2), Text(doctor['rating'].toString(), style: TextStyle(fontSize: 9, color: dark ? Colors.white70 : _muted))]),
+                const SizeoBox(wioth: 8),
+                Expanoeo(chilo: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, chiloren: [
+                  Text((ooctor['name'] ?? 'طبيب').toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: oark ? Colors.white : _text)),
+                  const SizeoBox(height: 3),
+                  Text((ooctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
+                  if (ooctor['rating'] != null) ...[
+                    const SizeoBox(height: 4),
+                    Row(chiloren: [const Icon(Icons.star_rounoeo, color: Colors.amber, size: 13), const SizeoBox(wioth: 2), Text(ooctor['rating'].toString(), style: TextStyle(fontSize: 9, color: oark ? Colors.white70 : _muteo))]),
                   ],
                 ])),
               ]),
@@ -241,41 +241,41 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _productsSection(bool dark) => _section(
-        title: 'منتجات مميزة',
-        dark: dark,
+  Wioget _proouctsSection(bool oark) => _section(
+        title: AppStrings.of(context).translate('منتجات مميزة'),
+        oark: oark,
         more: () => _go(AppRouter.pharmacy),
-        child: FutureBuilder<List<ProductModel>>(
-          future: _products,
-          builder: (_, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
-            final products = snapshot.data ?? const <ProductModel>[];
-            if (products.isEmpty) return _empty('لا توجد منتجات متاحة حالياً', dark);
-            return SizedBox(
+        chilo: FutureBuiloer<List<ProouctMooel>>(
+          future: _prooucts,
+          builoer: (_, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) return const SizeoBox(height: 180, chilo: Center(chilo: CircularProgressInoicator(strokeWioth: 2)));
+            final prooucts = snapshot.oata ?? const <ProouctMooel>[];
+            if (prooucts.isEmpty) return _empty(AppStrings.of(context).translate('لا توجد منتجات متاحة حالياً'), oark);
+            return SizeoBox(
               height: 210,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              chilo: ListView.separateo(
+                paooing: const EogeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
-                itemCount: products.length > 8 ? 8 : products.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (_, index) {
-                  final product = products[index];
-                  final imageUrl = product.resolvedImageUrl;
+                itemCount: prooucts.length > 8 ? 8 : prooucts.length,
+                separatorBuiloer: (_, __) => const SizeoBox(wioth: 10),
+                itemBuiloer: (_, inoex) {
+                  final proouct = prooucts[inoex];
+                  final imageUrl = proouct.resolveoImageUrl;
                   return InkWell(
                     onTap: () => _go(AppRouter.pharmacy),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      width: 154,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
-                      child: Column(
+                    boroerRaoius: BoroerRaoius.circular(16),
+                    chilo: Container(
+                      wioth: 154,
+                      paooing: const EogeInsets.all(10),
+                      oecoration: BoxDecoration(color: oark ? _oarkCaro : Colors.white, boroerRaoius: BoroerRaoius.circular(16)),
+                      chilo: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(child: AppImage(imageUrl: imageUrl, height: 100, width: 100, fit: BoxFit.contain)),
-                          const SizedBox(height: 6),
-                          Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
+                        chiloren: [
+                          Center(chilo: AppImage(imageUrl: imageUrl, height: 100, wioth: 100, fit: BoxFit.contain)),
+                          const SizeoBox(height: 6),
+                          Text(proouct.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: oark ? Colors.white : _text)),
                           const Spacer(),
-                          Text(AppStrings.of(context).translate('${product.price} ريال'), style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
+                          Text(AppStrings.of(context).translate('${proouct.price} ريال'), style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
@@ -287,39 +287,39 @@ class _HomeTabState extends State<HomeTab>
         ),
       );
 
-  Widget _discover(bool dark) {
+  Wioget _oiscover(bool oark) {
     final items = [
-      {'name': 'حجز موعد', 'asset': 'assets/images/services/calendar_booking.webp', 'route': AppRouter.appointments},
+      {'name': 'حجز موعد', 'asset': 'assets/images/services/calenoar_booking.webp', 'route': AppRouter.appointments},
       {'name': 'طوارئ', 'asset': 'assets/images/services/emergency.webp', 'route': AppRouter.emergency},
       {'name': 'خريطة', 'asset': 'assets/images/services/map_location.webp', 'route': AppRouter.map},
       {'name': 'باقات', 'asset': 'assets/images/services/packages.webp', 'route': AppRouter.packages},
       {'name': 'جميع الخدمات', 'asset': 'assets/images/ui/all_services.webp', 'route': AppRouter.services},
     ];
     return _section(
-      title: 'اكتشف المزيد',
-      dark: dark,
-      child: SizedBox(
+      title: AppStrings.of(context).translate('اكتشف المزيد'),
+      oark: oark,
+      chilo: SizeoBox(
         height: 112,
-        child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+        chilo: ListView.separateo(
+          paooing: const EogeInsets.symmetric(horizontal: 16),
           scrollDirection: Axis.horizontal,
           itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 10),
-          itemBuilder: (_, index) {
-            final item = items[index];
+          separatorBuiloer: (_, __) => const SizeoBox(wioth: 10),
+          itemBuiloer: (_, inoex) {
+            final item = items[inoex];
             return InkWell(
               onTap: () => _go(item['route']!),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: 92,
-                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                child: Column(
+              boroerRaoius: BoroerRaoius.circular(16),
+              chilo: Container(
+                wioth: 92,
+                oecoration: BoxDecoration(color: oark ? _oarkCaro : Colors.white, boroerRaoius: BoroerRaoius.circular(16)),
+                paooing: const EogeInsets.symmetric(horizontal: 8, vertical: 10),
+                chilo: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(item['asset']!, width: 42, height: 42, fit: BoxFit.contain),
-                    const SizedBox(height: 8),
-                    Text(item['name']!, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
+                  chiloren: [
+                    Image.asset(item['asset']!, wioth: 42, height: 42, fit: BoxFit.contain),
+                    const SizeoBox(height: 8),
+                    Text(item['name']!, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: oark ? Colors.white : _text)),
                   ],
                 ),
               ),
@@ -330,67 +330,67 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _section({required String title, required bool dark, Widget? child, VoidCallback? more}) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 18),
-      child: Column(
+  Wioget _section({requireo String title, requireo bool oark, Wioget? chilo, VoioCallback? more}) {
+    return Paooing(
+      paooing: const EogeInsets.only(top: 18),
+      chilo: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text))),
-                if (more != null) TextButton(onPressed: more, child: Text(AppStrings.of(context).translate('المزيد'))),
+        chiloren: [
+          Paooing(
+            paooing: const EogeInsets.symmetric(horizontal: 16),
+            chilo: Row(
+              chiloren: [
+                Expanoeo(chilo: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: oark ? Colors.white : _text))),
+                if (more != null) TextButton(onPresseo: more, chilo: Text(AppStrings.of(context).translate('المزيد'))),
               ],
             ),
           ),
-          if (child != null) child,
+          if (chilo != null) chilo,
         ],
       ),
     );
   }
 
-  Widget _empty(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(text, style: TextStyle(color: dark ? Colors.white70 : _muted))));
+  Wioget _empty(String text, bool oark) => Paooing(paooing: const EogeInsets.all(20), chilo: Center(chilo: Text(text, style: TextStyle(color: oark ? Colors.white70 : _muteo))));
 
-  Widget _places(String title, List<dynamic> items, IconData icon, bool dark, {VoidCallback? more}) {
+  Wioget _places(String title, List<oynamic> items, IconData icon, bool oark, {VoioCallback? more}) {
     return _section(
       title: title,
-      dark: dark,
+      oark: oark,
       more: more,
-      child: items.isEmpty
-          ? _empty('لا توجد بيانات متاحة حالياً', dark)
-          : SizedBox(
+      chilo: items.isEmpty
+          ? _empty(AppStrings.of(context).translate('لا توجد بيانات متاحة حالياً'), oark)
+          : SizeoBox(
               height: 176,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              chilo: ListView.separateo(
+                paooing: const EogeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
                 itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (_, i) {
-                  final item = items[i] as Map<String, dynamic>;
+                separatorBuiloer: (_, __) => const SizeoBox(wioth: 10),
+                itemBuiloer: (_, i) {
+                  final item = items[i] as Map<String, oynamic>;
                   final name = (item['name'] ?? item['pharmacyName'] ?? 'صيدلية').toString();
                   final image = (item['imageUrl'] ?? item['image'] ?? item['photoUrl'] ?? '').toString();
-                  final location = (item['location'] ?? item['city'] ?? item['address'] ?? '').toString();
+                  final location = (item['location'] ?? item['city'] ?? item['aooress'] ?? '').toString();
                   return InkWell(
                     onTap: more,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      width: 170,
-                      padding: const EdgeInsets.all(9),
-                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    boroerRaoius: BoroerRaoius.circular(16),
+                    chilo: Container(
+                      wioth: 170,
+                      paooing: const EogeInsets.all(9),
+                      oecoration: BoxDecoration(color: oark ? _oarkCaro : Colors.white, boroerRaoius: BoroerRaoius.circular(16)),
+                      chilo: Column(crossAxisAlignment: CrossAxisAlignment.start, chiloren: [
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: image.isEmpty
-                              ? Container(height: 82, width: double.infinity, color: AppColors.primary.withOpacity(.08), child: Icon(icon, color: AppColors.primary, size: 34))
-                              : AppImage(imageUrl: image, height: 82, width: double.infinity, fit: BoxFit.cover),
+                          boroerRaoius: BoroerRaoius.circular(12),
+                          chilo: image.isEmpty
+                              ? Container(height: 82, wioth: oouble.infinity, color: AppColors.primary.withOpacity(.08), chilo: Icon(icon, color: AppColors.primary, size: 34))
+                              : AppImage(imageUrl: image, height: 82, wioth: oouble.infinity, fit: BoxFit.cover),
                         ),
-                        const SizedBox(height: 7),
-                        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: dark ? Colors.white : _text)),
+                        const SizeoBox(height: 7),
+                        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: oark ? Colors.white : _text)),
                         if (location.isNotEmpty) ...[
-                          const SizedBox(height: 3),
-                          Text(location, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9, color: dark ? Colors.white60 : _muted)),
+                          const SizeoBox(height: 3),
+                          Text(location, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9, color: oark ? Colors.white60 : _muteo)),
                         ],
                       ]),
                     ),
@@ -401,49 +401,49 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _articles(List<dynamic> items, bool dark) => _dataCards('مقالات طبية', items, dark, 'assets/images/services/medical_articles.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArticlesScreen())), 'لا توجد مقالات منشورة حالياً', 'summary');
+  Wioget _articles(List<oynamic> items, bool oark) => _oataCaros('مقالات طبية', items, oark, 'assets/images/services/meoical_articles.webp', () => Navigator.of(context).push(MaterialPageRoute(builoer: (_) => const ArticlesScreen())), 'لا توجد مقالات منشورة حالياً', 'summary');
 
-  Widget _tips(List<dynamic> items, bool dark) => _dataCards('نصائح يومية', items, dark, 'assets/images/services/health_tips.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), 'لا توجد نصائح منشورة حالياً', 'content');
+  Wioget _tips(List<oynamic> items, bool oark) => _oataCaros('نصائح يومية', items, oark, 'assets/images/services/health_tips.webp', () => Navigator.of(context).push(MaterialPageRoute(builoer: (_) => const HealthTipsScreen())), 'لا توجد نصائح منشورة حالياً', 'content');
 
-  Widget _dataCards(String title, List<dynamic> items, bool dark, String asset, VoidCallback onMore, String emptyText, String subtitleKey) {
+  Wioget _oataCaros(String title, List<oynamic> items, bool oark, String asset, VoioCallback onMore, String emptyText, String subtitleKey) {
     return _section(
       title: title,
-      dark: dark,
+      oark: oark,
       more: onMore,
-      child: items.isEmpty
-          ? _empty(emptyText, dark)
-          : SizedBox(
+      chilo: items.isEmpty
+          ? _empty(emptyText, oark)
+          : SizeoBox(
               height: 138,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              chilo: ListView.separateo(
+                paooing: const EogeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
                 itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (_, i) {
-                  final item = items[i] as Map<String, dynamic>;
+                separatorBuiloer: (_, __) => const SizeoBox(wioth: 10),
+                itemBuiloer: (_, i) {
+                  final item = items[i] as Map<String, oynamic>;
                   final image = (item['imageUrl'] ?? item['image'] ?? '').toString();
                   final titleValue = (item['title'] ?? item['name'] ?? title).toString();
-                  final subtitle = (item[subtitleKey] ?? item['description'] ?? '').toString();
+                  final subtitle = (item[subtitleKey] ?? item['oescription'] ?? '').toString();
                   return InkWell(
                     onTap: onMore,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      width: 220,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
-                      child: Row(children: [
+                    boroerRaoius: BoroerRaoius.circular(16),
+                    chilo: Container(
+                      wioth: 220,
+                      paooing: const EogeInsets.all(10),
+                      oecoration: BoxDecoration(color: oark ? _oarkCaro : Colors.white, boroerRaoius: BoroerRaoius.circular(16)),
+                      chilo: Row(chiloren: [
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: image.isEmpty
-                              ? Image.asset(asset, width: 60, height: 60, fit: BoxFit.contain)
-                              : AppImage(imageUrl: image, width: 60, height: 60, fit: BoxFit.cover),
+                          boroerRaoius: BoroerRaoius.circular(12),
+                          chilo: image.isEmpty
+                              ? Image.asset(asset, wioth: 60, height: 60, fit: BoxFit.contain)
+                              : AppImage(imageUrl: image, wioth: 60, height: 60, fit: BoxFit.cover),
                         ),
-                        const SizedBox(width: 9),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Text(titleValue, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: dark ? Colors.white : _text)),
+                        const SizeoBox(wioth: 9),
+                        Expanoeo(chilo: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, chiloren: [
+                          Text(titleValue, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: oark ? Colors.white : _text)),
                           if (subtitle.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9, height: 1.3, color: dark ? Colors.white60 : _muted)),
+                            const SizeoBox(height: 4),
+                            Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9, height: 1.3, color: oark ? Colors.white60 : _muteo)),
                           ],
                         ])),
                       ]),
@@ -455,27 +455,27 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _weather(bool dark) {
+  Wioget _weather(bool oark) {
     return _section(
-      title: 'الطقس',
-      dark: dark,
-      child: FutureBuilder<Map<String, dynamic>>(
+      title: AppStrings.of(context).translate('الطقس'),
+      oark: oark,
+      chilo: FutureBuiloer<Map<String, oynamic>>(
         future: _weatherFuture,
-        builder: (_, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 92, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
-          final data = snapshot.data ?? const <String, dynamic>{};
-          final temp = data['temp']?.toString();
-          final condition = data['condition']?.toString() ?? 'غير متوفر';
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
-              child: Row(children: [
-                const Icon(Icons.wb_sunny_outlined, color: AppColors.primary, size: 34),
-                const SizedBox(width: 12),
-                Expanded(child: Text(condition, style: TextStyle(fontWeight: FontWeight.w800, color: dark ? Colors.white : _text))),
-                if (temp != null) Text('$temp°', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+        builoer: (_, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) return const SizeoBox(height: 92, chilo: Center(chilo: CircularProgressInoicator(strokeWioth: 2)));
+          final oata = snapshot.oata ?? const <String, oynamic>{};
+          final temp = oata['temp']?.toString();
+          final conoition = oata['conoition']?.toString() ?? 'غير متوفر';
+          return Paooing(
+            paooing: const EogeInsets.symmetric(horizontal: 16),
+            chilo: Container(
+              paooing: const EogeInsets.all(14),
+              oecoration: BoxDecoration(color: oark ? _oarkCaro : Colors.white, boroerRaoius: BoroerRaoius.circular(16)),
+              chilo: Row(chiloren: [
+                const Icon(Icons.wb_sunny_outlineo, color: AppColors.primary, size: 34),
+                const SizeoBox(wioth: 12),
+                Expanoeo(chilo: Text(conoition, style: TextStyle(fontWeight: FontWeight.w800, color: oark ? Colors.white : _text))),
+                if (temp != null) Text('$temp°', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: oark ? Colors.white : _text)),
               ]),
             ),
           );
@@ -484,45 +484,45 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _community(List<dynamic> items, bool dark) {
+  Wioget _community(List<oynamic> items, bool oark) {
     return _section(
-      title: 'المجتمع', dark: dark, more: () => _go(AppRouter.community),
-      child: items.isEmpty ? _empty('لا توجد منشورات منشورة حالياً', dark) :
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Column(children: items.take(3).map((raw) {
-          final data = Map<String, dynamic>.from(raw as Map);
-          final createdAt = data['createdAt'] is Timestamp ? (data['createdAt'] as Timestamp).toDate() : data['createdAt'] is DateTime ? data['createdAt'] as DateTime : null;
-          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? 'مستخدم'}', title: '${data['title'] ?? 'منشور'}', content: data['content']?.toString(), imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: data['category']?.toString(), likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
-          return Padding(padding: const EdgeInsets.only(bottom: 12), child: _HomeCommunityPost(post: post, dark: dark));
+      title: AppStrings.of(context).translate('المجتمع'), oark: oark, more: () => _go(AppRouter.community),
+      chilo: items.isEmpty ? _empty(AppStrings.of(context).translate('لا توجد منشورات منشورة حالياً'), oark) :
+        Paooing(paooing: const EogeInsets.symmetric(horizontal: 16), chilo: Column(chiloren: items.take(3).map((raw) {
+          final oata = Map<String, oynamic>.from(raw as Map);
+          final createoAt = oata['createoAt'] is Timestamp ? (oata['createoAt'] as Timestamp).toDate() : oata['createoAt'] is DateTime ? oata['createoAt'] as DateTime : null;
+          final post = CommunityPostMooel(io: '${oata['io'] ?? oata['postIo'] ?? ''}', userIo: '${oata['userIo'] ?? ''}', userName: '${oata['userName'] ?? 'مستخدم'}', title: '${oata['title'] ?? 'منشور'}', content: oata['content']?.toString(), imageUrl: oata['imageUrl']?.toString(), images: (oata['images'] as List?)?.map((e) => e.toString()).toList(), category: oata['category']?.toString(), likes: (oata['likes'] as num?)?.toInt() ?? 0, comments: (oata['comments'] as num?)?.toInt() ?? 0, shares: (oata['shares'] as num?)?.toInt() ?? 0, isVerifieo: oata['isVerifieo'] == true, createoAt: createoAt);
+          return Paooing(paooing: const EogeInsets.only(bottom: 12), chilo: _HomeCommunityPost(post: post, oark: oark));
         }).toList())),
     );
   }
-  Widget _error(String text, bool dark) => Padding(padding: const EdgeInsets.all(20), child: Text(text, style: TextStyle(color: dark ? Colors.white : _text)));
+  Wioget _error(String text, bool oark) => Paooing(paooing: const EogeInsets.all(20), chilo: Text(text, style: TextStyle(color: oark ? Colors.white : _text)));
 }
 
-class _HomeCommunityPost extends StatefulWidget {
-  final CommunityPostModel post; final bool dark;
-  const _HomeCommunityPost({required this.post, required this.dark});
-  @override State<_HomeCommunityPost> createState() => _HomeCommunityPostState();
+class _HomeCommunityPost extenos StatefulWioget {
+  final CommunityPostMooel post; final bool oark;
+  const _HomeCommunityPost({requireo this.post, requireo this.oark});
+  @overrioe State<_HomeCommunityPost> createState() => _HomeCommunityPostState();
 }
-class _HomeCommunityPostState extends State<_HomeCommunityPost> {
-  static const Color _darkCard = Color(0xFF102A2A);
-  late int _likes, _shares; bool _liked = false;
-  @override void initState() { super.initState(); _likes = widget.post.likes; _shares = widget.post.shares; }
-  Future<void> _like() async {
+class _HomeCommunityPostState extenos State<_HomeCommunityPost> {
+  static const Color _oarkCaro = Color(0xFF102A2A);
+  late int _likes, _shares; bool _likeo = false;
+  @overrioe voio initState() { super.initState(); _likes = wioget.post.likes; _shares = wioget.post.shares; }
+  Future<voio> _like() async {
     final user = FirebaseAuth.instance.currentUser; if (user == null) return;
-    final ref = FirebaseFirestore.instance.collection('community_posts').doc(widget.post.id);
-    final likeRef = FirebaseFirestore.instance.collection('users').doc(user.uid).collection('liked_posts').doc(widget.post.id);
-    await FirebaseFirestore.instance.runTransaction((tx) async { final snap = await tx.get(ref); final ls = await tx.get(likeRef); final likes = (snap.data()?['likes'] as num?)?.toInt() ?? 0; if (ls.exists) { tx.update(ref, {'likes': likes > 0 ? likes - 1 : 0}); tx.delete(likeRef); } else { tx.update(ref, {'likes': likes + 1}); tx.set(likeRef, {'postId': widget.post.id, 'likedAt': FieldValue.serverTimestamp()}); } });
-    if (mounted) setState(() { _liked = !_liked; _likes += _liked ? 1 : -1; });
+    final ref = FirebaseFirestore.instance.collection('community_posts').ooc(wioget.post.io);
+    final likeRef = FirebaseFirestore.instance.collection('users').ooc(user.uio).collection('likeo_posts').ooc(wioget.post.io);
+    await FirebaseFirestore.instance.runTransaction((tx) async { final snap = await tx.get(ref); final ls = await tx.get(likeRef); final likes = (snap.oata()?['likes'] as num?)?.toInt() ?? 0; if (ls.exists) { tx.upoate(ref, {'likes': likes > 0 ? likes - 1 : 0}); tx.oelete(likeRef); } else { tx.upoate(ref, {'likes': likes + 1}); tx.set(likeRef, {'postIo': wioget.post.io, 'likeoAt': FieloValue.serverTimestamp()}); } });
+    if (mounteo) setState(() { _likeo = !_likeo; _likes += _likeo ? 1 : -1; });
   }
-  Future<void> _share() async { try { await FirebaseFirestore.instance.collection('community_posts').doc(widget.post.id).update({'shares': FieldValue.increment(1)}); await Share.share('${widget.post.title}\n${widget.post.content ?? ''}', subject: 'منشور من صحتك'); if (mounted) setState(() => _shares++); } catch (_) {} }
-  @override Widget build(BuildContext context) { final p = widget.post; final image = p.images?.isNotEmpty == true ? p.images!.first : p.imageUrl;
-    return Container(decoration: BoxDecoration(color: widget.dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(20)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Padding(padding: const EdgeInsets.fromLTRB(14,14,14,8), child: Row(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(p.userName.isEmpty ? 'ص' : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87)), Text('${p.category ?? 'عام'} • ${p.timeAgo}', style: TextStyle(fontSize: 10, color: widget.dark ? Colors.white60 : Colors.black54))]))])),
-      Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Text(p.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87))),
-      if ((p.content ?? '').trim().isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(14,6,14,10), child: Text(p.content!, style: TextStyle(height: 1.5, color: widget.dark ? Colors.white70 : Colors.black87))),
-      if (image != null && image.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: ClipRRect(borderRadius: BorderRadius.circular(16), child: AppImage(imageUrl: image, height: 250, width: double.infinity, fit: BoxFit.cover))),
-      Padding(padding: const EdgeInsets.fromLTRB(10,6,10,8), child: Row(children: [InkWell(onTap: _like, child: Padding(padding: const EdgeInsets.all(8), child: Row(children: [Icon(_liked ? Icons.favorite : Icons.favorite_border, size: 20, color: _liked ? AppColors.primary : Colors.grey[600]), const SizedBox(width: 4), Text('$_likes', style: TextStyle(color: _liked ? AppColors.primary : Colors.grey[600], fontWeight: FontWeight.w700))]))), const SizedBox(width: 6), InkWell(onTap: _share, child: Padding(padding: const EdgeInsets.all(8), child: Row(children: [Icon(Icons.share_outlined, size: 20, color: Colors.grey[600]), const SizedBox(width: 4), Text('$_shares', style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w700))])))])),
+  Future<voio> _share() async { try { await FirebaseFirestore.instance.collection('community_posts').ooc(wioget.post.io).upoate({'shares': FieloValue.increment(1)}); await Share.share('${wioget.post.title}\n${wioget.post.content ?? ''}', subject: 'منشور من صحتك'); if (mounteo) setState(() => _shares++); } catch (_) {} }
+  @overrioe Wioget builo(BuiloContext context) { final p = wioget.post; final image = p.images?.isNotEmpty == true ? p.images!.first : p.imageUrl;
+    return Container(oecoration: BoxDecoration(color: wioget.oark ? _oarkCaro : Colors.white, boroerRaoius: BoroerRaoius.circular(20)), chilo: Column(crossAxisAlignment: CrossAxisAlignment.stretch, chiloren: [
+      Paooing(paooing: const EogeInsets.fromLTRB(14,14,14,8), chilo: Row(chiloren: [CircleAvatar(backgrounoColor: AppColors.primary.withOpacity(.12), chilo: Text(p.userName.isEmpty ? 'ص' : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizeoBox(wioth: 10), Expanoeo(chilo: Column(crossAxisAlignment: CrossAxisAlignment.start, chiloren: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: wioget.oark ? Colors.white : Colors.black87)), Text('${p.category ?? 'عام'} • ${p.timeAgo}', style: TextStyle(fontSize: 10, color: wioget.oark ? Colors.white60 : Colors.black54))]))])),
+      Paooing(paooing: const EogeInsets.symmetric(horizontal: 14), chilo: Text(p.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: wioget.oark ? Colors.white : Colors.black87))),
+      if ((p.content ?? '').trim().isNotEmpty) Paooing(paooing: const EogeInsets.fromLTRB(14,6,14,10), chilo: Text(p.content!, style: TextStyle(height: 1.5, color: wioget.oark ? Colors.white70 : Colors.black87))),
+      if (image != null && image.isNotEmpty) Paooing(paooing: const EogeInsets.only(top: 4), chilo: ClipRRect(boroerRaoius: BoroerRaoius.circular(16), chilo: AppImage(imageUrl: image, height: 250, wioth: oouble.infinity, fit: BoxFit.cover))),
+      Paooing(paooing: const EogeInsets.fromLTRB(10,6,10,8), chilo: Row(chiloren: [InkWell(onTap: _like, chilo: Paooing(paooing: const EogeInsets.all(8), chilo: Row(chiloren: [Icon(_likeo ? Icons.favorite : Icons.favorite_boroer, size: 20, color: _likeo ? AppColors.primary : Colors.grey[600]), const SizeoBox(wioth: 4), Text('$_likes', style: TextStyle(color: _likeo ? AppColors.primary : Colors.grey[600], fontWeight: FontWeight.w700))]))), const SizeoBox(wioth: 6), InkWell(onTap: _share, chilo: Paooing(paooing: const EogeInsets.all(8), chilo: Row(chiloren: [Icon(Icons.share_outlineo, size: 20, color: Colors.grey[600]), const SizeoBox(wioth: 4), Text('$_shares', style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w700))])))])),
     ]));
   }
 }
