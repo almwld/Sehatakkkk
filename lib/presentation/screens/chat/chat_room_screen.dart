@@ -335,7 +335,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       'senderId': _auth.currentUser?.uid ?? 'local',
       'senderName': _auth.currentUser?.displayName ?? 'مستخدم',
       'type': type,
-      'text': job['preview']?.toString() ?? 'مرفق',
+      'text': job['preview']?.toString() ?? _t('مرفق'),
       'imageUrl': type == 'image' ? local : null,
       'videoUrl': type == 'video' ? local : null,
       'audioUrl': type == 'audio' ? local : null,
@@ -749,7 +749,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(
       title:Text(all?_t('حذف الرسالة؟'):_t('حذف الرسالة لديك؟')),
       content:Text(all?_t('سيتم حذف الرسالة لدى جميع المشاركين.'):_t('سيتم إخفاء الرسالة لديك فقط.')),
-      actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:Text(_t('حذف')))]));
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:Text(_t('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:Text(_t('حذف')))]));
     if(ok!=true)return;
     if(all)await _deleteMessage(message);else await _deleteMessageForMe(message);
   }
@@ -761,7 +761,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
         height:MediaQuery.of(ctx).size.height*.55,
         child:Column(children:[
           Padding(padding:const EdgeInsets.all(16),child:Text(_t('الرسائل المثبتة'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
-          Expanded(child:items.isEmpty?Center(child:Text(_t('لا توجد رسائل مثبتة')):ListView.separated(
+          Expanded(child:items.isEmpty?Center(child:Text(_t('لا توجد رسائل مثبتة'))):ListView.separated(
             itemCount:items.length,separatorBuilder:(_,__)=>const Divider(height:1),
             itemBuilder:(_,i){final m=items[i];return ListTile(
               leading:const Icon(Icons.push_pin_outlined,color:AppColors.primary),
@@ -933,7 +933,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                                 child: Center(
                                   child: Text(
                                     widget.otherUserName.isEmpty
-                                        ? 'م'
+                                        ? _t('مستخدم').substring(0, 1)
                                         : widget.otherUserName.substring(0, 1),
                                     style: const TextStyle(
                                       color: AppColors.primary,
@@ -1004,7 +1004,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                     PopupMenuItem(value: 'mute', child: Text(_muted ? _t('إلغاء كتم الإشعارات') : _t('كتم الإشعارات'))),
                     PopupMenuItem(value: 'pin', child: Text(_pinned ? _t('إلغاء تثبيت المحادثة') : _t('تثبيت المحادثة'))),
                     const PopupMenuDivider(),
-                    PopupMenuItem(value: 'delete', child: Text(_t('حذف المحادثة لدي')),
+                    PopupMenuItem(value: 'delete', child: Text(_t('حذف المحادثة لدي'))),
                   ])
         ],
       ),
