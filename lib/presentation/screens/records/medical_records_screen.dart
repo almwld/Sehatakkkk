@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -61,7 +62,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   }).toList();
                 }
                 if (_filterType != 'الكل') records = records.where((doc) => doc.data()['type'] == _filterType).toList();
-                if (records.isEmpty) return const Center(child: Text('لا توجد ملفات طبية'));
+                if (records.isEmpty) return Center(child: Text(AppStrings.of(context).translate('لا توجد ملفات طبية')));
                 return ListView.builder(
                   padding: const EdgeInsets.all(12),
                   itemCount: records.length,
