@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/screens/orders/order_tracking_screen.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
@@ -18,6 +19,8 @@ class OrderDetailsScreen extends StatefulWidget {
 }
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   Map<String, dynamic> _orderData = {};
   bool _isLoading = true;
 
@@ -50,19 +53,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   String _getStatusText(String status) {
     switch (status) {
       case 'pending':
-        return 'قيد الانتظار';
+        return _t('قيد الانتظار');
       case 'confirmed':
-        return 'تم التأكيد';
+        return _t('تم التأكيد');
       case 'preparing':
-        return 'جاري التجهيز';
+        return _t('جاري التجهيز');
       case 'shipping':
-        return 'قيد التوصيل';
+        return _t('قيد التوصيل');
       case 'delivered':
-        return 'تم التوصيل';
+        return _t('تم التوصيل');
       case 'cancelled':
-        return 'ملغي';
+        return _t('ملغي');
       default:
-        return 'غير معروف';
+        return _t('غير معروف');
     }
   }
 
@@ -111,7 +114,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text('تفاصيل الطلب #${widget.orderId.substring(0, 8)}'),
+        title: Text('${_t('تفاصيل الطلب')} #${widget.orderId.substring(0, 8)}'),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -175,7 +178,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'تم الطلب: ${_orderData['date']} ${_orderData['time']}',
+                                '${_t('تم الطلب:')} ${_orderData['date']} ${_orderData['time']}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -229,18 +232,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'معلومات الطلب',
+                          _t('معلومات الطلب'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _buildInfoRow('رقم الطلب', _orderData['id'] ?? '', isDark),
-                        _buildInfoRow('التاريخ', _orderData['date'] ?? '', isDark),
-                        _buildInfoRow('الوقت', _orderData['time'] ?? '', isDark),
-                        _buildInfoRow('طريقة الدفع', _orderData['payment_method'] == 'wallet' ? 'المحفظة الرقمية' : 'الدفع عند الاستلام', isDark),
-                        _buildInfoRow('طريقة التوصيل', _orderData['delivery_method'] == 'sehatak' ? 'توصيل صحتك' : 'أخرى', isDark),
+                        _buildInfoRow(_t('رقم الطلب'), _orderData['id'] ?? '', isDark),
+                        _buildInfoRow(_t('التاريخ'), _orderData['date'] ?? '', isDark),
+                        _buildInfoRow(_t('الوقت'), _orderData['time'] ?? '', isDark),
+                        _buildInfoRow(_t('طريقة الدفع'), _orderData['payment_method'] == 'wallet' ? _t('المحفظة الرقمية') : _t('الدفع عند الاستلام'), isDark),
+                        _buildInfoRow(_t('طريقة التوصيل'), _orderData['delivery_method'] == 'sehatak' ? _t('توصيل صحتك') : _t('أخرى'), isDark),
                       ],
                     ),
                   ),
@@ -264,7 +267,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'عنوان التوصيل',
+                          _t('عنوان التوصيل'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -277,7 +280,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                _orderData['address'] ?? 'لا يوجد عنوان',
+                                _orderData['address'] ?? _t('لا يوجد عنوان'),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: isDark ? Colors.white : Colors.black87,
@@ -328,7 +331,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'المنتجات',
+                          _t('المنتجات'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -373,7 +376,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'الكمية: ${item['quantity']} × ${item['price']} ر.ي',
+                                        '${_t('الكمية:')} ${item['quantity']} × ${item['price']} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'ر.ي' : 'YER'}',
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -383,7 +386,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '${item['total']} ر.ي',
+                                  '${item['total']} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'ر.ي' : 'YER'}',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -417,19 +420,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'ملخص المبلغ',
+                          _t('ملخص المبلغ'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _buildPriceRow('المجموع الفرعي', _orderData['subtotal'] ?? 0, isDark),
-                        _buildPriceRow('رسوم التوصيل', _orderData['delivery_fee'] ?? 0, isDark),
-                        _buildPriceRow('الضريبة', _orderData['tax'] ?? 0, isDark),
+                        _buildPriceRow(_t('المجموع الفرعي'), _orderData['subtotal'] ?? 0, isDark),
+                        _buildPriceRow(_t('رسوم التوصيل'), _orderData['delivery_fee'] ?? 0, isDark),
+                        _buildPriceRow(_t('الضريبة'), _orderData['tax'] ?? 0, isDark),
                         const Divider(),
                         _buildPriceRow(
-                          'الإجمالي',
+                          _t('الإجمالي'),
                           _orderData['total'] ?? 0,
                           isDark,
                           isBold: true,
@@ -449,7 +452,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             Navigator.pop(context);
                           },
                           icon: const Icon(Icons.arrow_back),
-                          label: const Text('العودة'),
+                          label: const Text(_t('العودة')),
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: AppColors.primary),
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -475,7 +478,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             );
                           },
                           icon: const Icon(Icons.track_changes, color: Colors.white),
-                          label: const Text('تتبع الطلب'),
+                          label: const Text(_t('تتبع الطلب')),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -536,7 +539,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             ),
           ),
           Text(
-            '${value.toStringAsFixed(2)} ر.ي',
+            '${value.toStringAsFixed(2)} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'ر.ي' : 'YER'}',
             style: TextStyle(
               fontSize: isTotal ? 16 : 13,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
