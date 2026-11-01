@@ -16,6 +16,8 @@ class DoctorBookingScreen extends StatefulWidget {
 }
 
 class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   String _selectedType = 'استشارة عامة';
@@ -137,8 +139,8 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                                   color: Colors.green.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  'متاح',
+                                child: Text(
+                                  _t('متاح'),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: Colors.green,
@@ -172,7 +174,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'تاريخ الموعد',
+                          _t('تاريخ الموعد'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -211,7 +213,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        ['أحد', 'إثن', 'ثلاث', 'أربع', 'خميس', 'جمعة', 'سبت'][date.weekday % 7],
+                                        _t(['أحد', 'إثن', 'ثلاث', 'أربع', 'خميس', 'جمعة', 'سبت'][date.weekday % 7]),
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: isSelected
@@ -260,7 +262,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'وقت الموعد',
+                          _t('وقت الموعد'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -349,7 +351,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'نوع الاستشارة',
+                          _t('نوع الاستشارة'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -381,7 +383,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  type,
+                                  _t(type),
                                   style: TextStyle(
                                     color: isSelected
                                         ? Colors.white
@@ -416,7 +418,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ملاحظات',
+                          _t('ملاحظات'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -469,8 +471,8 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'تأكيد الحجز',
+                      child: Text(
+                        _t('تأكيد الحجز'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -488,7 +490,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     setState(() => _isLoading = true);
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _isLoading = false);
-      ToastService.showSuccess('✅ تم حجز الموعد بنجاح!');
+      ToastService.showSuccess(_t('تم حجز الموعد بنجاح!'));
       Navigator.pop(context);
     });
   }
