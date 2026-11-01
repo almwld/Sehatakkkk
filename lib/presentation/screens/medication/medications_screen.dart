@@ -200,7 +200,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           isScrollable: true,
-          tabs: const [
+          tabs: [
             Tab(text: '💊 ${AppStrings.of(context).translate('أدوية')}'),
             Tab(text: '🩺 ${AppStrings.of(context).translate('مستلزمات صحية')}'),
             Tab(text: '💄 ${AppStrings.of(context).translate('تجميل')}'),
