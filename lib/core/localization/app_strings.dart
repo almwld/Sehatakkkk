@@ -1059,6 +1059,19 @@ class AppStrings {
       'تعذر تحميل المستشفيات حالياً': ['Could not load hospitals right now', 'Impossible de charger les hôpitaux pour le moment'],
       'لا توجد مستشفيات متاحة حالياً': ['No hospitals are currently available', 'Aucun hôpital n’est actuellement disponible'],
       'لا توجد تقييمات': ['No reviews yet', 'Aucun avis pour le moment'],
+      'تعذر تحميل الوصفات': ['Could not load prescriptions', 'Impossible de charger les ordonnances'],
+      'لا توجد وصفات طبية حالياً': ['No prescriptions are currently available', 'Aucune ordonnance n’est disponible pour le moment'],
+      'لا يوجد أطباء مضافون إلى المفضلة': ['No doctors have been added to favorites', 'Aucun médecin n’a été ajouté aux favoris'],
+      'لا توجد تقارير': ['No reports available', 'Aucun rapport disponible'],
+      'لا توجد إعلانات': ['No advertisements available', 'Aucune publicité disponible'],
+      'غير مصرح لك بالدخول': ['You are not authorized to access this area', 'Vous n’êtes pas autorisé à accéder à cette section'],
+      'لا توجد خدمات': ['No services available', 'Aucun service disponible'],
+      'لا توجد تعليقات بعد': ['No comments yet', 'Aucun commentaire pour le moment'],
+      'تعذر تحميل المسعفين المتاحين': ['Could not load available paramedics', 'Impossible de charger les ambulanciers disponibles'],
+      'لا يوجد مسعف متاح حالياً وفق بيانات التواجد المسجلة.': ['No paramedic is currently available based on recorded availability.', 'Aucun ambulancier n’est disponible actuellement selon les disponibilités enregistrées.'],
+      'لا توجد طلبات إسعاف نشطة.': ['No active emergency requests.', 'Aucune demande d’urgence active.'],
+      'لا توجد ملفات طبية': ['No medical records available', 'Aucun dossier médical disponible'],
+      'لا توجد شركات تأمين': ['No insurance companies available', 'Aucune compagnie d’assurance disponible'],
     };
 
     final entry = translations[value];
