@@ -512,9 +512,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final now = DateTime.now();
     final diff = now.difference(value);
     if (diff.inMinutes < 1) return _t('آخر ظهور منذ لحظات');
-    if (diff.inMinutes < 60) return '${_t('آخر ظهور منذ')} ${diff.inMinutes} ${_t('دقيقة')}';
-    if (diff.inHours < 24) return '${_t('آخر ظهور منذ')} ${diff.inHours} ${_t('ساعة')}';
-    if (diff.inDays < 7) return '${_t('آخر ظهور منذ')} ${diff.inDays} ${_t('يوم')}';
+    if (diff.inMinutes < 60) return '${_t('آخر ظهور')} ${diff.inMinutes} ${_t('دقيقة مضت')}';
+    if (diff.inHours < 24) return '${_t('آخر ظهور')} ${diff.inHours} ${_t('ساعة مضت')}';
+    if (diff.inDays < 7) return '${_t('آخر ظهور')} ${diff.inDays} ${_t('يوم مضى')}';
     return '${_t('آخر ظهور')} ${value.day.toString().padLeft(2,'0')}/${value.month.toString().padLeft(2,'0')}';
   }
 
