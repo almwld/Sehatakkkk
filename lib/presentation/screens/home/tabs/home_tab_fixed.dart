@@ -44,7 +44,7 @@ class _HomeTabState extends State<HomeTab> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
+        _userName = user.displayName ?? user.email?.split('@')[0] ?? AppStrings.of(context).translate('مستخدم');
         _isLoggedIn = true;
       }
     } catch (e) {
@@ -371,7 +371,7 @@ class _HomeTabState extends State<HomeTab> {
                           children: [
                             Image.asset(service['icon'] as String, width: 35, height: 35),
                             const SizedBox(height: 4),
-                            Text(service['label'] as String, style: const TextStyle(fontSize: 10)),
+                            Text(AppStrings.of(context).translate(service['label'] as String), style: const TextStyle(fontSize: 10)),
                           ],
                         ),
                       );
@@ -429,7 +429,7 @@ class _HomeTabState extends State<HomeTab> {
                                 children: [
                                   Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
                                   Text(
-                                    doctor['specialty'] as String,
+                                    AppStrings.of(context).translate(doctor['specialty'] as String),
                                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                                   ),
                                 ],
