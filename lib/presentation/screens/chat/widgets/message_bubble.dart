@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/services.dart';
@@ -443,7 +444,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         final selected = await showModalBottomSheet<Map<String,String>>(
           context: context, showDragHandle: true,
           builder: (ctx) => SafeArea(child: SizedBox(height: 420, child:
-            names.isEmpty ? const Center(child: Text('لا توجد منشآت متاحة حالياً')) :
+            names.isEmpty ? Center(child: Text(AppStrings.of(context).translate('لا توجد منشآت متاحة حالياً'))) :
             ListView(children: [for (final n in names)
               ListTile(leading: Icon(isLab ? Icons.biotech : Icons.local_pharmacy), title: Text(n['name']!), onTap: () => Navigator.pop(ctx, n))]
           ))),
@@ -456,7 +457,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           .where('fileName', isEqualTo: name).limit(1).get();
       final documentId = docs.docs.isNotEmpty ? docs.docs.first.id : '';
       if (documentId.isEmpty) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر العثور على المستند الطبي.')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر العثور على المستند الطبي.'))));
         return;
       }
       await FirebaseFirestore.instance.collection('medical_requests').add({
@@ -619,7 +620,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   void _showFileError() {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح الملف حالياً. حاول مرة أخرى.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر فتح الملف حالياً. حاول مرة أخرى.'))));
   }
 
   Widget _buildCall(Map<String, dynamic> m, bool dark) {
