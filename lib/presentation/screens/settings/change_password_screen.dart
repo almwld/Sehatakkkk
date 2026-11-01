@@ -50,10 +50,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       }
 
       await user.updatePassword(_newPasswordController.text);
-      ToastService.showSuccess('✅ تم تغيير كلمة المرور بنجاح');
+      ToastService.showSuccess(_t('تم تغيير كلمة المرور بنجاح'));
       Navigator.pop(context);
     } catch (e) {
-      ToastService.showError('❌ خطأ: ${e.toString()}');
+      ToastService.showError('${_t('خطأ:')} ${e.toString()}');
     } finally {
       setState(() => _isLoading = false);
     }
