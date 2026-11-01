@@ -134,6 +134,15 @@ void main() {
       expect(french.translate('مغلق'), 'Fermé');
     });
 
+    test('translates pharmacy marketplace tabs and stock states', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('متاجر مميزة'), 'Featured pharmacies');
+      expect(english.translate('نفد المخزون'), 'Out of stock');
+      expect(french.translate('قيد التوصيل'), 'En cours de livraison');
+      expect(french.translate('مضادات حيوية'), 'Antibiotiques');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
