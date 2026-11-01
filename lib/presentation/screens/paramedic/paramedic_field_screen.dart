@@ -83,7 +83,7 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
         'patientLocation':GeoPoint(p.latitude,p.longitude),'patientLatitude':p.latitude,'patientLongitude':p.longitude,
         'createdAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp(),
       });
-      _message(_t('تم إرسال طلب الإسعاف إلى' ${d['name']??'المسعف'}');
+      _message(_t('تم إرسال طلب الإسعاف إلى') + ' ' + (d['name']?.toString() ?? _t('المسعف')));
     } catch(e) { _message(_t('تعذر إرسال الطلب. تأكد من الموقع والاتصال'),error:true); }
   }
 
