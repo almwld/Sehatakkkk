@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -326,7 +327,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           children: [
             Icon(Icons.medication, size: 60, color: AppColors.grey),
             const SizedBox(height: 16),
-            const Text('لا توجد منتجات في هذا القسم', style: TextStyle(color: AppColors.grey)),
+            Text(AppStrings.of(context).translate('لا توجد منتجات في هذا القسم'), style: TextStyle(color: AppColors.grey)),
           ],
         ),
       );
