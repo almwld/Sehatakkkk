@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import '../../../core/constants/app_colors.dart';
@@ -218,7 +219,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         prescriptionId: p['prescriptionId']?.toString());
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تمت إضافة المنتج إلى السلة')));
+        const SnackBar(content: Text(AppStrings.of(context).translate('تمت إضافة المنتج إلى السلة'))));
   }
 
   double? _oldPrice(Map<String, dynamic> p) {
@@ -238,7 +239,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(34))),
-        title: const Text('صيدلية صحتك',
+        title: Text(AppStrings.of(context).translate('صيدلية صحتك'),
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
@@ -269,7 +270,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
       body: Column(children: [
         Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-            child: UnifiedSearchBar(controller: _search, hintText: 'ابحث عن دواء، منتج، أو صيدلية')),
+            child: UnifiedSearchBar(controller: _search, hintText: AppStrings.of(context).translate('ابحث عن دواء، منتج، أو صيدلية'))),
         TabBar(
             controller: _tabController,
             isScrollable: true,
@@ -312,13 +313,13 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
           child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text(_error!, textAlign: TextAlign.center),
         const SizedBox(height: 10),
-        ElevatedButton(onPressed: _loadAll, child: const Text('إعادة المحاولة'))
+        ElevatedButton(onPressed: _loadAll, child: Text(AppStrings.of(context).translate('إعادة المحاولة')))
       ]));
 
   Widget _storesTab() {
     final stores = _visiblePharmacies;
     if (stores.isEmpty)
-      return const Center(child: Text('لا توجد صيدليات منشورة تطابق البحث حالياً'));
+      return const Center(child: Text(AppStrings.of(context).translate('لا توجد صيدليات منشورة تطابق البحث حالياً')));
     return RefreshIndicator(
         onRefresh: _loadAll,
         child: ListView.builder(
@@ -427,13 +428,13 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                               fontSize: 11, color: Colors.grey)),
                     const SizedBox(height: 5),
                     Row(children: [
-                      Text('${price.toStringAsFixed(0)} ر.ي',
+                      Text(AppStrings.of(context).translate('${price.toStringAsFixed(0)} ر.ي'),
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary)),
                       if (old != null && old > price) ...[
                         const SizedBox(width: 7),
-                        Text('${old.toStringAsFixed(0)} ر.ي',
+                        Text(AppStrings.of(context).translate('${old.toStringAsFixed(0)} ر.ي'),
                             style: const TextStyle(
                                 decoration: TextDecoration.lineThrough,
                                 color: Colors.grey,
@@ -452,7 +453,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                               fontSize: 11,
                               color: available ? Colors.green : Colors.red)),
                       if (prescription)
-                        const Text('يتطلب وصفة',
+                        Text(AppStrings.of(context).translate('يتطلب وصفة'),
                             style: TextStyle(
                                 fontSize: 10, color: Colors.deepOrange))
                     ]),
@@ -465,14 +466,14 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   Widget _ordersTab() {
     if (FirebaseAuth.instance.currentUser == null)
-      return const Center(child: Text('سجّل الدخول لعرض طلباتك'));
+      return const Center(child: Text(AppStrings.of(context).translate('سجّل الدخول لعرض طلباتك')));
     final orders = _visibleOrders;
     if (orders.isEmpty)
       return RefreshIndicator(
           onRefresh: _loadOrders,
           child: ListView(children: const [
             SizedBox(height: 180),
-            Center(child: Text('لا توجد طلبات صيدلية حالياً'))
+            Center(child: Text(AppStrings.of(context).translate('لا توجد طلبات صيدلية حالياً')))
           ]));
     return RefreshIndicator(
         onRefresh: _loadOrders,
@@ -485,7 +486,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
               return Card(
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ListTile(
-                      title: Text('طلب #${o['id'] ?? o['orderId'] ?? ''}',
+                      title: Text(AppStrings.of(context).translate('طلب #${o[')id'] ?? o['orderId'] ?? ''}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
                           '${o['pharmacyName'] ?? o['providerName'] ?? 'طلب صيدلية'}\n$status'),
