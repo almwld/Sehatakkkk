@@ -428,13 +428,13 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                               fontSize: 11, color: Colors.grey)),
                     const SizedBox(height: 5),
                     Row(children: [
-                      Text(AppStrings.of(context).translate('${price.toStringAsFixed(0)} ر.ي'),
+                      Text(AppStrings.of(context).formatCurrency(price),
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary)),
                       if (old != null && old > price) ...[
                         const SizedBox(width: 7),
-                        Text(AppStrings.of(context).translate('${old.toStringAsFixed(0)} ر.ي'),
+                        Text(AppStrings.of(context).formatCurrency(old),
                             style: const TextStyle(
                                 decoration: TextDecoration.lineThrough,
                                 color: Colors.grey,
