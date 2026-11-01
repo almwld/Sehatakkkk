@@ -52,7 +52,7 @@ class OrderTrackingScreen extends StatelessWidget {
             Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(children:[
               const Icon(Icons.receipt_long,color:AppColors.primary,size:32),const SizedBox(width:12),
               Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                Text('طلب #$orderId',style:const TextStyle(fontWeight:FontWeight.bold,fontSize:16)),
+                Text('${AppStrings.of(context).translate('طلب')} #$orderId',style:const TextStyle(fontWeight:FontWeight.bold,fontSize:16)),
                 const SizedBox(height:4),Text(_label(context, status),style:const TextStyle(color:AppColors.primary)),
                 if(deliveryMethod!=null)Text(deliveryMethod!,style:TextStyle(fontSize:12,color:dark?Colors.grey[400]:Colors.grey[600])),
               ])),
