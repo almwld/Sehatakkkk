@@ -347,6 +347,11 @@ class AppStrings {
       'فصيلة الدم': ['Blood type', 'Groupe sanguin'],
       'سنة': ['years', 'ans'],
       'لا توجد حساسية مسجلة': ['No allergies recorded', 'Aucune allergie enregistrée'],
+
+      'رقم المريض': ['Patient ID', 'Identifiant patient'],
+      'العمر': ['Age', 'Âge'],
+      'سنة': ['years', 'ans'],
+      'فصيلة الدم': ['Blood type', 'Groupe sanguin'],
       'اختر طبيباً لبدء المحادثة': ['Choose a doctor to start a conversation', 'Choisissez un médecin pour commencer une discussion'],
     };
     final entry = translations[value];
