@@ -181,7 +181,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'سيتم تفعيل تنبيهات محلية دقيقة لكل أوقات الجرعات، حتى عند إغلاق التطبيق.',
+                    _t('سيتم تفعيل تنبيهات محلية دقيقة لكل أوقات الجرعات، حتى عند إغلاق التطبيق.'),
                   ),
                 ),
               ],
@@ -195,7 +195,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           _field(_t('التكرار'), _frequency),
           const SizedBox(height: 12),
           _field(
-            'وقت الجرعة الأساسي',
+            _t('وقت الجرعة الأساسي'),
             _time,
             onTap: () => _pickTime(index: 0),
           ),
@@ -264,7 +264,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             },
           ),
           _field(
-            'الكمية المتبقية',
+            _t('الكمية المتبقية'),
             _remaining,
             type: TextInputType.number,
           ),
