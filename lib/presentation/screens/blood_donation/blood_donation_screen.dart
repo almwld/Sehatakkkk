@@ -191,7 +191,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         _t('سجل كمتبرع'),
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
@@ -200,7 +200,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                   const SizedBox(height: 24),
 
                   // ✅ قائمة المتبرعين
-                  const Text(
+                  Text(
                     _t('المتبرعون الحاليون'),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
