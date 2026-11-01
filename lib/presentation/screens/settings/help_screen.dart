@@ -166,7 +166,7 @@ class _FaqTile extends StatelessWidget {
           child: Icon(faq.icon, color: AppColors.primary, size: 20),
         ),
         title: Text(
-          faq.question,
+          AppStrings.of(context).translate(faq.question),
           textDirection: TextDirection.rtl,
           style: TextStyle(color: dark ? Colors.white : const Color(0xFF173131), fontSize: 14, fontWeight: FontWeight.w800),
         ),
@@ -174,7 +174,7 @@ class _FaqTile extends StatelessWidget {
           Align(
             alignment: AlignmentDirectional.centerEnd,
             child: Text(
-              faq.answer,
+              AppStrings.of(context).translate(faq.answer),
               textDirection: TextDirection.rtl,
               style: TextStyle(color: dark ? Colors.white70 : const Color(0xFF647474), fontSize: 13, height: 1.7),
             ),
