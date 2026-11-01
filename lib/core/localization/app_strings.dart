@@ -1572,6 +1572,12 @@ class AppStrings {
       'كـ PDF.': [' as a PDF.', ' au format PDF.'],
       'لوحة تحكم': ['Dashboard', 'Tableau de bord'],
       'لوحة': ['Dashboard', 'Tableau de bord'],
+      'مكان التواجد': ['Practice location', 'Lieu d’exercice'],
+      'المستشفى / المنشأة': ['Hospital / facility', 'Hôpital / établissement'],
+      'عنوان العيادة': ['Clinic address', 'Adresse de la clinique'],
+      'الطبيب صاحب القرار في التواجد والدوام والمرضى والرسائل والمواعيد.': ['The doctor controls availability, schedule, patients, messages and appointments.', 'Le médecin gère sa disponibilité, ses horaires, ses patients, ses messages et ses rendez-vous.'],
+      'حفظ التعديلات': ['Save changes', 'Enregistrer les modifications'],
+      'الطبيب / المنشأة': ['Doctor / facility', 'Médecin / établissement'],
     };
 
     final entry = translations[value];
