@@ -738,6 +738,11 @@ class AppStrings {
       'حفظ': ['Save', 'Enregistrer'],
       'تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى': ['Could not load call history right now.\nCheck your connection and try again.', 'Impossible de charger l’historique des appels.\nVérifiez votre connexion et réessayez.'],
       'لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً': ['No calls yet.\nYour calls will appear here automatically.', 'Aucun appel pour le moment.\nVos appels apparaîtront ici automatiquement.'],
+      'طلب': ['Order', 'Commande'],
+      'سجّل الدخول أولاً للمتابعة': ['Sign in first to continue', 'Connectez-vous d’abord pour continuer'],
+      'تعذر تحديث المتابعة': ['Could not update follow status', 'Impossible de mettre à jour le suivi'],
+      '📶 غير متصل': ['📶 Offline', '📶 Hors ligne'],
+      'الإعدادات': ['Settings', 'Paramètres'],
     };
 
     final entry = translations[value];
