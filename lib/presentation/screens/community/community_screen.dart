@@ -267,7 +267,7 @@ class _CommunityScreenState extends State<CommunityScreen>
           if (snapshot.hasError) {
             return Center(
               child: Text(
-                'تعذر تحميل المجتمع\n${snapshot.error}',
+                '${AppStrings.of(context).translate('تعذر تحميل المجتمع')}\n${snapshot.error}',
                 textAlign: TextAlign.center,
               ),
             );
@@ -328,7 +328,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                           bottom: Radius.circular(30),
                         ),
                       ),
-                      child: const Align(
+                      child: Align(
                         alignment: Alignment.center,
                         child: Padding(
                           padding: EdgeInsets.only(top: 10),
@@ -464,7 +464,7 @@ class _PostCard extends StatelessWidget {
                         ],
                       ),
                       Text(
-                        '${post.category ?? 'عام'} • ${post.timeAgo}',
+                        '${post.category ?? AppStrings.of(context).translate('عام')} • ${post.timeAgo}',
                         style: TextStyle(
                           fontSize: 10,
                           color: dark ? Colors.white60 : Colors.grey[600],
@@ -621,9 +621,9 @@ class _CommentsSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'التعليقات',
+                      AppStrings.of(context).translate('التعليقات'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
@@ -665,13 +665,13 @@ class _CommentsSheet extends StatelessWidget {
                       return ListTile(
                         leading: CircleAvatar(
                           child: Text(
-                            (d['userName']?.toString() ?? 'م')
+                            (d['userName']?.toString() ?? (AppStrings.of(context).locale.languageCode == 'ar' ? 'م' : 'U'))
                                 .characters
                                 .first,
                           ),
                         ),
                         title: Text(
-                          d['userName']?.toString() ?? 'مستخدم',
+                          d['userName']?.toString() ?? AppStrings.of(context).translate('مستخدم'),
                           style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
                         subtitle: Text(d['comment']?.toString() ?? ''),
