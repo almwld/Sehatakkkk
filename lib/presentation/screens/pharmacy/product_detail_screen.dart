@@ -77,11 +77,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           _card(isDark, '📝 الوصف', Text(product.description, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey[700], height: 1.5))),
           const SizedBox(height: 12),
           _card(isDark, '📋 تفاصيل إضافية', Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _buildDetailRow('🏭 المصنع', product.manufacturer ?? 'غير معروف', isDark),
+            _buildDetailRow('🏭 المصنع', product.manufacturer ?? _t('غير معروف'), isDark),
             if (product.dosage != null) _buildDetailRow('💊 الجرعة', product.dosage!, isDark),
-            _buildDetailRow('📦 المخزون', '$stock وحدة', isDark),
-            _buildDetailRow('📂 التصنيف', product.categoryText, isDark),
-            if (product.prescriptionRequired) _buildDetailRow('⚠️ وصفة طبية', 'مطلوب', isDark),
+            _buildDetailRow('📦 المخزون', '$stock ${_t('وحدة')}', isDark),
+            _buildDetailRow('📂 التصنيف', _t(product.categoryText), isDark),
+            if (product.prescriptionRequired) _buildDetailRow('⚠️ وصفة طبية', _t('مطلوب'), isDark),
           ])),
           const SizedBox(height: 16),
           if (product.inStock) ...[
@@ -94,7 +94,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 Container(decoration: BoxDecoration(color: isDark ? const Color(0xFF0B1121) : Colors.grey[100], borderRadius: BorderRadius.circular(12)), child: Row(children: [
                   IconButton(icon: const Icon(Icons.remove, size: 20), onPressed: () { if (_quantity > 1) setState(() => _quantity--); }, padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 36, minHeight: 36)),
                   Text('$_quantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  IconButton(icon: const Icon(Icons.add, size: 20), onPressed: () { if (_quantity < stock) setState(() => _quantity++); else ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('لا يوجد مخزون كاف'), backgroundColor: Colors.orange)); }, padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 36, minHeight: 36)),
+                  IconButton(icon: const Icon(Icons.add, size: 20), onPressed: () { if (_quantity < stock) setState(() => _quantity++); else ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('لا يوجد مخزون كاف')), backgroundColor: Colors.orange)); }, padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 36, minHeight: 36)),
                 ])),
                 const Spacer(),
                 Text(AppStrings.of(context).formatCurrency(product.priceWithDiscount * _quantity), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
