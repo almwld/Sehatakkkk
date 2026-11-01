@@ -55,7 +55,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -76,8 +76,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                   const SizedBox(height: 24),
 
                   // ✅ نموذج التسجيل
-                  const Text(
-                    'بيانات المتبرع',
+                  Text(
+                    _t('بيانات المتبرع'),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
