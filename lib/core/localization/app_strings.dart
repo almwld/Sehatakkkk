@@ -88,6 +88,15 @@ class AppStrings {
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
     const translations = <String, List<String>>{
+      'لوحة تحكم المشرف': ['Administrator dashboard', 'Tableau de bord administrateur'],
+      'المستخدمين': ['Users', 'Utilisateurs'],
+      'المقدمين': ['Providers', 'Prestataires'],
+      'إعلان في انتظار المراجعة': ['ad(s) awaiting review', 'annonce(s) en attente de révision'],
+      'مراجعة': ['Review', 'Examiner'],
+      'الإعلانات': ['Advertisements', 'Publicités'],
+      'الإيرادات الإجمالية': ['Total revenue', 'Revenus totaux'],
+      'الإعلانات قيد المراجعة': ['Ads under review', 'Publicités en cours de révision'],
+      'مستشفيات': ['Hospitals', 'Hôpitaux'],
       'زيارة طبية منزلية': ['Home medical visit', 'Visite médicale à domicile'],
       'احجز زيارة طبيب إلى المنزل': ['Book a doctor home visit', 'Réserver une visite médicale à domicile'],
       'تعذر تحميل بيانات المختبر من النظام.': ['Could not load laboratory information.', 'Impossible de charger les informations du laboratoire.'],
