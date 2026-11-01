@@ -9,6 +9,7 @@ import 'package:sehatak/presentation/screens/paramedic/paramedic_field_screen.da
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/screens/admin/super_admin_dashboard.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
@@ -132,7 +133,7 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم رفع صورة الطبيب إلى Nextcloud وتحديث ملفه')));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر تحديث صورة الطبيب: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر تحديث صورة الطبيب') + ': $e')));
       debugPrint('Doctor photo upload failed: $e');
     } finally {
       if (mounted) setState(() => uploadingPhoto = false);
@@ -160,7 +161,7 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
       await batch.commit();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ إعدادات الطبيب وتحديث ملفه في قائمة الأطباء')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر حفظ إعدادات الطبيب، حاول مرة أخرى')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر حفظ إعدادات الطبيب، حاول مرة أخرى'))));
       debugPrint('Doctor settings save failed: $e');
     } finally {
       if (mounted) setState(() => saving = false);
