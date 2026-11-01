@@ -1,5 +1,6 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class InsuranceScreen extends StatefulWidget {
@@ -160,7 +161,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                         children: [
                           Icon(Icons.search_off, size: 60, color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
                           const SizedBox(height: 12),
-                          Text('لا توجد شركات تأمين', style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade600)),
+                          Text(AppStrings.of(context).translate('لا توجد شركات تأمين'), style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade600)),
                         ],
                       ),
                     )
