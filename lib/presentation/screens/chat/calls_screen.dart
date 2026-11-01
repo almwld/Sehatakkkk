@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/call_model.dart';
@@ -14,6 +15,8 @@ class CallsScreen extends StatefulWidget {
 }
 
 class _CallsScreenState extends State<CallsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   List<CallModel> _lastCalls = const [];
 
   @override
@@ -22,7 +25,7 @@ class _CallsScreenState extends State<CallsScreen> {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
 
     if (currentUid == null) {
-      return _empty('سجّل الدخول لعرض سجل المكالمات', isDark);
+      return _empty(_t('سجّل الدخول لعرض سجل المكالمات'), isDark);
     }
 
     return StreamBuilder<List<CallModel>>(
@@ -69,7 +72,7 @@ class _CallsScreenState extends State<CallsScreen> {
     final rejected = call.status == CallStatus.rejected;
     final color = missed || rejected ? AppColors.error : AppColors.primary;
     final statusText = _statusText(call.status, outgoing);
-    final typeText = call.isVideoCallType ? 'فيديو' : 'صوت';
+    final typeText = _t(call.isVideoCallType ? 'فيديو' : 'صوت');
 
     return Card(
       elevation: 0,
@@ -85,7 +88,7 @@ class _CallsScreenState extends State<CallsScreen> {
               ? const Icon(Icons.person, color: AppColors.primary)
               : null,
         ),
-        title: Text(name.isEmpty ? 'مستخدم' : name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(name.isEmpty ? _t('مستخدم') : name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Row(
           children: [
             Icon(
@@ -110,7 +113,7 @@ class _CallsScreenState extends State<CallsScreen> {
               otherUserImage: otherPhoto,
             )));
           },
-          child: const Text('المحادثة'),
+          child: Text(_t('المحادثة')),
         ),
       ),
     );
@@ -120,19 +123,19 @@ class _CallsScreenState extends State<CallsScreen> {
     switch (status) {
       case CallStatus.calling:
       case CallStatus.ringing:
-        return outgoing ? 'جارٍ الاتصال' : 'واردة';
+        return outgoing ? _t('جارٍ الاتصال') : _t('واردة');
       case CallStatus.connected:
-        return 'متصلة';
+        return _t('متصلة');
       case CallStatus.ended:
-        return 'منتهية';
+        return _t('منتهية');
       case CallStatus.missed:
-        return 'فائتة';
+        return _t('فائتة');
       case CallStatus.rejected:
-        return 'مرفوضة';
+        return _t('مرفوضة');
       case CallStatus.busy:
-        return 'مشغول';
+        return _t('مشغول');
       case CallStatus.cancelled:
-        return 'ملغاة';
+        return _t('ملغاة');
     }
   }
 
