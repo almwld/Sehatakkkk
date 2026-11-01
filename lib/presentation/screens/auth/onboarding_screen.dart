@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -109,7 +110,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white.withOpacity(0.2))),
-                        child: const Text('تخطي', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                        child: Text(AppStrings.of(context).translate('تخطي'), style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],
