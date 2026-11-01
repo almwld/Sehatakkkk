@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -62,7 +63,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                 children: [
                   Icon(Icons.group_work, size: 60, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('لا توجد استشارات جماعية', style: TextStyle(color: Colors.grey)),
+                  Text(AppStrings.of(context).translate('لا توجد استشارات جماعية'), style: TextStyle(color: Colors.grey)),
                 ],
               ),
             );
