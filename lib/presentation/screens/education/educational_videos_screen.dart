@@ -217,7 +217,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                     const Spacer(),
                     ElevatedButton(
                       onPressed: () {
-                        ToastService.showSuccess(context, '▶️ جاري تشغيل الفيديو...');
+                        ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? '▶️ جاري تشغيل الفيديو...' : AppStrings.of(context).locale.languageCode == 'fr' ? '▶️ Lecture de la vidéo…' : '▶️ Playing video…');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
