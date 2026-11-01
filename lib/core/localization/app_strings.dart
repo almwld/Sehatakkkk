@@ -1672,6 +1672,12 @@ class AppStrings {
       'تتبع السكر': ['Track blood glucose', 'Suivi de la glycémie'],
       'الصحة': ['Health', 'Santé'],
       'لم نعثر على أي نتائج لـ': ['No results found for', 'Aucun résultat trouvé pour'],
+      'مقارنة المستشفيات': ['Compare hospitals', 'Comparer les hôpitaux'],
+      'الميزة': ['Feature', 'Caractéristique'],
+      'اختر للمقارنة': ['Select for comparison', 'Sélectionner pour comparer'],
+      'سرير': ['beds', 'lits'],
+      'الأسرة': ['Beds', 'Lits'],
+      'عناية': ['ICU', 'Soins intensifs'],
     };
 
     final entry = translations[value];
