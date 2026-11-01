@@ -116,6 +116,15 @@ void main() {
       expect(french.translate('استشارة تخصصية'), 'Consultation spécialisée');
     });
 
+    test('translates doctor directory specialties and empty states', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('قلبية'), 'Cardiology');
+      expect(english.translate('أطفال'), 'Pediatrics');
+      expect(french.translate('لا توجد نتائج'), 'Aucun résultat');
+      expect(french.translate('أنف وأذن وحنجرة'), 'ORL');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
