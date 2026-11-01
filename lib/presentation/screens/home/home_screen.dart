@@ -8,6 +8,7 @@ import 'package:sehatak/bloc/home/home_bloc.dart';
 import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/app_router.dart';
@@ -226,7 +227,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     _backPressedOnce = true;
     ToastService.showToast(
-      message: 'انقر مرتين للخروج النهائي',
+      message: AppStrings.of(context).backExitHint,
       type: ToastType.info,
       duration: const Duration(seconds: 2),
     );
