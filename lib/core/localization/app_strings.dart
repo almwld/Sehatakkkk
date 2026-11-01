@@ -1155,6 +1155,23 @@ class AppStrings {
       'ابحث عن محادثات': ['Search conversations', 'Rechercher des conversations'],
       'ابحث عن الأشخاص أو الرسائل': ['Search for people or messages', 'Rechercher des personnes ou des messages'],
       'حاول البحث بكلمات مختلفة': ['Try searching with different words', 'Essayez avec d’autres mots'],
+      'اسمح بالوصول إلى الصور لعرض الملفات الحديثة.': ['Allow photo access to view recent files.', 'Autorisez l’accès aux photos pour afficher les fichiers récents.'],
+      'تعذر الوصول إلى هذا الملف.': ['Could not access this file.', 'Impossible d’accéder à ce fichier.'],
+      'تعذر إرسال الرسالة. تحقق من الاتصال.': ['Could not send the message. Check your connection.', 'Impossible d’envoyer le message. Vérifiez votre connexion.'],
+      'تعذر تجهيز الوسائط للإرسال.': ['Could not prepare media for sending.', 'Impossible de préparer le média pour l’envoi.'],
+      'يلزم السماح بالوصول إلى الميكروفون.': ['Microphone permission is required.', 'L’autorisation du microphone est requise.'],
+      'تعذر بدء التسجيل الصوتي. تحقق من إذن الميكروفون ثم حاول مجددًا.': ['Could not start audio recording. Check microphone permission and try again.', 'Impossible de démarrer l’enregistrement audio. Vérifiez l’autorisation du microphone et réessayez.'],
+      'تعذر إنهاء التسجيل وحفظه. حاول الإيقاف مرة أخرى.': ['Could not finish and save the recording. Try stopping again.', 'Impossible de terminer et d’enregistrer. Réessayez d’arrêter.'],
+      'التسجيل قصير جدًا. سجّل مدة أطول ثم أرسل.': ['The recording is too short. Record longer before sending.', 'L’enregistrement est trop court. Enregistrez plus longtemps avant l’envoi.'],
+      'تعذر قراءة التسجيل المحفوظ. ألغِ التسجيل وحاول مجددًا.': ['Could not read the saved recording. Cancel it and try again.', 'Impossible de lire l’enregistrement sauvegardé. Annulez-le et réessayez.'],
+      'ملف صوتي': ['Audio file', 'Fichier audio'],
+      'تعذر تجهيز التسجيل للإرسال. التسجيل محفوظ؛ حاول الإرسال مرة أخرى.': ['Could not prepare the recording for sending. It is saved; try sending again.', 'Impossible de préparer l’enregistrement pour l’envoi. Il est sauvegardé ; réessayez.'],
+      'تسجيل...': ['Recording...', 'Enregistrement...'],
+      'جاهز للإرسال': ['Ready to send', 'Prêt à envoyer'],
+      'كاميرا': ['Camera', 'Appareil photo'],
+      'نماذج الطبيب': ['Doctor forms', 'Formulaires du médecin'],
+      'موقعي': ['My location', 'Ma position'],
+      'الملفات الحديثة': ['Recent files', 'Fichiers récents'],
     };
 
     final entry = translations[value];
