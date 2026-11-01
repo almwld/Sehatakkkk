@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
@@ -146,7 +147,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
       appBar: AppBar(
-        title: const Text('الدردشة'),
+        title: Text(AppStrings.of(context).translate('الدردشة')),
         centerTitle: true,
         elevation: 0,
         backgroundColor: AppColors.primary,
@@ -217,7 +218,7 @@ class _ChatScreenState extends State<ChatScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          child: UnifiedSearchBar(controller: _searchController, hintText: 'ابحث في محادثاتك...'),
+          child: UnifiedSearchBar(controller: _searchController, hintText: AppStrings.of(context).translate('ابحث في محادثاتك...')),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -235,8 +236,8 @@ class _ChatScreenState extends State<ChatScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         leading: Padding(padding: const EdgeInsetsDirectional.only(start: 4), child: Image.asset('assets/images/services/ai_assistant.webp', width: 42, height: 42, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_outlined, color: AppColors.primary, size: 30))),
-        title: const Text('المساعد الصحي الذكي', style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: const Text('اسأل الآن عن صحتك'),
+        title: Text(AppStrings.of(context).translate('المساعد الصحي الذكي'), style: TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(AppStrings.of(context).translate('اسأل الآن عن صحتك')),
         trailing: const Icon(Icons.chevron_left),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatbotScreen())),
       ),
@@ -374,7 +375,7 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-            child: Text('الحالات اليومية', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+            child: Text(AppStrings.of(context).translate('الحالات اليومية'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           ),
           if (_loadingStatuses)
             const SizedBox(height: 112, child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
@@ -431,7 +432,7 @@ class _ChatScreenState extends State<ChatScreen> {
         leading: CircleAvatar(radius: 27, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: image.isNotEmpty ? NetworkImage(image) : null, child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null),
         title: Text(doctor.name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(doctor.specialty),
-        trailing: TextButton(onPressed: _openingChat ? null : () => _openChat(doctor), child: const Text('محادثة')),
+        trailing: TextButton(onPressed: _openingChat ? null : () => _openChat(doctor), child: Text(AppStrings.of(context).translate('محادثة'))),
         onTap: _openingChat ? null : () => _openChat(doctor),
       ),
     );
@@ -516,7 +517,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(4))),
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Align(alignment: Alignment.centerRight, child: Text('اختر طبيباً لبدء المحادثة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+              child: Align(alignment: Alignment.centerRight, child: Text(AppStrings.of(context).translate('اختر طبيباً لبدء المحادثة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
             ),
             Expanded(
               child: ListView.separated(
