@@ -91,7 +91,7 @@ void main() {
       final english = AppStrings(const Locale('en', 'US'));
       final french = AppStrings(const Locale('fr', 'FR'));
       expect(english.translate('سجل باستخدام بصمة الإصبع لتأكيد الهوية'),
-          'Authenticate with your fingerprint to confirm your identity');
+          'Use your fingerprint to verify your identity');
       expect(english.translate('فشل التحقق من البصمة، حاول مرة أخرى'),
           'Fingerprint verification failed. Please try again.');
       expect(french.translate('تسجيل الدخول بالبصمة'),
