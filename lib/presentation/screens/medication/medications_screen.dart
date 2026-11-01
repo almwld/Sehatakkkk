@@ -191,7 +191,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الأدوية والمستلزمات', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.of(context).translate('الأدوية والمستلزمات'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         bottom: TabBar(
@@ -201,10 +201,10 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           unselectedLabelColor: Colors.white70,
           isScrollable: true,
           tabs: const [
-            Tab(text: '💊 أدوية'),
-            Tab(text: '🩺 مستلزمات صحية'),
-            Tab(text: '💄 تجميل'),
-            Tab(text: '🏥 صيدليات'),
+            Tab(text: '💊 ${AppStrings.of(context).translate('أدوية')}'),
+            Tab(text: '🩺 ${AppStrings.of(context).translate('مستلزمات صحية')}'),
+            Tab(text: '💄 ${AppStrings.of(context).translate('تجميل')}'),
+            Tab(text: '🏥 ${AppStrings.of(context).translate('صيدليات')}'),
           ],
         ),
         actions: [
@@ -250,7 +250,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
               color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
               borderRadius: BorderRadius.circular(14),
             ),
-            child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن دواء، مستلزمات...'),
+            child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: AppStrings.of(context).translate('ابحث عن دواء، مستلزمات...')),
           ),
           const SizedBox(height: 8),
           // ✅ تصفية وترتيب
@@ -455,7 +455,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                       ),
                       minimumSize: const Size(0, 28),
                     ),
-                    child: const Text('إضافة', style: TextStyle(fontSize: 10)),
+                    child: Text(AppStrings.of(context).translate('إضافة'), style: TextStyle(fontSize: 10)),
                   ),
                 ),
               ],
