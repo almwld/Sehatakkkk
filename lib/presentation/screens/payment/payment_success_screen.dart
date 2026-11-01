@@ -55,7 +55,7 @@ class PaymentSuccessScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              transaction.title,
+              t(transaction.title),
               style: TextStyle(
                 fontSize: 14,
                 color: isDark ? Colors.white70 : Colors.grey[600],
@@ -111,7 +111,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                     const Divider(height: 24),
                     _buildReceiptRow(
                       t('المحفظة المستخدمة'),
-                      transaction.walletName!,
+                      t(transaction.walletName!),
                       isDark,
                     ),
                   ],
