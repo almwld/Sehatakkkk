@@ -231,7 +231,7 @@ class _BookingsTab extends StatelessWidget{
       return ListView.builder(padding:const EdgeInsets.all(16),itemCount:docs.length,itemBuilder:(_,i){
         final d=docs[i].data(),id=docs[i].id,statusValue=d['status']?.toString()??status;
         return Card(child:ListTile(title:Text(d['patientName']?.toString()??_t(context,'مريض')),
-          subtitle:Text((d['testName']??_t(context,'فحص')).toString()+' • '+(d['price']??d['totalPrice']??0).toString()+' ر.ي'),
+          subtitle:Text((d['testName']??_t(context,'فحص')).toString()+' • '+(d['price']??d['totalPrice']??0).toString()+' '+_t(context,'ر.ي')),
           trailing:statusValue=='pending'?Row(mainAxisSize:MainAxisSize.min,children:[
             IconButton(onPressed:()=>_status(context,id,'confirmed'),icon:const Icon(Icons.check,color:Colors.green)),
             IconButton(onPressed:()=>_status(context,id,'cancelled'),icon:const Icon(Icons.close,color:Colors.red))])
