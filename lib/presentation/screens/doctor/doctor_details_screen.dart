@@ -378,7 +378,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                   ],
                 ),
                 const SizedBox(height: 5),
-                Text(doctor.specialty, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w600)),
+                Text(AppStrings.of(context).translate(doctor.specialty), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 9),
                 Wrap(
                   spacing: 8,
