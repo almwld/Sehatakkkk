@@ -34,7 +34,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final testName = _testData['name']?.toString() ?? _t('فحص طبي');
+    final testName = _t(_testData['name']?.toString() ?? 'فحص طبي');
     final testPrice = _testData['price'] ?? 0;
 
     return Scaffold(
