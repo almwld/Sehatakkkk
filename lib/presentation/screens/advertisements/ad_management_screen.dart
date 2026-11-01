@@ -26,7 +26,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return const Scaffold(body: Center(child: Text(_t('يرجى تسجيل الدخول'))));
+    if (uid == null) return Scaffold(body: Center(child: Text(_t('يرجى تسجيل الدخول'))));
     final stream = _firestore.collection('advertisements').where('providerId', isEqualTo: widget.providerId ?? uid).orderBy('createdAt', descending: true).snapshots();
     return Scaffold(
       appBar: AppBar(title: Text(_t('إدارة الإعلانات')), actions: [IconButton(onPressed: _create, icon: const Icon(Icons.add))]),
