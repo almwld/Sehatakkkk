@@ -72,7 +72,7 @@ class _HelpScreenState extends State<HelpScreen> {
           TextField(
             controller: _searchController,
             onChanged: (value) => setState(() => _query = value),
-            textDirection: TextDirection.rtl,
+            
             decoration: InputDecoration(
               hintText: AppStrings.of(context).translate('ابحث في الأسئلة الشائعة...'),
               prefixIcon: const Icon(Icons.search_rounded),
@@ -91,7 +91,7 @@ class _HelpScreenState extends State<HelpScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          Text(AppStrings.of(context).translate('الأسئلة الشائعة'), textDirection: TextDirection.rtl, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          Text(AppStrings.of(context).translate('الأسئلة الشائعة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
           if (faqs.isEmpty)
             _EmptyFaq(dark: dark)
@@ -123,16 +123,13 @@ class _HeroCard extends StatelessWidget {
           CircleAvatar(radius: 28, backgroundColor: Colors.white24, child: Icon(Icons.support_agent_rounded, color: Colors.white, size: 32)),
           SizedBox(width: 14),
           Expanded(
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Column(
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(AppStrings.of(context).translate('كيف يمكننا مساعدتك؟'), style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900)),
                   SizedBox(height: 5),
                   Text(AppStrings.of(context).translate('ابحث عن إجابة أو تواصل مباشرة مع فريق الدعم.'), style: TextStyle(color: Colors.white70, height: 1.45)),
                 ],
-              ),
             ),
           ),
         ],
