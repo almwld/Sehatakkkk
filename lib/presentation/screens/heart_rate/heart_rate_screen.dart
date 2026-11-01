@@ -16,6 +16,7 @@ class HeartRateScreen extends StatefulWidget {
 class _HeartRateScreenState extends State<HeartRateScreen>
     with SingleTickerProviderStateMixin {
   final HeartRateService _service = HeartRateService();
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   StreamSubscription<int>? _bpmSub;
   StreamSubscription<double>? _qualitySub;
@@ -168,8 +169,8 @@ class _HeartRateScreenState extends State<HeartRateScreen>
             Text('${AppStrings.of(context).translate('متوسط القياس')}: ${_averageBpm.toStringAsFixed(0)} BPM'),
             Text('${AppStrings.of(context).translate('جودة الإشارة')}: ${(_quality * 100).round()}%'),
             const SizedBox(height: 12),
-            const Text(
-              'هذه قراءة تقديرية من كاميرا الهاتف وليست بديلاً عن جهاز طبي معتمد أو تقييم الطبيب.',
+            Text(
+              _t('هذه قراءة تقديرية من كاميرا الهاتف وليست بديلاً عن جهاز طبي معتمد أو تقييم الطبيب.'),
               textAlign: TextAlign.center,
             ),
           ],
@@ -192,9 +193,9 @@ class _HeartRateScreenState extends State<HeartRateScreen>
           height: MediaQuery.of(context).size.height * 0.65,
           child: Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(AppStrings.of(context).translate('سجل قياسات النبض'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(_t('سجل قياسات النبض'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
               Expanded(
                 child: rows.isEmpty
@@ -233,9 +234,9 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     }).toList();
     final values = periodRows.map((r) => (r['bpm'] as num?)?.toDouble() ?? 0).where((v) => v > 0).toList();
     if (values.isEmpty) {
-      return Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
-        Text(AppStrings.of(context).translate('تحليل النبض'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 8), Text(AppStrings.of(context).translate('بعد أول قياس محفوظ ستظهر هنا الاتجاهات والإحصاءات وجودة الإشارة.')),
+      return Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(_t('تحليل النبض'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        SizedBox(height: 8), Text(_t('بعد أول قياس محفوظ ستظهر هنا الاتجاهات والإحصاءات وجودة الإشارة.')),
       ])));
     }
     final avg = values.reduce((a, b) => a + b) / values.length;
@@ -262,13 +263,13 @@ class _HeartRateScreenState extends State<HeartRateScreen>
         Card(child: Padding(padding: const EdgeInsets.fromLTRB(14, 16, 14, 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Expanded(child: Text(AppStrings.of(context).translate('اتجاه النبض'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-            Text('${values.length} ${AppStrings.of(context).translate('قياس')}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Text('${values.length} ${_t('قياس')}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
           ]),
           const SizedBox(height: 10),
           SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [7, 14, 30].map((days) {
             final selected = _analyticsDays == days;
             return Padding(padding: const EdgeInsetsDirectional.only(end: 8), child: ChoiceChip(
-              label: Text(days == 7 ? '7 ${AppStrings.of(context).translate('أيام')}' : '$days ${AppStrings.of(context).translate('يوم')}'), selected: selected,
+              label: Text(days == 7 ? '7 ${_t('أيام')}' : '$days ${_t('يوم')}'), selected: selected,
               onSelected: (_) => setState(() => _analyticsDays = days),
             ));
           }).toList())),
@@ -298,11 +299,11 @@ class _HeartRateScreenState extends State<HeartRateScreen>
         ]),
         const SizedBox(height: 12),
         Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('جودة الإشارة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 10),
+          Text(_t('جودة الإشارة'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 10),
           TweenAnimationBuilder<double>(tween: Tween(begin: 0, end: avgQuality.clamp(0, 1)), duration: const Duration(milliseconds: 900),
             builder: (_, value, __) => ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: value, minHeight: 10))),
-          const SizedBox(height: 7), Text('${(avgQuality * 100).round()}% متوسط جودة الإشارة • ${qualityValues.length} قياس'),
-          if (avgQuality < 0.5) const Padding(padding: EdgeInsets.only(top: 6), child: Text('حاول تثبيت الإصبع وتحسين الإضاءة للحصول على قراءة أوضح.', style: TextStyle(fontSize: 12, color: Colors.grey))),
+          const SizedBox(height: 7), Text('${(avgQuality * 100).round()}% ${_t('متوسط جودة الإشارة')} • ${qualityValues.length} ${_t('قياس')}'),
+          if (avgQuality < 0.5) Padding(padding: EdgeInsets.only(top: 6), child: Text(_t('حاول تثبيت الإصبع وتحسين الإضاءة للحصول على قراءة أوضح.'), style: TextStyle(fontSize: 12, color: Colors.grey))),
         ]))),
         const SizedBox(height: 12), _buildTimeDistribution(periodRows),
         const SizedBox(height: 12),
@@ -329,14 +330,14 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     final labels = ['صباح', 'ظهر', 'مساء', 'ليل'];
     final maxCount = buckets.reduce((a, b) => a > b ? a : b);
     return Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('توزيع القياسات خلال اليوم', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 14),
+      Text(_t('توزيع القياسات خلال اليوم'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 14),
       Row(crossAxisAlignment: CrossAxisAlignment.end, children: List.generate(4, (index) {
         final fraction = maxCount == 0 ? 0.0 : buckets[index] / maxCount;
         return Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: Column(children: [
           Text('${buckets[index]}', style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 6),
           TweenAnimationBuilder<double>(tween: Tween(begin: 0, end: fraction), duration: Duration(milliseconds: 500 + index * 100), curve: Curves.easeOutCubic,
             builder: (_, value, __) => Container(height: 70 * value + 4, decoration: BoxDecoration(color: Colors.red.withOpacity(0.75), borderRadius: BorderRadius.circular(8)))),
-          const SizedBox(height: 7), Text(labels[index], style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          const SizedBox(height: 7), Text(_t(labels[index]), style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ])));
       })),
     ])));
@@ -348,7 +349,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
       builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
       child: Card(child: Padding(padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4), child: Column(children: [
         Icon(icon, size: 20, color: Colors.red), const SizedBox(height: 5),
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)), const SizedBox(height: 3),
+        Text(_t(label), style: const TextStyle(fontSize: 11, color: Colors.grey)), const SizedBox(height: 3),
         FittedBox(child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
       ]))),
     );
@@ -377,9 +378,9 @@ class _HeartRateScreenState extends State<HeartRateScreen>
 
   Widget _buildWaveform() {
     if (_waveform.length < 2) {
-      return const SizedBox(
+      return SizedBox(
         height: 140,
-        child: Center(child: Text('ستظهر الإشارة هنا أثناء القياس', style: TextStyle(color: Colors.grey))),
+        child: Center(child: Text(_t('ستظهر الإشارة هنا أثناء القياس'), style: const TextStyle(color: Colors.grey))),
       );
     }
     final spots = <FlSpot>[];
@@ -414,9 +415,9 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('نبض القلب'),
+        title: Text(_t('نبض القلب')),
         actions: [
-          IconButton(onPressed: _showHistory, icon: const Icon(Icons.history), tooltip: 'السجل'),
+          IconButton(onPressed: _showHistory, icon: const Icon(Icons.history), tooltip: _t('السجل')),
         ],
       ),
       body: SafeArea(
@@ -433,7 +434,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                         const Icon(Icons.error_outline, color: Colors.red),
                         const SizedBox(width: 8),
                         Expanded(child: Text(_error!)),
-                        TextButton(onPressed: _initialize, child: const Text('إعادة المحاولة')),
+                        TextButton(onPressed: _initialize, child: Text(_t('إعادة المحاولة'))),
                       ],
                     ),
                   ),
@@ -453,9 +454,9 @@ class _HeartRateScreenState extends State<HeartRateScreen>
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _metric('جودة الإشارة', '${(_quality * 100).round()}%', Icons.signal_cellular_alt)),
+                  Expanded(child: _metric(_t('جودة الإشارة'), '${(_quality * 100).round()}%', Icons.signal_cellular_alt)),
                   const SizedBox(width: 10),
-                  Expanded(child: _metric('المتوسط', _averageBpm == 0 ? '--' : '${_averageBpm.round()} BPM', Icons.timeline)),
+                  Expanded(child: _metric(_t('المتوسط'), _averageBpm == 0 ? '--' : '${_averageBpm.round()} BPM', Icons.timeline)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -470,7 +471,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                   children: [
                     Icon(Icons.circle, size: 10, color: _statusColor),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(_statusText)),
+                    Expanded(child: Text(_t(_statusText))),
                   ],
                 ),
               ),
@@ -484,22 +485,22 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                 child: FilledButton.icon(
                   onPressed: _initializing ? null : _toggle,
                   icon: Icon(_measuring ? Icons.stop : Icons.play_arrow),
-                  label: Text(_measuring ? 'إيقاف القياس' : 'بدء القياس'),
+                  label: Text(_measuring ? _t('إيقاف القياس') : _t('بدء القياس')),
                   style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
                 ),
               ),
               const SizedBox(height: 14),
-              const Card(
+              Card(
                 child: Padding(
-                  padding: EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('طريقة القياس', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(_t('طريقة القياس'), style: const TextStyle(fontWeight: FontWeight.bold)),
                       SizedBox(height: 8),
-                      Text('ضع طرف إصبعك برفق على عدسة الكاميرا الخلفية مع تغطية العدسة والضوء، وابقَ ثابتاً لمدة كافية للحصول على إشارة واضحة.'),
+                      Text(_t('ضع طرف إصبعك برفق على عدسة الكاميرا الخلفية مع تغطية العدسة والضوء، وابقَ ثابتاً لمدة كافية للحصول على إشارة واضحة.')),
                       SizedBox(height: 8),
-                      Text('مهم: قياس الكاميرا تقديري ولا يُستخدم لتشخيص حالة صحية أو لاتخاذ قرار علاجي.'),
+                      Text(_t('مهم: قياس الكاميرا تقديري ولا يُستخدم لتشخيص حالة صحية أو لاتخاذ قرار علاجي.')),
                     ],
                   ),
                 ),

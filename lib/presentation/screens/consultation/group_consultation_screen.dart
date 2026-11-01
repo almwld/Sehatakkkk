@@ -27,7 +27,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
     if (user == null) {
       return Scaffold(
         appBar: CustomAppBar(title: _t('الاستشارات الجماعية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        body: const Center(child: Text('يرجى تسجيل الدخول')),
+        body: Center(child: Text(_t('يرجى تسجيل الدخول'))),
       );
     }
 
