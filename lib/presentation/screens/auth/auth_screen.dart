@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -1453,7 +1454,7 @@ class _AuthScreenState extends State<AuthScreen>
               title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
               subtitle: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: IconButton(
-                tooltip: 'حذف الحساب المحفوظ',
+                tooltip: AppStrings.of(context).translate('حذف الحساب المحفوظ'),
                 icon: const Icon(Icons.close, size: 19),
                 onPressed: () => _removeSavedAccount(uid),
               ),
