@@ -1932,6 +1932,11 @@ class AppStrings {
       "الاسم": ["Name","Nom"],
       "منطقة الخدمة": ["Service area","Zone de service"],
       "التعليقات": ["Comments","Commentaires"],
+      "يجب تسجيل الدخول أولاً": ["Please sign in first","Veuillez d’abord vous connecter"],
+      "هذه الشاشة مخصصة للمشرفين": ["This screen is for administrators only","Cet écran est réservé aux administrateurs"],
+      "ملف": ["File","Fichier"],
+      "لا توجد طلبات توثيق معلقة حالياً": ["There are no pending verification requests","Aucune demande de vérification en attente"],
+      "حساب مهني": ["Professional account","Compte professionnel"],
     };
 
     final entry = translations[value];
