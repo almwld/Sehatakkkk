@@ -1531,6 +1531,14 @@ class AppStrings {
       'فحوصات': ['Tests', 'Analyses'],
       'قريباً': ['Coming soon', 'Bientôt'],
       'طارئ': ['Emergency', 'Urgence'],
+      'فحص عينة سريع': ['Rapid sample test', 'Analyse rapide d’échantillon'],
+      'فحص مخبري في منزلك دون الحاجة للذهاب للمختبر': ['Laboratory testing at home without visiting a lab', 'Analyses à domicile sans vous déplacer au laboratoire'],
+      'قياس ضغط الدم': ['Blood pressure measurement', 'Mesure de la tension artérielle'],
+      'مراقبة ضغط الدم في منزلك': ['Monitor your blood pressure at home', 'Surveillez votre tension artérielle à domicile'],
+      'فحص السكر': ['Blood glucose test', 'Test de glycémie'],
+      'مراقبة مستوى السكر في الدم منزلياً': ['Monitor your blood glucose at home', 'Surveillez votre glycémie à domicile'],
+      'دليل': ['Guide', 'Guide'],
+      'شائع': ['Popular', 'Populaire'],
     };
 
     final entry = translations[value];
