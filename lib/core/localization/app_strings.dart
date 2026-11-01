@@ -1021,6 +1021,7 @@ class AppStrings {
       'أوميبرازول 20mg': ['Omeprazole 20 mg', 'Oméprazole 20 mg'],
       'مترونيدازول': ['Metronidazole', 'Métronidazole'],
       'جل الصبار': ['Aloe vera gel', 'Gel d’aloe vera'],
+      'كيف أساعدك اليوم؟': ['How can I help you today?', 'Comment puis-je vous aider aujourd’hui ?'],
     };
 
     final entry = translations[value];
