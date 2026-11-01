@@ -192,7 +192,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                 }
                 final consults = snapshot.data?.docs ?? [];
                 if (consults.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Padding(
                       padding: EdgeInsets.all(16),
                       child: Text(AppStrings.of(context).translate('لا توجد استشارات سابقة'), style: TextStyle(color: Colors.grey)),
