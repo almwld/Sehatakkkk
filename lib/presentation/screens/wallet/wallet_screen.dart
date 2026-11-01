@@ -190,13 +190,13 @@ class _WalletScreenState extends State<WalletScreen> {
       itemBuilder:(context,index){
         final wallet=_wallets[index];
         return GestureDetector(
-          onTap:()=>ToastService.showSuccess(_t('تم اختيار') + ' ${wallet['name']}'),
+          onTap:()=>ToastService.showSuccess(_t('تم اختيار') + ' ${_t(wallet['name'] as String)}'),
           child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
             Image.asset(wallet['icon'] as String,width:64,height:64,fit:BoxFit.contain,errorBuilder:(context,error,stackTrace)=>Container(
               width:64,height:64,decoration:BoxDecoration(color:AppColors.primary.withOpacity(0.1),shape:BoxShape.circle),
               child:const Icon(Icons.account_balance_wallet_rounded,color:AppColors.primary,size:32))),
             const SizedBox(height:6),
-            Text(wallet['name'] as String,style:TextStyle(fontSize:13,fontWeight:FontWeight.w600,color:isDark?Colors.white:Colors.black87),textAlign:TextAlign.center),
+            Text(_t(wallet['name'] as String),style:TextStyle(fontSize:13,fontWeight:FontWeight.w600,color:isDark?Colors.white:Colors.black87),textAlign:TextAlign.center),
             Text('${_t('حساب')}: ${wallet['account']}',style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[500]),textAlign:TextAlign.center),
           ]),
         );
