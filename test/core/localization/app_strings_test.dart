@@ -23,6 +23,30 @@ void main() {
       expect(strings.translate('الأطباء'), 'الأطباء');
     });
 
+
+    test('translates medication and laboratory workflows to English', () {
+      final strings = AppStrings(const Locale('en', 'US'));
+      expect(strings.translate('تذكير الأدوية'), 'Medication reminders');
+      expect(strings.translate('إضافة دواء'), 'Add medication');
+      expect(strings.translate('حجز الفحوصات'), 'Book laboratory tests');
+      expect(strings.translate('نتائج الفحوصات'), 'Test results');
+    });
+
+    test('translates medication and laboratory workflows to French', () {
+      final strings = AppStrings(const Locale('fr', 'FR'));
+      expect(strings.translate('تذكير الأدوية'), 'Rappels de médicaments');
+      expect(strings.translate('إضافة دواء'), 'Ajouter un médicament');
+      expect(strings.translate('حجز الفحوصات'), 'Réserver des analyses');
+      expect(strings.translate('نتائج الفحوصات'), 'Résultats des analyses');
+    });
+
+    test('translates cart and chat actions', () {
+      final strings = AppStrings(const Locale('en', 'US'));
+      expect(strings.translate('سلة المشتريات'), 'Shopping cart');
+      expect(strings.translate('الرسائل المثبتة'), 'Pinned messages');
+      expect(strings.translate('متصل الآن'), 'Online now');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
