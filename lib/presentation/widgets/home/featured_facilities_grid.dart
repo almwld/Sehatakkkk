@@ -83,7 +83,7 @@ class _FacilityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final id = _string('id');
     final image = _string('imageUrl', _string('image', _string('photoUrl')));
-    final name = _string('name', isHospital ? 'مستشفى' : 'مختبر');
+    final name = _string('name', AppStrings.of(context).translate(isHospital ? 'مستشفى' : 'مختبر'));
     final location = _string('location', _string('city', _string('address')));
     final rating = _rating();
     final hasOpenField = item.containsKey('open') || item.containsKey('isOpen');
