@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class TestBookingScreen extends StatefulWidget {
@@ -11,6 +12,7 @@ class TestBookingScreen extends StatefulWidget {
 }
 
 class _TestBookingScreenState extends State<TestBookingScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   DateTime _selectedDate = DateTime.now();
   DateTime _focusedDay = DateTime.now();
   bool _homeVisit = false;
@@ -32,13 +34,13 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final testName = _testData['name']?.toString() ?? 'فحص طبي';
+    final testName = _testData['name']?.toString() ?? _t('فحص طبي');
     final testPrice = _testData['price'] ?? 0;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'حجز تحليل',
+        title: _t('حجز تحليل'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -51,7 +53,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
             _buildTestSummary(testName, testPrice, isDark),
             const SizedBox(height: 24),
             Text(
-              'اختر التاريخ',
+              _t('اختر التاريخ'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -77,7 +79,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                 },
                 calendarFormat: CalendarFormat.week,
                 availableCalendarFormats: const {
-                  CalendarFormat.week: 'الأسبوع',
+                  CalendarFormat.week: _t('الأسبوع'),
                 },
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
@@ -117,7 +119,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'اختر الوقت',
+              _t('اختر الوقت'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -162,8 +164,8 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: SwitchListTile(
-                title: const Text('زيارة منزلية'),
-                subtitle: const Text('سيصلك فريق المختبر إلى منزلك'),
+                title: Text(_t('زيارة منزلية')),
+                subtitle: Text(_t('سيصلك فريق المختبر إلى منزلك')),
                 value: _homeVisit,
                 onChanged: (value) => setState(() => _homeVisit = value),
                 activeColor: AppColors.primary,
@@ -205,7 +207,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
               ),
               child: Text(
                 _selectedTime != null
-                    ? 'تأكيد الحجز - $testPrice ريال'
+                    ? '${_t('تأكيد الحجز - ')}$testPrice ${_t('ريال')}'
                     : 'اختر الوقت أولاً',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -249,7 +251,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$price ريال',
+                  '$price ${_t('ريال')}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -280,7 +282,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
             const Icon(Icons.check_circle, color: AppColors.success, size: 80),
             const SizedBox(height: 16),
             Text(
-              'تم الحجز بنجاح! ✅',
+              _t('تم الحجز بنجاح! ✅'),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -289,12 +291,12 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text('تم حجز فحص $testName', textAlign: TextAlign.center),
+            Text('${_t('تم حجز فحص ')}$testName', textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
               '📅 ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}\n'
               '🕐 $_selectedTime\n'
-              '💰 $testPrice ريال',
+              '💰 $testPrice ${_t('ريال')}',
               style: const TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
@@ -309,7 +311,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
               Navigator.pop(dialogContext);
               Navigator.pop(context);
             },
-            child: const Text('تم'),
+            child: Text(_t('تم')),
           ),
         ],
       ),
