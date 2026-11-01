@@ -425,7 +425,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       ),
                       const SizedBox(height: 1),
                       Text(
-                        doctor.specialty,
+                        AppStrings.of(context).translate(doctor.specialty),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
