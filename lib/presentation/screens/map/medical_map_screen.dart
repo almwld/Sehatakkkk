@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/theme/app_theme.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
@@ -11,6 +12,7 @@ class MedicalMapScreen extends StatefulWidget {
 }
 
 class _MedicalMapScreenState extends State<MedicalMapScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _searchController = TextEditingController();
   String _query = '';
 
@@ -54,7 +56,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
       appBar: CustomAppBar(
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         elevation: 0.5,
-        title: const Text('المرافق الصحية', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontFamily: 'Tajawal')),
+        title: Text(_t('المرافق الصحية'), style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontFamily: 'Tajawal')),
         actions: [IconButton(icon: Icon(Icons.filter_list, color: primaryColor), onPressed: () {})],
       ),
       body: Stack(
@@ -73,8 +75,8 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.map_rounded, size: 64, color: AppTheme.primaryColor.withOpacity(0.3)),
                 const SizedBox(height: 8),
-                Text('خريطة صنعاء', style: TextStyle(fontSize: 16, color: isDark ? Colors.grey[400] : Colors.grey[600], fontFamily: 'Tajawal')),
-                Text('اضغط للتفاعل مع الخريطة', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[500] : Colors.grey[400], fontFamily: 'Tajawal')),
+                Text(_t('خريطة صنعاء'), style: TextStyle(fontSize: 16, color: isDark ? Colors.grey[400] : Colors.grey[600], fontFamily: 'Tajawal')),
+                Text(_t('اضغط للتفاعل مع الخريطة'), style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[500] : Colors.grey[400], fontFamily: 'Tajawal')),
               ]),
             ),
           ),
@@ -97,7 +99,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
               controller: _searchController,
               onChanged: (value) => setState(() => _query = value),
               onClear: _clearSearch,
-              hintText: 'ابحث عن منشأة صحية (مستشفى، مختبر، صيدلية)...',
+              hintText: _t('ابحث عن منشأة صحية (مستشفى، مختبر، صيدلية)...'),
               isDark: isDark,
             ),
           ),
@@ -108,7 +110,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
             child: SizedBox(
               height: 200,
               child: facilities.isEmpty
-                  ? Center(child: Text('لا توجد منشآت مطابقة للبحث', style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontFamily: 'Tajawal')))
+                  ? Center(child: Text(_t('لا توجد منشآت مطابقة للبحث'), style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontFamily: 'Tajawal')))
                   : PageView.builder(
                       controller: PageController(viewportFraction: 0.88),
                       itemCount: facilities.length,
@@ -146,7 +148,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
         const Spacer(),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Row(children: [Icon(Icons.phone_in_talk_outlined, color: AppTheme.primaryColor, size: 16), const SizedBox(width: 6), Text(facility['phone'] as String, style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w600, fontSize: 13, fontFamily: 'Tajawal'))]),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)), onPressed: () {}, child: const Text('حجز موعد', style: TextStyle(fontFamily: 'Tajawal', color: Colors.white, fontSize: 12))),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)), onPressed: () {}, child: Text(_t('حجز موعد'), style: TextStyle(fontFamily: 'Tajawal', color: Colors.white, fontSize: 12))),
         ]),
       ]),
     );
