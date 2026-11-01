@@ -211,7 +211,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     if (id.isEmpty || price <= 0 || stock <= 0) return;
     _cart.add(
         productId: id,
-        name: '${p['name'] ?? 'منتج'}',
+        name: '${p['name'] ?? AppStrings.of(context).translate('منتج')}',
         unitPrice: price,
         requiresPrescription: p['requiresPrescription'] == true,
         pharmacyId: '${p['pharmacyId'] ?? p['sellerId'] ?? ''}'.trim().isEmpty ? null : '${p['pharmacyId'] ?? p['sellerId'] ?? ''}'.trim(),
@@ -350,18 +350,18 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                                             child: const Icon(Icons.local_pharmacy, color: AppColors.primary, size: 36)))),
                             const SizedBox(width: 12),
                             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text('${p['name'] ?? 'صيدلية'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text('${p['name'] ?? AppStrings.of(context).translate('صيدلية')}', style: const TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
-                              Text('${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.grey)),
+                              Text('${p['address'] ?? p['city'] ?? AppStrings.of(context).translate('الموقع غير محدد')}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.grey)),
                               const SizedBox(height: 6),
-                              Text('${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text('${AppStrings.of(context).translate(open ? 'مفتوحة الآن' : 'مغلقة')} • ${AppStrings.of(context).translate(delivery ? 'توصيل متاح' : 'التوصيل غير متاح')}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                             ])),
                           ]))));
             }));
   }
   Widget _productsTab() => _productList(
       _visibleProducts, 'لا توجد منتجات منشورة تطابق البحث حالياً');
-  Widget _offersTab() => _productList(_offers, 'لا توجد عروض منشورة حالياً');
+  Widget _offersTab() => _productList(_offers, AppStrings.of(context).translate('لا توجد عروض منشورة حالياً'));
 
   Widget _productList(List<Map<String, dynamic>> products, String empty) {
     if (products.isEmpty) return Center(child: Text(empty));
