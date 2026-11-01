@@ -100,7 +100,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
-    if (_error != null) return Scaffold(appBar: AppBar(title: Text(_t('حجز فحص'))), body: Center(child: Text(_error!)));
+    if (_error != null) return Scaffold(appBar: AppBar(title: Text(_t('حجز الفحوصات'))), body: Center(child: Text(_error!)));
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -141,8 +141,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
             onChanged: _saving ? null : (v) => setState(() => _homeCollection = v),
           ),
           if (_homeCollection)
-            TextField(controller: _collectionAddress, maxLines: 2, decoration: const InputDecoration(labelText: _t('عنوان سحب العينة'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
-          TextField(controller: _notes, maxLines: 3, maxLength: 1000, decoration: const InputDecoration(labelText: _t('ملاحظات'), border: OutlineInputBorder())),
+            TextField(controller: _collectionAddress, maxLines: 2, decoration: InputDecoration(labelText: _t('عنوان سحب العينة'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
+          TextField(controller: _notes, maxLines: 3, maxLength: 1000, decoration: InputDecoration(labelText: _t('ملاحظات'), border: OutlineInputBorder())),
           const SizedBox(height: 12),
           Card(child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_t('الإجمالي'), style: TextStyle(fontWeight: FontWeight.bold)), Text('${_total.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary))]))),
           const SizedBox(height: 16),
