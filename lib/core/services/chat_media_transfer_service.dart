@@ -278,10 +278,11 @@ class ChatMediaTransferService {
       if (!upload.success || upload.path == null || upload.path!.isEmpty) {
         throw StateError('Nextcloud upload failed: ${upload.error ?? 'unknown error'}');
       }
-      remotePath = upload.path;
+      final uploadedPath = upload.path!;
+      remotePath = uploadedPath;
       url = upload.url;
       if (url == null || url.isEmpty) {
-        url = await _retryShare(nextcloud, remotePath);
+        url = await _retryShare(nextcloud, uploadedPath);
       }
       if (url == null || url.isEmpty || !await nextcloud.verifyPublicUrl(url)) {
         throw StateError('Nextcloud did not provide a reachable public media URL');
