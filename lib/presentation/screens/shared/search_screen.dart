@@ -54,8 +54,8 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor:isDark?const Color(0xFF0B1121):Colors.white,
         elevation:0,
         automaticallyImplyLeading:false,
-        title:UnifiedSearchBar(controller:_searchController,hint:'ابحث عن أطباء، صيدليات، خدمات...',onChanged:_performSearch,suffixIcon:_searchQuery.isNotEmpty?IconButton(icon:const Icon(Icons.close_rounded,size:18),onPressed:_clearSearch):null,margin:EdgeInsets.zero),
-        actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('إلغاء',style:TextStyle(color:AppColors.primary)))],
+        title:UnifiedSearchBar(controller:_searchController,hint:AppStrings.of(context).translate('ابحث عن أطباء، صيدليات، خدمات...'),onChanged:_performSearch,suffixIcon:_searchQuery.isNotEmpty?IconButton(icon:const Icon(Icons.close_rounded,size:18),onPressed:_clearSearch):null,margin:EdgeInsets.zero),
+        actions:[TextButton(onPressed:()=>Navigator.pop(context),child:Text(AppStrings.of(context).translate('إلغاء'),style:TextStyle(color:AppColors.primary)))],
       ),
       body:_buildBody(isDark),
     );
@@ -64,14 +64,14 @@ class _SearchScreenState extends State<SearchScreen> {
     if(_isSearching||_searchQuery.isNotEmpty)return _buildResults(isDark);
     return SingleChildScrollView(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
       if(_recentSearches.isNotEmpty)...[
-        Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[const Text('البحث الأخير',style:TextStyle(fontWeight:FontWeight.bold,fontSize:16)),TextButton(onPressed:(){},child:const Text('مسح الكل',style:TextStyle(fontSize:12)))]),
+        Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[Text(AppStrings.of(context).translate('البحث الأخير'),style:TextStyle(fontWeight:FontWeight.bold,fontSize:16)),TextButton(onPressed:(){},child:const Text('مسح الكل',style:TextStyle(fontSize:12)))]),
         const SizedBox(height:8),
         ..._recentSearches.map((s)=>GestureDetector(onTap:(){_searchController.text=s['query'];_performSearch(s['query']);},child:Container(padding:const EdgeInsets.symmetric(vertical:10),decoration:BoxDecoration(border:Border(bottom:BorderSide(color:isDark?const Color(0xFF2D3A54):Colors.grey.shade100))),child:Row(children:[const Icon(Icons.history_rounded,size:16,color:AppColors.primary),const SizedBox(width:12),Expanded(child:Text(s['query'])),Text(s['time'],style:const TextStyle(fontSize:11,color:AppColors.grey))])))),
         const SizedBox(height:24),
       ],
-      const Text('الأكثر بحثاً',style:TextStyle(fontWeight:FontWeight.bold,fontSize:16)),const SizedBox(height:12),
+      Text(AppStrings.of(context).translate('الأكثر بحثاً'),style:TextStyle(fontWeight:FontWeight.bold,fontSize:16)),const SizedBox(height:12),
       Wrap(spacing:8,runSpacing:8,children:_popularSearches.map((item){final color=item['color'] as Color;return GestureDetector(onTap:(){_searchController.text=item['label'] as String;_performSearch(item['label'] as String);},child:Container(padding:const EdgeInsets.symmetric(horizontal:14,vertical:8),decoration:BoxDecoration(color:color.withOpacity(.08),borderRadius:BorderRadius.circular(20),border:Border.all(color:color.withOpacity(.2))),child:Row(mainAxisSize:MainAxisSize.min,children:[Icon(item['icon'] as IconData,color:color,size:16),const SizedBox(width:6),Text(item['label'] as String,style:TextStyle(fontSize:12,color:color))])));}).toList()),
-      const SizedBox(height:24),const Text('التصنيفات',style:TextStyle(fontWeight:FontWeight.bold,fontSize:16)),const SizedBox(height:12),
+      const SizedBox(height:24),Text(AppStrings.of(context).translate('التصنيفات'),style:TextStyle(fontWeight:FontWeight.bold,fontSize:16)),const SizedBox(height:12),
       GridView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:3,childAspectRatio:.9,crossAxisSpacing:10,mainAxisSpacing:10),itemCount:_categories.length,itemBuilder:(context,index){final c=_categories[index];final color=c['color'] as Color;return GestureDetector(onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>c['screen'] as Widget)),child:Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:color.withOpacity(.06),borderRadius:BorderRadius.circular(16)),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[Icon(c['icon'] as IconData,color:color,size:24),const SizedBox(height:6),Text(c['label'] as String,style:TextStyle(fontSize:11,color:color),textAlign:TextAlign.center)])));}),
     ]));
   }
