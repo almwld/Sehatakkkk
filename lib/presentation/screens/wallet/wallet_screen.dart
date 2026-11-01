@@ -86,7 +86,7 @@ class _WalletScreenState extends State<WalletScreen> {
               )),
               const SizedBox(width:12),
               Expanded(child:OutlinedButton.icon(
-                onPressed:()=>ToastService.showInfo('جاري تحويل الرصيد...'),
+                onPressed:()=>ToastService.showInfo(AppStrings.of(context).locale.languageCode == 'ar' ? 'جاري تحويل الرصيد...' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Transfert du solde en cours…' : 'Transferring balance…'),
                 icon:const Icon(Icons.send_rounded,size:18),label:Text(_t('تحويل')),
                 style:OutlinedButton.styleFrom(foregroundColor:Colors.white,side:const BorderSide(color:Colors.white54),padding:const EdgeInsets.symmetric(vertical:12),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))),
               )),
