@@ -730,6 +730,10 @@ class AppStrings {
       'ساعة مضت': ['hours ago', 'h'],
       'يوم مضى': ['days ago', 'jours'],
       'الوقت': ['Time', 'Heure'],
+      'تفعيل المكالمات الواردة': ['Enable incoming calls', 'Activer les appels entrants'],
+      'لاحقاً': ['Later', 'Plus tard'],
+      'فتح إعدادات النظام': ['Open system settings', 'Ouvrir les paramètres système'],
+      'منشور': ['Post', 'Publication'],
     };
 
     final entry = translations[value];
