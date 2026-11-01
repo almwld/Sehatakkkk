@@ -2025,6 +2025,7 @@ class AppStrings {
       'خطأ:': ['Error:', 'Erreur :'],
       'فشل التحديث:': ['Update failed:', 'Échec de la mise à jour :'],
 
+
       "مجهول": ["Unknown","Inconnu"],
     };
 
