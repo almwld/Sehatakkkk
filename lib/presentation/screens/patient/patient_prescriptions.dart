@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
@@ -37,7 +38,7 @@ class PatientPrescriptions extends StatelessWidget {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Text('تعذر تحميل الوصفات: ${snapshot.error}'),
+                child: Text(AppStrings.of(context).translate('تعذر تحميل الوصفات') + ': ${snapshot.error}'),
               ),
             );
           }
@@ -53,7 +54,7 @@ class PatientPrescriptions extends StatelessWidget {
           }).toList();
 
           if (docs.isEmpty) {
-            return const Center(child: Text('لا توجد وصفات طبية حالياً'));
+            return Center(child: Text(AppStrings.of(context).translate('لا توجد وصفات طبية حالياً')));
           }
 
           return ListView.builder(
