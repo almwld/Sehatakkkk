@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/config/imagekit_config.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -14,6 +15,7 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   int _quantity = 1;
 
   @override
@@ -23,7 +25,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final imageUrl = (product.imageUrl != null && product.imageUrl!.isNotEmpty) ? product.imageUrl! : ImageKitConfig.medicine1;
     final reviews = product.reviewsCount;
     final stock = product.stockQuantity;
-    final pharmacyName = product.metadata?['pharmacyName']?.toString() ?? 'صيدلية صحتك';
+    final pharmacyName = product.metadata?['pharmacyName']?.toString() ?? _t('صيدلية صحتك');
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -62,14 +64,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox(height: 12),
           Row(children: [
             if (product.isDiscounted) ...[
-              Text('${product.price.toStringAsFixed(0)} ريال', style: TextStyle(fontSize: 18, color: isDark ? Colors.grey[500] : Colors.grey[400], decoration: TextDecoration.lineThrough)),
+              Text(AppStrings.of(context).formatCurrency(product.price), style: TextStyle(fontSize: 18, color: isDark ? Colors.grey[500] : Colors.grey[400], decoration: TextDecoration.lineThrough)),
               const SizedBox(width: 8),
             ],
-            Text('${product.priceWithDiscount.toStringAsFixed(0)} ريال', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            Text(AppStrings.of(context).formatCurrency(product.priceWithDiscount), style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary)),
             const SizedBox(width: 8),
-            Text('/ ${product.dosage ?? 'وحدة'}', style: TextStyle(fontSize: 14, color: isDark ? Colors.white60 : Colors.grey[600])),
+            Text('/ ${product.dosage ?? _t('وحدة')}', style: TextStyle(fontSize: 14, color: isDark ? Colors.white60 : Colors.grey[600])),
             const Spacer(),
-            if (!product.inStock) Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(20)), child: const Text('غير متوفر', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
+            if (!product.inStock) Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(20)), child: Text(_t('غير متوفر'), style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
           ]),
           const SizedBox(height: 16),
           _card(isDark, '📝 الوصف', Text(product.description, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey[700], height: 1.5))),
@@ -87,27 +89,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!)),
               child: Row(children: [
-                const Text('الكمية:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(_t('الكمية:'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 const SizedBox(width: 16),
                 Container(decoration: BoxDecoration(color: isDark ? const Color(0xFF0B1121) : Colors.grey[100], borderRadius: BorderRadius.circular(12)), child: Row(children: [
                   IconButton(icon: const Icon(Icons.remove, size: 20), onPressed: () { if (_quantity > 1) setState(() => _quantity--); }, padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 36, minHeight: 36)),
                   Text('$_quantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  IconButton(icon: const Icon(Icons.add, size: 20), onPressed: () { if (_quantity < stock) setState(() => _quantity++); else ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لا يوجد مخزون كاف'), backgroundColor: Colors.orange)); }, padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 36, minHeight: 36)),
+                  IconButton(icon: const Icon(Icons.add, size: 20), onPressed: () { if (_quantity < stock) setState(() => _quantity++); else ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('لا يوجد مخزون كاف'), backgroundColor: Colors.orange)); }, padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 36, minHeight: 36)),
                 ])),
                 const Spacer(),
-                Text('${(product.priceWithDiscount * _quantity).toStringAsFixed(0)} ريال', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                Text(AppStrings.of(context).formatCurrency(product.priceWithDiscount * _quantity), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
               ]),
             ),
             const SizedBox(height: 12),
-            SizedBox(width: double.infinity, height: 56, child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.add_shopping_cart), const SizedBox(width: 8), Text('أضف إلى السلة - ${(product.priceWithDiscount * _quantity).toStringAsFixed(0)} ريال', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))])))
+            SizedBox(width: double.infinity, height: 56, child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.add_shopping_cart), const SizedBox(width: 8), Text('${_t('أضف إلى السلة')} - ${AppStrings.of(context).formatCurrency(product.priceWithDiscount * _quantity)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))])))
           ] else
-            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.red.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.red.withOpacity(0.2))), child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.warning_amber_rounded, color: Colors.red), SizedBox(width: 8), Text('هذا المنتج غير متوفر حالياً', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16))])),
+            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.red.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.red.withOpacity(0.2))), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.warning_amber_rounded, color: Colors.red), const SizedBox(width: 8), Text(_t('هذا المنتج غير متوفر حالياً'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16))])),
         ]),
       ),
     );
   }
 
-  Widget _card(bool isDark, String title, Widget child) => Card(color: isDark ? const Color(0xFF1A2540) : Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 8), child])));
+  Widget _card(bool isDark, String title, Widget child) => Card(color: isDark ? const Color(0xFF1A2540) : Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(title), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 8), child])));
 
-  Widget _buildDetailRow(String label, String value, bool isDark) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(children: [Text(label, style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey[600])), const Spacer(), Text(value, style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500))]));
+  Widget _buildDetailRow(String label, String value, bool isDark) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(children: [Text(_t(label), style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey[600])), const Spacer(), Text(value, style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500))]));
 }
