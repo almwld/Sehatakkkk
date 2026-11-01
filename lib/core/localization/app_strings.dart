@@ -711,6 +711,10 @@ class AppStrings {
       'تم حفظ ملف النتيجة لهذا الحجز.': ['A result file has been saved for this booking.', 'Un fichier de résultat a été enregistré pour cette réservation.'],
       'رقم الحجز: ': ['Booking number: ', 'Numéro de réservation : '],
       'عدد الفحوصات: ': ['Number of tests: ', 'Nombre d’analyses : '],
+      'إجمالي الكمية': ['Total quantity', 'Quantité totale'],
+      'حفظ وتفعيل التنبيهات': ['Save and enable reminders', 'Enregistrer et activer les rappels'],
+      'تناول': ['Taken', 'Pris'],
+      'تم': ['Done', 'Terminé'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
