@@ -75,7 +75,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
       builder: (_) => SafeArea(child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [ClipRRect(borderRadius: BorderRadius.circular(10), child: AppImage(imageUrl: _img(h, i), width: 60, height: 60)), const SizedBox(width: 12), Expanded(child: Text('${h['name'] ?? 'مستشفى'}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))]),
+          Row(children: [ClipRRect(borderRadius: BorderRadius.circular(10), child: AppImage(imageUrl: _img(h, i), width: 60, height: 60)), const SizedBox(width: 12), Expanded(child: Text('${h['name'] ?? _t('مستشفى')}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))]),
           const SizedBox(height: 14),
           Text('${_t('الموقع')}: ${h['location'] ?? h['address'] ?? _t('غير محدد')}'),
           if (h['phone'] != null) Text('${_t('الهاتف')}: ${h['phone']}'),
