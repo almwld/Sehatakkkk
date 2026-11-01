@@ -1541,6 +1541,13 @@ class AppStrings {
       'شائع': ['Popular', 'Populaire'],
       'تم إنشاء وإرسال ': ['Created and sent ', 'Créé et envoyé '],
       ' كـ PDF.': [' as a PDF.', ' au format PDF.'],
+      'صباح الخير ☀️': ['Good morning ☀️', 'Bonjour ☀️'],
+      'مساء الخير 🌤️': ['Good afternoon 🌤️', 'Bon après-midi 🌤️'],
+      'مساء الخير 🌙': ['Good evening 🌙', 'Bonsoir 🌙'],
+      'صحتك معك في كل خطوة': ['Sehatak is with you every step', 'Sehatak vous accompagne à chaque étape'],
+      'مختبرات': ['Laboratories', 'Laboratoires'],
+      'صحة': ['Health', 'Santé'],
+      'محفظة': ['Wallet', 'Portefeuille'],
     };
 
     final entry = translations[value];
