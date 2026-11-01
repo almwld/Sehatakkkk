@@ -1728,6 +1728,7 @@ class AppStrings {
       'تم تسجيل الوزن': ['Weight recorded', 'Poids enregistré'],
       'الوزن بالكيلوجرام': ['Weight in kilograms', 'Poids en kilogrammes'],
       'ملاحظة اختيارية': ['Optional note', 'Note facultative'],
+      'الأطباء المفضلين': ['Favorite doctors', 'Médecins favoris'],
     };
 
     final entry = translations[value];
