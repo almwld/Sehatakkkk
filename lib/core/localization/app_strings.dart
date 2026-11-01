@@ -1666,6 +1666,12 @@ class AppStrings {
       'طريقة القياس': ['How to measure', 'Méthode de mesure'],
       'ضع طرف إصبعك برفق على عدسة الكاميرا الخلفية مع تغطية العدسة والضوء، وابقَ ثابتاً لمدة كافية للحصول على إشارة واضحة.': ['Gently place your fingertip over the rear camera lens and flash, then stay still long enough to obtain a clear signal.', 'Placez doucement le bout du doigt sur l’objectif arrière et le flash, puis restez immobile suffisamment longtemps pour obtenir un signal clair.'],
       'مهم: قياس الكاميرا تقديري ولا يُستخدم لتشخيص حالة صحية أو لاتخاذ قرار علاجي.': ['Important: Camera-based measurement is an estimate and must not be used to diagnose a condition or make treatment decisions.', 'Important : la mesure par caméra est indicative et ne doit pas servir à diagnostiquer une maladie ni à prendre une décision thérapeutique.'],
+      'مسح الكل': ['Clear all', 'Tout effacer'],
+      'أطباء باطنية': ['Internal medicine doctors', 'Médecins internistes'],
+      'صيدلية 24 ساعة': ['24-hour pharmacy', 'Pharmacie ouverte 24 h/24'],
+      'تتبع السكر': ['Track blood glucose', 'Suivi de la glycémie'],
+      'الصحة': ['Health', 'Santé'],
+      'لم نعثر على أي نتائج لـ': ['No results found for', 'Aucun résultat trouvé pour'],
     };
 
     final entry = translations[value];
