@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:sehatak/core/constants/app_icons.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/toast_service.dart';
@@ -16,6 +17,7 @@ class PharmacyDashboard extends StatefulWidget {
 }
 
 class _PharmacyDashboardState extends State<PharmacyDashboard> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   Map<String, dynamic>? _pharmacy;
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
@@ -30,7 +32,7 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     if (mounted) setState(() => _loading = true);
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) throw StateError('يجب تسجيل الدخول');
+      if (uid == null) throw StateError('AUTH_REQUIRED');
       QuerySnapshot<Map<String, dynamic>> q = await FirebaseFirestore.instance.collection('pharmacies').where('ownerId', isEqualTo: uid).limit(1).get();
       if (q.docs.isEmpty) q = await FirebaseFirestore.instance.collection('pharmacies').where('userId', isEqualTo: uid).limit(1).get();
       if (q.docs.isEmpty) { _pharmacy = null; _products = []; } else {
@@ -40,14 +42,14 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
         _products = pq.docs.map((d) => {...d.data(), 'id': d.id}).toList();
       }
       if (mounted) setState(() => _error = null);
-    } catch (e) { if (mounted) setState(() => _error = e.toString()); }
+    } catch (e) { if (mounted) setState(() => _error = e.toString().contains('AUTH_REQUIRED') ? 'يجب تسجيل الدخول' : 'تعذر تحميل بيانات الصيدلية'); }
     finally { if (mounted) setState(() => _loading = false); }
   }
 
-  Future<void> _create() async { if (mounted) ToastService.showError('ملف الصيدلية غير موجود أو لم يتم اعتماده بعد'); }
+  Future<void> _create() async { if (mounted) ToastService.showError(_t('ملف الصيدلية غير موجود أو لم يتم اعتماده بعد')); }
 
   Future<void> _pickProductImage() async {
-    final source = await showModalBottomSheet<ImageSource>(context: context, builder: (_) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Icons.camera_alt), title: const Text('تصوير الصنف'), onTap: () => Navigator.pop(context, ImageSource.camera)), ListTile(leading: const Icon(Icons.photo_library), title: const Text('اختيار صورة'), onTap: () => Navigator.pop(context, ImageSource.gallery))])));
+    final source = await showModalBottomSheet<ImageSource>(context: context, builder: (_) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Icons.camera_alt), title: Text(_t('تصوير الصنف')), onTap: () => Navigator.pop(context, ImageSource.camera)), ListTile(leading: const Icon(Icons.photo_library), title: Text(_t('اختيار صورة')), onTap: () => Navigator.pop(context, ImageSource.gallery))])));
     if (source == null) return;
     final picked = await ImagePicker().pickImage(source: source, imageQuality: 85, maxWidth: 1600);
     if (picked == null) return;
@@ -58,40 +60,40 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
   Future<void> _addProduct() async {
     if (_addingProduct || _pharmacy == null || _pharmacy!['status'] != 'approved') return;
     final name = TextEditingController(), category = TextEditingController(text: 'أدوية'), price = TextEditingController(), stock = TextEditingController(text: '0'), drug = TextEditingController();
-    final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(title: const Text('إضافة منتج'), content: SingleChildScrollView(child: Column(children: [TextField(controller: name, decoration: const InputDecoration(labelText: 'اسم المنتج')), TextField(controller: drug, decoration: const InputDecoration(labelText: 'معرّف الدواء الرسمي (اختياري)')), TextField(controller: category, decoration: const InputDecoration(labelText: 'الفئة')), TextField(controller: price, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'السعر ر.ي')), TextField(controller: stock, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'المخزون')), const SizedBox(height: 10), if (_productImage != null) Image.file(_productImage!, height: 110, width: 110, fit: BoxFit.cover), OutlinedButton.icon(onPressed: _pickProductImage, icon: const Icon(Icons.image), label: const Text('رفع/تصوير صورة الصنف'))])), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')), ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ المنتج'))]));
+    final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(title: Text(_t('إضافة منتج')), content: SingleChildScrollView(child: Column(children: [TextField(controller: name, decoration: InputDecoration(labelText: _t('اسم المنتج'))), TextField(controller: drug, decoration: InputDecoration(labelText: _t('معرّف الدواء الرسمي (اختياري)'))), TextField(controller: category, decoration: InputDecoration(labelText: _t('الفئة'))), TextField(controller: price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: _t('السعر ر.ي'))), TextField(controller: stock, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: _t('المخزون'))), const SizedBox(height: 10), if (_productImage != null) Image.file(_productImage!, height: 110, width: 110, fit: BoxFit.cover), OutlinedButton.icon(onPressed: _pickProductImage, icon: const Icon(Icons.image), label: Text(_t('رفع/تصوير صورة الصنف')))])), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('إلغاء'))), ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text(_t('حفظ المنتج')))]));
     if (ok != true || name.text.trim().isEmpty || price.text.trim().isEmpty) return;
     if (mounted) setState(() => _addingProduct = true);
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid; if (uid == null) throw StateError('يجب تسجيل الدخول'); String? imageUrl;
-      if (_productImage != null) { final up = await NextcloudService().uploadFile(file: _productImage!, path: 'sehatak/products/'+uid, fileName: DateTime.now().millisecondsSinceEpoch.toString()+'_'+_productImage!.path.split('/').last); if (!up.success || up.url == null) throw StateError(up.error ?? 'فشل رفع صورة المنتج'); imageUrl = up.url; }
+      final uid = FirebaseAuth.instance.currentUser?.uid; if (uid == null) throw StateError('AUTH_REQUIRED'); String? imageUrl;
+      if (_productImage != null) { final up = await NextcloudService().uploadFile(file: _productImage!, path: 'sehatak/products/'+uid, fileName: DateTime.now().millisecondsSinceEpoch.toString()+'_'+_productImage!.path.split('/').last); if (!up.success || up.url == null) throw StateError(up.error ?? _t('فشل رفع صورة المنتج')); imageUrl = up.url; }
       await FirebaseFirestore.instance.collection('products').add({'name':name.text.trim(),'category':category.text.trim(),'price':double.tryParse(price.text)??0,'stock':int.tryParse(stock.text)??0,'drugId':drug.text.trim(),'imageUrl':imageUrl,'pharmacyId':_pharmacy!['id'],'sellerId':uid,'pharmacyName':_pharmacy!['name']??'','approvalStatus':'pending','isPublished':false,'isActive':true,'createdAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp()});
-      _productImage=null; await _load(); if(mounted) ToastService.showSuccess('تم حفظ المنتج وإرساله للمراجعة');
-    } catch(e){if(mounted) ToastService.showError('فشل حفظ المنتج: '+e.toString());}
+      _productImage=null; await _load(); if(mounted) ToastService.showSuccess(_t('تم حفظ المنتج وإرساله للمراجعة'));
+    } catch(e){if(mounted) ToastService.showError('${_t('فشل حفظ المنتج:')} '+e.toString());}
     finally { if (mounted) setState(() => _addingProduct = false); }
   }
 
-  Future<void> _editOffer(Map<String, dynamic> p) async { final id='${p['id']??''}'; if(id.isEmpty)return; final price=TextEditingController(text:'${p['price']??0}'), stock=TextEditingController(text:'${p['stock']??0}'); final ok=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(title:Text('تعديل ${p['name']??'المنتج'}'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:price,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'السعر ر.ي')),TextField(controller:stock,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'المخزون'))]),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('إلغاء')),ElevatedButton(onPressed:()=>Navigator.pop(context,true),child:const Text('حفظ'))])); if(ok!=true)return; try{await FirebaseFirestore.instance.collection('products').doc(id).update({'price':double.tryParse(price.text)??0,'stock':int.tryParse(stock.text)??0,'updatedAt':FieldValue.serverTimestamp()});await _load();if(mounted)ToastService.showSuccess('تم تحديث المنتج');}catch(e){if(mounted)ToastService.showError('فشل تحديث المنتج: '+e.toString());}}
+  Future<void> _editOffer(Map<String, dynamic> p) async { final id='${p['id']??''}'; if(id.isEmpty)return; final price=TextEditingController(text:'${p['price']??0}'), stock=TextEditingController(text:'${p['stock']??0}'); final ok=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(title:Text('${_t('تعديل')} ${p['name']??_t('المنتج')}'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:price,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('السعر ر.ي'))),TextField(controller:stock,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('المخزون')))]),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:Text(_t('إلغاء'))),ElevatedButton(onPressed:()=>Navigator.pop(context,true),child:Text(_t('حفظ')))])); if(ok!=true)return; try{await FirebaseFirestore.instance.collection('products').doc(id).update({'price':double.tryParse(price.text)??0,'stock':int.tryParse(stock.text)??0,'updatedAt':FieldValue.serverTimestamp()});await _load();if(mounted)ToastService.showSuccess(_t('تم تحديث المنتج'));}catch(e){if(mounted)ToastService.showError('${_t('فشل تحديث المنتج:')} '+e.toString());}}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('لوحة الصيدلية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
+      appBar: AppBar(title: Text(_t('لوحة الصيدلية')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(_error!, textAlign: TextAlign.center)))
+              ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(_t(_error!), textAlign: TextAlign.center)))
               : _pharmacy == null
-                  ? Center(child: ElevatedButton.icon(onPressed: _create, icon: const Icon(Icons.local_pharmacy), label: const Text('تسجيل صيدليتي')))
+                  ? Center(child: ElevatedButton.icon(onPressed: _create, icon: const Icon(Icons.local_pharmacy), label: Text(_t('تسجيل صيدليتي'))))
                   : RefreshIndicator(
                       onRefresh: _load,
                       child: ListView(
                         padding: const EdgeInsets.all(16),
                         children: [
-                          Card(child: ListTile(leading: const CircleAvatar(child: Icon(Icons.local_pharmacy)), title: Text('${_pharmacy!['name'] ?? ''}'), subtitle: Text('الحالة: ${_pharmacy!['status'] ?? 'pending'}'), trailing: Icon(_pharmacy!['status'] == 'approved' ? Icons.verified : Icons.hourglass_top, color: _pharmacy!['status'] == 'approved' ? Colors.green : Colors.orange))),
+                          Card(child: ListTile(leading: const CircleAvatar(child: Icon(Icons.local_pharmacy)), title: Text('${_pharmacy!['name'] ?? ''}'), subtitle: Text('${_t('الحالة:')} ${_t(_pharmacy!['status'] == 'approved' ? 'مقبولة' : 'معلقة')}'), trailing: Icon(_pharmacy!['status'] == 'approved' ? Icons.verified : Icons.hourglass_top, color: _pharmacy!['status'] == 'approved' ? Colors.green : Colors.orange))),
                           const SizedBox(height: 12),
-                          Row(children: [Expanded(child: _metric('المنتجات', _products.length.toString())), Expanded(child: _metric('مقبولة', _products.where((p) => p['status'] == 'approved').length.toString())), Expanded(child: _metric('معلقة', _products.where((p) => p['status'] == 'pending').length.toString()))]),
+                          Row(children: [Expanded(child: _metric(_t('المنتجات'), _products.length.toString())), Expanded(child: _metric(_t('مقبولة'), _products.where((p) => p['status'] == 'approved').length.toString())), Expanded(child: _metric(_t('معلقة'), _products.where((p) => p['status'] == 'pending').length.toString()))]),
                           const SizedBox(height: 16),
-                          if (_pharmacy!['status'] == 'approved') ElevatedButton.icon(onPressed: _addProduct, icon: const Icon(Icons.add), label: const Text('إضافة منتج')),
+                          if (_pharmacy!['status'] == 'approved') ElevatedButton.icon(onPressed: _addProduct, icon: const Icon(Icons.add), label: Text(_t('إضافة منتج'))),
                           const SizedBox(height: 12),
                           ..._products.map(_product),
                         ],
@@ -107,10 +109,10 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     return Card(
       child: ListTile(
         title: Text('${p['name'] ?? ''}'),
-        subtitle: Text('${p['price'] ?? 0} ر.ي • مخزون ${p['stock'] ?? 0}'),
+        subtitle: Text('${p['price'] ?? 0} ${AppStrings.of(context).formatCurrency(0).split(' ').last} • ${_t('المخزون')} ${p['stock'] ?? 0}'),
         trailing: approved
             ? IconButton(onPressed: () => _editOffer(p), icon: const Icon(Icons.edit, color: AppColors.primary))
-            : Text('${p['status'] ?? ''}', style: TextStyle(color: p['status'] == 'rejected' ? Colors.red : Colors.orange, fontWeight: FontWeight.bold)),
+            : Text(_t(p['status'] == 'approved' ? 'مقبولة' : p['status'] == 'pending' ? 'معلقة' : '${p['status'] ?? ''}'), style: TextStyle(color: p['status'] == 'rejected' ? Colors.red : Colors.orange, fontWeight: FontWeight.bold)),
       ),
     );
   }
