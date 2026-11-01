@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -82,7 +83,7 @@ class _FavoriteDoctorsScreenState extends State<FavoriteDoctorsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _favorites.isEmpty
-              ? const Center(child: Text('لا يوجد أطباء مضافون إلى المفضلة'))
+              ? Center(child: Text(AppStrings.of(context).translate('لا يوجد أطباء مضافون إلى المفضلة')))
               : RefreshIndicator(
                   onRefresh: _loadFavorites,
                   child: ListView.builder(
