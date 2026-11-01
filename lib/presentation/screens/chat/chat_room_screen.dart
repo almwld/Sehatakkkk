@@ -1170,8 +1170,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
                 child: InkWell(
                   onTap: _scrollToLatest,
                   borderRadius: BorderRadius.circular(22),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.white, size: 18),
                       SizedBox(width: 5),
