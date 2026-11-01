@@ -159,13 +159,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         TweenAnimationBuilder<double>(
                           tween: Tween(begin: 20.0, end: 0.0),
                           duration: const Duration(milliseconds: 600),
-                          builder: (_, v, __) => Transform.translate(offset: Offset(0, v), child: Opacity(opacity: 1 - (v / 20), child: Text(p['title'] as String, style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1), textAlign: TextAlign.center))),
+                          builder: (_, v, __) => Transform.translate(offset: Offset(0, v), child: Opacity(opacity: 1 - (v / 20), child: Text(AppStrings.of(context).translate(p['title'] as String), style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1), textAlign: TextAlign.center))),
                         ),
                         const SizedBox(height: 20),
                         TweenAnimationBuilder<double>(
                           tween: Tween(begin: 30.0, end: 0.0),
                           duration: const Duration(milliseconds: 800),
-                          builder: (_, v, __) => Transform.translate(offset: Offset(0, v), child: Opacity(opacity: 1 - (v / 30), child: Text(p['desc'] as String, style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.8), height: 1.8), textAlign: TextAlign.center))),
+                          builder: (_, v, __) => Transform.translate(offset: Offset(0, v), child: Opacity(opacity: 1 - (v / 30), child: Text(AppStrings.of(context).translate(p['desc'] as String), style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.8), height: 1.8), textAlign: TextAlign.center))),
                         ),
                       ],
                     );
