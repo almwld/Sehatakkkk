@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -75,7 +76,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                     children: [
                       Icon(Icons.calendar_today, size: 80, color: Colors.grey[300]),
                       const SizedBox(height: 16),
-                      const Text('لا توجد مواعيد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(AppStrings.of(context).translate('لا توجد مواعيد'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       const Text('ستظهر مواعيدك هنا', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     ],
