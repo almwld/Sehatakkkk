@@ -2294,6 +2294,7 @@ class AppStrings {
       '📋 مسار الطلب': ['📋 Order progress', '📋 Suivi de la commande'],
       'حالياً': ['Current', 'Actuellement'],
       'سيتم إشعارك عند تحديث حالة الطلب': ['You will be notified when the order status changes', 'Vous serez averti lorsque le statut de la commande changera'],
+    };
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
