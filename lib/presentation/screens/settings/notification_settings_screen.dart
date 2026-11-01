@@ -71,9 +71,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: const Text(
+        title: Text(
           strings.translate('إعدادات الإشعارات'),
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -195,7 +195,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Text(
-        title,
+        AppStrings.of(context).translate(title),
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
