@@ -153,7 +153,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           leading: Icon(credit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
                               color: credit ? Colors.green : Colors.red),
                           title: Text(data['title']?.toString() ?? data['description']?.toString() ?? _t('معاملة')),
-                          trailing: Text('${credit ? '+' : ''}${amount.toStringAsFixed(2)} ${_t('ر.ي')}',
+                          trailing: Text('${credit ? '+' : ''}${AppStrings.of(context).formatCurrency(amount.abs())}',
                               style: TextStyle(fontWeight: FontWeight.bold, color: credit ? Colors.green : Colors.red)),
                         );
                       }),
@@ -217,7 +217,7 @@ class _WalletScreenState extends State<WalletScreen> {
         builder:(context,snapshot){
           if (snapshot.hasError) return Text(_t('تعذر تحميل سجل المعاملات.'));
           final docs=snapshot.data?.docs ?? const [];
-          if (docs.isEmpty) return const Padding(padding:EdgeInsets.symmetric(vertical:20),child:Center(child:Text(_t('لا توجد معاملات حتى الآن.'))));
+          if (docs.isEmpty) return Padding(padding:const EdgeInsets.symmetric(vertical:20),child:Center(child:Text(_t('لا توجد معاملات حتى الآن.'))));
           return ListView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),itemCount:docs.length,itemBuilder:(context,index){
             final data=docs[index].data();
             final amount=(data['amount'] as num?)?.toDouble() ?? 0;
@@ -229,7 +229,7 @@ class _WalletScreenState extends State<WalletScreen> {
               leading:Icon(isCredit?Icons.arrow_downward_rounded:Icons.arrow_upward_rounded,color:isCredit?Colors.green:Colors.red),
               title:Text(title),
               subtitle:Text(date == null ? _t('التاريخ غير متوفر') : date.toLocal().toString().split('.').first),
-              trailing:Text((isCredit?'+':'') + amount.toStringAsFixed(2) + ' ر.ي',style:TextStyle(fontWeight:FontWeight.bold,color:isCredit?Colors.green:Colors.red)),
+              trailing:Text((isCredit?'+':'') + AppStrings.of(context).formatCurrency(amount.abs()),style:TextStyle(fontWeight:FontWeight.bold,color:isCredit?Colors.green:Colors.red)),
             );
           });
         },

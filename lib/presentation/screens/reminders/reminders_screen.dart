@@ -34,7 +34,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
           if (snapshot.hasError) return Center(child: Text(_t('حدث خطأ') + ': ${snapshot.error}'));
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final docs = snapshot.data!.docs;
-          if (docs.isEmpty) return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.alarm, size: 60, color: AppColors.grey), SizedBox(height: 16), Text(_t('لا توجد تذكيرات'), style: TextStyle(color: AppColors.grey))]));
+          if (docs.isEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.alarm, size: 60, color: AppColors.grey), const SizedBox(height: 16), Text(_t('لا توجد تذكيرات'), style: const TextStyle(color: AppColors.grey))]));
           return ListView.builder(padding: const EdgeInsets.all(12), itemCount: docs.length, itemBuilder: (context, index) {
             final doc = docs[index]; final data = doc.data(); final raw = data['dateTime']; final dateTime = raw is Timestamp ? raw.toDate() : DateTime.now(); final completed = data['completed'] == true;
             return Card(margin: const EdgeInsets.only(bottom: 10), child: ListTile(
@@ -56,9 +56,9 @@ class _RemindersScreenState extends State<RemindersScreen> {
     await showDialog<void>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, setDialogState) => AlertDialog(
       title: Text(_t('إضافة تذكير')),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: _titleCtrl, decoration: const InputDecoration(labelText: _t('العنوان'), prefixIcon: Icon(Icons.title))),
+        TextField(controller: _titleCtrl, decoration: InputDecoration(labelText: _t('العنوان'), prefixIcon: const Icon(Icons.title))),
         const SizedBox(height: 8),
-        TextField(controller: _descCtrl, maxLines: 2, decoration: const InputDecoration(labelText: _t('الوصف (اختياري)'), prefixIcon: Icon(Icons.note))),
+        TextField(controller: _descCtrl, maxLines: 2, decoration: InputDecoration(labelText: _t('الوصف (اختياري)'), prefixIcon: const Icon(Icons.note))),
         const SizedBox(height: 12),
         ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)), onTap: () async { final d = await showDatePicker(context: dialogContext, initialDate: _selectedDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365))); if (d != null) setDialogState(() => _selectedDate = d); }),
         ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.access_time, color: AppColors.primary), title: Text(_selectedTime.format(dialogContext)), onTap: () async { final t = await showTimePicker(context: dialogContext, initialTime: _selectedTime); if (t != null) setDialogState(() => _selectedTime = t); }),
