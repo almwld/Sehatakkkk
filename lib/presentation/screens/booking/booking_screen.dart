@@ -37,7 +37,7 @@ class _BookingScreenState extends State<BookingScreen> {
     } catch (_) { if (mounted) setState(() { _loading = false; _error = _t('تعذر تحميل بيانات الطبيب'); }); }
   }
 
-  String _dayName(DateTime d)=>const {6:'السبت',7:'الأحد',1:'الاثنين',2:'الثلاثاء',3:'الأربعاء',4:'الخميس',5:'الجمعة'}[d.weekday]??'';
+  String _dayName(DateTime d)=>_t(const {6:'السبت',7:'الأحد',1:'الاثنين',2:'الثلاثاء',3:'الأربعاء',4:'الخميس',5:'الجمعة'}[d.weekday]??'');
   bool _isVacation(DateTime d){final v=_doctorData['vacations'];if(v is! List)return false;for(final x in v){if(x is Map){final a=DateTime.tryParse(x['start']?.toString()??'');final b=DateTime.tryParse(x['end']?.toString()??'');if(a!=null&&b!=null&&!d.isBefore(DateTime(a.year,a.month,a.day))&&!d.isAfter(DateTime(b.year,b.month,b.day)))return true;}}return false;}
   bool _isWorkingDay(DateTime d){final h=_doctorData['workingHours'];if(h is! Map||h.isEmpty)return true;final x=h[_dayName(d)];return x is Map?x['enabled']!=false:true;}
   int _clockMinutes(dynamic value,{int fallback=0}){final p=value.toString().split(':');if(p.length<2)return fallback;final h=int.tryParse(p[0])??fallback~/60;final m=int.tryParse(p[1])??fallback%60;return h*60+m;}
