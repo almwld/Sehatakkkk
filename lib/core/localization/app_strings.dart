@@ -1206,6 +1206,18 @@ class AppStrings {
       'حذف للجميع': ['Delete for everyone', 'Supprimer pour tout le monde'],
       'نسخة محفوظة من مستند صحتك': ['Saved copy of a Sehatak document', 'Copie enregistrée d’un document Sehatak'],
       'مستند من منصة صحتك': ['Document from Sehatak', 'Document de Sehatak'],
+      'يجب تسجيل الدخول لمتابعة الطلب': ['Sign in to track your order','Connectez-vous pour suivre votre commande'],
+      'الطلب غير موجود': ['Order not found','Commande introuvable'],
+      'تم التسليم': ['Delivered','Livrée'],
+      'حالة غير معروفة': ['Unknown status','Statut inconnu'],
+      'تم استلام الطلب': ['Order received','Commande reçue'],
+      'تم تأكيد الطلب': ['Order confirmed','Commande confirmée'],
+      'جاري التجهيز': ['Preparing order','Préparation de la commande'],
+      'الطلب جاهز': ['Order ready','Commande prête'],
+      'تم التسليم': ['Delivered','Livrée'],
+      'آخر حالة مؤكدة من النظام': ['Last status confirmed by the system','Dernier statut confirmé par le système'],
+      'تم إلغاء هذا الطلب.': ['This order has been cancelled.','Cette commande a été annulée.'],
+      'تظهر هنا حالة الطلب الفعلية من النظام؛ لا توجد أوقات أو مواقع مصطنعة.': ['This shows the actual order status from the system; no times or locations are fabricated.','Le statut réel de la commande s’affiche ici ; aucune heure ni localisation n’est inventée.'],
     };
 
     final entry = translations[value];
