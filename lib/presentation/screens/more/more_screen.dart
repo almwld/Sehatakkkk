@@ -347,7 +347,7 @@ class _MoreScreenState extends State<MoreScreen>
             _buildUserCard(user, isDark),
             const SizedBox(height: 20),
             Text(
-              'المؤشرات الحيوية',
+              AppStrings.of(context).translate('المؤشرات الحيوية'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -358,7 +358,7 @@ class _MoreScreenState extends State<MoreScreen>
             _buildVitalsGrid(isDark),
             const SizedBox(height: 32),
             Text(
-              'الخدمات',
+              AppStrings.of(context).translate('الخدمات'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -513,9 +513,9 @@ class _MoreScreenState extends State<MoreScreen>
   }
 
   Widget _buildUserCard(User? user, bool isDark) {
-    final displayName = user?.displayName ?? 'مستخدم';
+    final displayName = user?.displayName ?? AppStrings.of(context).translate('مستخدم');
     final email = user?.email ?? 'user@email.com';
-    final initial = displayName.isNotEmpty ? displayName.substring(0, 1) : 'م';
+    final initial = displayName.isNotEmpty ? displayName.substring(0, 1) : (AppStrings.of(context).locale.languageCode == 'ar' ? 'م' : 'U');
     return GestureDetector(
       onTap: () => _navigateTo(const PatientProfile()),
       child: Container(
@@ -587,7 +587,7 @@ class _MoreScreenState extends State<MoreScreen>
                     );
                   }
                 } catch (e) {
-                  ToastService.showError('خطأ في تسجيل الخروج: $e');
+                  ToastService.showError('${AppStrings.of(context).translate('خطأ في تسجيل الخروج')}: $e');
                 }
               },
               child: Text(AppStrings.of(context).translate('تسجيل الخروج')),
