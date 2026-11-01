@@ -426,8 +426,8 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
           ),
           const SizedBox(height: 12),
           if (_vitals.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Text(
                   _t('لا توجد قراءات بعد'),
