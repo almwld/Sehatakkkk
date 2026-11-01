@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/unified_search_bar.dart';
 
 class DoctorCard extends StatelessWidget {
@@ -21,11 +22,11 @@ class DoctorCard extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            Text(specialty, style: const TextStyle(color: AppColors.grey, fontSize: 11)),
+            Text(AppStrings.of(context).translate(specialty), style: const TextStyle(color: AppColors.grey, fontSize: 11)),
             Text(experience, style: const TextStyle(color: AppColors.darkGrey, fontSize: 10)),
             Row(children: [
               const Icon(Icons.star, color: AppColors.amber, size: 13),
-              Text(' $rating ($reviews تقييم)', style: const TextStyle(fontSize: 10, color: AppColors.darkGrey)),
+              Text(' $rating ($reviews ${AppStrings.of(context).translate('تقييم')})', style: const TextStyle(fontSize: 10, color: AppColors.darkGrey)),
             ]),
           ])),
           const Icon(Icons.chevron_left, color: AppColors.grey),
@@ -42,7 +43,7 @@ class CustomSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return UnifiedSearchBar(
-      hint: hint,
+      hint: AppStrings.of(context).translate(hint),
       backgroundColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
       borderColor: Colors.transparent,
       textColor: Theme.of(context).textTheme.bodyLarge?.color,
@@ -68,11 +69,11 @@ class HeroBannerCard extends StatelessWidget {
           boxShadow: [BoxShadow(color: const Color(0xFF00796B).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('منصة صحتك، أولويتنا', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(AppStrings.of(context).translate('منصة صحتك، أولويتنا'), style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          const Text('رعاية موثوقة في أي وقت وأي مكان', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          Text(AppStrings.of(context).translate('رعاية موثوقة في أي وقت وأي مكان'), style: TextStyle(color: Colors.white70, fontSize: 13)),
           const SizedBox(height: 16),
-          ElevatedButton.icon(onPressed: onTap, icon: const Icon(Icons.explore, size: 18), label: const Text('استكشف الآن'), style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), elevation: 0)),
+          ElevatedButton.icon(onPressed: onTap, icon: const Icon(Icons.explore, size: 18), label: Text(AppStrings.of(context).translate('استكشف الآن')), style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), elevation: 0)),
         ]),
       ),
     );
@@ -95,7 +96,7 @@ class QuickServiceCard extends StatelessWidget {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 52, height: 52, decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(14), border: Border.all(color: color.withOpacity(0.15))), child: Icon(icon, color: color, size: 24)),
         const SizedBox(height: 6),
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500)),
+        Text(AppStrings.of(context).translate(label), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500)),
       ]),
     );
   }
