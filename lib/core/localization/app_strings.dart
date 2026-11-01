@@ -1729,6 +1729,8 @@ class AppStrings {
       'الوزن بالكيلوجرام': ['Weight in kilograms', 'Poids en kilogrammes'],
       'ملاحظة اختيارية': ['Optional note', 'Note facultative'],
       'الأطباء المفضلين': ['Favorite doctors', 'Médecins favoris'],
+      'حدث خطأ في تحميل المواعيد': ['An error occurred while loading appointments', 'Une erreur s’est produite lors du chargement des rendez-vous'],
+      'الطبيب': ['Doctor', 'Médecin'],
     };
 
     final entry = translations[value];
