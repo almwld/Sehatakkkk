@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -12,6 +13,7 @@ class HospitalScreen extends StatefulWidget {
 }
 
 class _HospitalScreenState extends State<HospitalScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _search = TextEditingController();
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
@@ -40,11 +42,11 @@ class _HospitalScreenState extends State<HospitalScreen> {
     final filtered = _items.where((h) => q.isEmpty || '${h['name'] ?? ''} ${h['location'] ?? ''}'.toLowerCase().contains(q)).toList();
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(title: 'المستشفيات', backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
+      appBar: CustomAppBar(title: _t('المستشفيات'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
       body: _loading ? const Center(child: CircularProgressIndicator(color: AppColors.primary)) : ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          UnifiedSearchBar(controller: _search, onChanged: (_) => setState(() {}), hintText: 'ابحث عن مستشفى'),
+          UnifiedSearchBar(controller: _search, onChanged: (_) => setState(() {}), hintText: _t('ابحث عن مستشفى')),
           const SizedBox(height: 12),
           ...filtered.asMap().entries.map((e) => _card(e.value, e.key, dark)),
         ],
@@ -58,8 +60,8 @@ class _HospitalScreenState extends State<HospitalScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(10),
         leading: ClipRRect(borderRadius: BorderRadius.circular(10), child: AppImage(imageUrl: _img(h, i), width: 70, height: 70, fit: BoxFit.cover)),
-        title: Text('${h['name'] ?? 'مستشفى'}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${h['location'] ?? h['address'] ?? 'اليمن'}\n${h['type'] ?? h['specialty'] ?? 'مستشفى'}'),
+        title: Text('${h['name'] ?? _t('مستشفى')}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('${h['location'] ?? h['address'] ?? _t('اليمن')}\n${h['type'] ?? h['specialty'] ?? _t('مستشفى')}'),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_left),
         onTap: () => _details(h, i),
@@ -75,9 +77,9 @@ class _HospitalScreenState extends State<HospitalScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [ClipRRect(borderRadius: BorderRadius.circular(10), child: AppImage(imageUrl: _img(h, i), width: 60, height: 60)), const SizedBox(width: 12), Expanded(child: Text('${h['name'] ?? 'مستشفى'}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))]),
           const SizedBox(height: 14),
-          Text('الموقع: ${h['location'] ?? h['address'] ?? 'غير محدد'}'),
-          if (h['phone'] != null) Text('الهاتف: ${h['phone']}'),
-          if (h['emergency'] == true) const Padding(padding: EdgeInsets.only(top: 10), child: Text('الطوارئ متاحة', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
+          Text('${_t('الموقع')}: ${h['location'] ?? h['address'] ?? _t('غير محدد')}'),
+          if (h['phone'] != null) Text('${_t('الهاتف')}: ${h['phone']}'),
+          if (h['emergency'] == true) const Padding(padding: EdgeInsets.only(top: 10), child: Text(_t('الطوارئ متاحة'), style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
         ]),
       )),
     );
