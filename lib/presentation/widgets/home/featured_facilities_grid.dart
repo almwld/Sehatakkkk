@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_details_screen.dart';
@@ -48,7 +49,7 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
               child: Row(children: [
                 Container(width: 46, height: 46, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), shape: BoxShape.circle), child: Icon(isHospital ? Icons.local_hospital_outlined : Icons.biotech_outlined, color: AppColors.primary, size: 25)),
                 const SizedBox(width: 12),
-                Expanded(child: Text('لا توجد بيانات متاحة حالياً', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12, fontWeight: FontWeight.w600))),
+                Expanded(child: Text(AppStrings.of(context).translate('لا توجد بيانات متاحة حالياً'), style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12, fontWeight: FontWeight.w600))),
               ]),
             ),
           )
