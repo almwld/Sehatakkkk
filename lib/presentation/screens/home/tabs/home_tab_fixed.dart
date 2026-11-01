@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -94,7 +95,7 @@ class _HomeTabState extends State<HomeTab> {
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.center,
-        child: const Text('لا توجد بانرات', style: TextStyle(color: Colors.grey)),
+        child: Text(AppStrings.of(context).translate('لا توجد بانرات'), style: TextStyle(color: Colors.grey)),
       );
     }
 
@@ -388,7 +389,7 @@ class _HomeTabState extends State<HomeTab> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Center(
-                      child: Text('لا يوجد أطباء موثقون متاحون حاليًا'),
+                      child: Text(AppStrings.of(context).translate('لا يوجد أطباء موثقون متاحون حاليًا')),
                     ),
                   )
                 else
