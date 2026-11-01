@@ -1405,6 +1405,7 @@ class AppStrings {
       'القلب': ['Cardiology', 'Cardiologie'],
       'أخرى': ['Other', 'Autre'],
       'عدد الأيام': ['Number of days', 'Nombre de jours'],
+      'الرئيسية': ['Home', 'Accueil'],
     };
 
     final entry = translations[value];
