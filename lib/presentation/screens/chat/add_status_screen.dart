@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/status_model.dart';
 import 'package:sehatak/core/services/status_service.dart';
 
@@ -18,6 +19,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
   final ImagePicker _picker = ImagePicker();
   final StatusService _statusService = StatusService();
   final TextEditingController _textController = TextEditingController();
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   XFile? _selectedMedia;
   String _mediaType = 'image';
@@ -59,22 +61,22 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
   String _friendlyStatusError(Object error) {
     final raw = error.toString().replaceFirst('Exception: ', '').trim();
     if (raw.contains('Media body is required') || raw.contains('media body')) {
-      return 'اختر صورة أو فيديو قبل إرسال الحالة.';
+      return _t('اختر صورة أو فيديو قبل إرسال الحالة.');
     }
     if (raw.contains('permission') || raw.contains('إذن')) {
-      return 'تعذر الوصول إلى الوسائط. تحقق من أذونات الصور والفيديو.';
+      return _t('تعذر الوصول إلى الوسائط. تحقق من أذونات الصور والفيديو.');
     }
     if (raw.contains('network') || raw.contains('SocketException') || raw.contains('timeout')) {
-      return 'تعذر إرسال الحالة بسبب ضعف الاتصال بالإنترنت. حاول مرة أخرى.';
+      return _t('تعذر إرسال الحالة بسبب ضعف الاتصال بالإنترنت. حاول مرة أخرى.');
     }
-    return 'تعذر نشر الحالة الآن. تحقق من الاتصال وحاول مرة أخرى.';
+    return _t('تعذر نشر الحالة الآن. تحقق من الاتصال وحاول مرة أخرى.');
   }
 
   Future<void> _publish() async {
     if (_publishing) return;
     final text = _textController.text.trim();
     if (_selectedMedia == null && text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أضف صورة أو فيديو أو نصاً أولاً')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('أضف صورة أو فيديو أو نصاً أولاً')));
       return;
     }
 
@@ -97,7 +99,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر نشر الحالة: $error')),
+        SnackBar(content: Text(_t('تعذر نشر الحالة: ') + error.toString())),
       );
     } finally {
       if (mounted) setState(() => _publishing = false);
@@ -110,11 +112,11 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
     final canPublish = _selectedMedia != null || _textController.text.trim().isNotEmpty;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إضافة حالة'),
+        title: Text(_t('إضافة حالة')),
         actions: [
           TextButton(
             onPressed: _publishing ? null : _publish,
-            child: const Text('حفظ', style: TextStyle(fontWeight: FontWeight.w800)),
+            child: Text(_t('حفظ'), style: const TextStyle(fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -134,10 +136,10 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
           TextField(
             controller: _textController,
             maxLines: 5,
-            textDirection: TextDirection.rtl,
+            textDirection: AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
             decoration: InputDecoration(
-              labelText: 'نص الحالة',
-              hintText: 'شارك لحظتك اليوم...',
+              labelText: _t('نص الحالة'),
+              hintText: _t('شارك لحظتك اليوم...'),
               filled: true,
               fillColor: isDark ? const Color(0xFF162039) : Colors.white,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
@@ -173,7 +175,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _publishing ? null : _pickImage,
                   icon: const Icon(Icons.photo_outlined),
-                  label: const Text('صورة'),
+                  label: Text(_t('صورة')),
                 ),
               ),
               const SizedBox(width: 10),
@@ -181,7 +183,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _publishing ? null : _pickVideo,
                   icon: const Icon(Icons.videocam_outlined),
-                  label: const Text('فيديو'),
+                  label: Text(_t('فيديو')),
                 ),
               ),
             ],
@@ -198,7 +200,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
                     )
                   : const Icon(Icons.send_rounded),
-              label: Text(_publishing ? 'جاري الإرسال...' : 'حفظ وإرسال الحالة'),
+              label: Text(_t(_publishing ? 'جاري الإرسال...' : 'حفظ وإرسال الحالة')),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 disabledBackgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFD7DDDF),
@@ -209,8 +211,8 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'ستختفي الحالة تلقائياً بعد 24 ساعة. الفيديو حتى 15 ثانية.',
+          Text(
+            _t('ستختفي الحالة تلقائياً بعد 24 ساعة. الفيديو حتى 15 ثانية.'),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
@@ -224,7 +226,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
       if (_mediaType == 'image') {
         return Image.file(File(_selectedMedia!.path), fit: BoxFit.cover);
       }
-      return Center(child: Text('فيديو', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 18, fontWeight: FontWeight.w700)));
+      return Center(child: Text(_t('فيديو'), style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 18, fontWeight: FontWeight.w700)));
     }
     final text = _textController.text.trim();
     if (text.isNotEmpty) {
@@ -249,7 +251,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
         children: [
           Icon(Icons.add_photo_alternate_outlined, size: 54, color: isDark ? Colors.white54 : Colors.black38),
           const SizedBox(height: 10),
-          const Text('اختر صورة أو فيديو أو اكتب حالة'),
+          Text(_t('اختر صورة أو فيديو أو اكتب حالة')),
         ],
       ),
     );
