@@ -1151,6 +1151,10 @@ class AppStrings {
       'متوفر — المتبقي': ['Available — remaining', 'Disponible — restant'],
       'تعذر تحميل بيانات الصيدلية حالياً': ['Could not load pharmacy data right now', 'Impossible de charger les données de la pharmacie'],
       'تعذر فتح المحادثة': ['Could not open the conversation', 'Impossible d’ouvrir la conversation'],
+      'ابحث داخل الرسائل...': ['Search messages...', 'Rechercher dans les messages...'],
+      'ابحث عن محادثات': ['Search conversations', 'Rechercher des conversations'],
+      'ابحث عن الأشخاص أو الرسائل': ['Search for people or messages', 'Rechercher des personnes ou des messages'],
+      'حاول البحث بكلمات مختلفة': ['Try searching with different words', 'Essayez avec d’autres mots'],
     };
 
     final entry = translations[value];
