@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
@@ -21,6 +22,7 @@ class VitalsDashboardScreen extends StatefulWidget {
 }
 
 class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -168,7 +170,7 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: const Text('المؤشرات الحيوية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('المؤشرات الحيوية'), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -213,10 +215,10 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
 
                       return _buildVitalCard(
                         icon: card['icon'] as IconData,
-                        label: card['label'] as String,
+                        label: _t(card['label'] as String),
                         value: displayValue,
                         unit: unit,
-                        status: status,
+                        status: status.isEmpty ? status : _t(status),
                         color: color,
                         onTap: () {
                           Navigator.push(
@@ -259,9 +261,9 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _summaryItem('${_vitalCards.length}', 'المؤشرات'),
-          _summaryItem('$normalCount', 'طبيعي'),
-          _summaryItem('${_vitalCards.length - normalCount}', 'يحتاج متابعة'),
+          _summaryItem('${_vitalCards.length}', _t('المؤشرات')),
+          _summaryItem('$normalCount', _t('طبيعي')),
+          _summaryItem('${_vitalCards.length - normalCount}', _t('يحتاج متابعة')),
         ],
       ),
     );
@@ -373,9 +375,9 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
   Widget _buildTrackingTools() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final tools = [
-      ('النوم', Icons.bedtime_rounded, const SleepTrackerScreen()),
-      ('النبض', Icons.favorite_rounded, const HeartRateScreen()),
-      ('الخطوات والسعرات', Icons.directions_walk_rounded, const StepTrackerScreen()),
+      (_t('النوم'), Icons.bedtime_rounded, const SleepTrackerScreen()),
+      (_t('النبض'), Icons.favorite_rounded, const HeartRateScreen()),
+      (_t('الخطوات والسعرات'), Icons.directions_walk_rounded, const StepTrackerScreen()),
     ];
     return Container(
       width: double.infinity,
@@ -385,7 +387,7 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('التتبع الصحي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(_t('التتبع الصحي'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         Row(children: tools.map((tool) => Expanded(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -415,8 +417,8 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'آخر القراءات',
+          Text(
+            _t('آخر القراءات'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -428,7 +430,7 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Text(
-                  'لا توجد قراءات بعد',
+                  _t('لا توجد قراءات بعد'),
                   style: TextStyle(color: AppColors.grey, fontSize: 13),
                 ),
               ),
@@ -438,10 +440,10 @@ class _VitalsDashboardScreenState extends State<VitalsDashboardScreen> {
               final key = entry.key;
               final value = entry.value;
               final unit = _getVitalUnit(key);
-              final label = _vitalCards.firstWhere(
+              final label = _t(_vitalCards.firstWhere(
                 (card) => card['key'] == key,
                 orElse: () => {'label': key},
-              )['label'] as String;
+               )['label'] as String;
 
               return Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
