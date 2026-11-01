@@ -47,7 +47,7 @@ class _HelpScreenState extends State<HelpScreen> {
       }
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(AppStrings.of(context).translate('تعذر فتح وسيلة التواصل'))));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر فتح وسيلة التواصل'))));
     }
   }
 
