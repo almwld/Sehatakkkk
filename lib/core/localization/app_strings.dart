@@ -88,6 +88,14 @@ class AppStrings {
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
     const translations = <String, List<String>>{
+      'فحص مخبري منزلي': ['Home laboratory test', 'Analyse de laboratoire à domicile'],
+      'احجز فحصاً مخبرياً من المنزل': ['Book a laboratory test from home', 'Réservez une analyse de laboratoire à domicile'],
+      'تفاصيل طبيب الأسنان': ['Dentist details', 'Détails du dentiste'],
+      'الطبيب غير متوفر': ['Doctor unavailable', 'Médecin indisponible'],
+      'التقييم: ': ['Rating: ', 'Évaluation : '],
+      'الخبرة: ': ['Experience: ', 'Expérience : '],
+      'العنوان: ': ['Address: ', 'Adresse : '],
+      'الهاتف: ': ['Phone: ', 'Téléphone : '],
       'المستخدمون': ['Users', 'Utilisateurs'],
       'الصيادلة': ['Pharmacists', 'Pharmaciens'],
       'ملاك الصيدليات': ['Pharmacy owners', 'Propriétaires de pharmacies'],
