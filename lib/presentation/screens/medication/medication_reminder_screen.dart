@@ -100,7 +100,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
         stream: _service.watchUpcomingMedications(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text(_t('تعذر تحميل الأدوية: ${snapshot.error}')));
+            return Center(child: Text('${_t('تعذر تحميل الأدوية')}: ${snapshot.error}'));
           }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
