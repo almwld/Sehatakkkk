@@ -1921,6 +1921,16 @@ class AppStrings {
       "غداً": ["Tomorrow","Demain"],
       "تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى": ["Could not load call history. Check your connection and try again.","Impossible de charger l’historique des appels. Vérifiez votre connexion et réessayez."],
       "لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً": ["No calls yet. Your calls will appear here automatically.","Aucun appel pour le moment. Vos appels apparaîtront ici automatiquement."],
+      "الباطنية": ["Internal medicine","Médecine interne"],
+      "الأطفال": ["Pediatrics","Pédiatrie"],
+      "النساء والولادة": ["Obstetrics and gynecology","Gynécologie-obstétrique"],
+      "مميزات الباقة:": ["Plan benefits:","Avantages de la formule :"],
+      "المسعفون المتاحون الآن": ["Paramedics currently available","Secouristes actuellement disponibles"],
+      "اعرض المسعفين المتواجدين في مناطق الخدمة والمتاحين للاستجابة للطوارئ.": ["View paramedics in service areas who are available to respond to emergencies.","Consultez les secouristes présents dans les zones de service et disponibles pour intervenir en urgence."],
+      "المنطقة غير محددة": ["Area not specified","Zone non précisée"],
+      "مركبة إسعاف/استجابة": ["Emergency response vehicle","Véhicule d’intervention d’urgence"],
+      "الاسم": ["Name","Nom"],
+      "منطقة الخدمة": ["Service area","Zone de service"],
     };
 
     final entry = translations[value];
