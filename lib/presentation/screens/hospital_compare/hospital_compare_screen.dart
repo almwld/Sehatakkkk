@@ -23,7 +23,25 @@ class _HospitalCompareScreenState extends State<HospitalCompareScreen> {
           if (hospitals.isEmpty) return Center(child: Text(AppStrings.of(context).translate('لا توجد مستشفيات متاحة حالياً')));
           final selected=_sel.where((i)=>i<hospitals.length).toList();
           return SingleChildScrollView(padding:const EdgeInsets.all(14),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-            if(selected.length>=2) SingleChildScrollView(scrollDirection:Axis.horizontal,child:DataTable(columns:[DataColumn(label:Text(AppStrings.of(context).translate('الميزة'))), ...selected.map((i)=>DataColumn(label:Text(hospitals[i].data()['name']?.toString() ?? 'مستشفى')))],rows:[
+            if (selected.length >= 2)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: [
+                    DataColumn(
+                      label: Text(AppStrings.of(context).translate('الميزة')),
+                    ),
+                    ...selected.map(
+                      (i) => DataColumn(
+                        label: Text(
+                          AppStrings.of(context).translate(
+                            hospitals[i].data()['name']?.toString() ?? 'مستشفى',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  rows: [
               _row('التقييم','rating',Icons.star,hospitals,selected),
               _row('الأسرة','beds',Icons.bed,hospitals,selected),
               _row('الأطباء','doctors',Icons.person,hospitals,selected),
