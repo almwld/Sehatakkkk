@@ -76,7 +76,7 @@ class _FavoriteDoctorsScreenState extends State<FavoriteDoctorsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'الأطباء المفضلين',
+        title: AppStrings.of(context).translate('الأطباء المفضلين'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
