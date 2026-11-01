@@ -1085,8 +1085,8 @@ class AppStrings {
       'تعذر العثور على المستند الطبي.': ['Could not find the medical document.', 'Impossible de trouver le document médical.'],
       'تعذر فتح الملف حالياً. حاول مرة أخرى.': ['Could not open the file right now. Try again.', 'Impossible d’ouvrir le fichier pour le moment. Réessayez.'],
       'لا توجد ملاحظات': ['No notes yet', 'Aucune note pour le moment'],
-      'تعذر تحديث صورة الطبيب': ['Could not update the doctor’s photo', 'Impossible de mettre à jour la photo du médecin'],
-      'تعذر حفظ إعدادات الطبيب، حاول مرة أخرى': ['Could not save doctor settings. Please try again.', 'Impossible d’enregistrer les paramètres du médecin. Réessayez.'],
+      'تعذر تحديث صورة الطبيب': ["Could not update the doctor profile photo", "Impossible de mettre à jour la photo du profil médecin"],
+      'تعذر حفظ إعدادات الطبيب، حاول مرة أخرى': ["Could not save doctor settings. Please try again.", "Impossible d’enregistrer les paramètres du médecin. Réessayez."],
       'إنشاء النماذج الطبية متاح للطبيب الموثق فقط.': ['Creating medical forms is available to verified doctors only.', 'La création de formulaires médicaux est réservée aux médecins vérifiés.'],
     };
 
