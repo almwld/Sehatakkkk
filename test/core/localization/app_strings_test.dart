@@ -151,6 +151,14 @@ void main() {
       expect(french.translate('المكالمات'), 'Appels');
     });
 
+    test('translates message search previews and hints', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('رسالة صوتية'), 'Voice message');
+      expect(english.translate('ابحث داخل الرسائل...'), 'Search messages...');
+      expect(french.translate('مرفق'), 'Pièce jointe');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
