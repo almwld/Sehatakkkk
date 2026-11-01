@@ -283,7 +283,7 @@ class _ChatScreenState extends State<ChatScreen> {
           isDark: isDark,
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(chat.lastMessage?.isNotEmpty == true ? chat.lastMessage! : 'اضغط لفتح المحادثة', maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(chat.lastMessage?.isNotEmpty == true ? chat.lastMessage! : AppStrings.of(context).translate('اضغط لفتح المحادثة'), maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: unread > 0
             ? CircleAvatar(radius: 12, backgroundColor: AppColors.primary, child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 11)))
             : const Icon(Icons.chevron_left),
