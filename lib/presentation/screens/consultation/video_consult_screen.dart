@@ -33,14 +33,14 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
     final user = _auth.currentUser;
     if (user == null) {
       return Scaffold(
-        appBar: CustomAppBar(title: 'الاستشارات', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        appBar: CustomAppBar(title: AppStrings.of(context).translate('الاستشارات'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
         body: const Center(child: Text('يرجى تسجيل الدخول')),
       );
     }
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الاستشارات الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.of(context).translate('الاستشارات الطبية'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -49,10 +49,10 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('طلب استشارة', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('طلب استشارة'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             // ✅ اختيار الطبيب
-            const Text('اختر الطبيب', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('اختر الطبيب'), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('doctors').where('available', isEqualTo: true).snapshots(),
@@ -67,12 +67,12 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     prefixIcon: const Icon(Icons.person, color: AppColors.primary),
                   ),
-                  hint: const Text('اختر طبيباً'),
+                  hint: Text(AppStrings.of(context).translate('اختر طبيباً')),
                   items: doctors.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
                     return DropdownMenuItem(
                       value: doc.id,
-                      child: Text(data['name'] ?? 'طبيب'),
+                      child: Text(data['name'] ?? AppStrings.of(context).translate('طبيب')),
                     );
                   }).toList(),
                   onChanged: (value) => setState(() => _selectedDoctor = value!),
@@ -81,7 +81,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
             ),
             const SizedBox(height: 12),
             // ✅ نوع الاستشارة
-            const Text('نوع الاستشارة', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('نوع الاستشارة'), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -96,7 +96,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      type == 'فيديو' ? '📹 فيديو' : type == 'صوتي' ? '🎤 صوتي' : '💬 نصي',
+                      type == 'فيديو' ? '📹 ${AppStrings.of(context).translate('فيديو')}' : type == 'صوتي' ? '🎤 ${AppStrings.of(context).translate('صوتي')}' : '💬 ${AppStrings.of(context).translate('نصي')}',
                       style: TextStyle(color: selected ? Colors.white : Colors.grey.shade700),
                     ),
                   ),
@@ -105,7 +105,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
             ),
             const SizedBox(height: 12),
             // ✅ التاريخ
-            const Text('التاريخ', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('التاريخ'), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () async {
@@ -114,7 +114,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   initialDate: _selectedDate,
                   firstDate: DateTime.now(),
                   lastDate: DateTime.now().add(const Duration(days: 30)),
-                  locale: const Locale('ar', 'YE'),
+                  locale: AppStrings.of(context).locale,
                 );
                 if (date != null) setState(() => _selectedDate = date);
               },
@@ -128,7 +128,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   children: [
                     const Icon(Icons.calendar_today, color: AppColors.primary),
                     const SizedBox(width: 8),
-                    Text(DateFormat('EEEE، dd MMMM yyyy', 'ar').format(_selectedDate)),
+                    Text(DateFormat('EEEE، dd MMMM yyyy', AppStrings.of(context).locale.languageCode).format(_selectedDate)),
                     const Spacer(),
                     const Icon(Icons.arrow_drop_down),
                   ],
@@ -137,7 +137,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
             ),
             const SizedBox(height: 12),
             // ✅ الوقت
-            const Text('الوقت', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('الوقت'), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -172,12 +172,12 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('طلب استشارة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(AppStrings.of(context).translate('طلب استشارة'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 20),
             // ✅ الاستشارات السابقة
-            const Text('الاستشارات السابقة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('الاستشارات السابقة'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             StreamBuilder<QuerySnapshot>(
               stream: _firestore
