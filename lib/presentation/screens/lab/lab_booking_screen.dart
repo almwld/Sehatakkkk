@@ -26,6 +26,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   bool _loading = true, _saving = false, _homeCollection = false;
   String? _error;
 
+  String _t(String value) => AppStrings.of(context).translate(value);
+  String _money(double value) => '${value.toStringAsFixed(0)} ${_t('ريال')}';
   String _s(dynamic v) => v?.toString().trim() ?? '';
   double _n(dynamic v) => v is num ? v.toDouble() : double.tryParse(_s(v)) ?? 0;
   double get _total => _tests.where((t) => _selected.contains(_s(t['id']))).fold(0.0, (sum, t) => sum + _n(t['price']));
@@ -104,7 +106,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: Text(_t('حجز الفحص')), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(_t('حجز الفحوصات')), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -126,7 +128,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                 }),
                 title: Text(_s(test['name']).isEmpty ? 'فحص' : _s(test['name'])),
                 subtitle: Text(_s(test['description'])),
-                secondary: Text('${_n(test['price']).toStringAsFixed(0)} ر.ي', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                secondary: Text(_money(_n(test['price'])), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
               ),
             );
           }),
@@ -144,7 +146,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
             TextField(controller: _collectionAddress, maxLines: 2, decoration: InputDecoration(labelText: _t('عنوان سحب العينة'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
           TextField(controller: _notes, maxLines: 3, maxLength: 1000, decoration: InputDecoration(labelText: _t('ملاحظات'), border: OutlineInputBorder())),
           const SizedBox(height: 12),
-          Card(child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_t('الإجمالي'), style: TextStyle(fontWeight: FontWeight.bold)), Text('${_total.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary))]))),
+          Card(child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_t('الإجمالي'), style: TextStyle(fontWeight: FontWeight.bold)), Text(_money(_total), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary))]))),
           const SizedBox(height: 16),
           SizedBox(height: 52, child: ElevatedButton.icon(onPressed: _saving ? null : _bookAndPay, icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.lock_outline), label: Text(_saving ? _t('جارٍ الحجز والدفع...') : _t('إرسال طلب الحجز')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))),
         ],
