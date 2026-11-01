@@ -23,6 +23,11 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
   String? _selectedTime;
 
   final List<String> _consultTypes = ['فيديو', 'صوتي', 'نصي'];
+  String _displayTime(String time) {
+    if (AppStrings.of(context).locale.languageCode == 'ar') return time;
+    return time.replaceAll(' ص', ' AM').replaceAll(' م', ' PM');
+  }
+
   final List<String> _availableTimes = [
     '9:00 ص', '10:00 ص', '11:00 ص', '12:00 م',
     '2:00 م', '3:00 م', '4:00 م', '5:00 م',
