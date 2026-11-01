@@ -1089,6 +1089,8 @@ class AppStrings {
       'تعذر تحديث صورة الطبيب': ["Could not update the doctor profile photo", "Impossible de mettre à jour la photo du profil médecin"],
       'تعذر حفظ إعدادات الطبيب، حاول مرة أخرى': ["Could not save doctor settings. Please try again.", "Impossible d’enregistrer les paramètres du médecin. Réessayez."],
       'إنشاء النماذج الطبية متاح للطبيب الموثق فقط.': ['Creating medical forms is available to verified doctors only.', 'La création de formulaires médicaux est réservée aux médecins vérifiés.'],
+      'تم التفعيل - استخدم بصمتك للدخول': ['Enabled — use your fingerprint to sign in', 'Activé — utilisez votre empreinte pour vous connecter'],
+      'تفعيل تسجيل الدخول باستخدام بصمة الإصبع': ['Enable fingerprint sign-in', 'Activer la connexion par empreinte digitale'],
     };
 
     final entry = translations[value];
