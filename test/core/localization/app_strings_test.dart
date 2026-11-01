@@ -107,6 +107,15 @@ void main() {
       expect(french.translate('حالة التوثيق'), 'Statut de vérification');
     });
 
+    test('translates doctor booking and profile labels', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('تاريخ الموعد'), 'Appointment date');
+      expect(english.translate('تأكيد الحجز'), 'Confirm booking');
+      expect(french.translate('مكالمة مرئية'), 'Appel vidéo');
+      expect(french.translate('استشارة تخصصية'), 'Consultation spécialisée');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
