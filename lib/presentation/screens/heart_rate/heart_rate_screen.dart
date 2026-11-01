@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/services/heart_rate_service.dart';
 
 class HeartRateScreen extends StatefulWidget {
@@ -197,7 +198,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
               ),
               Expanded(
                 child: rows.isEmpty
-                    ? const Center(child: Text('لا توجد قياسات محفوظة بعد'))
+                    ? Center(child: Text(AppStrings.of(context).translate('لا توجد قياسات محفوظة بعد')))
                     : ListView.separated(
                         itemCount: rows.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
