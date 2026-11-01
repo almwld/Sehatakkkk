@@ -1406,6 +1406,7 @@ class AppStrings {
       'أخرى': ['Other', 'Autre'],
       'عدد الأيام': ['Number of days', 'Nombre de jours'],
       'الرئيسية': ['Home', 'Accueil'],
+      'لإظهار شاشة المكالمة الواردة فوق شاشة القفل، يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. إذا لم تمنح الإذن، سيستمر إشعار المكالمة العادي بالعمل.': ['To show incoming calls over the lock screen, allow full-screen notifications in system settings. If you do not grant permission, regular call notifications will continue to work.', 'Pour afficher les appels entrants sur l’écran verrouillé, autorisez les notifications en plein écran dans les paramètres système. Sans cette autorisation, les notifications d’appel classiques continueront de fonctionner.'],
     };
 
     final entry = translations[value];
