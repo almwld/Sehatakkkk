@@ -113,19 +113,19 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
     final uid=FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
       appBar:AppBar(title:Text(_t('لوحة المسعف الميداني')),backgroundColor:AppColors.primary,foregroundColor:Colors.white),
-      body:uid==null?const Center(child:Text('يجب تسجيل الدخول')):ListView(padding:const EdgeInsets.all(16),children:[
-        _hero('مركز الاستجابة الميدانية','حدّث بياناتك وموقعك وحالة التوفر ليظهر ملفك للمحتاجين في منطقتك.'),
+      body:uid==null?Center(child:Text(_t('يجب تسجيل الدخول'))):ListView(padding:const EdgeInsets.all(16),children:[
+        _hero(_t('مركز الاستجابة الميدانية'),_t('حدّث بياناتك وموقعك وحالة التوفر ليظهر ملفك للمحتاجين في منطقتك.')),
         const SizedBox(height:12),_statusCard(),const SizedBox(height:12),
-        _section('البيانات المهنية',[
-          _field(_name,'اسم المسعف'),_field(_phone,'رقم الهاتف',type:TextInputType.phone),
-          _field(_area,'منطقة/مناطق الخدمة',hint:'مثال: حدة، الصافية، صنعاء'),_field(_address,'عنوان نقطة التواجد الحالية'),
-          _field(_vehicle,'نوع المركبة/سيارة الإسعاف'),_field(_plate,'رقم اللوحة'),
-          _field(_skills,'المهارات والشهادات',hint:'BLS، ACLS، إسعافات متقدمة'),
+        _section(_t('البيانات المهنية'),[
+          _field(_name,_t('اسم المسعف')),_field(_phone,_t('رقم الهاتف'),type:TextInputType.phone),
+          _field(_area,_t('منطقة/مناطق الخدمة'),hint:_t('مثال: حدة، الصافية، صنعاء')),_field(_address,_t('عنوان نقطة التواجد الحالية')),
+          _field(_vehicle,_t('نوع المركبة/سيارة الإسعاف')),_field(_plate,_t('رقم اللوحة')),
+          _field(_skills,_t('المهارات والشهادات'),hint:'BLS, ACLS, advanced first aid'),
           const SizedBox(height:8),
-          OutlinedButton.icon(onPressed:_locating?null:_useGps,icon:_locating?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.my_location),label:Text(_locating?'جارٍ تحديد الموقع...':'تحديث موقع التواجد عبر GPS')),
-          if(_location!=null) Padding(padding:const EdgeInsets.only(top:8),child:Text('الموقع: ${_location!.latitude.toStringAsFixed(5)}, ${_location!.longitude.toStringAsFixed(5)}')),
+          OutlinedButton.icon(onPressed:_locating?null:_useGps,icon:_locating?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.my_location),label:Text(_locating?_t('جارٍ تحديد الموقع...'):_t('تحديث موقع التواجد عبر GPS'))),
+          if(_location!=null) Padding(padding:const EdgeInsets.only(top:8),child:Text('${_t('الموقع')}: ${_location!.latitude.toStringAsFixed(5)}, ${_location!.longitude.toStringAsFixed(5)}')),
         ]),
-        const SizedBox(height:12),SizedBox(height:52,child:FilledButton.icon(onPressed:_saving?null:_saveProfile,icon:const Icon(Icons.save),label:Text(_saving?'جارٍ الحفظ...':'حفظ وتحديث حالة التواجد'))),
+        const SizedBox(height:12),SizedBox(height:52,child:FilledButton.icon(onPressed:_saving?null:_saveProfile,icon:const Icon(Icons.save),label:Text(_saving?_t('جارٍ الحفظ...'):_t('حفظ وتحديث حالة التواجد')))),
         const SizedBox(height:20),Text(_t('طلبات الإسعاف النشطة'),style:TextStyle(fontSize:18,fontWeight:FontWeight.w800)),const SizedBox(height:8),
         StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:_requests(uid),builder:(context,snapshot){
           final docs=snapshot.data?.docs??const [];
@@ -147,11 +147,11 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
               children: [
                 const Icon(Icons.emergency, color: Colors.red),
                 const SizedBox(width: 8),
-                const Expanded(
-                  child: Text('حالة الاستجابة', style: TextStyle(fontWeight: FontWeight.w800)),
+                Expanded(
+                  child: Text(_t('حالة الاستجابة'), style: const TextStyle(fontWeight: FontWeight.w800)),
                 ),
                 Text(
-                  ready ? 'متاح الآن' : 'غير متاح',
+                  ready ? _t('متاح الآن') : _t('غير متاح'),
                   style: TextStyle(
                     color: ready ? Colors.green : Colors.grey,
                     fontWeight: FontWeight.bold,
@@ -189,12 +189,12 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
     final skills=d['skills'] is List?(d['skills'] as List).join('، '):(d['skills']??'').toString();
     return Card(margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(14),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
       Row(children:[const CircleAvatar(child:Icon(Icons.emergency)),const SizedBox(width:10),Expanded(child:Text((d['name']??_t('مسعف ميداني')).toString(),style:const TextStyle(fontWeight:FontWeight.bold,fontSize:16))),_availableBadge()]),
-      const SizedBox(height:7),Text('متواجد في: $area'),Text('المركبة: $vehicle'),if(skills.isNotEmpty)Text('المهارات: $skills'),
-      if((d['phone']??'').toString().isNotEmpty)Text('الهاتف: ${d['phone']}'),const SizedBox(height:8),
-      SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:()=>_requestParamedic(d,id),icon:const Icon(Icons.sos),label:const Text('طلب هذا المسعف'))),
+      const SizedBox(height:7),Text('${_t('متواجد في')}: $area'),Text('${_t('المركبة')}: $vehicle'),if(skills.isNotEmpty)Text('${_t('المهارات')}: $skills'),
+      if((d['phone']??'').toString().isNotEmpty)Text('${_t('الهاتف')}: ${d['phone']}'),const SizedBox(height:8),
+      SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:()=>_requestParamedic(d,id),icon:const Icon(Icons.sos),label:Text(_t('طلب هذا المسعف')))),
     ])));
   }
-  Widget _availableBadge()=>Container(padding:const EdgeInsets.symmetric(horizontal:8,vertical:4),decoration:BoxDecoration(color:Colors.green.withOpacity(.12),borderRadius:BorderRadius.circular(20)),child:const Text('متاح الآن',style:TextStyle(color:Colors.green,fontWeight:FontWeight.bold,fontSize:11)));
+  Widget _availableBadge()=>Container(padding:const EdgeInsets.symmetric(horizontal:8,vertical:4),decoration:BoxDecoration(color:Colors.green.withOpacity(.12),borderRadius:BorderRadius.circular(20)),child:Text(_t('متاح الآن'),style:const TextStyle(color:Colors.green,fontWeight:FontWeight.bold,fontSize:11)));
 
   Widget _requestCard(String id,Map<String,dynamic> d){
     final status=(d['status']??'pending').toString();
@@ -202,7 +202,7 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
     const next={'pending':'accepted','accepted':'en_route','en_route':'on_scene','on_scene':'completed'};
     const nextLabel={'pending':'قبول الطلب','accepted':'بدء التوجه','en_route':'تأكيد الوصول','on_scene':'إنهاء الحالة'};
     final n=next[status];
-    return Card(child:ListTile(leading:const Icon(Icons.emergency,color:Colors.red),title:Text(labels[status]??status),subtitle:Text('المريض: ${d['patientId']??''}'),trailing:n==null?null:FilledButton(onPressed:()=>_setRequestStatus(id,n),child:Text(nextLabel[status]??n))));
+    return Card(child:ListTile(leading:const Icon(Icons.emergency,color:Colors.red),title:Text(_t(labels[status]??status)),subtitle:Text('${_t('المريض')}: ${d['patientId']??''}'),trailing:n==null?null:FilledButton(onPressed:()=>_setRequestStatus(id,n),child:Text(_t(nextLabel[status]??n)))));
   }
 
   Widget _hero(String title,String subtitle)=>Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:AppColors.primary,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(color:Colors.white,fontSize:21,fontWeight:FontWeight.w900)),const SizedBox(height:6),Text(subtitle,style:const TextStyle(color:Colors.white70,height:1.4))]));
