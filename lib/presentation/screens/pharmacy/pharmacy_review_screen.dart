@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class PharmacyReviewScreen extends StatefulWidget {
   final String pharmacyId;
@@ -11,6 +12,7 @@ class PharmacyReviewScreen extends StatefulWidget {
 }
 
 class _PharmacyReviewScreenState extends State<PharmacyReviewScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   int _rating = 0;
   final TextEditingController _reviewController = TextEditingController();
 
@@ -23,7 +25,7 @@ class _PharmacyReviewScreenState extends State<PharmacyReviewScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('⭐ تقييم الصيدلية'),
+        title: Text(_t('تقييم الصيدلية')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -43,8 +45,8 @@ class _PharmacyReviewScreenState extends State<PharmacyReviewScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '📝 أضف تقييمك',
+                  Text(
+                    _t('أضف تقييمك'),
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
@@ -65,7 +67,7 @@ class _PharmacyReviewScreenState extends State<PharmacyReviewScreen> {
                     controller: _reviewController,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: 'اكتب تقييمك هنا...',
+                      hintText: _t('اكتب تقييمك هنا...'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
@@ -84,8 +86,8 @@ class _PharmacyReviewScreenState extends State<PharmacyReviewScreen> {
                       onPressed: _rating > 0
                           ? () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('✅ تم إضافة تقييمك بنجاح'),
+                                SnackBar(
+                                  content: Text(_t('تم إضافة تقييمك بنجاح')), 
                                   backgroundColor: Colors.green,
                                 ),
                               );
@@ -103,7 +105,7 @@ class _PharmacyReviewScreenState extends State<PharmacyReviewScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('إرسال التقييم'),
+                      child: Text(_t('إرسال التقييم')),
                     ),
                   ),
                 ],
@@ -112,8 +114,8 @@ class _PharmacyReviewScreenState extends State<PharmacyReviewScreen> {
             const SizedBox(height: 16),
 
             // ✅ قائمة التقييمات
-            const Text(
-              '🗣️ تقييمات العملاء',
+            Text(
+              _t('تقييمات العملاء'),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
