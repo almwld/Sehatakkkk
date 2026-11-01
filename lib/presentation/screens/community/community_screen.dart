@@ -200,7 +200,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                 autofocus: true,
                 minLines: 1,
                 maxLines: 4,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: AppStrings.of(context).translate('اكتب تعليقك...'),
                   border: OutlineInputBorder(),
                 ),
