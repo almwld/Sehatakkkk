@@ -1022,6 +1022,12 @@ class AppStrings {
       'مترونيدازول': ['Metronidazole', 'Métronidazole'],
       'جل الصبار': ['Aloe vera gel', 'Gel d’aloe vera'],
       'كيف أساعدك اليوم؟': ['How can I help you today?', 'Comment puis-je vous aider aujourd’hui ?'],
+      'الوصف': ['Description', 'Description'],
+      'تفاصيل إضافية': ['Additional details', 'Détails supplémentaires'],
+      'المصنع': ['Manufacturer', 'Fabricant'],
+      'المخزون': ['Stock', 'Stock'],
+      'التصنيف': ['Category', 'Catégorie'],
+      'وصفة طبية': ['Prescription required', 'Ordonnance requise'],
     };
 
     final entry = translations[value];
