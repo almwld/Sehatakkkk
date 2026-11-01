@@ -148,7 +148,7 @@ class _PatientProfileState extends State<PatientProfile> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(_isOwnProfile ? 'ملفي الشخصي' : 'الملف الشخصي'),
+        title: Text(_isOwnProfile ? AppStrings.of(context).translate('ملفي الشخصي') : AppStrings.of(context).translate('الملف الشخصي')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -269,7 +269,7 @@ class _PatientProfileState extends State<PatientProfile> {
         icon: _followBusy
             ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
             : Icon(_following ? Icons.person_remove_outlined : Icons.person_add_alt_1_outlined),
-        label: Text(_following ? 'إلغاء المتابعة' : 'متابعة'),
+        label: Text(_following ? AppStrings.of(context).translate('إلغاء المتابعة') : AppStrings.of(context).translate('متابعة')),
         style: ElevatedButton.styleFrom(
           backgroundColor: _following ? (dark ? const Color(0xFF263552) : const Color(0xFFE9EFF0)) : AppColors.primary,
           foregroundColor: _following ? (dark ? Colors.white : const Color(0xFF263238)) : Colors.white,
@@ -304,11 +304,11 @@ class _PatientProfileState extends State<PatientProfile> {
             child: Column(children: [
               _storyAvatar(name, photo, 28),
               const SizedBox(height: 5),
-              Text(hasStatus ? 'عرض الحالة' : 'لا توجد حالة', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : Colors.grey[700])),
+              Text(hasStatus ? AppStrings.of(context).translate('عرض الحالة') : AppStrings.of(context).translate('لا توجد حالة'), style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : Colors.grey[700])),
             ]),
           ),
           const SizedBox(width: 14),
-          Expanded(child: Text(hasStatus ? 'الحالة اليومية متاحة من دائرة صورة المستخدم.' : 'عند نشر حالة ستظهر هنا ويمكن فتحها من دائرة صورة المستخدم.', style: TextStyle(fontSize: 12, height: 1.45, color: dark ? Colors.white70 : Colors.grey[700]))),
+          Expanded(child: Text(AppStrings.of(context).translate(hasStatus ? 'الحالة اليومية متاحة من دائرة صورة المستخدم.' : 'عند نشر حالة ستظهر هنا ويمكن فتحها من دائرة صورة المستخدم.'), style: TextStyle(fontSize: 12, height: 1.45, color: dark ? Colors.white70 : Colors.grey[700]))),
         ]);
       },
     ));
