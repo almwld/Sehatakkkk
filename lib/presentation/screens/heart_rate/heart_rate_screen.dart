@@ -289,7 +289,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
             ],
           ))),
           const SizedBox(height: 4),
-          Text(AppStrings.of(context).translate('الخط البرتقالي = متوسط متحرك لآخر 3 قياسات')), style: TextStyle(fontSize: 11, color: Colors.grey)),
+          Text(AppStrings.of(context).translate('الخط البرتقالي = متوسط متحرك لآخر 3 قياسات'), style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ]))),
         const SizedBox(height: 12),
         Row(children: [
