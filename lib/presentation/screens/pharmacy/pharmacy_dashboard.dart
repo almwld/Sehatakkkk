@@ -109,10 +109,10 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     return Card(
       child: ListTile(
         title: Text('${p['name'] ?? ''}'),
-        subtitle: Text('${p['price'] ?? 0} ${AppStrings.of(context).formatCurrency(0).split(' ').last} • ${_t('المخزون')} ${p['stock'] ?? 0}'),
+        subtitle: Text('${p['price'] ?? 0} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'ر.ي' : 'YER'} • ${_t('المخزون')} ${p['stock'] ?? 0}'),
         trailing: approved
             ? IconButton(onPressed: () => _editOffer(p), icon: const Icon(Icons.edit, color: AppColors.primary))
-            : Text(_t(p['status'] == 'approved' ? 'مقبولة' : p['status'] == 'pending' ? 'معلقة' : '${p['status'] ?? ''}'), style: TextStyle(color: p['status'] == 'rejected' ? Colors.red : Colors.orange, fontWeight: FontWeight.bold)),
+            : Text(_t(p['status'] == 'approved' ? 'معتمد' : p['status'] == 'pending' ? 'معلقة' : p['status'] == 'pending_review' ? 'جاري المراجعة' : p['status'] == 'rejected' ? 'مرفوض' : '${p['status'] ?? ''}'), style: TextStyle(color: p['status'] == 'rejected' ? Colors.red : Colors.orange, fontWeight: FontWeight.bold)),
       ),
     );
   }
