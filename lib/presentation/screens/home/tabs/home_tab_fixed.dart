@@ -326,7 +326,7 @@ class _HomeTabState extends State<HomeTab> {
                             child: Text(_userName[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 16)),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: Text('${_getGreeting()}، $_userName 👋', style: const TextStyle(color: Colors.white, fontSize: 16))),
+                          Expanded(child: Text('${AppStrings.of(context).translate(_getGreeting())}، $_userName 👋', style: const TextStyle(color: Colors.white, fontSize: 16))),
                           IconButton(icon: const Icon(Icons.notifications, color: Colors.white), onPressed: () {}),
                         ],
                       ),
@@ -338,7 +338,7 @@ class _HomeTabState extends State<HomeTab> {
                           children: [
                             const Icon(Icons.search, color: Colors.white70, size: 18),
                             const SizedBox(width: 8),
-                            Expanded(child: Text('ابحث عن طبيب، دواء...', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13))),
+                            Expanded(child: Text(AppStrings.of(context).translate('ابحث عن طبيب، دواء...'), style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13))),
                           ],
                         ),
                       ),
@@ -354,7 +354,7 @@ class _HomeTabState extends State<HomeTab> {
               delegate: SliverChildListDelegate([
                 _buildBannerCarousel(isDark),
                 const SizedBox(height: 16),
-                const Text('خدمات سريعة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(AppStrings.of(context).translate('خدمات سريعة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 SizedBox(
                   height: 80,
@@ -379,7 +379,7 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('أفضل الأطباء', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(AppStrings.of(context).translate('أفضل الأطباء'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 if (_topDoctors.isEmpty)
                   Container(
