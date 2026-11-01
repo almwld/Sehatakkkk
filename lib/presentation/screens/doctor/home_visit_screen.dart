@@ -1,2 +1,19 @@
 import 'package:flutter/material.dart';
-class HomeVisitScreen extends StatelessWidget { const HomeVisitScreen({super.key}); @override Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('زيارة طبية منزلية')), body: const Center(child: Text('احجز زيارة طبيب إلى المنزل'))); }
+import 'package:sehatak/core/localization/app_strings.dart';
+
+class HomeVisitScreen extends StatelessWidget {
+  const HomeVisitScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(strings.translate('زيارة طبية منزلية')),
+      ),
+      body: Center(
+        child: Text(strings.translate('احجز زيارة طبيب إلى المنزل')),
+      ),
+    );
+  }
+}
