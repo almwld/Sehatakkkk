@@ -44,7 +44,7 @@ class _HomeTabState extends State<HomeTab> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        _userName = user.displayName ?? user.email?.split('@')[0] ?? AppStrings.of(context).translate('مستخدم');
+        _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
         _isLoggedIn = true;
       }
     } catch (e) {
@@ -299,6 +299,7 @@ class _HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final greetingName = _userName == 'مستخدم' ? AppStrings.of(context).translate('مستخدم') : _userName;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -326,7 +327,7 @@ class _HomeTabState extends State<HomeTab> {
                             child: Text(_userName[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 16)),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: Text('${AppStrings.of(context).translate(_getGreeting())}، $_userName 👋', style: const TextStyle(color: Colors.white, fontSize: 16))),
+                          Expanded(child: Text('${AppStrings.of(context).translate(_getGreeting())}، $greetingName 👋', style: const TextStyle(color: Colors.white, fontSize: 16))),
                           IconButton(icon: const Icon(Icons.notifications, color: Colors.white), onPressed: () {}),
                         ],
                       ),
@@ -427,7 +428,7 @@ class _HomeTabState extends State<HomeTab> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text(AppStrings.of(context).translate(name), style: const TextStyle(fontWeight: FontWeight.bold)),
                                   Text(
                                     AppStrings.of(context).translate(doctor['specialty'] as String),
                                     style: const TextStyle(fontSize: 12, color: Colors.grey),
