@@ -381,14 +381,14 @@ class _MoreScreenState extends State<MoreScreen>
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
       return _buildVitalsCards(isDark, const {
-        'ضغط الدم': '120/80',
-        'سكر الدم': '95',
-        'اللياقة': '85',
-        'الوزن': '72',
-        'التغذية': '4.5',
-        'النوم': '7.5',
-        'النبض': '72',
-        'الماء': '6',
+        'ضغط الدم': 'غير متوفر',
+        'سكر الدم': 'غير متوفر',
+        'اللياقة': 'غير متوفر',
+        'الوزن': 'غير متوفر',
+        'التغذية': 'غير متوفر',
+        'النوم': 'غير متوفر',
+        'النبض': 'غير متوفر',
+        'الماء': 'غير متوفر',
       });
     }
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
