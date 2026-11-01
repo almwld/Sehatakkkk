@@ -466,13 +466,13 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   Widget _ordersTab() {
     if (FirebaseAuth.instance.currentUser == null)
-      return const Center(child: Text(AppStrings.of(context).translate('سجّل الدخول لعرض طلباتك')));
+      return Center(child: Text(AppStrings.of(context).translate('سجّل الدخول لعرض طلباتك')));
     final orders = _visibleOrders;
     if (orders.isEmpty)
       return RefreshIndicator(
           onRefresh: _loadOrders,
-          child: ListView(children: const [
-            SizedBox(height: 180),
+          child: ListView(children: [
+            const SizedBox(height: 180),
             Center(child: Text(AppStrings.of(context).translate('لا توجد طلبات صيدلية حالياً')))
           ]));
     return RefreshIndicator(
