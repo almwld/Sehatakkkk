@@ -72,9 +72,15 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
 
   Widget _labsView(List<Map<String, dynamic>> labs, bool dark) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
+
     if (labs.isEmpty) {
+      final emptyMessage = _labs.isEmpty
+          ? 'لا توجد مختبرات مسجلة حاليًا.'
+          : 'لا توجد نتائج مطابقة للبحث.';
       return RefreshIndicator(
         onRefresh: _loadLabs,
         child: ListView(
@@ -82,11 +88,7 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
             const SizedBox(height: 220),
             Center(
               child: Text(
-                AppStrings.of(context).translate(
-                  _labs.isEmpty
-                      ? 'لا توجد مختبرات مسجلة حاليًا.'
-                      : 'لا توجد نتائج مطابقة للبحث.',
-                ),
+                AppStrings.of(context).translate(emptyMessage),
                 style: const TextStyle(color: Colors.grey),
               ),
             ),
@@ -94,6 +96,7 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
         ),
       );
     }
+
     return RefreshIndicator(
       onRefresh: _loadLabs,
       child: ListView.builder(
@@ -104,6 +107,7 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
       ),
     );
   }
+
   String _labImage(Map<String, dynamic> lab) {
     final explicit = _string(lab['imageUrl'] ?? lab['image'] ?? lab['logoUrl'] ?? lab['logo']);
     if (explicit.isNotEmpty) return explicit;
