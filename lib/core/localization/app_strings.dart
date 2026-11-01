@@ -749,6 +749,9 @@ class AppStrings {
     }
   }
 
+  String formatCurrency(num amount) =>
+      '${amount.toStringAsFixed(0)} ${locale.languageCode == 'ar' ? 'ر.ي' : 'YER'}';
+
   String _pick(String ar, String en, String fr) {
     switch (locale.languageCode) {
       case 'en': return en;
