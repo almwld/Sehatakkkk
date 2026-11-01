@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
@@ -70,7 +71,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                       children: [
                         Icon(Icons.video_library, size: 60, color: AppColors.grey),
                         SizedBox(height: 16),
-                        Text('لا توجد فيديوهات', style: TextStyle(color: AppColors.grey)),
+                        Text(AppStrings.of(context).translate('لا توجد فيديوهات'), style: TextStyle(color: AppColors.grey)),
                       ],
                     ),
                   );
