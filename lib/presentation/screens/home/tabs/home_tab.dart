@@ -51,6 +51,8 @@ class _HomeTabState extends State<HomeTab>
   @override
   bool get wantKeepAlive => true;
 
+  String get _currency => AppStrings.of(context).locale.languageCode == 'ar' ? 'ريال' : 'YER';
+
   @override
   void initState() {
     super.initState();
@@ -275,7 +277,7 @@ class _HomeTabState extends State<HomeTab>
                           const SizedBox(height: 6),
                           Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
                           const Spacer(),
-                          Text(AppStrings.of(context).translate('${product.price} ريال'), style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
+                          Text('${product.price} $_currency', style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
