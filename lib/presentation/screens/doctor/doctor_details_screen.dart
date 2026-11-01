@@ -516,7 +516,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           ],
           _sectionTitle(AppStrings.of(context).translate('المعلومات المهنية'), Icons.badge_outlined, dark),
           _card(dark, Column(children: [
-            _infoRow(Icons.medical_services_outlined, _t('التخصص'), doctor.specialty, dark),
+            _infoRow(Icons.medical_services_outlined, _t('التخصص'), AppStrings.of(context).translate(doctor.specialty), dark),
             _infoRow(Icons.workspace_premium_outlined, _t('الخبرة'), '${doctor.experienceYears ?? 0} ${_t('سنة')}', dark),
             _infoRow(Icons.payments_outlined, _t('رسوم الكشف'), AppStrings.of(context).formatCurrency(doctor.consultationFee ?? 0), dark),
             if ((doctor.hospital ?? '').isNotEmpty) _infoRow(Icons.local_hospital_outlined, _t('المستشفى'), doctor.hospital!, dark),
