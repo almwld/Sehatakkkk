@@ -994,6 +994,7 @@ class AppStrings {
       'مطلوب': ['Required', 'Requis'],
       'أضف إلى السلة': ['Add to cart', 'Ajouter au panier'],
       'هذا المنتج غير متوفر حالياً': ['This product is currently unavailable', 'Ce produit est actuellement indisponible'],
+      'غير معروف': ['Unknown', 'Inconnu'],
     };
 
     final entry = translations[value];
