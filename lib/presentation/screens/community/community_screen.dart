@@ -102,14 +102,14 @@ class _CommunityScreenState extends State<CommunityScreen>
   Future<void> _openCreatePost() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _message('سجل الدخول أولاً لإضافة منشور');
+      _message(AppStrings.of(context).translate('سجل الدخول أولاً لإضافة منشور'));
       return;
     }
 
     final verified = await _isVerifiedDoctor();
     if (!mounted) return;
     if (!verified) {
-      _message('إضافة المنشورات متاحة للأطباء الموثقين فقط');
+      _message(AppStrings.of(context).translate('إضافة المنشورات متاحة للأطباء الموثقين فقط'));
       return;
     }
 
@@ -123,7 +123,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     } catch (_) {
       await Share.share(
         '${post.title}\n${post.content ?? ''}',
-        subject: 'منشور من صحتك',
+        subject: AppStrings.of(context).translate('منشور من صحتك'),
       );
     }
   }
@@ -145,7 +145,7 @@ class _CommunityScreenState extends State<CommunityScreen>
   Future<void> _toggleLike(CommunityPostModel post) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _message('سجل الدخول للتفاعل مع المنشورات');
+      _message(AppStrings.of(context).translate('سجل الدخول للتفاعل مع المنشورات'));
       return;
     }
     final postRef = _query.doc(post.id);
@@ -201,7 +201,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                 minLines: 1,
                 maxLines: 4,
                 decoration: const InputDecoration(
-                  hintText: 'اكتب تعليقك...',
+                  hintText: AppStrings.of(context).translate('اكتب تعليقك...'),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -219,7 +219,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     if (text == null || text.trim().isEmpty) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _message('سجل الدخول لإضافة تعليق');
+      _message(AppStrings.of(context).translate('سجل الدخول لإضافة تعليق'));
       return;
     }
     final userDoc = await FirebaseFirestore.instance
@@ -558,7 +558,7 @@ class _PostCard extends StatelessWidget {
                 if (post.comments > 0)
                   TextButton(
                     onPressed: () => onComment(post),
-                    child: const Text('أضف تعليقاً'),
+                    child: Text(AppStrings.of(context).translate('أضف تعليقاً')),
                   ),
               ],
             ),
