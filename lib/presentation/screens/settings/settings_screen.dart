@@ -143,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            tooltip: 'الإعدادات',
+            tooltip: AppStrings.of(context).translate('الإعدادات'),
             icon: _localImage(AppImages.uiSettingsGear, color: Colors.white),
             onPressed: _loadThemeMode,
           ),
@@ -218,9 +218,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text('${(scale * 100).round()}%', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
               ]),
               Row(children: [
-                IconButton(onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6)), icon: const Text('−', style: TextStyle(fontSize: 26, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: 'تصغير الخط'),
+                IconButton(onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6)), icon: const Text('−', style: TextStyle(fontSize: 26, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: AppStrings.of(context).translate('تصغير الخط')),
                 Expanded(child: Slider(value: scale.clamp(.8, 1.6), min: .8, max: 1.6, divisions: 16, activeColor: AppColors.primary, onChanged: fontProvider.setFontScale)),
-                IconButton(onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6)), icon: const Text('+', style: TextStyle(fontSize: 24, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: 'تكبير الخط'),
+                IconButton(onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6)), icon: const Text('+', style: TextStyle(fontSize: 24, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: AppStrings.of(context).translate('تكبير الخط')),
               ]),
               Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
                 _sizeButton(strings.small, .8, fontProvider, isDark),
@@ -259,7 +259,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () => _showLogoutDialog(context),
           )),
           const SizedBox(height: 20),
-          Center(child: Text('صحتك - الإصدار 1.1.0', style: TextStyle(fontSize: 12, color: Colors.grey[500]))),
+          Center(child: Text(AppStrings.of(context).translate('صحتك - الإصدار 1.1.0'), style: TextStyle(fontSize: 12, color: Colors.grey[500]))),
           const SizedBox(height: 10),
         ],
       ),
