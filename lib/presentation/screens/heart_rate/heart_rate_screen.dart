@@ -311,8 +311,8 @@ class _HeartRateScreenState extends State<HeartRateScreen>
           AnimatedBuilder(animation: _pulseController, builder: (_, child) => Transform.scale(scale: _measuring ? 1 + ((_pulseController.value - 0.92) * 1.8) : 1, child: child),
           child: const Icon(Icons.favorite_rounded, color: Colors.red, size: 30)),
           const SizedBox(width: 12), Expanded(child: Text(_measuring
-            ? 'يتم تحديث التحليل أثناء القياس. ثبّت إصبعك للحصول على إشارة أكثر استقراراً.'
-            : 'يُبنى التحليل من القياسات المحفوظة على الجهاز، ويمكنك متابعة التغيرات مع الوقت.',
+            ? _t('يتم تحديث التحليل أثناء القياس. ثبّت إصبعك للحصول على إشارة أكثر استقراراً.')
+            : _t('يُبنى التحليل من القياسات المحفوظة على الجهاز، ويمكنك متابعة التغيرات مع الوقت.'),
             style: const TextStyle(fontSize: 13, height: 1.5))),
         ]))),
       ]),
