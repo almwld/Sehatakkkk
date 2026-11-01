@@ -852,7 +852,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         children: [
           _buildIcon('assets/images/services/blood_donation.webp', size: 40, color: AppColors.primary),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Text(AppStrings.of(context).translate('جميع التطعيمات محدثة'), style: TextStyle(fontSize: 12)),
           ),
         ],
@@ -871,7 +871,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         children: [
           _buildIcon('assets/images/tracking/mental_health.webp', size: 40, color: AppColors.primary),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Text(AppStrings.of(context).translate('لا توجد حساسية مسجلة'), style: TextStyle(fontSize: 12)),
           ),
         ],
