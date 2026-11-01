@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -57,20 +58,21 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     await prefs.setBool('notif_vibration', _vibration);
     await prefs.setBool('notif_popup', _popup);
 
-    if (mounted) ToastService.showSuccess(context, 'تم حفظ إعدادات الإشعارات');
-    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ إعدادات الإشعارات'); }
+    if (mounted) ToastService.showSuccess(context, AppStrings.of(context).translate('تم حفظ إعدادات الإشعارات'));
+    } catch (_) { if (mounted) ToastService.showError(AppStrings.of(context).translate('تعذر حفظ إعدادات الإشعارات')); }
     finally { if (mounted) setState(() => _saving = false); }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final strings = AppStrings.of(context);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
         title: const Text(
-          'إعدادات الإشعارات',
+          strings.translate('إعدادات الإشعارات'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.primary,
@@ -80,7 +82,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           IconButton(
             icon: _saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Icon(Icons.save_rounded),
             onPressed: _saving ? null : _saveSettings,
-            tooltip: 'حفظ الإعدادات',
+            tooltip: strings.translate('حفظ الإعدادات'),
           ),
         ],
       ),
@@ -217,7 +219,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       child: SwitchListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(
-          title,
+          AppStrings.of(context).translate(title),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -225,7 +227,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
         ),
         subtitle: Text(
-          subtitle,
+          AppStrings.of(context).translate(subtitle),
           style: TextStyle(
             fontSize: 11,
             color: AppColors.grey,
@@ -258,7 +260,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       child: SwitchListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(
-          title,
+          AppStrings.of(context).translate(title),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -266,7 +268,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
         ),
         subtitle: Text(
-          subtitle,
+          AppStrings.of(context).translate(subtitle),
           style: TextStyle(
             fontSize: 11,
             color: AppColors.grey,
