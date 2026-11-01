@@ -388,7 +388,7 @@ class _HomeTabState extends State<HomeTab> {
                       color: isDark ? const Color(0xFF1A2540) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(AppStrings.of(context).translate('لا يوجد أطباء موثقون متاحون حاليًا')),
                     ),
                   )
