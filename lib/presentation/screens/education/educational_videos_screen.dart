@@ -65,7 +65,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                 }
 
                 if (videos.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

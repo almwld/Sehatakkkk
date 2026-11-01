@@ -57,7 +57,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
 
           final consultations = snapshot.data?.docs ?? [];
           if (consultations.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
