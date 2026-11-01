@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/template_model.dart';
 import 'package:sehatak/core/services/template_service.dart';
 
@@ -23,6 +24,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   final TextEditingController _primaryController = TextEditingController();
   final TextEditingController _secondaryController = TextEditingController();
   bool _saving = false;
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   void initState() {
@@ -55,8 +57,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
       await p.setString('saved_template_id', _selectedTemplate!.id);
       await p.setString('saved_template_primary', _primaryController.text.trim());
       await p.setString('saved_template_secondary', _secondaryController.text.trim());
-      if (mounted) ToastService.showSuccess('تم حفظ القالب');
-    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ القالب'); }
+      if (mounted) ToastService.showSuccess(_t('تم حفظ القالب'));
+    } catch (_) { if (mounted) ToastService.showError(_t('تعذر حفظ القالب')); }
     finally { if (mounted) setState(() => _saving = false); }
   }
 
@@ -74,7 +76,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('قوالب الصور'),
+        title: Text(_t('قوالب الصور')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -113,7 +115,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                         width: MediaQuery.of(context).size.width - 32,
                         height: 300,
                       )
-                    : const Center(child: Text('اختر قالباً')),
+                    : Center(child: Text(_t('اختر قالباً'))),
               ),
             ),
           ),
@@ -164,7 +166,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          template.name,
+                          _t(template.name),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -198,8 +200,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 TextField(
                   controller: _primaryController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    labelText: 'النص الرئيسي',
+                  decoration: InputDecoration(
+                    labelText: _t('النص الرئيسي'),
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -207,8 +209,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 TextField(
                   controller: _secondaryController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    labelText: 'النص الثانوي',
+                  decoration: InputDecoration(
+                    labelText: _t('النص الثانوي'),
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -219,7 +221,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                       child: ElevatedButton.icon(
                         onPressed: _shareTemplate,
                         icon: const Icon(Icons.share_rounded),
-                        label: const Text('مشاركة'),
+                        label: Text(_t('مشاركة')),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -231,7 +233,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                       child: OutlinedButton.icon(
                         onPressed: _saving ? null : _saveTemplate,
                         icon: _saving ? const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.save_rounded),
-                        label: Text(_saving ? 'جاري الحفظ...' : 'حفظ'),
+                        label: Text(_t(_saving ? 'جاري الحفظ...' : 'حفظ')),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primary,
                         ),
@@ -262,8 +264,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
 
   void _shareTemplate() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📤 جاري المشاركة...'),
+      SnackBar(
+        content: Text(_t('جاري المشاركة...')),
         backgroundColor: AppColors.primary,
       ),
     );
@@ -271,8 +273,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
 
   void _downloadTemplate() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📥 جاري تحميل الصورة...'),
+      SnackBar(
+        content: Text(_t('جاري تحميل الصورة...')),
         backgroundColor: AppColors.primary,
       ),
     );
