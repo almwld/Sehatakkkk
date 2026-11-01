@@ -270,7 +270,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (doctor == null) {
       return Scaffold(
         backgroundColor: bg,
-        appBar: _appBar(dark, title: 'غير موجود'),
+        appBar: _appBar(dark, title: AppStrings.of(context).translate('غير موجود')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -331,7 +331,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             },
           ),
         IconButton(
-          tooltip: _isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة',
+          tooltip: _isFavorite ? AppStrings.of(context).translate('إزالة من المفضلة') : AppStrings.of(context).translate('إضافة للمفضلة'),
           onPressed: _doctor == null ? null : _toggleFavorite,
           icon: AnimatedSwitcher(
             duration: const Duration(milliseconds: 180),
@@ -415,10 +415,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _action(iconAsset: AppAssets.chatBubble, label: 'دردشة', hint: 'محادثة مباشرة', color: AppColors.primary, onTap: _openChat, dark: dark),
-          _action(iconAsset: AppAssets.chatPhoneCall, label: 'اتصال', hint: 'مكالمة صوتية', color: const Color(0xFF2E9B5F), onTap: () => _startCall(video: false), dark: dark),
-          _action(iconAsset: AppAssets.chatVideoCall, label: 'فيديو', hint: 'استشارة مرئية', color: const Color(0xFF3976D8), onTap: () => _startCall(video: true), dark: dark),
-          _action(iconAsset: AppAssets.chatCalendarBooking, label: 'حجز', hint: 'موعد الطبيب', color: const Color(0xFFE58A22), onTap: _bookAppointment, dark: dark),
+          _action(iconAsset: AppAssets.chatBubble, label: AppStrings.of(context).translate('دردشة'), hint: AppStrings.of(context).translate('محادثة مباشرة'), color: AppColors.primary, onTap: _openChat, dark: dark),
+          _action(iconAsset: AppAssets.chatPhoneCall, label: AppStrings.of(context).translate('اتصال'), hint: AppStrings.of(context).translate('مكالمة صوتية'), color: const Color(0xFF2E9B5F), onTap: () => _startCall(video: false), dark: dark),
+          _action(iconAsset: AppAssets.chatVideoCall, label: AppStrings.of(context).translate('فيديو'), hint: AppStrings.of(context).translate('استشارة مرئية'), color: const Color(0xFF3976D8), onTap: () => _startCall(video: true), dark: dark),
+          _action(iconAsset: AppAssets.chatCalendarBooking, label: AppStrings.of(context).translate('حجز'), hint: AppStrings.of(context).translate('موعد الطبيب'), color: const Color(0xFFE58A22), onTap: _bookAppointment, dark: dark),
         ],
       ),
     );
