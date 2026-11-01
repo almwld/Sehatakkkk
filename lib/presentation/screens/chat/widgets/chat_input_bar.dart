@@ -47,8 +47,6 @@ class ChatInputBar extends StatefulWidget {
 class _ChatInputBarState extends State<ChatInputBar> {
   String _t(String value) => AppStrings.of(context).translate(value);
 
-  String _t(String value) => AppStrings.of(context).translate(value);
-
   final _controller = TextEditingController();
   final _focus = FocusNode();
   final _picker = ImagePicker();
