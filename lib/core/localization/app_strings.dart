@@ -1937,6 +1937,8 @@ class AppStrings {
       "ملف": ["File","Fichier"],
       "لا توجد طلبات توثيق معلقة حالياً": ["There are no pending verification requests","Aucune demande de vérification en attente"],
       "حساب مهني": ["Professional account","Compte professionnel"],
+      "فيديو تعليمي": ["Educational video","Vidéo éducative"],
+      "تعليمي": ["Educational","Éducatif"],
     };
 
     final entry = translations[value];
