@@ -1742,6 +1742,9 @@ class AppStrings {
       'ابحث عن خدمة...': ['Search for a service...', 'Rechercher un service...'],
       'اسم المنشأة': ['Facility name', 'Nom de l’établissement'],
       'شهر': ['month', 'mois'],
+      'إضافة وزن': ['Add weight', 'Ajouter un poids'],
+      'إضافة قياس وزن': ['Add a weight measurement', 'Ajouter une mesure de poids'],
+      'تم إضافة تقييمك': ['Your review has been added', 'Votre avis a été ajouté'],
     };
 
     final entry = translations[value];
