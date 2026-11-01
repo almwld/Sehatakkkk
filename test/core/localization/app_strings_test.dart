@@ -143,6 +143,14 @@ void main() {
       expect(french.translate('مضادات حيوية'), 'Antibiotiques');
     });
 
+    test('translates chat navigation and conversation states', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('المحادثات'), 'Chats');
+      expect(english.translate('تعذر فتح المحادثة'), 'Could not open the conversation');
+      expect(french.translate('المكالمات'), 'Appels');
+    });
+
     test('preserves unknown and user-provided content', () {
       final strings = AppStrings(const Locale('en', 'US'));
       expect(strings.translate('A patient supplied note'), 'A patient supplied note');
