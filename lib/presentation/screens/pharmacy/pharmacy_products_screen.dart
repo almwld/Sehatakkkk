@@ -4,6 +4,7 @@ import 'package:sehatak/core/localization/app_strings.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../presentation/widgets/common/app_image.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/constants/imagekit.dart';
 import '../../../core/services/unified_cart_service.dart';
 import 'cart_screen.dart';
 
@@ -94,15 +95,22 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
           final product = _products[index];
           final stock = (product['stock'] as num?)?.toInt() ?? 0;
           final inStock = product['inStock'] == true || stock > 0;
+          final imageUrl = ImageKit.productImage(
+            imageUrl: product['imageUrl']?.toString(),
+            productId: (product['id'] ?? product['productId'])?.toString(),
+            dosageForm: product['dosageForm']?.toString(),
+            category: product['category']?.toString(),
+            genericName: product['genericName']?.toString(),
+          );
           return Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5))),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: ((product['imageUrl']?.toString().trim().startsWith('http') ?? false))
+                child: imageUrl.startsWith('http')
                     ? AppImage(
-                        imageUrl: product['imageUrl'].toString().trim(),
+                        imageUrl: imageUrl,
                         height: 80,
                         width: double.infinity,
                         fit: BoxFit.contain,
