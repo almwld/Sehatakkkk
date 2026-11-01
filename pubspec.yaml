@@ -22,7 +22,7 @@ dependencies:
   flutter_slidable: 3.0.1
   flutter_animate: 4.5.0
   carousel_slider: 5.0.0
-  table_calendar: 3.1.3 # compatible with Flutter 3.27 localization intl 0.19
+  table_calendar: 3.0.9
   fl_chart: 0.66.0
   google_fonts: 6.1.0
   flutter_bloc: 8.1.3
@@ -31,7 +31,7 @@ dependencies:
   provider: 6.1.2
   get_it: 7.6.7
   go_router: 13.0.1
-  firebase_core: 2.27.1
+  firebase_core: 2.25.4
   firebase_auth: 4.17.4
   cloud_firestore: 4.15.0
   cloud_functions: 4.6.5
@@ -41,34 +41,34 @@ dependencies:
   firebase_crashlytics: 3.4.9
   firebase_app_check: 0.2.1
   google_sign_in: 6.2.1
-  http: 1.2.2
+  http: 1.2.0
   dio: 5.4.0
   retrofit: 4.0.3
   json_annotation: 4.8.1
   socket_io_client: 2.0.3
   shared_preferences: 2.2.2
   sqflite: 2.3.0
-  path: 1.8.3 # Flutter 3.16 SDK-pinned version
+  path: 1.8.3
   path_provider: 2.1.1
   hive_flutter: 1.1.0
-  intl: ^0.19.0
+  intl: 0.18.1
   timezone: 0.9.4 # compatible with Flutter 3.16
   connectivity_plus: 5.0.2
   url_launcher: 6.2.3
   share_plus: 7.2.1
-  package_info_plus: 4.2.0 # Stable Dart 2.18+ baseline; avoids Android nullable API regression in 5.x
+  package_info_plus: 5.0.1
   device_info_plus: 9.1.0
   permission_handler: 11.1.0
-  local_auth: ^2.3.0
-  flutter_local_notifications: 17.2.1
+  local_auth: 2.1.8
+  flutter_local_notifications: 17.2.0
   workmanager: 0.5.2
   flutter_background_service: 5.0.5
   flutter_background_service_android: 6.3.1
   sensors_plus: 3.1.0
   flutter_vibrate: 1.3.0
-  wakelock_plus: 1.1.4 # Flutter 3.16 / Dart 3.2 and LiveKit js 0.6.x compatible
+  wakelock_plus: 1.1.4 # Flutter 3.16 / Dart 3.2 compatibility
   image_picker: 1.0.7
-  photo_manager: 3.9.0
+  photo_manager: 3.0.0
   camera: 0.10.5
   record: 5.0.0
   audioplayers: 5.2.1
@@ -76,7 +76,7 @@ dependencies:
   audio_waveforms: 1.3.0
   flutter_secure_storage: 9.2.4
   photo_view: 0.14.0
-  file_picker: 6.2.1 # Flutter 3.16 SDK pins web 0.3.0; file_picker 8.x requires web 0.5.x
+  file_picker: 6.1.1
   flutter_image_compress: 2.0.0
   flutter_map: 6.1.0
   latlong2: 0.9.1
@@ -93,13 +93,14 @@ dependencies:
   speech_to_text: 6.6.0
   flutter_tts: 3.8.2
   pdf: 3.10.7
-  printing: 5.12.0
+  printing: 5.11.1
   json_serializable: 6.7.1
   build_runner: 2.4.7
   retrofit_generator: 8.0.6
   fluttertoast: 8.2.4
   overlay_support: 2.1.0
   bot_toast: 4.1.3
+  blurhash: 1.1.0
   flutter_cache_manager: 3.3.1
   flutter_staggered_animations: 1.1.0
   rxdart: 0.27.7
@@ -181,3 +182,4 @@ flutter:
 
 dependency_overrides:
   google_fonts: 5.1.0
+  image_picker_android: 0.8.9+6
