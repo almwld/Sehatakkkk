@@ -34,7 +34,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
     if (user == null) {
       return Scaffold(
         appBar: CustomAppBar(title: AppStrings.of(context).translate('الاستشارات'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        body: const Center(child: Text('يرجى تسجيل الدخول')),
+        body: Center(child: Text(AppStrings.of(context).translate('يرجى تسجيل الدخول'))),
       );
     }
 
@@ -234,8 +234,8 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(data['doctorName'] ?? 'طبيب', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                Text(data['type'] ?? 'استشارة', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                Text(data['doctorName'] ?? AppStrings.of(context).translate('طبيب'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                Text(AppStrings.of(context).translate(data['type'] ?? 'استشارة'), style: TextStyle(fontSize: 10, color: Colors.grey)),
                                 Text(DateFormat('dd/MM/yyyy').format(date), style: TextStyle(fontSize: 9, color: Colors.grey)),
                               ],
                             ),
