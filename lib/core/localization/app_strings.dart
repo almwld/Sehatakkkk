@@ -1505,6 +1505,7 @@ class AppStrings {
       'إدارة التوثيق والحسابات المهنية': ['Manage verification and professional accounts', 'Gérer la vérification et les comptes professionnels'],
       'إدارة الصلاحيات والمستخدمين': ['Manage permissions and users', 'Gérer les autorisations et les utilisateurs'],
       'إدارة السوق والمحتوى': ['Manage marketplace and content', 'Gérer la place de marché et le contenu'],
+      'تعذر إكمال عملية Google': ['Could not complete Google sign-in', 'Impossible de terminer la connexion Google'],
     };
 
     final entry = translations[value];
