@@ -2024,6 +2024,7 @@ class AppStrings {
       'تعذر حذف الحساب:': ['Could not delete account:', 'Impossible de supprimer le compte :'],
       'خطأ:': ['Error:', 'Erreur :'],
       'فشل التحديث:': ['Update failed:', 'Échec de la mise à jour :'],
+
       "مجهول": ["Unknown","Inconnu"],
     };
 
