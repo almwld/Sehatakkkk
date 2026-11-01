@@ -32,7 +32,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
     try {
       await _service.toggleReminder(id, enabled);
       if (mounted) {
-        ToastService.showSuccess(enabled ? 'تم تفعيل التنبيه' : 'تم إيقاف التنبيه');
+        ToastService.showSuccess(enabled ? _t('تم تفعيل التنبيه') : _t('تم إيقاف التنبيه'));
       }
     } catch (_) {
       if (mounted) ToastService.showError(_t('تعذر تحديث التنبيه'));
@@ -155,7 +155,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
               const SizedBox(height: 8),
               Expanded(
                 child: meds.isEmpty
-                    ? const Center(child: Text(_t('لا توجد أدوية في هذه القائمة')))
+                    ? Center(child: Text(_t('لا توجد أدوية في هذه القائمة')))
                     : ListView.builder(
                         padding: const EdgeInsets.all(14),
                         itemCount: meds.length,
@@ -234,7 +234,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
               ),
               TextButton(
                 onPressed: taken ? null : () => _taken(id),
-                child: Text(taken ? 'تم' : 'تناول'),
+                child: Text(taken ? _t('تم') : _t('تناول')),
               ),
             ],
           ),
