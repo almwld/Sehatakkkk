@@ -255,7 +255,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-            Text('${AppStrings.of(context).translate('السعر')}: ${AppStrings.of(context).formatCurrency((company['price'] as num?) ?? 0)}/${AppStrings.of(context).translate('شهر')}'),
+                    '${AppStrings.of(context).translate('السعر')}: ${AppStrings.of(context).formatCurrency((company['price'] as num?) ?? 0)}/${AppStrings.of(context).translate('شهر')}',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -450,7 +450,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${AppStrings.of(context).translate('السعر')}: ${company['price']}/${AppStrings.of(context).translate('شهر')}'),
+            Text('${AppStrings.of(context).translate('السعر')}: ${AppStrings.of(context).formatCurrency((company['price'] as num?) ?? 0)}/${AppStrings.of(context).translate('شهر')}'),
             const SizedBox(height: 8),
             Text('${AppStrings.of(context).translate('التغطية')}: ${company['coverage']}'),
             const SizedBox(height: 8),
