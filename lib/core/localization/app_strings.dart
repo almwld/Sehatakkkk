@@ -1695,7 +1695,7 @@ class AppStrings {
       'البيانات المهنية': ['Professional information', 'Informations professionnelles'],
       'اسم المسعف': ['Paramedic name', 'Nom de l’ambulancier'],
       'منطقة/مناطق الخدمة': ['Service area(s)', 'Zone(s) de service'],
-      'مثال: حدة، الصافية، صنعاء': ['Example: Hadda, Al-Safiya, Sana'a', 'Exemple : Hadda, Al-Safiya, Sanaa'],
+      'مثال: حدة، الصافية، صنعاء': ['Example: Hadda, Al-Safiya, Sanaa', 'Exemple : Hadda, Al-Safiya, Sanaa'],
       'عنوان نقطة التواجد الحالية': ['Current location address', 'Adresse de localisation actuelle'],
       'نوع المركبة/سيارة الإسعاف': ['Vehicle / ambulance type', 'Type de véhicule / ambulance'],
       'رقم اللوحة': ['Plate number', 'Numéro d’immatriculation'],
