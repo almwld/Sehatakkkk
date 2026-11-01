@@ -465,7 +465,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              ToastService.showSuccess('✅ تم الاشتراك في ${company['name']} بنجاح!');
+              ToastService.showSuccess('✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم الاشتراك في' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Abonnement à' : 'Subscribed to'} ${company['name']} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'بنجاح!' : AppStrings.of(context).locale.languageCode == 'fr' ? 'avec succès !' : 'successfully!'}');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
