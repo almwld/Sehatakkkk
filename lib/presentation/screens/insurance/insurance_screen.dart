@@ -137,7 +137,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        filter,
+                        AppStrings.of(context).translate(filter),
                         style: TextStyle(
                           color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -285,7 +285,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  feature,
+                  AppStrings.of(context).translate(feature),
                   style: TextStyle(
                     fontSize: 10,
                     color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -394,7 +394,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             const Divider(),
             const SizedBox(height: 8),
             Text(
-              'مميزات الباقة:',
+              AppStrings.of(context).translate('مميزات الباقة:'),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -408,7 +408,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   children: [
                     const Icon(Icons.check_circle, size: 16, color: Colors.green),
                     const SizedBox(width: 8),
-                    Text(feature),
+                    Text(AppStrings.of(context).translate(feature)),
                   ],
                 ),
               );
