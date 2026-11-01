@@ -16,14 +16,14 @@ class PatientPrescriptions extends StatelessWidget {
 
     if (uid == null) {
       return const Scaffold(
-        body: Center(child: Text('يرجى تسجيل الدخول')),
+        body: Center(child: Text(AppStrings.of(context).translate('يرجى تسجيل الدخول'))),
       );
     }
 
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الوصفات الطبية'),
+        title: Text(AppStrings.of(context).translate('الوصفات الطبية')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -84,7 +84,7 @@ class PatientPrescriptions extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'وصفة من ${data['doctorName'] ?? 'الطبيب'}',
+                              '${AppStrings.of(context).translate('وصفة من')} ${data['doctorName'] ?? AppStrings.of(context).translate('الطبيب')}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -100,7 +100,7 @@ class PatientPrescriptions extends StatelessWidget {
                       ),
                       if ((data['diagnosis'] ?? '').toString().isNotEmpty) ...[
                         const SizedBox(height: 10),
-                        Text('التشخيص: ${data['diagnosis']}'),
+                        Text('${AppStrings.of(context).translate('التشخيص')}: ${data['diagnosis']}'),
                       ],
                       const Divider(height: 24),
                       for (final medicine in items)
@@ -118,7 +118,7 @@ class PatientPrescriptions extends StatelessWidget {
                       if ((data['medicineInstructions'] ?? '').toString().isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Text(
-                          'تعليمات الطبيب: ${data['medicineInstructions']}',
+                          '${AppStrings.of(context).translate('تعليمات الطبيب:')} ${data['medicineInstructions']}',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -135,7 +135,7 @@ class PatientPrescriptions extends StatelessWidget {
                             );
                           },
                           icon: const Icon(Icons.notifications_active),
-                          label: const Text('متابعة مواعيد الأدوية'),
+                          label: Text(AppStrings.of(context).translate('متابعة مواعيد الأدوية')),
                         ),
                       ),
                     ],
