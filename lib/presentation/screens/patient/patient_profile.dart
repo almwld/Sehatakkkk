@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
@@ -96,7 +97,7 @@ class _PatientProfileState extends State<PatientProfile> {
   Future<void> _toggleFollow() async {
     final me = _auth.currentUser;
     if (me == null) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سجّل الدخول أولاً للمتابعة')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(AppStrings.of(context).translate('سجّل الدخول أولاً للمتابعة'))));
       return;
     }
     if (_profileId.isEmpty || _profileId == me.uid || _followBusy) return;
@@ -123,7 +124,7 @@ class _PatientProfileState extends State<PatientProfile> {
       await batch.commit();
       if (mounted) setState(() => _following = !_following);
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر تحديث المتابعة')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(AppStrings.of(context).translate('تعذر تحديث المتابعة'))));
     } finally {
       if (mounted) setState(() => _followBusy = false);
     }
@@ -292,7 +293,7 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _stories(String name, String photo, bool dark) {
-    return _card(dark, 'الحالة اليومية', AppImages.uiUserProfile, StreamBuilder<UserStatusModel?>(
+    return _card(dark, AppStrings.of(context).translate('الحالة اليومية'), AppImages.uiUserProfile, StreamBuilder<UserStatusModel?>(
       stream: _profileId.isEmpty ? Stream.value(null) : _statusService.streamUserStatus(_profileId),
       builder: (context, snapshot) {
         final status = snapshot.data;
@@ -314,11 +315,11 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _posts(bool dark) {
-    if (_profileId.isEmpty) return _card(dark, 'منشورات المجتمع', AppImages.uiUserProfile, const Text('سجّل الدخول لعرض منشورات الحساب.'));
-    return _card(dark, 'منشورات المجتمع', AppImages.uiUserProfile, StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    if (_profileId.isEmpty) return _card(dark, AppStrings.of(context).translate('منشورات المجتمع'), AppImages.uiUserProfile, Text(AppStrings.of(context).translate('سجّل الدخول لعرض منشورات الحساب.')));
+    return _card(dark, AppStrings.of(context).translate('منشورات المجتمع'), AppImages.uiUserProfile, StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _firestore.collection('community_posts').where('userId', isEqualTo: _profileId).where('isPublished', isEqualTo: true).limit(20).snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const Text('تعذر تحميل منشورات المجتمع.');
+        if (snapshot.hasError) return Text(AppStrings.of(context).translate('تعذر تحميل منشورات المجتمع.'));
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(strokeWidth: 2));
         final docs = [...snapshot.data!.docs];
         docs.sort((a, b) {
@@ -328,7 +329,7 @@ class _PatientProfileState extends State<PatientProfile> {
           final bt = bv is Timestamp ? bv.toDate() : DateTime.fromMillisecondsSinceEpoch(0);
           return bt.compareTo(at);
         });
-        if (docs.isEmpty) return const Text('لا توجد منشورات منشورة لهذا الحساب حالياً.');
+        if (docs.isEmpty) return Text(AppStrings.of(context).translate('لا توجد منشورات منشورة لهذا الحساب حالياً.'));
         return Column(children: docs.map((doc) => _post(doc, dark)).toList());
       },
     ));
@@ -360,11 +361,11 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _accountSections(bool dark) {
-    return _card(dark, 'حساب المستخدم', AppImages.uiUserProfile, Column(children: [
-      _tile('assets/images/ui/favorites.webp', 'الأطباء المفضلون', 'الوصول إلى الأطباء المضافين للمفضلة', _favoriteDoctors, dark),
-      _tile(AppImages.uiSettingsGear, 'التفضيلات', 'إدارة تفضيلات الحساب والخدمات', _settings, dark),
-      _tile(AppImages.uiUserProfile, 'المتابعات', 'الحسابات التي يتابعها المستخدم', null, dark),
-      if (_isOwnProfile) _tile(AppImages.uiEditButton, 'تعديل الملف', 'تحديث تفاصيل الحساب', _edit, dark),
+    return _card(dark, AppStrings.of(context).translate('حساب المستخدم'), AppImages.uiUserProfile, Column(children: [
+      _tile('assets/images/ui/favorites.webp', AppStrings.of(context).translate('الأطباء المفضلون'), AppStrings.of(context).translate('الوصول إلى الأطباء المضافين للمفضلة'), _favoriteDoctors, dark),
+      _tile(AppImages.uiSettingsGear, AppStrings.of(context).translate('التفضيلات'), AppStrings.of(context).translate('إدارة تفضيلات الحساب والخدمات'), _settings, dark),
+      _tile(AppImages.uiUserProfile, AppStrings.of(context).translate('المتابعات'), AppStrings.of(context).translate('الحسابات التي يتابعها المستخدم'), null, dark),
+      if (_isOwnProfile) _tile(AppImages.uiEditButton, AppStrings.of(context).translate('تعديل الملف'), AppStrings.of(context).translate('تحديث تفاصيل الحساب'), _edit, dark),
     ]));
   }
 
