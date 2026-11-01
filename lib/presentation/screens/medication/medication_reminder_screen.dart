@@ -88,7 +88,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
               );
               if (saved == true && mounted) {
                 ToastService.showSuccess(
-                  'تم حفظ تذكير الدواء وتفعيل التنبيهات الصوتية والاهتزاز',
+                  _t('تم حفظ تذكير الدواء وتفعيل التنبيهات الصوتية والاهتزاز'),
                 );
               }
             },
@@ -129,9 +129,9 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _stat(AppAssets.medicineIcon, 'الأدوية', '${all.length}'),
-                    _stat(AppAssets.notificationBellIcon, 'التنبيهات', '$reminders'),
-                    _stat(AppAssets.checkIcon, 'المتناولة', '$taken'),
+                    _stat(AppAssets.medicineIcon, _t('الأدوية'), '${all.length}'),
+                    _stat(AppAssets.notificationBellIcon, _t('التنبيهات'), '$reminders'),
+                    _stat(AppAssets.checkIcon, _t('المتناولة'), '$taken'),
                   ],
                 ),
               ),
