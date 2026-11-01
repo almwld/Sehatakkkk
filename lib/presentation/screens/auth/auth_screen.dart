@@ -718,7 +718,7 @@ class _AuthScreenState extends State<AuthScreen>
       if (mounted) setState(() => _isLoading = false);
       debugPrint('[GoogleAuth] error: $e');
       if (!firebaseAuthenticated) {
-        ToastService.showError('تعذر إكمال عملية Google: $e');
+        ToastService.showError(AppStrings.of(context).translate('تعذر إكمال عملية Google: $e'));
       }
     }
   }
@@ -788,7 +788,7 @@ class _AuthScreenState extends State<AuthScreen>
       _showMessage(message, true);
     } catch (e) {
       _hideLoading();
-      _showMessage('حدث خطأ غير متوقع', true);
+      _showMessage(AppStrings.of(context).translate('حدث خطأ غير متوقع'), true);
     }
   }
 
@@ -796,17 +796,17 @@ class _AuthScreenState extends State<AuthScreen>
     if (_nameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      _showMessage('يرجى ملء جميع الحقول المطلوبة', true);
+      _showMessage(AppStrings.of(context).translate('يرجى ملء جميع الحقول المطلوبة'), true);
       return;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      _showMessage('كلمتا المرور غير متطابقتين', true);
+      _showMessage(AppStrings.of(context).translate('كلمتا المرور غير متطابقتين'), true);
       return;
     }
 
     if (!_agreeTerms) {
-      _showMessage('يرجى الموافقة على الشروط والأحكام', true);
+      _showMessage(AppStrings.of(context).translate('يرجى الموافقة على الشروط والأحكام'), true);
       return;
     }
 
@@ -819,7 +819,7 @@ class _AuthScreenState extends State<AuthScreen>
     }
 
     if (_roleSpecialties.isNotEmpty && _selectedSpecialty == null) {
-      _showMessage('يرجى اختيار التخصص', true);
+      _showMessage(AppStrings.of(context).translate('يرجى اختيار التخصص'), true);
       return;
     }
 
@@ -978,8 +978,8 @@ class _AuthScreenState extends State<AuthScreen>
         try {
           await NotificationService().showTypedNotification(
             type: 'verification_required',
-            title: 'يجب توثيق حسابك',
-            body: 'أكمل توثيق حسابك ورفع المستندات المطلوبة ثم أرسل الطلب للمشرف.',
+            title: AppStrings.of(context).translate('يجب توثيق حسابك'),
+            body: AppStrings.of(context).translate('أكمل توثيق حسابك ورفع المستندات المطلوبة ثم أرسل الطلب للمشرف.'),
             data: <String, dynamic>{
               'type': 'verification_required',
               'userId': user.uid,
@@ -1041,7 +1041,7 @@ class _AuthScreenState extends State<AuthScreen>
     } catch (e) {
       _hideLoading();
       print('❌ Registration error: $e');
-      _showMessage('حدث خطأ غير متوقع', true);
+      _showMessage(AppStrings.of(context).translate('حدث خطأ غير متوقع'), true);
     }
   }
 
@@ -1088,7 +1088,7 @@ class _AuthScreenState extends State<AuthScreen>
 
         // AppRouter observes the authenticated session and opens HomeScreen.
       } else {
-        ToastService.showError('لا توجد جلسة حساب محفوظة. سجّل الدخول مرة واحدة ثم استخدم البصمة.');
+        ToastService.showError(AppStrings.of(context).translate('لا توجد جلسة حساب محفوظة. سجّل الدخول مرة واحدة ثم استخدم البصمة.'));
       }
     } else {
       _showMessage(
@@ -1124,7 +1124,7 @@ class _AuthScreenState extends State<AuthScreen>
         textDirection: TextDirection.rtl,
         style: TextStyle(color: isDark ? Colors.white : Colors.black87),
         decoration: InputDecoration(
-          labelText: label,
+          labelText: AppStrings.of(context).translate(label),
           prefixIcon: Icon(icon, color: primaryColor),
           filled: true,
           fillColor: fillColor,
@@ -1160,26 +1160,26 @@ class _AuthScreenState extends State<AuthScreen>
         const SizedBox(height: 12),
         field(
           controller: _facilityNameController,
-          label: 'اسم المشفى',
+          label: AppStrings.of(context).translate('اسم المشفى'),
           icon: Icons.local_hospital_outlined,
         ),
         const SizedBox(height: 12),
         field(
           controller: _facilityAddressController,
-          label: 'عنوان المشفى',
+          label: AppStrings.of(context).translate('عنوان المشفى'),
           icon: Icons.location_on_outlined,
         ),
         const SizedBox(height: 12),
         field(
           controller: _facilityPhoneController,
-          label: 'هاتف المشفى',
+          label: AppStrings.of(context).translate('هاتف المشفى'),
           icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 12),
         field(
           controller: _facilityDescriptionController,
-          label: 'وصف وخدمات المشفى',
+          label: AppStrings.of(context).translate('وصف وخدمات المشفى'),
           icon: Icons.description_outlined,
           maxLines: 4,
         ),
@@ -1202,7 +1202,7 @@ class _AuthScreenState extends State<AuthScreen>
       fields.add(
         _buildTextField(
           controller: _licenseController,
-          label: 'رقم الترخيص الطبي',
+          label: AppStrings.of(context).translate('رقم الترخيص الطبي'),
           icon: Icons.badge_outlined,
           isDark: isDark,
         ),
@@ -1215,7 +1215,7 @@ class _AuthScreenState extends State<AuthScreen>
       fields.add(
         _buildTextField(
           controller: _experienceController,
-          label: 'سنوات الخبرة',
+          label: AppStrings.of(context).translate('سنوات الخبرة'),
           icon: Icons.work_outline,
           isDark: isDark,
           keyboardType: TextInputType.number,
@@ -1234,7 +1234,7 @@ class _AuthScreenState extends State<AuthScreen>
       orElse: () => {'name': ''},
     );
 
-    return role['name'] as String;
+    return AppStrings.of(context).translate(role['name'] as String);
   }
 
   Widget _buildLoginRoleTabs(
@@ -1369,7 +1369,7 @@ class _AuthScreenState extends State<AuthScreen>
     return DropdownButtonFormField<String>(
       value: _selectedSpecialty,
       decoration: InputDecoration(
-        labelText: 'اختر التخصص',
+        labelText: AppStrings.of(context).translate('اختر التخصص'),
         labelStyle: TextStyle(
           color: isDark
               ? Colors.white70
@@ -1547,7 +1547,7 @@ class _AuthScreenState extends State<AuthScreen>
             : const Color(0xFF1E293B),
       ),
       decoration: InputDecoration(
-        labelText: 'كلمة المرور',
+        labelText: AppStrings.of(context).translate('كلمة المرور'),
         labelStyle: TextStyle(
           color: isDark
               ? Colors.white70
@@ -1698,7 +1698,7 @@ class _AuthScreenState extends State<AuthScreen>
             : const Color(0xFF1E293B),
       ),
       decoration: InputDecoration(
-        labelText: 'تأكيد كلمة المرور',
+        labelText: AppStrings.of(context).translate('تأكيد كلمة المرور'),
         labelStyle: TextStyle(
           color: isDark
               ? Colors.white70
@@ -1922,7 +1922,7 @@ class _AuthScreenState extends State<AuthScreen>
                 if (isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
-                    label: 'الاسم الكامل',
+                    label: AppStrings.of(context).translate('الاسم الكامل'),
                     icon: Icons.person_outline,
                     isDark: isDark,
                   ),
@@ -1950,7 +1950,7 @@ class _AuthScreenState extends State<AuthScreen>
                 if (isSignUp) ...[
                   _buildTextField(
                     controller: _phoneController,
-                    label: 'رقم الهاتف',
+                    label: AppStrings.of(context).translate('رقم الهاتف'),
                     icon: Icons.phone_android,
                     isDark: isDark,
                     keyboardType:
