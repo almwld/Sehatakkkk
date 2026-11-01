@@ -78,7 +78,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                   });
                 },
                 calendarFormat: CalendarFormat.week,
-                availableCalendarFormats: const {
+                availableCalendarFormats: {
                   CalendarFormat.week: _t('الأسبوع'),
                 },
                 headerStyle: HeaderStyle(
@@ -208,7 +208,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
               child: Text(
                 _selectedTime != null
                     ? '${_t('تأكيد الحجز - ')}$testPrice ${_t('ريال')}'
-                    : 'اختر الوقت أولاً',
+                    : _t('اختر الوقت أولاً'),
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
