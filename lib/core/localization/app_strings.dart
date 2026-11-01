@@ -1678,6 +1678,11 @@ class AppStrings {
       'سرير': ['beds', 'lits'],
       'الأسرة': ['Beds', 'Lits'],
       'عناية': ['ICU', 'Soins intensifs'],
+      'أخصائي علاج طبيعي': ['Physiotherapist', 'Kinésithérapeute'],
+      'طبيب أسنان': ['Dentist', 'Dentiste'],
+      'طبيب عيون': ['Ophthalmologist', 'Ophtalmologue'],
+      'أخصائي بصريات': ['Optometrist', 'Optométriste'],
+      'المنشأة / العيادة': ['Facility / clinic', 'Établissement / clinique'],
     };
 
     final entry = translations[value];
