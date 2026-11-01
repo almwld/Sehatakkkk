@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
@@ -25,19 +26,19 @@ class CustomBottomNavigationBar extends StatelessWidget {
   static const double _chatSize = 50.7; // 39 * 1.30
   static const double _chatIconSize = 26.0; // 20 * 1.30
 
-  static const List<NavItem> _navItems = [
-    NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
-    NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
-    NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
-    NavItem(index: 3, icon: Icons.chat_rounded, label: 'الدردشة', isProtected: true, isSpecial: true),
-    NavItem(index: 4, icon: Icons.science_rounded, label: 'مختبرات', isProtected: true),
-    NavItem(index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
-    NavItem(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final strings = AppStrings.of(context);
+    final navItems = [
+      NavItem(index: 0, icon: Icons.home_rounded, label: strings.home),
+      NavItem(index: 1, icon: Icons.person_search_rounded, label: strings.doctors),
+      NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: strings.pharmacy),
+      NavItem(index: 3, icon: Icons.chat_rounded, label: strings.chat, isProtected: true, isSpecial: true),
+      NavItem(index: 4, icon: Icons.science_rounded, label: strings.laboratories, isProtected: true),
+      NavItem(index: 5, icon: Icons.folder_rounded, label: strings.myHealth, isProtected: true),
+      NavItem(index: 6, icon: Icons.grid_view_rounded, label: strings.more),
+    ];
     final backgroundColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
     return Material(
@@ -51,7 +52,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         child: SafeArea(
           top: false,
           bottom: true,
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, crossAxisAlignment: CrossAxisAlignment.center, children: _navItems.map((item) => item.isSpecial ? _buildSpecialChatButton(item, isDark) : _buildNavItem(item, isDark)).toList()),
+          child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, crossAxisAlignment: CrossAxisAlignment.center, children: navItems.map((item) => item.isSpecial ? _buildSpecialChatButton(item, isDark) : _buildNavItem(item, isDark)).toList()),
         ),
       ),
     );
