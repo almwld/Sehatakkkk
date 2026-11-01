@@ -219,7 +219,7 @@ class _PatientProfileState extends State<PatientProfile> {
             radius: radius,
             backgroundColor: AppColors.primary.withOpacity(.10),
             backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
-            child: photo.isEmpty ? Text(name.isEmpty ? 'م' : name.characters.first, style: TextStyle(fontSize: radius * .7, color: AppColors.primary, fontWeight: FontWeight.w900)) : null,
+            child: photo.isEmpty ? Text(name.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'م' : 'U') : name.characters.first, style: TextStyle(fontSize: radius * .7, color: AppColors.primary, fontWeight: FontWeight.w900)) : null,
           ),
         );
         return GestureDetector(
