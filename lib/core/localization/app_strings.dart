@@ -1741,6 +1741,7 @@ class AppStrings {
       'نشر الرد': ['Post reply', 'Publier la réponse'],
       'ابحث عن خدمة...': ['Search for a service...', 'Rechercher un service...'],
       'اسم المنشأة': ['Facility name', 'Nom de l’établissement'],
+      'شهر': ['month', 'mois'],
     };
 
     final entry = translations[value];
