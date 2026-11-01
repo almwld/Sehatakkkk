@@ -51,7 +51,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
       setState(() => _isLoading = false);
     } catch (e) {
       setState(() => _isLoading = false);
-      ToastService.showError('حدث خطأ في تحميل المواعيد');
+      ToastService.showError(AppStrings.of(context).translate('حدث خطأ في تحميل المواعيد'));
     }
   }
 
@@ -62,7 +62,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('مواعيدي'),
+        title: Text(AppStrings.of(context).translate('مواعيدي')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -78,7 +78,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                       const SizedBox(height: 16),
                       Text(AppStrings.of(context).translate('لا توجد مواعيد'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      const Text('ستظهر مواعيدك هنا', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      Text(AppStrings.of(context).translate('ستظهر مواعيدك هنا'), style: TextStyle(fontSize: 14, color: Colors.grey)),
                     ],
                   ),
                 )
@@ -117,7 +117,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  appointment['doctorName'] ?? 'طبيب',
+                                  appointment['doctorName'] ?? AppStrings.of(context).translate('طبيب'),
                                   style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                                 ),
                                 Text(
@@ -134,7 +134,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              appointment['status'] == 'cancelled' ? 'ملغي' : 'مؤكد',
+                              appointment['status'] == 'cancelled' ? AppStrings.of(context).translate('ملغي') : AppStrings.of(context).translate('مؤكد'),
                               style: TextStyle(
                                 fontSize: 10,
                                 color: appointment['status'] == 'cancelled' ? Colors.red : Colors.green,
