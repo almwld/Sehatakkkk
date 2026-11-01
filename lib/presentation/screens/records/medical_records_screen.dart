@@ -21,6 +21,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _searchCtrl = TextEditingController();
   String _filterType = 'الكل';
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _types = ['الكل', 'تقارير', 'تحاليل', 'أشعة', 'وصفات', 'ملاحظات'];
 
   @override
@@ -31,14 +32,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     final user = _auth.currentUser;
     if (user == null) {
       return Scaffold(
-        appBar: CustomAppBar(title: 'الملفات الطبية', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        body: const Center(child: Text('يرجى تسجيل الدخول')),
+        appBar: CustomAppBar(title: _t('الملفات الطبية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        body: Center(child: Text(_t('يرجى تسجيل الدخول'))),
       );
     }
     final recordsQuery = _firestore.collection('medical_records').where('patientId', isEqualTo: user.uid).orderBy('date', descending: true);
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الملفات الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('الملفات الطبية'), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [IconButton(icon: const Icon(Icons.add), onPressed: () => _showAddRecordDialog(context))],
@@ -52,7 +53,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               stream: recordsQuery.snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-                if (snapshot.hasError) return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+                if (snapshot.hasError) return Center(child: Text('${_t('حدث خطأ')}: ${snapshot.error}'));
                 var records = snapshot.data?.docs ?? <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                 final query = _searchCtrl.text.trim().toLowerCase();
                 if (query.isNotEmpty) {
@@ -78,7 +79,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
   Widget _buildSearchBar() => Padding(
     padding: const EdgeInsets.all(12),
-    child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن ملف طبي...'),
+    child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: _t('ابحث عن ملف طبي...')),
   );
 
   Widget _buildFilterChips() => SizedBox(
@@ -90,7 +91,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       separatorBuilder: (_, __) => const SizedBox(width: 6),
       itemBuilder: (_, i) {
         final type = _types[i];
-        return ChoiceChip(label: Text(type), selected: _filterType == type, onSelected: (_) => setState(() => _filterType = type));
+        return ChoiceChip(label: Text(_t(type)), selected: _filterType == type, onSelected: (_) => setState(() => _filterType = type));
       },
     ),
   );
@@ -109,27 +110,27 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(.1), borderRadius: BorderRadius.circular(8)), child: Text(type, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600))), const Spacer(), Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 10, color: AppColors.grey))]),
+            Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(.1), borderRadius: BorderRadius.circular(8)), child: Text(_t(type), style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600))), const Spacer(), Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 10, color: AppColors.grey))]),
             const SizedBox(height: 8),
-            Text('${data['title'] ?? 'ملف طبي'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('${data['title'] ?? _t('ملف طبي')}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text('${data['doctorName'] ?? 'طبيب'}', style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+            Text('${data['doctorName'] ?? _t('طبيب')}', style: const TextStyle(fontSize: 12, color: AppColors.grey)),
             if (data['description'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text('${data['description']}', maxLines: 2, overflow: TextOverflow.ellipsis)),
             const SizedBox(height: 8),
-            Row(children: [const Icon(Icons.attachment, size: 14, color: AppColors.grey), const SizedBox(width: 4), Text('${attachments.length} مرفق', style: const TextStyle(fontSize: 10, color: AppColors.grey)), const Spacer(), IconButton(icon: const Icon(Icons.share, size: 18, color: AppColors.primary), onPressed: () => _shareRecord(data)), IconButton(icon: const Icon(Icons.download, size: 18, color: AppColors.primary), onPressed: () => _openFirstAttachment(attachments))]),
+            Row(children: [const Icon(Icons.attachment, size: 14, color: AppColors.grey), const SizedBox(width: 4), Text('${attachments.length} ${_t('مرفق')}', style: const TextStyle(fontSize: 10, color: AppColors.grey)), const Spacer(), IconButton(icon: const Icon(Icons.share, size: 18, color: AppColors.primary), onPressed: () => _shareRecord(data)), IconButton(icon: const Icon(Icons.download, size: 18, color: AppColors.primary), onPressed: () => _openFirstAttachment(attachments))]),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _shareRecord(Map<String, dynamic> data) async => Share.share('${data['title'] ?? 'ملف طبي'}\n${data['doctorName'] ?? ''}\n${data['description'] ?? ''}', subject: 'ملف طبي من صحتك');
+  Future<void> _shareRecord(Map<String, dynamic> data) async => Share.share('${data['title'] ?? 'ملف طبي'}\n${data['doctorName'] ?? ''}\n${data['description'] ?? ''}', subject: _t('ملف طبي من صحتك'));
 
   Future<void> _openFirstAttachment(List<dynamic> attachments) async {
-    if (attachments.isEmpty) { ToastService.showInfo('لا يوجد مرفق لهذا الملف'); return; }
+    if (attachments.isEmpty) { ToastService.showInfo(_t('لا يوجد مرفق لهذا الملف')); return; }
     final uri = Uri.tryParse('${attachments.first}');
-    if (uri == null || !(uri.scheme == 'http' || uri.scheme == 'https')) { ToastService.showWarning('المرفق لا يحتوي على رابط صالح'); return; }
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) ToastService.showError('تعذر فتح المرفق');
+    if (uri == null || !(uri.scheme == 'http' || uri.scheme == 'https')) { ToastService.showWarning(_t('المرفق لا يحتوي على رابط صالح')); return; }
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) ToastService.showError(_t('تعذر فتح المرفق'));
   }
 
   Future<void> _showAddRecordDialog(BuildContext context) async {
@@ -143,22 +144,22 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         context: context,
         builder: (dialogContext) {
           return StatefulBuilder(builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('إضافة ملف طبي'),
-          content: SingleChildScrollView(child: Column(children: [TextField(controller: title, decoration: const InputDecoration(labelText: 'العنوان')), TextField(controller: doctor, decoration: const InputDecoration(labelText: 'اسم الطبيب')), TextField(controller: type, decoration: const InputDecoration(labelText: 'النوع')), TextField(controller: desc, maxLines: 3, decoration: const InputDecoration(labelText: 'الوصف'))])),
-          actions: [TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext, false), child: const Text('إلغاء')), ElevatedButton(onPressed: saving ? null : () async {
-            if (title.text.trim().isEmpty) { ToastService.showWarning('يرجى إدخال عنوان الملف'); return; }
+          title: Text(_t('إضافة ملف طبي')),
+          content: SingleChildScrollView(child: Column(children: [TextField(controller: title, decoration: InputDecoration(labelText: _t('العنوان'))), TextField(controller: doctor, decoration: InputDecoration(labelText: _t('اسم الطبيب'))), TextField(controller: type, decoration: InputDecoration(labelText: _t('النوع'))), TextField(controller: desc, maxLines: 3, decoration: InputDecoration(labelText: _t('الوصف')))])),
+          actions: [TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext, false), child: Text(_t('إلغاء'))), ElevatedButton(onPressed: saving ? null : () async {
+            if (title.text.trim().isEmpty) { ToastService.showWarning(_t('يرجى إدخال عنوان الملف')); return; }
             setDialogState(() => saving = true);
             try {
               final user = _auth.currentUser;
               if (user == null) throw Exception('unauthenticated');
-              await _firestore.collection('medical_records').add({'patientId': user.uid, 'patientName': user.displayName ?? 'مريض', 'title': title.text.trim(), 'doctorName': doctor.text.trim(), 'type': type.text.trim(), 'description': desc.text.trim(), 'attachments': [], 'date': FieldValue.serverTimestamp(), 'createdAt': FieldValue.serverTimestamp()});
+              await _firestore.collection('medical_records').add({'patientId': user.uid, 'patientName': user.displayName ?? _t('مريض'), 'title': title.text.trim(), 'doctorName': doctor.text.trim(), 'type': type.text.trim(), 'description': desc.text.trim(), 'attachments': [], 'date': FieldValue.serverTimestamp(), 'createdAt': FieldValue.serverTimestamp()});
               if (dialogContext.mounted) Navigator.pop(dialogContext, true);
-              if (mounted) ToastService.showSuccess('تمت إضافة الملف الطبي');
+              if (mounted) ToastService.showSuccess(_t('تمت إضافة الملف الطبي'));
             } catch (_) {
               if (dialogContext.mounted) setDialogState(() => saving = false);
-              if (mounted) ToastService.showError('تعذر حفظ الملف الطبي، حاول مرة أخرى');
+              if (mounted) ToastService.showError(_t('تعذر حفظ الملف الطبي، حاول مرة أخرى'));
             }
-          }, child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : const Text('حفظ'))],
+          }, child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : Text(_t('حفظ')))],
         ));
         },
       );
