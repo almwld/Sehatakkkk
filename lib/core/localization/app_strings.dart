@@ -1716,6 +1716,9 @@ class AppStrings {
       'إنهاء الحالة': ['Complete case', 'Terminer le cas'],
       'المريض': ['Patient', 'Patient'],
       'عنوان الاستشارة': ['Consultation title', 'Titre de la consultation'],
+      'الرجاء ملء جميع الحقول': ['Please fill in all fields', 'Veuillez remplir tous les champs'],
+      'تم التسجيل كمتبرع! شكراً لك': ['You are registered as a donor! Thank you.', 'Votre inscription comme donneur est confirmée ! Merci.'],
+      'خطأ:': ['Error:', 'Erreur :'],
     };
 
     final entry = translations[value];
