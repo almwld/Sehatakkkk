@@ -59,7 +59,7 @@ class FamilyDashboardScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addChild(context),
         icon: const Icon(Icons.person_add_alt_1),
-        label: const Text('إضافة طفل'),
+        label: Text(AppStrings.of(context).translate('إضافة طفل')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
