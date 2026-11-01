@@ -450,7 +450,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${AppStrings.of(context).translate('السعر')}: \${company['price']}/${AppStrings.of(context).translate('شهر')}'),
+            Text('${AppStrings.of(context).translate('السعر')}: ${company['price']}/${AppStrings.of(context).translate('شهر')}'),
             const SizedBox(height: 8),
             Text('${AppStrings.of(context).translate('التغطية')}: ${company['coverage']}'),
             const SizedBox(height: 8),
