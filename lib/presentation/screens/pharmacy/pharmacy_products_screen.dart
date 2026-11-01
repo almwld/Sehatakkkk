@@ -32,12 +32,18 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
   Future<void> _loadProducts() async {
     if (mounted) setState(() { _loading = true; _error = null; });
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('products')
-          .where('pharmacyId', isEqualTo: widget.pharmacyId)
-          .get();
-      final products = snapshot.docs
-          .map((doc) => <String, dynamic>{...doc.data(), 'id': doc.id})
+      final collection = FirebaseFirestore.instance.collection('products');
+      final snapshots = await Future.wait([
+        collection.where('pharmacyId', isEqualTo: widget.pharmacyId).get(),
+        collection.where('sellerId', isEqualTo: widget.pharmacyId).get(),
+      ]);
+      final documents = <String, Map<String, dynamic>>{};
+      for (final snapshot in snapshots) {
+        for (final doc in snapshot.docs) {
+          documents[doc.id] = <String, dynamic>{...doc.data(), 'id': doc.id};
+        }
+      }
+      final products = documents.values
           .where((product) =>
               product['approvalStatus'] == 'approved' &&
               product['isPublished'] == true &&
