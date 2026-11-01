@@ -53,7 +53,7 @@ class _DepositScreenState extends State<DepositScreen> {
         ]))),
         const SizedBox(height: 16),
         Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
-          DropdownButtonFormField<String>(value: _selectedWallet, decoration: InputDecoration(labelText: _t('اختر المحفظة'), border: const OutlineInputBorder()), items: WalletService.supportedWallets.map((w) => DropdownMenuItem(value: w, child: Text(w))).toList(), onChanged: (v) { if (v != null) setState(() => _selectedWallet = v); }),
+          DropdownButtonFormField<String>(value: _selectedWallet, decoration: InputDecoration(labelText: _t('اختر المحفظة'), border: const OutlineInputBorder()), items: WalletService.supportedWallets.map((w) => DropdownMenuItem(value: w, child: Text(_t(w)))).toList(), onChanged: (v) { if (v != null) setState(() => _selectedWallet = v); }),
           const SizedBox(height: 12),
           TextField(controller: _walletNumberController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: _t('رقم المحفظة'), border: const OutlineInputBorder())),
         ]))),
