@@ -793,7 +793,7 @@ class _SehatakAppState extends State<SehatakApp>
             BlocBuilder<ThemeBloc, ThemeState>(
           builder: (context, themeState) => Consumer<FontSizeProvider>(
             builder: (context, fontProvider, child) => MaterialApp.router(
-              title: 'Sehatak',
+              title: 'صحتك - Sehatak',
               debugShowCheckedModeBanner: false,
               locale: localeController.locale,
               theme: ThemeManager.lightTheme,
