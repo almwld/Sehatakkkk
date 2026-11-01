@@ -270,7 +270,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           ),
           const SizedBox(height: 12),
           _field(
-            'إجمالي الكمية',
+            _t('إجمالي الكمية'),
             _total,
             type: TextInputType.number,
           ),
@@ -287,8 +287,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
               ),
               child: _saving
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'حفظ وتفعيل التنبيهات',
+                  : Text(
+                      _t('حفظ وتفعيل التنبيهات'),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
