@@ -426,13 +426,13 @@ jobs:
             raise SystemExit("flutter_vibrate Android sources were not found in the resolved Pub cache")
 
         manifest_text = manifest.read_text(encoding="utf-8")
-        manifest_text, count = re.subn(r'\\s+package="flutter\\.plugins\\.vibrate"', "", manifest_text, count=1)
+        manifest_text, count = re.subn(r'\s+package="flutter\.plugins\.vibrate"', "", manifest_text, count=1)
         if count:
             manifest.write_text(manifest_text, encoding="utf-8")
 
         gradle_text = gradle.read_text(encoding="utf-8")
-        if not re.search(r"\\bnamespace\\s+['\"]flutter\\.plugins\\.vibrate['\"]", gradle_text):
-            gradle_text, count = re.subn(r"(android\\s*\\{)", r"\\1\\n    namespace 'flutter.plugins.vibrate'", gradle_text, count=1)
+        if not re.search(r"\bnamespace\s+['\"]flutter\.plugins\.vibrate['\"]", gradle_text):
+            gradle_text, count = re.subn(r"(android\s*\{)", r"\1\n    namespace 'flutter.plugins.vibrate'", gradle_text, count=1)
             if not count:
                 raise SystemExit("Could not declare flutter_vibrate namespace in its Android Gradle module")
             gradle.write_text(gradle_text, encoding="utf-8")
