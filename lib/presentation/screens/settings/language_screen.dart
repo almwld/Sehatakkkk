@@ -85,7 +85,7 @@ class LanguageScreen extends StatelessWidget {
                 onTap: () async {
                   await localeController.setLanguage(code);
                   if (context.mounted) {
-                    ToastService.showSuccess(strings.languageSaved);
+                    ToastService.showSuccess(code == 'en' ? 'Language preference saved' : code == 'fr' ? 'Préférence linguistique enregistrée' : 'تم حفظ اللغة');
                   }
                 },
               ),
