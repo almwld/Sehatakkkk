@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -44,6 +45,8 @@ class ChatInputBar extends StatefulWidget {
 }
 
 class _ChatInputBarState extends State<ChatInputBar> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final _controller = TextEditingController();
   final _focus = FocusNode();
   final _picker = ImagePicker();
@@ -297,15 +300,15 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final send = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isAudio ? 'معاينة الملف الصوتي' : 'معاينة الملف'),
+        title: Text(isAudio ? _t('معاينة الملف الصوتي') : _t('معاينة الملف')),
         content: ListTile(
           leading: Icon(isAudio ? Icons.audiotrack : Icons.insert_drive_file_outlined),
           title: Text(picked.name, maxLines: 2, overflow: TextOverflow.ellipsis),
           subtitle: Text(size),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إرسال')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t('إلغاء'))),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t('إرسال'))),
         ],
       ),
     );
@@ -566,7 +569,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           IconButton(
-                            tooltip: 'المرفقات',
+                            tooltip: _t('المرفقات'),
                             onPressed: _sending ? null : _toggleAttachments,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -592,7 +595,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                                 fontSize: 16,
                               ),
                               decoration: InputDecoration(
-                                hintText: 'اكتب رسالة...',
+                                hintText: _t('اكتب رسالة...'),
                                 hintStyle: TextStyle(color: muted, fontSize: 15),
                                 border: InputBorder.none,
                                 isDense: true,
@@ -605,7 +608,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                           ),
                           if (!_hasText)
                             IconButton(
-                              tooltip: 'الكاميرا',
+                              tooltip: _t('الكاميرا'),
                               onPressed: _sending
                                   ? null
                                   : () => _pickImage(ImageSource.camera),
