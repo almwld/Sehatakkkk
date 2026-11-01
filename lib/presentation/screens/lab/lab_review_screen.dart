@@ -54,7 +54,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     _t('أضف تقييمك'),
                     style: TextStyle(
                       fontSize: 16,
@@ -121,7 +121,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
             const SizedBox(height: 16),
 
             // ✅ قائمة التقييمات
-            const Text(
+            Text(
               _t('تقييمات المرضى'),
               style: TextStyle(
                 fontSize: 16,
