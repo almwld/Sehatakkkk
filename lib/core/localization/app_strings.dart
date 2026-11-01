@@ -140,6 +140,7 @@ class AppStrings {
       'أنف وأذن وحنجرة': ['ENT', 'ORL'],
       'أسنان': ['Dentistry', 'Dentisterie'],
       'عيون': ['Ophthalmology', 'Ophtalmologie'],
+      'الصيدلية': ['Pharmacy', 'Pharmacie'],
       'الأطباء': ['Doctors', 'Médecins'],
       'ابحث عن طبيب...': ['Search for a doctor...', 'Rechercher un médecin...'],
       'حساب الطبيب غير مرتبط بحساب المستخدم': ['The doctor account is not linked to a user account', 'Le compte du médecin n’est pas associé à un compte utilisateur'],
