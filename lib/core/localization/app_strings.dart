@@ -1734,6 +1734,12 @@ class AppStrings {
       'خدمة منزلية': ['Home service', 'Service à domicile'],
       'ابحث عن طبيب، دواء...': ['Search for a doctor or medicine...', 'Rechercher un médecin ou un médicament...'],
       'خدمات سريعة': ['Quick services', 'Services rapides'],
+      'رد المقدم:': ['Provider response:', 'Réponse du prestataire :'],
+      'نشر التقييم': ['Post review', 'Publier l’avis'],
+      'اكتب ردك...': ['Write your reply...', 'Écrivez votre réponse...'],
+      'يرجى كتابة الرد': ['Please write a reply', 'Veuillez rédiger une réponse'],
+      'نشر الرد': ['Post reply', 'Publier la réponse'],
+      'ابحث عن خدمة...': ['Search for a service...', 'Rechercher un service...'],
     };
 
     final entry = translations[value];
