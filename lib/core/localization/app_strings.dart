@@ -1132,6 +1132,7 @@ class AppStrings {
       'خميس': ['Thu', 'Jeu'],
       'جمعة': ['Fri', 'Ven'],
       'سبت': ['Sat', 'Sam'],
+      'حساب الطبيب غير مرتبط بملف شخصي': ['Doctor account is not linked to a profile', 'Le compte du médecin n’est pas lié à un profil'],
     };
 
     final entry = translations[value];
