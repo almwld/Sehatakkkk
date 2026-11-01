@@ -388,7 +388,11 @@ class _ChatInputBarState extends State<ChatInputBar> {
       final dir = await getTemporaryDirectory();
       path = '${dir.path}/sehatak_chat_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _recorder.start(
-        const RecordConfig(encoder: AudioEncoder.aacLc),
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          sampleRate: 44100,
+          bitRate: 128000,
+        ),
         path: path,
       );
       if (!mounted) {
