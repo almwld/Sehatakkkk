@@ -289,13 +289,13 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
         'doctorName': 'طبيب', // يمكن جلب اسم الطبيب من Firestore
       });
 
-      ToastService.showSuccess(context, '✅ تم طلب الاستشارة بنجاح');
+      ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? '✅ تم طلب الاستشارة بنجاح' : AppStrings.of(context).locale.languageCode == 'fr' ? '✅ Consultation demandée avec succès' : '✅ Consultation requested successfully');
       setState(() {
         _selectedDoctor = '';
         _selectedTime = null;
       });
     } catch (e) {
-      ToastService.showError(context, '❌ فشل الطلب: $e');
+      ToastService.showError(context, AppStrings.of(context).locale.languageCode == 'ar' ? '❌ فشل الطلب: $e' : AppStrings.of(context).locale.languageCode == 'fr' ? '❌ Échec de la demande : $e' : '❌ Request failed: $e');
     }
   }
 }
