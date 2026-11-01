@@ -715,6 +715,22 @@ class AppStrings {
       'حفظ وتفعيل التنبيهات': ['Save and enable reminders', 'Enregistrer et activer les rappels'],
       'تناول': ['Taken', 'Pris'],
       'تم': ['Done', 'Terminé'],
+      'ريال': ['YER', 'YER'],
+      'مسح السلة': ['Clear cart', 'Vider le panier'],
+      'هل أنت متأكد من رغبتك في مسح جميع العناصر؟': ['Are you sure you want to remove all items?', 'Voulez-vous vraiment supprimer tous les articles ?'],
+      'مسح': ['Clear', 'Vider'],
+      'سلة المشتريات': ['Shopping cart', 'Panier'],
+      'سلة المشتريات فارغة': ['Your shopping cart is empty', 'Votre panier est vide'],
+      'أضف منتجات من الأقسام المختلفة': ['Add products from the different sections', 'Ajoutez des produits depuis les différentes sections'],
+      'تسوق الآن': ['Shop now', 'Acheter maintenant'],
+      'يحتاج وصفة': ['Prescription required', 'Ordonnance requise'],
+      'المجموع الفرعي': ['Subtotal', 'Sous-total'],
+      'الخصم': ['Discount', 'Remise'],
+      'إتمام الطلب': ['Place order', 'Passer la commande'],
+      'تم إزالة المنتج من السلة': ['Item removed from cart', 'Article retiré du panier'],
+      'تقرير التنبيهات': ['Reminder report', 'Rapport des rappels'],
+      'لا توجد تنبيهات محفوظة بعد': ['No reminders have been saved yet', 'Aucun rappel n’a encore été enregistré'],
+      'دواء': ['Medication', 'Médicament'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
