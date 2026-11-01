@@ -56,7 +56,7 @@ class _MedicationAlertsReportScreenState extends State<MedicationAlertsReportScr
                     child: SvgPicture.asset(AppAssets.medicineIcon, width: 25, height: 25,
                       colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
                   ),
-                  title: Text((item['name'] ?? 'دواء').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text((item['name'] ?? AppStrings.of(context).translate('دواء')).toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text('${item['dose'] ?? ''} • ${item['time'] ?? ''}'),
                   trailing: SvgPicture.asset(AppAssets.notificationBellIcon, width: 22, height: 22,
                     colorFilter: ColorFilter.mode(item['enabled'] == false ? Colors.grey : AppColors.primary, BlendMode.srcIn)),
