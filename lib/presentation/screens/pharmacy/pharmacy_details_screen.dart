@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class PharmacyDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> pharmacy;
 
   const PharmacyDetailsScreen({super.key, required this.pharmacy});
+
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
   String _text(String key, [String fallback = 'غير متوفر']) {
     final value = pharmacy[key];
@@ -24,7 +27,7 @@ class PharmacyDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final name = _text('name', 'الصيدلية');
+    final name = _text('name', _t(context, 'الصيدلية'));
     final image = _text('image', '');
     final isOpen = _bool('open');
     final delivery = _bool('delivery');
@@ -42,15 +45,15 @@ class PharmacyDetailsScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Text(name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 8),
-          Row(children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 19), const SizedBox(width: 5), Text(_text('rating', '--')), const SizedBox(width: 6), Text('(${_text('reviews', '0')} تقييم)', style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600))]),
+          Row(children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 19), const SizedBox(width: 5), Text(_text('rating', '--')), const SizedBox(width: 6), Text('(${_text('reviews', '0')} ${_t(context, 'تقييم')})', style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600))]),
           const SizedBox(height: 16),
-          _info(context, Icons.location_on_outlined, 'العنوان', _text('address')),
-          _info(context, Icons.phone_outlined, 'الهاتف', _text('phone')),
-          _info(context, Icons.location_searching_rounded, 'المسافة', _text('distance')),
-          _info(context, Icons.access_time_rounded, 'الحالة', isOpen ? 'مفتوحة الآن' : 'مغلقة الآن'),
-          _info(context, Icons.delivery_dining_rounded, 'التوصيل', delivery ? 'متوفر' : 'غير متوفر'),
+          _info(context, Icons.location_on_outlined, _t(context, 'العنوان'), _text('address')),
+          _info(context, Icons.phone_outlined, _t(context, 'الهاتف'), _text('phone')),
+          _info(context, Icons.location_searching_rounded, _t(context, 'المسافة'), _text('distance')),
+          _info(context, Icons.access_time_rounded, _t(context, 'الحالة'), _t(context, isOpen ? 'مفتوحة الآن' : 'مغلقة الآن')),
+          _info(context, Icons.delivery_dining_rounded, _t(context, 'التوصيل'), _t(context, delivery ? 'متوفر' : 'غير متوفر')),
           const SizedBox(height: 14),
-          Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [Icon(isOpen ? Icons.check_circle_rounded : Icons.cancel_rounded, color: isOpen ? Colors.green : Colors.red), const SizedBox(width: 10), Expanded(child: Text(isOpen ? 'الصيدلية تستقبل الطلبات حالياً.' : 'الصيدلية مغلقة حالياً. تحقق من ساعات العمل قبل الطلب.', style: const TextStyle(fontSize: 13, height: 1.4)))]))),
+          Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [Icon(isOpen ? Icons.check_circle_rounded : Icons.cancel_rounded, color: isOpen ? Colors.green : Colors.red), const SizedBox(width: 10), Expanded(child: Text(_t(context, isOpen ? 'الصيدلية تستقبل الطلبات حالياً.' : 'الصيدلية مغلقة حالياً. تحقق من ساعات العمل قبل الطلب.'), style: const TextStyle(fontSize: 13, height: 1.4)))]))),
         ],
       ),
     );
