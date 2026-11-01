@@ -356,16 +356,16 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   }
 
   String get _statusText {
-    if (_error != null) return 'تعذر تشغيل الكاميرا أو القياس';
+    if (_error != null) return _t('تعذر تشغيل الكاميرا أو القياس');
     switch (_status) {
       case 1:
-        return _quality < 0.35 ? 'حافظ على ثبات إصبعك وحسّن الإضاءة' : 'جاري القياس...';
+        return _quality < 0.35 ? _t('حافظ على ثبات إصبعك وحسّن الإضاءة') : _t('جاري القياس...');
       case 2:
-        return 'إشارة مستقرة';
+        return _t('إشارة مستقرة');
       case 0:
-        return 'جاهز لبدء القياس';
+        return _t('جاهز لبدء القياس');
       default:
-        return 'جاري التهيئة...';
+        return _t('جاري التهيئة...');
     }
   }
 
