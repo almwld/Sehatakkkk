@@ -1683,6 +1683,11 @@ class AppStrings {
       'طبيب عيون': ['Ophthalmologist', 'Ophtalmologue'],
       'أخصائي بصريات': ['Optometrist', 'Optométriste'],
       'المنشأة / العيادة': ['Facility / clinic', 'Établissement / clinique'],
+      'مشاهدة': ['Views', 'Vues'],
+      'نقرة': ['Click', 'Clic'],
+      'الفيديوهات التثقيفية': ['Educational videos', 'Vidéos éducatives'],
+      'ابحث عن فيديو...': ['Search for a video...', 'Rechercher une vidéo...'],
+      'تشغيل': ['Play', 'Lire'],
     };
 
     final entry = translations[value];
