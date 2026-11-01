@@ -76,7 +76,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
     if (_publishing) return;
     final text = _textController.text.trim();
     if (_selectedMedia == null && text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('أضف صورة أو فيديو أو نصاً أولاً')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('أضف صورة أو فيديو أو نصاً أولاً'))));
       return;
     }
 
