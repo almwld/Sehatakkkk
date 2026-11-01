@@ -1224,6 +1224,8 @@ class AppStrings {
       'آخر حالة مؤكدة من النظام': ['Last status confirmed by the system','Dernier statut confirmé par le système'],
       'تم إلغاء هذا الطلب.': ['This order has been cancelled.','Cette commande a été annulée.'],
       'تظهر هنا حالة الطلب الفعلية من النظام؛ لا توجد أوقات أو مواقع مصطنعة.': ['This shows the actual order status from the system; no times or locations are fabricated.','Le statut réel de la commande s’affiche ici ; aucune heure ni localisation n’est inventée.'],
+      'تعذر تحميل منتجات الصيدلية حالياً': ['Could not load pharmacy products right now', 'Impossible de charger les produits de la pharmacie pour le moment'],
+      'لا توجد منتجات متاحة في هذه الصيدلية حالياً': ['No products are currently available at this pharmacy', 'Aucun produit n’est actuellement disponible dans cette pharmacie'],
     };
 
     final entry = translations[value];
