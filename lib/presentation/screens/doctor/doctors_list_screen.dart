@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
@@ -267,7 +268,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         controller: _searchController,
         onChanged: _searchDoctors,
         onClear: _clearSearch,
-        hintText: 'ابحث عن طبيب...',
+        hintText: AppStrings.of(context).translate('ابحث عن طبيب...'),
         isDark: isDark,
       ),
     );
@@ -686,7 +687,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     Colors.white,
               ),
               child:
-                  const Text('إعادة المحاولة'),
+                  Text(AppStrings.of(context).translate('إعادة المحاولة')),
             ),
           ],
         ),
