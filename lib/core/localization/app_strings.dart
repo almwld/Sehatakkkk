@@ -1636,6 +1636,22 @@ class AppStrings {
       'ديسمبر': ['December', 'Décembre'],
       'أعراض': ['Symptoms', 'Symptômes'],
       'قياسات': ['Measurements', 'Mesures'],
+      'ضغط وسكري': ['Blood pressure and diabetes', 'Tension artérielle et diabète'],
+      'تنفسي': ['Respiratory', 'Respiratoire'],
+      'هضمي': ['Digestive', 'Digestif'],
+      'أعصاب': ['Neurology', 'Neurologie'],
+      'قلب': ['Cardiology', 'Cardiologie'],
+      'مضادات التهاب': ['Anti-inflammatory', 'Anti-inflammatoires'],
+      'مكملات غذائية': ['Dietary supplements', 'Compléments alimentaires'],
+      'صيدلية الرحمة - حدة': ['Al Rahma Pharmacy - Hadda', 'Pharmacie Al Rahma - Hadda'],
+      'صيدلية النور - الستين': ['Al Noor Pharmacy - Al Sittin', 'Pharmacie Al Noor - Al Sittin'],
+      'صيدلية الشفاء - الزراعة': ['Al Shifa Pharmacy - Al Ziraa', 'Pharmacie Al Shifa - Al Ziraa'],
+      'صيدلية الأمل - التحرير': ['Al Amal Pharmacy - Al Tahrir', 'Pharmacie Al Amal - Al Tahrir'],
+      'صيدلية اليمن - المطار': ['Yemen Pharmacy - Airport', 'Pharmacie Yemen - Aéroport'],
+      'صيدلية الصحة - الروضة': ['Al Seha Pharmacy - Al Rawda', 'Pharmacie Al Seha - Al Rawda'],
+      'صيدلية السلام - حدة': ['Al Salam Pharmacy - Hadda', 'Pharmacie Al Salam - Hadda'],
+      'صيدلية الحياة - الجراف': ['Al Hayat Pharmacy - Al Jiraf', 'Pharmacie Al Hayat - Al Jiraf'],
+      'وصفة طبية مطلوبة': ['Prescription required', 'Ordonnance requise'],
     };
 
     final entry = translations[value];
