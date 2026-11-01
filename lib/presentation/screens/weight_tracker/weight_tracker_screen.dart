@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/health/health_medical_visualization.dart';
@@ -77,7 +78,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
           const Text('السجل', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
           if (_history.isEmpty)
-            Container(padding: const EdgeInsets.all(28), decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(18)), child: const Text('لا توجد بيانات وزن بعد. أضف قياسك الفعلي.', textAlign: TextAlign.center))
+            Container(padding: const EdgeInsets.all(28), decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(18)), child: Text(AppStrings.of(context).translate('لا توجد بيانات وزن بعد. أضف قياسك الفعلي.'), textAlign: TextAlign.center))
           else
             ..._history.map((r) => Container(
               margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(15),
