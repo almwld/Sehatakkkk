@@ -27,7 +27,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الفيديوهات التثقيفية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.of(context).translate('الفيديوهات التثقيفية'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -46,7 +46,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+                  return Center(child: Text('${AppStrings.of(context).translate('حدث خطأ')}: ${snapshot.error}'));
                 }
 
                 var videos = snapshot.data?.docs ?? [];
@@ -107,7 +107,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
           color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
           borderRadius: BorderRadius.circular(14),
         ),
-        child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن فيديو...'),
+        child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: AppStrings.of(context).translate('ابحث عن فيديو...')),
       ),
     );
   }
@@ -226,7 +226,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         textStyle: const TextStyle(fontSize: 8),
                       ),
-                      child: const Text('تشغيل'),
+                      child: Text(AppStrings.of(context).translate('تشغيل')),
                     ),
                   ],
                 ),
