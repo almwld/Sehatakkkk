@@ -1755,6 +1755,7 @@ class AppStrings {
       'تعب': ['Fatigue', 'Fatigue'],
       'ألم عضلي': ['Muscle pain', 'Douleurs musculaires'],
       'احتقان أنف': ['Nasal congestion', 'Congestion nasale'],
+      'التهاب الحلق': ['Sore throat', 'Mal de gorge'],
       'تهاب الحلق': ['Sore throat', 'Mal de gorge'],
       'فقدان حاسة الشم': ['Loss of smell', 'Perte de l’odorat'],
       'فقدان حاسة التذوق': ['Loss of taste', 'Perte du goût'],
