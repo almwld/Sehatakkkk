@@ -2741,6 +2741,12 @@ class AppStrings {
       'مشاركة عبر وسائل التواصل': ['Share via social media', 'Partager sur les réseaux sociaux'],
       'مرحباً! 👋\nأنا المساعد الصحي الذكي. كيف يمكنني مساعدتك اليوم؟': ['Hello! 👋\nI’m your AI health assistant. How can I help you today?', 'Bonjour ! 👋\nJe suis votre assistant de santé intelligent. Comment puis-je vous aider aujourd’hui ?'],
       'إنشاء حساب': ['Create account', 'Créer un compte'],
+      'ضغط وسكري': ['Blood pressure & diabetes', 'Tension artérielle et diabète'],
+      'تنفسي': ['Respiratory', 'Respiratoire'],
+      'هضمي': ['Digestive', 'Digestif'],
+      'مضادات التهاب': ['Anti-inflammatory', 'Anti-inflammatoires'],
+      'مكملات غذائية': ['Dietary supplements', 'Compléments alimentaires'],
+      'السعر تنازلي': ['Price: high to low', 'Prix : décroissant'],
       'المريض:': ['Patient:', 'Patient :'],
     };
     final entry = translations[value];
