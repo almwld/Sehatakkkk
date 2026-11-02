@@ -18,6 +18,7 @@ class HomeServicesScreen extends StatefulWidget {
 }
 
 class _HomeServicesScreenState extends State<HomeServicesScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
@@ -44,7 +45,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
   List<Map<String, dynamic>> get _filteredServices {
     var list = _services;
     if (_searchQuery.isNotEmpty) {
-      list = list.where((s) => s['title'].toString().contains(_searchQuery) || s['subtitle'].toString().contains(_searchQuery)).toList();
+      list = list.where((s) => s['title'].toString().contains(_searchQuery) || s['subtitle'].toString().contains(_searchQuery) || _t(s['title'] as String).toLowerCase().contains(_searchQuery.toLowerCase()) || _t(s['subtitle'] as String).toLowerCase().contains(_searchQuery.toLowerCase())).toList();
     }
     if (_selectedCategory != 'الكل') list = list.where((s) => s['category'] == _selectedCategory).toList();
     return list;
@@ -123,7 +124,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
             const SizedBox(height: 4),
             Text(AppStrings.of(context).translate(service['subtitle'] as String), style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600])),
             const SizedBox(height: 6),
-            Text(service['category'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+            Text(_t(service['category'] as String), style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
           ])),
           Icon(isAvailable ? Icons.arrow_forward_ios : Icons.lock_outline, size: 16, color: Colors.grey[500]),
         ]),
