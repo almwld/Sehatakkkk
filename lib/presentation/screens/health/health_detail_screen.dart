@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HealthDetailScreen extends StatelessWidget {
   final String title;
@@ -18,6 +19,8 @@ class HealthDetailScreen extends StatelessWidget {
     required this.unit,
     required this.data,
   });
+
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +80,8 @@ class HealthDetailScreen extends StatelessWidget {
                             color: Colors.green.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            'طبيعي',
+                          child: Text(
+                            _t(context, 'طبيعي'),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.green,
