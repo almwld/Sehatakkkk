@@ -52,7 +52,7 @@ class ChildSectionScreen extends StatelessWidget {
       case 'sleep': text = '${_t(context, 'النوم الموصى به يعتمد على العمر: ')}${age < 3 ? '14–17' : age < 12 ? '12–16' : age < 36 ? '11–14' : '10–13'} ${_t(context, 'ساعة خلال 24 ساعة.')}'; break;
       case 'dental': text = _t(context, 'ابدأ العناية بالفم مبكراً واستخدم معجون فلورايد بكمية مناسبة للعمر وفق إرشادات طبيب الأسنان.'); break;
       case 'vaccines': text = _t(context, 'تابع بطاقة التطعيم وجدول وزارة الصحة؛ الجرعات والمواعيد تختلف حسب البرنامج الوطني وحالة الطفل.'); break;
-      case 'growth': text = 'الوزن: '+(child.weight?.toStringAsFixed(1) ?? '-')+' كجم\nالطول: '+(child.height?.toStringAsFixed(1) ?? '-')+' سم\nمحيط الرأس: '+(child.headCircumference?.toStringAsFixed(1) ?? '-')+' سم'; break;
+      case 'growth': text = '${_t(context, 'الوزن:')} ${child.weight?.toStringAsFixed(1) ?? '-'} ${_t(context, 'كجم')}\n${_t(context, 'الطول:')} ${child.height?.toStringAsFixed(1) ?? '-'} ${_t(context, 'سم')}\n${_t(context, 'محيط الرأس:')} ${child.headCircumference?.toStringAsFixed(1) ?? '-'} ${_t(context, 'سم')}'; break;
       case 'checkups': text = _t(context, 'تابع النمو والتغذية والتطور والسمع والنظر وصحة الفم ضمن الزيارات الوقائية المناسبة للعمر.'); break;
       case 'vision': text = _t(context, 'راجع الطبيب عند وجود مشكلة مستمرة في الرؤية أو السمع أو صعوبة تتبع الأشياء أو الاستجابة للأصوات.'); break;
       case 'activity': text = _t(context, 'شجّع الحركة واللعب والتفاعل المناسب للعمر وتحت إشراف آمن.'); break;
@@ -62,7 +62,7 @@ class ChildSectionScreen extends StatelessWidget {
     }
     return [
       Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(text, style: const TextStyle(height: 1.7)))),
-      const Card(child: Padding(padding: EdgeInsets.all(16), child: Text(_t(context, 'المعلومات للتثقيف والمتابعة ولا تغني عن تقييم طبيب الأطفال عند الحاجة.'), style: TextStyle(color: Colors.grey)))),
+      Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(_t(context, 'المعلومات للتثقيف والمتابعة ولا تغني عن تقييم طبيب الأطفال عند الحاجة.'), style: const TextStyle(color: Colors.grey)))),
     ];
   }
 }
