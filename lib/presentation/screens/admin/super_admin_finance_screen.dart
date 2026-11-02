@@ -120,7 +120,7 @@ class _SuperAdminFinanceScreenState extends State<SuperAdminFinanceScreen> {
           builder: (context, snapshot) {
             if (snapshot.hasError) return _errorCard(_t('تعذر تحميل المعاملات: ') + snapshot.error.toString());
             if (!snapshot.hasData) return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
-            final docs = snapshot.data!.docs;
+            final docs = snapshot.data!.docs.toList()..sort((a, b) => (_dateOf(b.data()['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0)).compareTo(_dateOf(a.data()['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0)));
             if (docs.isEmpty) return Card(color: surface, child: Padding(padding: const EdgeInsets.all(24), child: Center(child: Text(_t('لا توجد معاملات ضمن هذا العرض')))));
             return Column(children: docs.map((doc) => _transactionCard(doc, surface, textColor)).toList()),
           },
@@ -135,7 +135,7 @@ class _SuperAdminFinanceScreenState extends State<SuperAdminFinanceScreen> {
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _transactionStream() {
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('transactions');
-    if (_filter == 'pending') query = query.where('status', isEqualTo: 'pending');
+    if (_filter == 'pending') return query.where('status', isEqualTo: 'pending').limit(100).snapshots();
     return query.orderBy('createdAt', descending: true).limit(100).snapshots();
   }
 
