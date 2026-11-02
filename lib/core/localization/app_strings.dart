@@ -1135,6 +1135,7 @@ class AppStrings {
       'أضف صورة للصنف أو اكتب وصفه': ['Add an item photo or enter its description', 'Ajoutez une photo de l’article ou décrivez-le'],
       'تم إرسال طلب الصنف للصيدلية': ['Item request sent to the pharmacy', 'Demande d’article envoyée à la pharmacie'],
       'تعذر إرسال الطلب': ['Could not send the request', 'Impossible d’envoyer la demande'],
+      'فشل رفع الوصفة': ['Prescription upload failed', 'Échec du téléversement de l’ordonnance'],
       'طلب صنف مشابه': ['Request a similar item', 'Demander un article similaire'],
       'أرسل وصفة أو صورة الدواء إلى': ['Send a prescription or medicine photo to', 'Envoyez une ordonnance ou une photo du médicament à'],
       'يمكنك تصوير الوصفة، اختيار صورة، أو رفع ملف PDF.': ['You can take a prescription photo, choose an image, or upload a PDF.', 'Vous pouvez photographier l’ordonnance, choisir une image ou téléverser un PDF.'],
