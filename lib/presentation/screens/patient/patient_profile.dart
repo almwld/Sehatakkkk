@@ -76,7 +76,12 @@ class _PatientProfileState extends State<PatientProfile> {
 
   String _value(String key, [String fallback = '']) {
     final value = _userData[key];
-    return value == null || value.toString().trim().isEmpty ? fallback : value.toString();
+    if (value == null || value.toString().trim().isEmpty) return fallback;
+    final text = value.toString();
+    if (text == 'زائر' || text == 'استكشف خدمات صحتك الصحية من دون اتصال.') {
+      return AppStrings.of(context).translate(text);
+    }
+    return text;
   }
 
   int? _count(String key) {
