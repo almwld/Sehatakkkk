@@ -351,7 +351,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ? Text(
                     _nameController.text.isNotEmpty
                         ? _nameController.text[0]
-                        : 'م',
+                        : '?',
                     style: const TextStyle(
                       fontSize: 32,
                       color: AppColors.primary,
