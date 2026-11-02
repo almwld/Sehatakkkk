@@ -83,7 +83,7 @@ class AppStrings {
     const stepSuffix = ' خطوة تقريباً.';
     if (value.startsWith(stepPrefix) && value.endsWith(stepSuffix)) {
       final remaining = value.substring(stepPrefix.length, value.length - stepSuffix.length);
-      return _pick('Your daily activity is close to the goal. About $remaining steps remaining.', 'Votre activité quotidienne est proche de l’objectif. Il reste environ $remaining pas.');
+      return _pick(value, 'Your daily activity is close to the goal. About $remaining steps remaining.', 'Votre activité quotidienne est proche de l’objectif. Il reste environ $remaining pas.');
     }
     if (value.startsWith('تعذر إكمال عملية Google: ')) {
       final detail = value.substring('تعذر إكمال عملية Google: '.length);
