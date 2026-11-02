@@ -93,8 +93,8 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'معاينة',
+              Text(
+                _t('معاينة'),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -110,7 +110,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              'هذا نص تجريبي لتغيير حجم الخط',
+              _t('هذا نص تجريبي لتغيير حجم الخط'),
               style: TextStyle(
                 fontSize: 16 * _fontSize,
                 color: isDark ? Colors.white : Colors.black87,
@@ -158,7 +158,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'صغير',
+                _t('صغير'),
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -180,7 +180,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
                 ),
               ),
               Text(
-                'كبير',
+                _t('كبير'),
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
