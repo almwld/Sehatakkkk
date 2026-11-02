@@ -40,9 +40,9 @@ class ShareAppScreen extends StatelessWidget {
             child: Column(children: [
               LocalAssetIcon(AppImages.uiShareApp, color: Colors.white, size: 48),
               const SizedBox(height: 12),
-              const Text('شارك التطبيق مع أصدقائك', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(_t(context, 'شارك التطبيق مع أصدقائك'), style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text('ادعم صحتك وصحة من حولك', style: TextStyle(color: Colors.white70, fontSize: 14)),
+              Text(_t(context, 'ادعم صحتك وصحة من حولك'), style: TextStyle(color: Colors.white70, fontSize: 14)),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: () => _shareApp(context),
@@ -53,7 +53,7 @@ class ShareAppScreen extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 20),
-          const Text('شارك عبر منصات التواصل الاجتماعي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(_t(context, 'شارك عبر منصات التواصل الاجتماعي'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           GridView.builder(
             shrinkWrap: true,
