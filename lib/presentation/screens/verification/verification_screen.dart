@@ -125,8 +125,8 @@ class _VerificationScreenState extends State<VerificationScreen>{
     }
   }
 
-  Widget _field(TextEditingController c,String label,{TextInputType? type})=>Padding(padding:const EdgeInsets.only(bottom:10),child:TextField(controller:c,keyboardType:type,decoration:InputDecoration(labelText:label,border:const OutlineInputBorder())));
-  Widget _upload(String key,String title)=>Card(child:ListTile(leading:const Icon(Icons.upload_file,color:AppColors.primary),title:Text(title),subtitle:Text((_docs[key]??[]).length.toString()+' ملف مرفوع'),trailing:IconButton(onPressed:_submitting?null:()=>_pick(key),icon:const Icon(Icons.add_circle_outline))));
+  Widget _field(TextEditingController c,String label,{TextInputType? type})=>Padding(padding:const EdgeInsets.only(bottom:10),child:TextField(controller:c,keyboardType:type,decoration:InputDecoration(labelText:_t(label),border:const OutlineInputBorder())));
+  Widget _upload(String key,String title)=>Card(child:ListTile(leading:const Icon(Icons.upload_file,color:AppColors.primary),title:Text(_t(title)),subtitle:Text('${(_docs[key]??[]).length} ${_t('ملف مرفوع')}'),trailing:IconButton(onPressed:_submitting?null:()=>_pick(key),icon:const Icon(Icons.add_circle_outline))));
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -147,7 +147,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
         backgroundColor:
             dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
         appBar: CustomAppBar(
-          title: 'توثيق حساب $_roleLabel',
+          title: '${_t('توثيق حساب')} ${_t(_roleLabel)}',
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -169,10 +169,10 @@ class _VerificationScreenState extends State<VerificationScreen>{
                 ),
                 label: Text(
                   _status == 'pending'
-                      ? 'طلب التوثيق قيد المراجعة'
+                      ? _t('طلب التوثيق قيد المراجعة')
                       : _submitting
-                          ? 'جاري إرسال طلب التوثيق...'
-                          : 'إرسال طلب التوثيق والتحقق من المستندات',
+                          ? _t('جاري إرسال طلب التوثيق...')
+                          : _t('إرسال طلب التوثيق والتحقق من المستندات'),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -195,10 +195,10 @@ class _VerificationScreenState extends State<VerificationScreen>{
                     children: [
                       Text(
                         _verified
-                            ? 'الحساب موثق'
+                            ? _t('الحساب موثق')
                             : _status == 'pending'
-                                ? 'الطلب قيد المراجعة'
-                                : 'يجب توثيق حسابك',
+                                ? _t('الطلب قيد المراجعة')
+                                : _t('يجب توثيق حسابك'),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -207,10 +207,10 @@ class _VerificationScreenState extends State<VerificationScreen>{
                       const SizedBox(height: 8),
                       Text(
                         _verified
-                            ? 'تم اعتماد حسابك ويمكنك استخدام ميزات دورك.'
+                            ? _t('تم اعتماد حسابك ويمكنك استخدام ميزات دورك.')
                             : _status == 'pending'
-                                ? 'تم إرسال ملفك إلى المشرف وستصلك النتيجة عبر الإشعارات.'
-                                : 'لاستخدام ميزات $_roleLabel يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.',
+                                ? _t('تم إرسال ملفك إلى المشرف وستصلك النتيجة عبر الإشعارات.')
+                                : '${_t('لاستخدام ميزات الحساب المهني يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.')} ${_t(_roleLabel)}',
                       ),
                     ],
                   ),
@@ -229,7 +229,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
                   alignment: AlignmentDirectional.centerStart,
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 6),
-                    child: Text('• $x'),
+                    child: Text('• ${_t(x)}'),
                   ),
                 ),
               ),
