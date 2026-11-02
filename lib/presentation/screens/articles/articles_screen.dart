@@ -497,7 +497,7 @@ class ArticleReaderScreen extends StatelessWidget {
                   child: Text(
                     article.authorName?.trim().isNotEmpty == true
                         ? article.authorName!
-                        : 'فريق صحتك',
+                        : AppStrings.of(context).translate('فريق صحتك'),
                     style: TextStyle(color: body.withOpacity(.65), fontSize: 12),
                   ),
                 ),
