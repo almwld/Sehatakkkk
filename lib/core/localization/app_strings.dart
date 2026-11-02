@@ -2616,6 +2616,7 @@ class AppStrings {
       'الجرعة:': ['Dosage:', 'Posologie :'],
       'المدة:': ['Duration:', 'Durée :'],
       'متبقي ': ['Remaining ', 'Restant '],
+
     };
     final entry = translations[value];
     if (entry == null) return value;
