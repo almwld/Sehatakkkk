@@ -45,12 +45,12 @@ class _MessageBubbleState extends State<MessageBubble> {
   bool _isLocal(String path) => widget.message['isLocal'] == true || widget.message['isUploading'] == true || path.startsWith('file://') || (path.isNotEmpty && !path.startsWith('http') && File(path).existsSync());
 
   String _formatMessageTime(dynamic value) {
-    if (value == null) return 'غير متوفر';
+    if (value == null) return _t('غير متوفر');
     DateTime? date;
     if (value is Timestamp) date = value.toDate();
     if (value is DateTime) date = value;
     if (value is String) date = DateTime.tryParse(value);
-    if (date == null) return 'غير متوفر';
+    if (date == null) return _t('غير متوفر');
     final local = date.toLocal();
     final hh = local.hour.toString().padLeft(2, '0');
     final mm = local.minute.toString().padLeft(2, '0');
@@ -72,9 +72,9 @@ class _MessageBubbleState extends State<MessageBubble> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(AppStrings.of(context).translate('معلومات الرسالة'), textAlign: TextAlign.right, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(AppStrings.of(context).translate('معلومات الرسالة'), textAlign: TextAlign.start, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
-              if (m['isEdited'] == true) _infoRow(Icons.edit_outlined, 'الحالة', 'تم تعديل الرسالة'),
+              if (m['isEdited'] == true) _infoRow(Icons.edit_outlined, _t('الحالة'), _t('تم تعديل الرسالة')),
             ],
           ),
         ),
@@ -281,7 +281,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
 
   Widget _replyPreview(Map preview, bool dark) {
-    final sender = preview['senderName']?.toString().trim() ?? 'مستخدم';
+    final sender = preview['senderName']?.toString().trim().isNotEmpty == true ? preview['senderName'].toString().trim() : _t('مستخدم');
     final rawText =
         preview['text'] ?? preview['content'] ?? preview['message'] ?? preview['body'];
     final text = rawText?.toString().trim().isNotEmpty == true
@@ -333,13 +333,13 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   String _replyAttachmentPreview(Map preview) {
     switch (preview['type']?.toString()) {
-      case 'image': return '📷 صورة';
-      case 'video': return '🎬 فيديو';
-      case 'audio': return '🎤 رسالة صوتية';
-      case 'file': return '📎 ملف';
-      case 'location': return '📍 موقع';
-      case 'call': return '📞 مكالمة';
-      default: return 'مرفق';
+      case 'image': return '📷 ${_t('صورة')}';
+      case 'video': return '🎬 ${_t('فيديو')}';
+      case 'audio': return '🎤 ${_t('رسالة صوتية')}';
+      case 'file': return '📎 ${_t('ملف')}';
+      case 'location': return '📍 ${_t('موقع')}';
+      case 'call': return '📞 ${_t('مكالمة')}';
+      default: return _t('مرفق');
     }
   }
 
