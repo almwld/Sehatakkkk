@@ -62,7 +62,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                           Icon(Icons.bloodtype, size: 48, color: Colors.white),
                           SizedBox(height: 8),
                           Text(
-                            'تبرع بالدم .. أنقذ حياة',
+                            _t('تبرع بالدم .. أنقذ حياة'),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,
