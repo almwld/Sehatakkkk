@@ -1871,6 +1871,8 @@ class AppStrings {
       'للتواصل معك بخصوص المشكلة': ['So we can contact you about the issue', 'Pour que nous puissions vous contacter au sujet du problème'],
       'إرسال التقرير': ['Submit report', 'Envoyer le rapport'],
       'توثيق حساب': ['Verify account', 'Vérifier le compte'],
+      'لاستخدام ميزات': ['To use the features available to', 'Pour utiliser les fonctionnalités accessibles à'],
+      'يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.': ['you must complete verification and attach the required qualifications and documents.', 'vous devez terminer la vérification et joindre les qualifications et documents requis.'],
       'لاستخدام ميزات الحساب المهني يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.': ['To use professional account features, complete verification and attach the required qualifications and documents.', 'Pour utiliser les fonctionnalités du compte professionnel, terminez la vérification et joignez les qualifications et documents requis.'],
       'ملف مرفوع': ['file uploaded', 'fichier téléversé'],
       'طبيب': ['Doctor', 'Médecin'],
