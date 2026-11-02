@@ -45,6 +45,7 @@ class HomeServicesScreen extends StatelessWidget {
   }
 
   Widget _buildServiceCard(Map<String, dynamic> service, bool isDark, BuildContext context) {
+    final strings = AppStrings.of(context);
     final color = service['color'] as Color;
 
     return GestureDetector(
