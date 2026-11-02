@@ -3422,6 +3422,21 @@ class AppStrings {
       'الصدمة الكهربائية': ['Electric shock', 'Électrocution'],
       'افصل التيار، لا تلمس المصاب بيديك العاريتين، اتصل بالطوارئ': ['Disconnect the power. Do not touch the person with bare hands. Call emergency services.', 'Coupez le courant. Ne touchez pas la personne à mains nues. Appelez les services d’urgence.'],
       'مستشفيات الأسنان والطوارئ': ['Dental hospitals and emergency care', 'Centres dentaires et urgences'],
+      'إعدادات الدردشة': ['Chat settings', 'Paramètres de discussion'],
+      'المظهر': ['Appearance', 'Apparence'],
+      'الوضع المظلم': ['Dark mode', 'Mode sombre'],
+      'تفعيل الوضع المظلم في الدردشة': ['Enable dark mode in chat', 'Activer le mode sombre dans la discussion'],
+      'بكسل': ['px', 'px'],
+      'تفعيل إشعارات الدردشة': ['Enable chat notifications', 'Activer les notifications de discussion'],
+      'تفعيل الاهتزاز مع الإشعارات': ['Enable vibration for notifications', 'Activer la vibration pour les notifications'],
+      'البيانات': ['Data', 'Données'],
+      'حذف جميع المحادثات': ['Delete all conversations', 'Supprimer toutes les conversations'],
+      'حذف جميع المحادثات نهائياً': ['Permanently delete all conversations', 'Supprimer définitivement toutes les conversations'],
+      'هل أنت متأكد من حذف جميع المحادثات؟ هذا الإجراء لا يمكن التراجع عنه.': ['Are you sure you want to delete all conversations? This action cannot be undone.', 'Voulez-vous vraiment supprimer toutes les conversations ? Cette action est irréversible.'],
+      'حذف الكل': ['Delete all', 'Tout supprimer'],
+      'تم حفظ الإعدادات': ['Settings saved', 'Paramètres enregistrés'],
+      'تعذر حفظ إعدادات الدردشة': ['Could not save chat settings', 'Impossible d’enregistrer les paramètres de discussion'],
+      'تم حذف جميع المحادثات': ['All conversations deleted', 'Toutes les conversations ont été supprimées'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
