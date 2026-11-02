@@ -2617,6 +2617,21 @@ class AppStrings {
       'المدة:': ['Duration:', 'Durée :'],
       'متبقي ': ['Remaining ', 'Restant '],
 
+      'حدد منطقتك من الإعدادات لعرض شركات التوصيل المتاحة': ['Set your area in Settings to see available delivery companies', 'Définissez votre zone dans les paramètres pour voir les sociétés de livraison disponibles'],
+      'لا توجد شركات توصيل متاحة في': ['No delivery companies are available in', 'Aucune société de livraison n’est disponible à'],
+      'تحديد منطقتي': ['Set my area', 'Définir ma zone'],
+      'المنطقة:': ['Area:', 'Zone :'],
+      'تأكيد التوصيل': ['Confirm delivery', 'Confirmer la livraison'],
+      'لم يتم تحديد عنوان التوصيل': ['No delivery address has been set', 'Aucune adresse de livraison n’a été définie'],
+      'معلومات التوصيل الصحي': ['Health delivery information', 'Informations sur la livraison de produits de santé'],
+      'عنوان التسليم': ['Delivery address', 'Adresse de livraison'],
+      'رقم التواصل': ['Contact number', 'Numéro de contact'],
+      'أضف رقم التواصل من إعدادات الحساب': ['Add a contact number in your account settings', 'Ajoutez un numéro de contact dans les paramètres de votre compte'],
+      'تعليمات صحية مهمة': ['Important health instructions', 'Consignes sanitaires importantes'],
+      'عند توصيل الأدوية، اذكر للمندوب أي تعليمات خاصة بالحفظ أو التسليم. الأدوية الحساسة للحرارة تُحفظ وتُنقل وفق تعليمات الصيدلية.': ['When medicines are delivered, tell the courier about any special storage or delivery instructions. Temperature-sensitive medicines must be stored and transported according to the pharmacy’s instructions.', 'Lors de la livraison de médicaments, informez le livreur de toute consigne particulière de conservation ou de remise. Les médicaments sensibles à la chaleur doivent être conservés et transportés selon les instructions de la pharmacie.'],
+      'سلامة التسليم': ['Delivery safety', 'Sécurité de la livraison'],
+      'تحقق من اسم المستلم والطلب قبل الاستلام، ولا تستلم دواءً بعبوة تالفة أو غير مطابقة للطلب.': ['Check the recipient’s name and the order before accepting it. Do not accept medicine with damaged packaging or that does not match the order.', 'Vérifiez le nom du destinataire et la commande avant réception. N’acceptez pas un médicament dont l’emballage est endommagé ou qui ne correspond pas à la commande.'],
+      'تحديث عنوان التوصيل': ['Update delivery address', 'Mettre à jour l’adresse de livraison'],
     };
     final entry = translations[value];
     if (entry == null) return value;
