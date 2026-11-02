@@ -1776,6 +1776,11 @@ class AppStrings {
       'الهاتف:': ['Phone:', 'Téléphone :'],
       'لا توجد سجلات طبية': ['No medical records', 'Aucun dossier médical'],
       'ملفي الصحي - صحتك': ['My health profile - Sehatak', 'Mon profil de santé - Sehatak'],
+      'أهلاً بك. اكتب سؤالك كما تتحدث عادةً، بالفصحى أو باللهجة اليمنية، وسأفهم المقصود وأوجّهك إلى المعلومة أو الشاشة المناسبة.': ['Welcome. Ask your question naturally, and I will help direct you to the relevant information or screen.', 'Bienvenue. Posez votre question naturellement et je vous orienterai vers les informations ou l’écran approprié.'],
+      'اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.': ['Tell me what you want to do or which symptoms you are experiencing, and I will guide you step by step.', 'Dites-moi ce que vous souhaitez faire ou quels symptômes vous ressentez, et je vous guiderai étape par étape.'],
+      'داخل صحتك': ['In Sehatak', 'Dans Sehatak'],
+      'اختر الخدمة المناسبة من الأزرار أسفل الرد.': ['Choose the relevant service using the buttons below the reply.', 'Choisissez le service approprié à l’aide des boutons sous la réponse.'],
+      'اكتب لي التفاصيل التي تعرفها: مكان المشكلة، متى بدأت، شدتها، والأعراض المصاحبة. ويمكنك الكتابة بالفصحى أو باللهجة اليمنية أو بأي أسلوب طبيعي، وسأرتب المعلومات وأتابع معك خطوة بخطوة.': ['Share the details you know: where the problem is, when it started, how severe it is, and any accompanying symptoms. I will organize the information and guide you step by step.', 'Indiquez les détails connus : localisation du problème, date de début, intensité et symptômes associés. Je structurerai les informations et vous accompagnerai étape par étape.']
       'الاسم': ['Name', 'Nom'],
       'البريد': ['Email', 'E-mail'],
       'فصيلة الدم': ['Blood type', 'Groupe sanguin'],
