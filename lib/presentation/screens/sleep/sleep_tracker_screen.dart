@@ -195,7 +195,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [Icon(Icons.analytics_outlined, size: 20, color: AppColors.primary), const SizedBox(width: 8), Expanded(child: Text(_t(title), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)))]),
       const SizedBox(height: 4),
-      Text(subtitle, style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black45)),
+      Text(_t(subtitle), style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black45)),
       const SizedBox(height: 12), child,
     ]),
   );
