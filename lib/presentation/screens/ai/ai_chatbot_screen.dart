@@ -20,14 +20,15 @@ class AiChatbotScreen extends StatefulWidget {
 class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProviderStateMixin {
   String _t(String value) => AppStrings.of(context).translate(value);
   final _controller=TextEditingController(); final _scroll=ScrollController(); final _bot=ChatBot();
-  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; bool _llmReady=false; bool _llmDownloading=false; double _llmProgress=0; late final AnimationController _typingController; final LocalDialogueState _dialogue=LocalDialogueState(); final _llm=LocalLlmService.instance;
+  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; bool _llmReady=false; bool _llmDownloading=false; double _llmProgress=0; late final AnimationController _typingController; final LocalDialogueState _dialogue=LocalDialogueState(); final _llm=LocalLlmService.instance; bool _welcomeAdded=false;
   static const _quick=<Map<String,String>>[
     {'title':'أعراضي','prompt':'اشعر ب حمى وعندي غثيان'},{'title':'طبيب','prompt':'أريد طبيباً مناسباً'},
     {'title':'دواء','prompt':'أريد معلومات عن دواء'},{'title':'تحاليل','prompt':'أين أجد التحاليل؟'},
     {'title':'خدمات التطبيق','prompt':'عرفني بخدمات صحتك'},{'title':'مساعدة','prompt':'أحتاج مساعدة من داخل التطبيق'},
   ];
 
-  @override void initState(){super.initState();_dialogue.load();_refreshLlmStatus();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();_messages.add({'text':'مرحباً 👋\nأنا مساعدك الصحي داخل «صحتك». افهم كلامك حتى لو كتبته بالعامية مثل: «اشعر ب حمى»، «عندي غثيان»، «راسي يوجعني» أو «نفسي ضيق».\n\nوأقدر أيضاً أشرح لك أين تجد الأطباء والصيدلية والمختبرات والاستشارات وباقي خدمات التطبيق.','user':false,'time':DateTime.now()});}
+  @override void initState(){super.initState();_dialogue.load();_refreshLlmStatus();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
+  @override void didChangeDependencies(){super.didChangeDependencies();if(_welcomeAdded)return;_messages.add({'text':'${_t('مرحباً 👋')}\n${_t('المساعد الصحي الذكي')} — ${_t('كيف أساعدك اليوم؟')}','user':false,'time':DateTime.now()});_welcomeAdded=true;}
   @override void dispose(){_typingController.dispose();_controller.dispose();_scroll.dispose();super.dispose();}
 
   Future<void> _refreshLlmStatus() async { try { final status=await _llm.status(); if(mounted)setState((){_llmReady=status['ready']==true;}); } catch (_) {} }
