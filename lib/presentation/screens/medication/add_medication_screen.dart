@@ -206,8 +206,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'أوقات الجرعات',
+                  Text(
+                    _t('أوقات الجرعات'),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
