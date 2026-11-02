@@ -33,13 +33,13 @@ class _RateAppScreenState extends State<RateAppScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'قيم التطبيق',
+              Text(
+                _t('قيم التطبيق'),
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'ساعدنا في تحسين التطبيق بتقييمك',
+              Text(
+                _t('ساعدنا في تحسين التطبيق بتقييمك'),
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 24),
