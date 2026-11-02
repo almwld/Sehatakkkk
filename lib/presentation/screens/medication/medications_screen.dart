@@ -308,7 +308,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
-          label,
+          AppStrings.of(context).translate(label),
           style: TextStyle(
             fontSize: 10,
             color: selected ? Colors.white : AppColors.darkGrey,
