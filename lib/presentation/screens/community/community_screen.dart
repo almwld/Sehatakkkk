@@ -333,7 +333,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                         child: Padding(
                           padding: EdgeInsets.only(top: 10),
                           child: Text(
-                            'مجتمع صحتك',
+                            AppStrings.of(context).translate('مجتمع صحتك'),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 19,
