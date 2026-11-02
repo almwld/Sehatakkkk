@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
@@ -10,19 +11,21 @@ class ReportIssueScreen extends StatefulWidget {
 }
 
 class _ReportIssueScreenState extends State<ReportIssueScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  String _selectedCategory = 'مشكلة تقنية';
+  String _selectedCategory = _t('مشكلة تقنية');
   bool _isLoading = false;
 
   final List<String> _categories = [
-    'مشكلة تقنية',
-    'خطأ في البيانات',
-    'مشكلة في الدفع',
-    'اقتراح تحسين',
-    'شكوى عامة',
-    'أخرى',
+    _t('مشكلة تقنية'),
+    _t('خطأ في البيانات'),
+    _t('مشكلة في الدفع'),
+    _t('اقتراح تحسين'),
+    _t('شكوى عامة'),
+    _t('أخرى'),
   ];
 
   @override
@@ -39,12 +42,12 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     final email = _emailController.text.trim();
 
     if (title.isEmpty) {
-      ToastService.showError('يرجى إدخال عنوان للمشكلة');
+      ToastService.showError(_t('يرجى إدخال عنوان للمشكلة'));
       return;
     }
 
     if (description.isEmpty) {
-      ToastService.showError('يرجى وصف المشكلة بالتفصيل');
+      ToastService.showError(_t('يرجى وصف المشكلة بالتفصيل'));
       return;
     }
 
@@ -75,7 +78,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الإبلاغ عن مشكلة'),
+        title: Text(_t('الإبلاغ عن مشكلة')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -131,7 +134,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                 }
               },
               decoration: const InputDecoration(
-                labelText: 'تصنيف المشكلة',
+                labelText: _t('تصنيف المشكلة'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -144,8 +147,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               controller: _titleController,
               enabled: !_isLoading,
               decoration: const InputDecoration(
-                labelText: 'عنوان المشكلة',
-                hintText: 'مثال: تعذر تسجيل الدخول',
+                labelText: _t('عنوان المشكلة'),
+                hintText: _t('مثال: تعذر تسجيل الدخول'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -159,8 +162,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               maxLines: 6,
               enabled: !_isLoading,
               decoration: const InputDecoration(
-                labelText: 'وصف المشكلة بالتفصيل',
-                hintText: 'يرجى وصف المشكلة بالتفصيل مع ذكر خطوات حدوثها...',
+                labelText: _t('وصف المشكلة بالتفصيل'),
+                hintText: _t('يرجى وصف المشكلة بالتفصيل مع ذكر خطوات حدوثها...'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -178,8 +181,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               enabled: !_isLoading,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
-                labelText: 'البريد الإلكتروني (اختياري)',
-                hintText: 'للتواصل معك بخصوص المشكلة',
+                labelText: _t('البريد الإلكتروني (اختياري)'),
+                hintText: _t('للتواصل معك بخصوص المشكلة'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
