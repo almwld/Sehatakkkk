@@ -2181,8 +2181,6 @@ class AppStrings {
       'رقم الإشعار': ['Reference number', 'Numéro de référence'],
       'المحفظة المستخدمة': ['Wallet used', 'Portefeuille utilisé'],
       'العودة للرئيسية': ['Back to home', 'Retour à l’accueil'],
-    };
-
       'معلومات الطلب': ['Order information', 'Informations sur la commande'],
       'المحفظة الرقمية': ['Digital wallet', 'Portefeuille numérique'],
       'طريقة التوصيل': ['Delivery method', 'Mode de livraison'],
