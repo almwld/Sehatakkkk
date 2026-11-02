@@ -58,7 +58,7 @@ class WomensHealthScreen extends StatelessWidget {
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
           children: [
-            _hero(),
+            _hero(context),
             const SizedBox(height: 16),
             _title(context, 'الخدمات الصحية'),
             const SizedBox(height: 8),
@@ -79,13 +79,13 @@ class WomensHealthScreen extends StatelessWidget {
     );
   }
 
-  Widget _hero() => Container(
+  Widget _hero(BuildContext context) => Container(
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
           gradient: LinearGradient(colors: [_rose, _lavender]),
           borderRadius: BorderRadius.all(Radius.circular(26)),
         ),
-        child: const Row(children: [
+        child: Row(children: [
           CircleAvatar(radius: 31, backgroundColor: Colors.white24, child: Icon(Icons.female_rounded, color: Colors.white, size: 34)),
           SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
