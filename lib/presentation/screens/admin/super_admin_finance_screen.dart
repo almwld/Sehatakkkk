@@ -87,6 +87,8 @@ class _SuperAdminFinanceScreenState extends State<SuperAdminFinanceScreen> {
                   ]),
                   const SizedBox(height: 10),
                   Text(_money(balance), style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 5),
+                  Text(_t('الرصيد المحاسبي المسجل منذ بدء التتبع؛ لا يشمل الرصيد الافتتاحي السابق.'), style: const TextStyle(color: Colors.white70, fontSize: 11)),
                   const SizedBox(height: 10),
                   Wrap(spacing: 16, runSpacing: 6, children: [
                     Text(_t('إجمالي الإيداعات: ') + _money(_number(data['totalDeposits'])), style: const TextStyle(color: Colors.white)),
