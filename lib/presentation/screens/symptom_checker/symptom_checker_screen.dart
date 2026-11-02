@@ -25,7 +25,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
     'تعب',
     'ألم عضلي',
     'احتقان أنف',
-    'تهاب الحلق',
+    'التهاب الحلق',
     'فقدان حاسة الشم',
     'فقدان حاسة التذوق',
     'إسهال',
