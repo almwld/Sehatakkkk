@@ -3013,6 +3013,16 @@ class AppStrings {
 
       'تطبيق صحتك - منصة الرعاية الصحية الشاملة': ['Sehatak — the comprehensive healthcare platform', 'Sehatak — la plateforme complète de soins de santé'],
       'حمل التطبيق الآن واستفد من الخدمات الصحية المتكاملة': ['Download the app now and access integrated healthcare services', 'Téléchargez l’application et profitez de services de santé intégrés'],
+      'مخصص': ['Custom', 'Personnalisé'],
+      'لا توجد بيانات': ['No data available', 'Aucune donnée disponible'],
+      'عمولة المنصة': ['Platform commission', 'Commission de la plateforme'],
+      'صافي المقدمين': ['Provider net revenue', 'Revenu net des prestataires'],
+      'عدد المعاملات': ['Number of transactions', 'Nombre de transactions'],
+      'ملغية': ['Cancelled', 'Annulées'],
+      'إجمالي المستخدمين': ['Total users', 'Nombre total d’utilisateurs'],
+      'تخصيص التقارير قيد التطوير': ['Custom reports are under development', 'Les rapports personnalisés sont en cours de développement'],
+      'بيطري': ['Veterinarian', 'Vétérinaire'],
+      'جاري تصدير التقرير...': ['Exporting report...', 'Exportation du rapport…'],
     };
     final entry = translations[value];
     if (entry == null) return value;
