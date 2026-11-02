@@ -4,6 +4,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -16,6 +17,7 @@ class HealthTipsScreen extends StatefulWidget {
 }
 
 class _HealthTipsScreenState extends State<HealthTipsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   String _selectedCategory = 'تغذية';
 
   final Map<String, List<String>> _tips = {
