@@ -133,6 +133,7 @@ class AppStrings {
       'الهاتف: ': ['Phone: ', 'Téléphone : '],
       'المالية': ['Finance', 'Finances'],
       'المحفظة الرئيسية للمنصة': ['Platform main wallet', 'Portefeuille principal de la plateforme'],
+      'الرصيد المحاسبي المسجل منذ بدء التتبع؛ لا يشمل الرصيد الافتتاحي السابق.': ['Accounting balance recorded since tracking began; excludes the prior opening balance.', 'Solde comptable enregistré depuis le début du suivi ; le solde d’ouverture antérieur est exclu.'],
       'إجمالي الإيداعات: ': ['Total deposits: ', 'Total des dépôts : '],
       'إجمالي السحوبات: ': ['Total withdrawals: ', 'Total des retraits : '],
       'الاستردادات: ': ['Refunds: ', 'Remboursements : '],
