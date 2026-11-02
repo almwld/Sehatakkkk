@@ -1929,6 +1929,12 @@ class AppStrings {
       'البريد:': ['Email:', 'E-mail :'],
       'الهاتف:': ['Phone:', 'Téléphone :'],
       'لا توجد سجلات طبية': ['No medical records', 'Aucun dossier médical'],
+      'ملفي الصحي - صحتك': ['My health profile - Sehatak', 'Mon profil de santé - Sehatak'],
+      'الاسم': ['Name', 'Nom'],
+      'البريد': ['Email', 'E-mail'],
+      'الهاتف': ['Phone', 'Téléphone'],
+      'فصيلة الدم': ['Blood type', 'Groupe sanguin'],
+      'رقم المريض': ['Patient number', 'Numéro de patient']
       'توثيق حساب': ['Verify account', 'Vérifier le compte'],
       'لاستخدام ميزات': ['To use the features available to', 'Pour utiliser les fonctionnalités accessibles à'],
       'يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.': ['you must complete verification and attach the required qualifications and documents.', 'vous devez terminer la vérification et joindre les qualifications et documents requis.'],
