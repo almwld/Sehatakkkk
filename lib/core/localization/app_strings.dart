@@ -2564,6 +2564,7 @@ class AppStrings {
       'وقت القياس': ['Measurement time', 'Durée de mesure'],
       'ثانية': ['seconds', 'secondes'],
       'نتائج القياس تقديرية ولا تغني عن جهاز طبي معتمد أو تقييم مختص.': ['These readings are estimates and do not replace a certified medical device or professional assessment.', 'Ces mesures sont indicatives et ne remplacent pas un dispositif médical certifié ni l’évaluation d’un professionnel.'],
+
     };
     final entry = translations[value];
     if (entry == null) return value;
