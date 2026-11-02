@@ -2318,6 +2318,18 @@ class AppStrings {
       'د. أحمد المؤيد': ['Dr. Ahmed Al-Muayyad', 'Dr Ahmed Al-Muayyad'],
       'د. خالد النخلاني': ['Dr. Khaled Al-Nakhlani', 'Dr Khaled Al-Nakhlani'],
       'د. أسماء الهندي': ['Dr. Asmaa Al-Hindi', 'Dr Asmaa Al-Hindi'],
+      'نقص وزن': ['Underweight', 'Insuffisance pondérale'],
+      'وزن طبيعي': ['Normal weight', 'Poids normal'],
+      'زيادة وزن': ['Overweight', 'Surpoids'],
+      'سمنة': ['Obesity', 'Obésité'],
+      'حاسبة BMI': ['BMI Calculator', 'Calculateur d’IMC'],
+      'ذكر': ['Male', 'Homme'],
+      'أنثى': ['Female', 'Femme'],
+      'مؤشر كتلة الجسم': ['Body Mass Index', 'Indice de masse corporelle'],
+      'الوزن المثالي:': ['Ideal weight:', 'Poids idéal :'],
+      'الطول (سم)': ['Height (cm)', 'Taille (cm)'],
+      'الوزن (كجم)': ['Weight (kg)', 'Poids (kg)'],
+      'العمر': ['Age', 'Âge'],
     };
     final entry = translations[value];
     if (entry == null) return value;
