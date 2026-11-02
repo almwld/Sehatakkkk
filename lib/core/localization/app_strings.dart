@@ -3421,6 +3421,7 @@ class AppStrings {
       'اتصل بالطوارئ فوراً، لا تحاول إحداث التقيؤ إلا بإرشاد طبي': ['Call emergency services immediately. Do not induce vomiting unless instructed by a medical professional.', 'Appelez immédiatement les services d’urgence. Ne provoquez pas de vomissement sauf sur instruction d’un professionnel de santé.'],
       'الصدمة الكهربائية': ['Electric shock', 'Électrocution'],
       'افصل التيار، لا تلمس المصاب بيديك العاريتين، اتصل بالطوارئ': ['Disconnect the power. Do not touch the person with bare hands. Call emergency services.', 'Coupez le courant. Ne touchez pas la personne à mains nues. Appelez les services d’urgence.'],
+      'مستشفيات الأسنان والطوارئ': ['Dental hospitals and emergency care', 'Centres dentaires et urgences'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
