@@ -2,6 +2,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class PulseOximeterScreen extends StatefulWidget {
   const PulseOximeterScreen({super.key});
@@ -11,6 +12,8 @@ class PulseOximeterScreen extends StatefulWidget {
 }
 
 class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   bool _isMeasuring = false;
   double _oxygenLevel = 0.0;
   double _heartRate = 0.0;
@@ -80,7 +83,7 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'فحص البلاس (Pulse Oximeter)',
+        title: _t(context, 'فحص البلاس (Pulse Oximeter)'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -112,7 +115,7 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'قم بوضع إصبعك على الكاميرا',
+                              _t(context, 'قم بوضع إصبعك على الكاميرا'),
                               style: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 14,
@@ -151,7 +154,7 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              'جاري القياس... $_progress%',
+                              '${_t(context, 'جاري القياس...')} $_progress%',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -159,8 +162,8 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
                             ),
                           ],
                         )
-                      : const Text(
-                          'بدء الفحص',
+                      : Text(
+                          _t(context, 'بدء الفحص'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -212,8 +215,8 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
                               color: _oxygenLevel >= 95 ? Colors.green : Colors.orange,
                             ),
                           ),
-                          const Text(
-                            'نسبة الأكسجين',
+                          Text(
+                            _t(context, 'نسبة الأكسجين'),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
@@ -247,8 +250,8 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
                                   : Colors.orange,
                             ),
                           ),
-                          const Text(
-                            'نبضة/دقيقة',
+                          Text(
+                            _t(context, 'نبضة/دقيقة'),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
@@ -294,8 +297,8 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
                           children: [
                             Text(
                               _oxygenLevel >= 95 && _heartRate >= 60 && _heartRate <= 100
-                                  ? '✅ الحالة ممتازة'
-                                  : '⚠️ استشر الطبيب',
+                                  ? _t(context, 'الحالة ممتازة')
+                                  : _t(context, 'استشر الطبيب'),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -306,8 +309,8 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
                             ),
                             Text(
                               _oxygenLevel >= 95 && _heartRate >= 60 && _heartRate <= 100
-                                  ? 'مستوى الأكسجين والنبض طبيعيان'
-                                  : 'يوجد ارتفاع أو انخفاض في المؤشرات',
+                                  ? _t(context, 'مستوى الأكسجين والنبض طبيعيان')
+                                  : _t(context, 'يوجد ارتفاع أو انخفاض في المؤشرات'),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -331,17 +334,17 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '💡 معلومات مهمة',
+                      Text(
+                        _t(context, 'معلومات مهمة'),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _buildInfoRow('الأكسجين الطبيعي', '95% - 100%'),
-                      _buildInfoRow('نبضات القلب الطبيعي', '60 - 100 نبضة/دقيقة'),
-                      _buildInfoRow('وقت القياس', '30 - 60 ثانية'),
+                      _buildInfoRow(context, 'الأكسجين الطبيعي', '95% - 100%'),
+                      _buildInfoRow(context, 'نبضات القلب الطبيعي', '60 - 100 ${_t(context, 'نبضة/دقيقة')}'),
+                      _buildInfoRow(context, 'وقت القياس', '30 - 60 ${_t(context, 'ثانية')}'),
                     ],
                   ),
                 ),
@@ -353,14 +356,14 @@ class _PulseOximeterScreenState extends State<PulseOximeterScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            label,
+            _t(context, label),
             style: const TextStyle(fontSize: 13),
           ),
           Text(
