@@ -194,7 +194,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
           ElevatedButton(
             onPressed: () async {
               if (_topicCtrl.text.isEmpty) {
-                ToastService.showError(context, 'يرجى إدخال العنوان');
+                ToastService.showError(context, AppStrings.of(context).translate('يرجى إدخال العنوان'));
                 return;
               }
               final user = _auth.currentUser;
