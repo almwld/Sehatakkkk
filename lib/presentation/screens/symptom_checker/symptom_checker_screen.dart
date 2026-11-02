@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class SymptomCheckerScreen extends StatefulWidget {
   const SymptomCheckerScreen({super.key});
@@ -12,6 +13,7 @@ class SymptomCheckerScreen extends StatefulWidget {
 }
 
 class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final List<String> _commonSymptoms = [
     'صداع',
     'حمى',
@@ -58,7 +60,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('فحص الأعراض 🩺'),
+        title: Text(_t('فحص الأعراض 🩺')), 
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -71,7 +73,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
                   _selectedSymptoms.clear();
                   _symptomSeverity.clear();
                 });
-                ToastService.showSuccess('✅ تم مسح جميع الأعراض');
+                ToastService.showSuccess('✅ ${_t('تم مسح جميع الأعراض')}');
               },
             ),
         ],
@@ -83,7 +85,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
           children: [
             // ✅ العناوين
             Text(
-              'اختر منطقة الجسم',
+              _t('اختر منطقة الجسم'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -125,7 +127,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            part['name'],
+                            _t(part['name'] as String),
                             style: TextStyle(
                               color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black87),
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -142,7 +144,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
             const SizedBox(height: 20),
             // ✅ الأعراض الشائعة
             Text(
-              'الأعراض الشائعة',
+              _t('الأعراض الشائعة'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -151,7 +153,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'اختر الأعراض التي تشعر بها',
+              _t('اختر الأعراض التي تشعر بها'),
               style: TextStyle(
                 fontSize: 13,
                 color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -164,7 +166,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
               children: _commonSymptoms.map((symptom) {
                 final isSelected = _selectedSymptoms.contains(symptom);
                 return FilterChip(
-                  label: Text(symptom),
+                  label: Text(_t(symptom)), 
                   selected: isSelected,
                   onSelected: (selected) {
                     setState(() {
@@ -189,7 +191,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
             if (_selectedSymptoms.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text(
-                'شدة الأعراض',
+                _t('شدة الأعراض'),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -213,7 +215,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        symptom,
+                        _t(symptom),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -242,7 +244,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    severity['label'] as String,
+                                    _t(severity['label'] as String),
                                     style: TextStyle(
                                       color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
                                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -274,8 +276,8 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'تحليل الأعراض',
+                  child: Text(
+                    _t('تحليل الأعراض'),
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -300,7 +302,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
                       const Icon(Icons.lightbulb, color: Colors.amber),
                       const SizedBox(width: 8),
                       Text(
-                        'نصائح سريعة',
+                        _t('نصائح سريعة'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -319,7 +321,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
                           const Text('• ', style: TextStyle(fontSize: 14)),
                           Expanded(
                             child: Text(
-                              tip,
+                              _t(tip),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
@@ -383,7 +385,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
           children: [
             Icon(Icons.analytics, color: color),
             const SizedBox(width: 8),
-            Text(result),
+            Text(_t(result)), 
           ],
         ),
         content: Column(
@@ -391,14 +393,14 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              advice,
+              _t(advice),
               style: const TextStyle(fontSize: 15, height: 1.5),
             ),
             const SizedBox(height: 12),
             const Divider(),
             const SizedBox(height: 8),
             Text(
-              'الأعراض المحددة: ${_selectedSymptoms.join('، ')}',
+              '${_t('الأعراض المحددة: ')}${_selectedSymptoms.map(_t).join(', ')}',
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade600,
@@ -409,27 +411,27 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+            child: Text(_t('إغلاق')), 
           ),
           ElevatedButton(
             onPressed: _savingReport ? null : () async {
               final user = FirebaseAuth.instance.currentUser;
-              if (user == null) { ToastService.showError('يرجى تسجيل الدخول لحفظ التقرير'); return; }
+              if (user == null) { ToastService.showError(_t('يرجى تسجيل الدخول لحفظ التقرير')); return; }
               setState(() => _savingReport = true);
               try {
                 await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('symptom_checks').add({
                   'symptoms': _selectedSymptoms.toList(), 'result': result, 'advice': advice,
                   'severityCount': severityCount, 'createdAt': FieldValue.serverTimestamp(),
                 });
-                if (mounted) { Navigator.pop(context); ToastService.showSuccess('تم حفظ تحليل الأعراض'); }
-              } catch (_) { if (mounted) ToastService.showError('تعذر حفظ التقرير، حاول مرة أخرى'); }
+                if (mounted) { Navigator.pop(context); ToastService.showSuccess(_t('تم حفظ تحليل الأعراض')); }
+              } catch (_) { if (mounted) ToastService.showError(_t('تعذر حفظ التقرير، حاول مرة أخرى')); }
               finally { if (mounted) setState(() => _savingReport = false); }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
-            child: Text(_savingReport ? 'جاري الحفظ...' : 'حفظ التقرير'),
+            child: Text(_savingReport ? _t('جاري الحفظ...') : _t('حفظ التقرير')), 
           ),
         ],
       ),
