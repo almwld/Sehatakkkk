@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/dental_service.dart';
 
 class DentalHospitalsScreen extends StatelessWidget {
   const DentalHospitalsScreen({super.key});
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('مستشفيات الأسنان والطوارئ')),
+      appBar: AppBar(title: Text(strings.translate('مستشفيات الأسنان والطوارئ'))),
       body: StreamBuilder(
         stream: DentalService().streamHospitals(limit: 20),
         builder: (context, snapshot) {
