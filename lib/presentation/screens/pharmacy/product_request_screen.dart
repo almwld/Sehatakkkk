@@ -26,7 +26,7 @@ class _ProductRequestScreenState extends State<ProductRequestScreen> {
     if (_image == null && _note.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('أضف صورة للصنف أو اكتب وصفه')))); return; }
     setState(() => _sending = true);
     try {
-      String? imageUrl; if (_image != null) { final up = await NextcloudService().uploadFile(file: _image!, path: 'sehatak/prescriptions/'+user.uid, fileName: DateTime.now().millisecondsSinceEpoch.toString()+'_'+(_fileName ?? _image!.path.split('/').last)); if (!up.success || up.url == null) throw StateError(up.error ?? 'فشل رفع الوصفة'); imageUrl = up.url; }
+      String? imageUrl; if (_image != null) { final up = await NextcloudService().uploadFile(file: _image!, path: 'sehatak/prescriptions/'+user.uid, fileName: DateTime.now().millisecondsSinceEpoch.toString()+'_'+(_fileName ?? _image!.path.split('/').last)); if (!up.success || up.url == null) throw StateError(up.error ?? _t('فشل رفع الوصفة')); imageUrl = up.url; }
       await FirebaseFirestore.instance.collection('prescriptions').add({'patientId': user.uid, 'userId': user.uid, 'pharmacyId': widget.pharmacyId, 'pharmacyName': widget.pharmacyName, 'imageUrl': imageUrl, 'note': _note.text.trim(), 'status': 'pending', 'createdAt': FieldValue.serverTimestamp(), 'updatedAt': FieldValue.serverTimestamp()});
       if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم إرسال طلب الصنف للصيدلية')), backgroundColor: AppColors.primary)); Navigator.pop(context);
     } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_t('تعذر إرسال الطلب')}: $e'))); } finally { if (mounted) setState(() => _sending = false); }
