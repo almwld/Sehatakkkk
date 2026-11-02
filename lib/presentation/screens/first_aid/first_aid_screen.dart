@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/screens/paramedic/paramedic_field_screen.dart';
 
 class FirstAidScreen extends StatelessWidget {
@@ -40,9 +41,10 @@ class FirstAidScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'الإسعافات الأولية',
+        title: strings.translate('الإسعافات الأولية'),
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
       ),
@@ -54,8 +56,8 @@ class FirstAidScreen extends StatelessWidget {
               color: Colors.red.withOpacity(.06),
               child: ListTile(
                 leading: const Icon(Icons.emergency, color: Colors.red, size: 32),
-                title: const Text('المسعفون الميدانيون', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('اعرض المسعفين المتاحين الآن حسب مناطق تواجدهم واطلب الاستجابة للطوارئ.'),
+                title: Text(strings.translate('المسعفون الميدانيون'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(strings.translate('اعرض المسعفين المتاحين الآن حسب مناطق تواجدهم واطلب الاستجابة للطوارئ.')),
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () => Navigator.of(context, rootNavigator: true).push(
                   MaterialPageRoute(builder: (_) => const ParamedicFieldScreen(publicMode: true)),
@@ -80,7 +82,7 @@ class FirstAidScreen extends StatelessWidget {
                   style: const TextStyle(fontSize: 30),
                 ),
                 title: Text(
-                  tip['title']!,
+                  strings.translate(tip['title']!),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -90,7 +92,7 @@ class FirstAidScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
-                      tip['description']!,
+                      strings.translate(tip['description']!),
                       style: const TextStyle(fontSize: 14, height: 1.5),
                     ),
                   ),
