@@ -94,7 +94,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
 
   Widget _buildRevenueTab() {
     final data = _reportData?['revenue'] as Map<String, dynamic>?;
-    if (data == null) return const Center(child: Text('لا توجد بيانات'));
+    if (data == null) return Center(child: Text(_t('لا توجد بيانات')));
     return SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(children: [
       Row(children: [_buildStatCard('إجمالي الإيرادات', '${data['totalRevenue'] ?? 0} ريال', Icons.attach_money, Colors.green), _buildStatCard('عمولة المنصة', '${data['platformCommission'] ?? 0} ريال', Icons.percent, Colors.orange)]),
       Row(children: [_buildStatCard('صافي المقدمين', '${data['providerRevenue'] ?? 0} ريال', Icons.business, Colors.blue), _buildStatCard('عدد المعاملات', '${data['totalPayments'] ?? 0}', Icons.payment, Colors.purple)]),
@@ -103,7 +103,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
 
   Widget _buildBookingsTab() {
     final data = _reportData?['bookings'] as Map<String, dynamic>?;
-    if (data == null) return const Center(child: Text('لا توجد بيانات'));
+    if (data == null) return Center(child: Text(_t('لا توجد بيانات')));
     return SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(children: [
       Row(children: [_buildStatCard('إجمالي الحجوزات', '${data['totalBookings'] ?? 0}', Icons.calendar_today, Colors.blue), _buildStatCard('مؤكدة', '${data['confirmed'] ?? 0}', Icons.check_circle, Colors.green)]),
       Row(children: [_buildStatCard('مكتملة', '${data['completed'] ?? 0}', Icons.done_all, Colors.teal), _buildStatCard('ملغية', '${data['cancelled'] ?? 0}', Icons.cancel, Colors.red)]),
@@ -113,7 +113,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
 
   Widget _buildUsersTab() {
     final data = _reportData?['users'] as Map<String, dynamic>?;
-    if (data == null) return const Center(child: Text('لا توجد بيانات'));
+    if (data == null) return Center(child: Text(_t('لا توجد بيانات')));
     final roles = data['roles'] as Map<String, dynamic>? ?? {};
     return ListView(padding: const EdgeInsets.all(16), children: [
       _buildStatCard('إجمالي المستخدمين', '${data['totalUsers'] ?? 0}', Icons.people, Colors.blue),
@@ -122,7 +122,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     ]);
   }
 
-  Widget _buildCustomTab() => const Center(child: Text('تخصيص التقارير قيد التطوير'));
+  Widget _buildCustomTab() => Center(child: Text(_t('تخصيص التقارير قيد التطوير')));
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) => Expanded(child: Container(
     margin: const EdgeInsets.all(4), padding: const EdgeInsets.all(12),
