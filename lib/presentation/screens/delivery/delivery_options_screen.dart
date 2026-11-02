@@ -287,7 +287,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(_t(context, label), style: TextStyle(fontSize: 13, color: Colors.grey)),
-        Text(value, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.normal, color: color ?? Colors.grey.shade700)),
+        Text(_t(context, value), style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.normal, color: color ?? Colors.grey.shade700)),
       ]),
     );
   }
