@@ -125,9 +125,9 @@ class _ShareHealthScreenState extends State<ShareHealthScreen> {
 • ${_t(context, 'فصيلة الدم:')} ${_patientData['bloodType'] ?? _t(context, 'غير محدد')}
 
 📋 ${_t(context, 'السجل الطبي:')}
-${_medicalRecords.isEmpty ? 'لا توجد سجلات طبية' : _medicalRecords.map((r) => '• ${r['title'] ?? 'تقرير'} - ${r['date'] ?? ''}').join('\n')}
+${_medicalRecords.isEmpty ? _t(context, 'لا توجد سجلات طبية') : _medicalRecords.map((r) => '• ${r['title'] ?? _t(context, 'تقرير')} - ${r['date'] ?? ''}').join('\n')}
 
-${_shareNotes.isNotEmpty ? '\n📝 ملاحظات:\n$_shareNotes' : ''}
+${_shareNotes.isNotEmpty ? '\n📝 ${_t(context, 'ملاحظات:')}\n$_shareNotes' : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📱 ${_t(context, 'تمت المشاركة عبر تطبيق صحتك')}
@@ -288,6 +288,7 @@ ${shareTargets.join('\n')}
             },
             child: _shareWithFamily
                 ? _buildDropdown(
+                    context: context,
                     value: _selectedFamily,
                     items: _familyMembers,
                     onChanged: (value) => setState(() => _selectedFamily = value!),
@@ -307,6 +308,7 @@ ${shareTargets.join('\n')}
             },
             child: _shareWithHospital
                 ? _buildDropdown(
+                    context: context,
                     value: _selectedHospital,
                     items: _hospitals,
                     onChanged: (value) => setState(() => _selectedHospital = value!),
