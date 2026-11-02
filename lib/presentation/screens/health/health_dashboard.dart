@@ -609,7 +609,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                         tileColor: color.withOpacity(0.06),
                         leading: _buildIcon(item['icon'] as String, size: 42, color: color),
                         title: Text(
-                          (item['label'] ?? item['title']) as String,
+                          _t((item['label'] ?? item['title']) as String),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white : Colors.black87,
@@ -617,8 +617,8 @@ class _HealthDashboardState extends State<HealthDashboard>
                         ),
                         subtitle: Text(
                           isMetrics
-                              ? '${item['value']} ${item['unit']} • ${item['status']}'
-                              : '${item['subtitle']} • ${item['target']}',
+                              ? '${item['value']} ${_t(item['unit'] as String)} • ${_t(item['status'] as String)}'
+                              : '${_t(item['subtitle'] as String)} • ${_t(item['target'] as String)}',
                           style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                         ),
                       );
@@ -706,7 +706,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   ),
                 ),
                 Text(
-                  metric['unit'] as String,
+                  _t(metric['unit'] as String),
                   style: TextStyle(
                     fontSize: 10,
                     color: isDark ? Colors.grey[400] : Colors.grey[500],
