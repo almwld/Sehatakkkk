@@ -1136,6 +1136,8 @@ class AppStrings {
       'تم إرسال طلب الصنف للصيدلية': ['Item request sent to the pharmacy', 'Demande d’article envoyée à la pharmacie'],
       'تعذر إرسال الطلب': ['Could not send the request', 'Impossible d’envoyer la demande'],
       'فشل رفع الوصفة': ['Prescription upload failed', 'Échec du téléversement de l’ordonnance'],
+      'مجتمع صحتك': ['Sehatak Community', 'Communauté Sehatak'],
+      'التعليقات': ['Comments', 'Commentaires'],
       'الاستشارات الطبية': ['Medical consultations', 'Consultations médicales'],
       'سجل المكالمات': ['Call history', 'Historique des appels'],
       'استشارة جديدة': ['New consultation', 'Nouvelle consultation'],
