@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class DownloadDataScreen extends StatefulWidget {
   const DownloadDataScreen({super.key});
@@ -10,6 +11,7 @@ class DownloadDataScreen extends StatefulWidget {
 }
 
 class _DownloadDataScreenState extends State<DownloadDataScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final Map<String, bool> _selectedItems = {
     'البيانات الشخصية': false,
     'السجلات الطبية': false,
@@ -22,11 +24,11 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
     final selected = _selectedItems.entries.where((e) => e.value).map((e) => e.key).toList();
 
     if (selected.isEmpty) {
-      ToastService.showError('❌ يرجى اختيار البيانات للتحميل');
+      ToastService.showError('❌ ${_t('يرجى اختيار البيانات للتحميل')}');
       return;
     }
 
-    ToastService.showSuccess('📥 جاري تحميل البيانات...');
+    ToastService.showSuccess('📥 ${_t('جاري تحميل البيانات...')}');
   }
 
   @override
@@ -36,7 +38,7 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('تحميل بياناتي'),
+        title: Text(_t('تحميل بياناتي')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -60,8 +62,8 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'اختر البيانات التي تريد تحميلها',
+                  Text(
+                    _t('اختر البيانات التي تريد تحميلها'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -72,7 +74,7 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
                     return CheckboxListTile(
                       value: _selectedItems[key],
                       title: Text(
-                        key,
+                        _t(key),
                         style: TextStyle(
                           color: isDark ? Colors.white : Colors.black87,
                         ),
@@ -105,8 +107,8 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'ملاحظة مهمة',
+                  Text(
+                    _t('ملاحظة مهمة'),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -114,8 +116,8 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'سيتم تحميل البيانات بصيغة JSON. تأكد من حفظ الملف في مكان آمن.',
+                  Text(
+                    _t('سيتم تحميل البيانات بصيغة JSON. تأكد من حفظ الملف في مكان آمن.'),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey,
@@ -137,8 +139,8 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'تحميل البيانات',
+                child: Text(
+                  _t('تحميل البيانات'),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
