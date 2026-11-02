@@ -202,7 +202,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        currentTips[i],
+                        _t(currentTips[i]),
                         style: TextStyle(
                           fontSize: 13,
                           height: 1.4,
