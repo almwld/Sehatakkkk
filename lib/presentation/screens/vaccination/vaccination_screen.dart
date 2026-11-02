@@ -235,8 +235,8 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 children: [
                   const Icon(Icons.vaccines_outlined, size: 72, color: Colors.grey),
                   const SizedBox(height: 16),
-                  const Text(
-                    'لا توجد تطعيمات مسجلة',
+                  Text(
+                    _t('لا توجد تطعيمات مسجلة'),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -310,10 +310,10 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (beneficiaryType != 'self' && beneficiary != null && beneficiary.trim().isNotEmpty)
-                          Text(beneficiaryType == 'child' ? 'الطفل: $beneficiary' : 'المرأة: $beneficiary'),
-                        if (date != null) Text('تاريخ التطعيم: ' + _fmt(date)),
+                          Text('${_t(beneficiaryType == 'child' ? 'الطفل: ' : 'المرأة: ')}$beneficiary'),
+                        if (date != null) Text('${_t('تاريخ التطعيم: ')}' + _fmt(date)),
                         if (next != null)
-                          Text('الجرعة القادمة: ' + _fmt(next)),
+                          Text('${_t('الجرعة القادمة: ')}' + _fmt(next)),
                         if ((data['location']?.toString() ?? '').trim().isNotEmpty)
                           Text(data['location'].toString()),
                       ],
