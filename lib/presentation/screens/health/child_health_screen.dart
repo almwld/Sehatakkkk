@@ -81,7 +81,7 @@ class ChildHealthScreen extends StatelessWidget {
         gradient: const LinearGradient(colors: [Color(0xFF38BDF8), Color(0xFF34D399)]),
         borderRadius: BorderRadius.circular(26),
       ),
-      child: const Row(
+      child: Row(
         children: [
           CircleAvatar(radius: 31, backgroundColor: Colors.white24, child: Icon(Icons.child_care_rounded, color: Colors.white, size: 34)),
           SizedBox(width: 14),
