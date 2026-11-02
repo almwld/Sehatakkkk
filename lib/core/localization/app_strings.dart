@@ -2496,6 +2496,9 @@ class AppStrings {
       'إيقاف مؤقت': ['Pause', 'Mettre en pause'],
       'بدء التمرين': ['Start exercise', 'Commencer l’exercice'],
       'إعادة الجلسة': ['Restart session', 'Recommencer la séance'],
+      'النوم الموصى به يعتمد على العمر: ': ['Recommended sleep depends on age:', 'Le sommeil recommandé dépend de l’âge :'],
+      'ساعة خلال 24 ساعة.': ['hours in 24 hours.', 'heures sur 24.'],
+      'سم': ['cm', 'cm'],
     };
     final entry = translations[value];
     if (entry == null) return value;
