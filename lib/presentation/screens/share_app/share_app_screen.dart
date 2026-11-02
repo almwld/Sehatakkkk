@@ -20,8 +20,9 @@ class ShareAppScreen extends StatelessWidget {
     {'icon': AppIcons.socialDiscord, 'name': 'ديسكورد'},
   ];
 
-  void _shareApp() {
-    Share.share('🌟 تطبيق صحتك - منصة الرعاية الصحية الشاملة\n📱 حمل التطبيق الآن واستفد من الخدمات الصحية المتكاملة\n🔗 https://sehatak.com/download');
+  void _shareApp(BuildContext context) {
+    final message = '🌟 ${_t(context, 'تطبيق صحتك - منصة الرعاية الصحية الشاملة')}\n📱 ${_t(context, 'حمل التطبيق الآن واستفد من الخدمات الصحية المتكاملة')}\n🔗 https://sehatak.com/download';
+    Share.share(message);
   }
 
   @override
@@ -44,7 +45,7 @@ class ShareAppScreen extends StatelessWidget {
               const Text('ادعم صحتك وصحة من حولك', style: TextStyle(color: Colors.white70, fontSize: 14)),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: _shareApp,
+                onPressed: () => _shareApp(context),
                 icon: LocalAssetIcon(AppImages.uiShareApp, color: AppColors.primary, size: 20),
                 label: Text(_t(context, 'مشاركة الآن')),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
