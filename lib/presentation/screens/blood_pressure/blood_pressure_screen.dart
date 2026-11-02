@@ -75,7 +75,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
           const SizedBox(height:16),Text(_t('التطور الأسبوعي'),style:TextStyle(fontSize:18,fontWeight:FontWeight.w900)),const SizedBox(height:10),
           const SizedBox(height:220,child:HealthChart(historyKey:'blood_pressure_history',valueKey:'systolic',unit:'mmHg',color:AppColors.error,days:7)),
           const SizedBox(height:16),Text(_t('القياسات المسجلة'),style:TextStyle(fontSize:18,fontWeight:FontWeight.w900)),const SizedBox(height:10),
-          if(_readings.isEmpty)Container(padding:const EdgeInsets.all(28),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(18)),child:Text(_t('لم تُدخل أي قراءة بعد. سجّل القياس الفعلي من جهازك ليظهر في المؤشرات الصحية.')),textAlign:TextAlign.center))
+          if(_readings.isEmpty)Container(padding:const EdgeInsets.all(28),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(18)),child:Text(_t('لم تُدخل أي قراءة بعد. سجّل القياس الفعلي من جهازك ليظهر في المؤشرات الصحية.'),textAlign:TextAlign.center))
           else ..._readings.map((r)=>_card(r,dark))
         ]),if(_adding)_dialog(dark)
       ])
@@ -92,8 +92,8 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
     margin:const EdgeInsets.all(24),padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(22)),
     child:Column(mainAxisSize:MainAxisSize.min,children:[
       Text(_t('إضافة قياس ضغط'),style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),const SizedBox(height:14),
-      Row(children:[Expanded(child:TextField(controller:_sys,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:_t('الانقباضي'),border:OutlineInputBorder()))),const SizedBox(width:10),Expanded(child:TextField(controller:_dia,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:_t('الانبساطي'),border:OutlineInputBorder())))]),
-      const SizedBox(height:12),TextField(controller:_pulse,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:_t('النبض BPM (اختياري)'),border:OutlineInputBorder())),const SizedBox(height:16),
+      Row(children:[Expanded(child:TextField(controller:_sys,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('الانقباضي'),border:const OutlineInputBorder()))),const SizedBox(width:10),Expanded(child:TextField(controller:_dia,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('الانبساطي'),border:const OutlineInputBorder())))]),
+      const SizedBox(height:12),TextField(controller:_pulse,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('النبض BPM (اختياري)'),border:const OutlineInputBorder())),const SizedBox(height:16),
       Row(children:[Expanded(child:TextButton(onPressed:_saving?null:()=>setState(()=>_adding=false),child:Text(_t('إلغاء')))),const SizedBox(width:10),Expanded(child:ElevatedButton(onPressed:_saving?null:_save,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:_saving?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):Text(_t('حفظ'))))])
     ])
   )))));
