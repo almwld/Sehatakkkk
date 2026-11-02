@@ -27,7 +27,7 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && (request.resource.data.role != 'doctor' 
             || request.resource.data.doctorId == request.auth.uid);
-      allow update: if isAdmin()
+      allow update: if (isAdmin() && resource.data.get('role', 'user') != 'superAdmin')
         || (isSelf(userId)
             && request.resource.data.uid == resource.data.uid
             && request.resource.data.role == resource.data.role
@@ -45,7 +45,7 @@ service cloud.firestore {
         || (isSelf(userId)
             && request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['fcmToken', 'fcmTokens', 'lastTokenUpdate']));
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() && resource.data.get('role', 'user') != 'superAdmin';
 
       // Canonical private FCM token storage. Legacy fields remain only for migration.
       match /private/tokens {
