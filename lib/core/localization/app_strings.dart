@@ -3010,6 +3010,9 @@ class AppStrings {
       'راقب مستوى الكوليسترول': ['Monitor your cholesterol level', 'Surveillez votre taux de cholestérol'],
       'تحكم في التوتر والقلق': ['Manage stress and anxiety', 'Gérez le stress et l’anxiété'],
       'مارس تمارين الكارديو': ['Do cardio exercise', 'Pratiquez des exercices cardiovasculaires'],
+
+      'تطبيق صحتك - منصة الرعاية الصحية الشاملة': ['Sehatak — the comprehensive healthcare platform', 'Sehatak — la plateforme complète de soins de santé'],
+      'حمل التطبيق الآن واستفد من الخدمات الصحية المتكاملة': ['Download the app now and access integrated healthcare services', 'Téléchargez l’application et profitez de services de santé intégrés'],
     };
     final entry = translations[value];
     if (entry == null) return value;
