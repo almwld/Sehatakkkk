@@ -214,8 +214,8 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      child: _saving ? const CircularProgressIndicator(color: Colors.white) : const Text(
-        'حفظ',
+      child: _saving ? const CircularProgressIndicator(color: Colors.white) : Text(
+        _t('حفظ'),
         style: TextStyle(fontSize: 16),
       ),
     );
