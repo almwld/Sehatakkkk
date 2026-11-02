@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/delivery/delivery_service.dart';
 import 'package:sehatak/core/models/delivery/delivery_model.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class DeliveryTrackingScreen extends StatefulWidget {
   final String orderId;
@@ -14,6 +15,8 @@ class DeliveryTrackingScreen extends StatefulWidget {
 }
 
 class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   final DeliveryService _deliveryService = DeliveryService();
   
   DeliveryModel? _delivery;
@@ -63,7 +66,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'تتبع الطلب',
+        title: _t(context, 'تتبع الطلب'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -77,12 +80,12 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _delivery == null
-              ? _buildErrorWidget(isDark)
-              : _buildContent(isDark, AppColors.primary),
+              ? _buildErrorWidget(isDark, context)
+              : _buildContent(isDark, AppColors.primary, context),
     );
   }
 
-  Widget _buildErrorWidget(bool isDark) {
+  Widget _buildErrorWidget(bool isDark, BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +97,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'حدث خطأ في تحميل بيانات الطلب',
+            _t(context, 'حدث خطأ في تحميل بيانات الطلب'),
             style: TextStyle(
               color: isDark ? Colors.grey : Colors.grey,
             ),
@@ -106,14 +109,14 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
               backgroundColor: const Color(0xFF0D5257),
               foregroundColor: Colors.white,
             ),
-            child: const Text('إعادة المحاولة'),
+            child: Text(_t(context, 'إعادة المحاولة')),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent(bool isDark, Color primaryColor) {
+  Widget _buildContent(bool isDark, Color primaryColor, BuildContext context) {
     final delivery = _delivery!;
     final courier = delivery.courier;
 
@@ -123,26 +126,26 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ✅ بطاقة الطلب
-          _buildOrderCard(delivery, isDark, AppColors.primary),
+          _buildOrderCard(delivery, isDark, AppColors.primary, context),
           const SizedBox(height: 16),
 
           // ✅ خريطة التتبع (محاكاة)
-          _buildTrackingMap(isDark),
+          _buildTrackingMap(isDark, context),
           const SizedBox(height: 16),
 
           // ✅ مراحل التتبع
-          _buildTimeline(isDark, AppColors.primary),
+          _buildTimeline(isDark, AppColors.primary, context),
           const SizedBox(height: 16),
 
           // ✅ معلومات المندوب
-          if (courier != null) _buildCourierCard(courier, isDark),
+          if (courier != null) _buildCourierCard(courier, isDark, context),
           const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Widget _buildOrderCard(DeliveryModel delivery, bool isDark, Color primaryColor) {
+  Widget _buildOrderCard(DeliveryModel delivery, bool isDark, Color primaryColor, BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -159,8 +162,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'رقم الطلب',
+              Text(
+                _t(context, 'رقم الطلب'),
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               Container(
@@ -180,8 +183,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'الحالة',
+              Text(
+                _t(context, 'الحالة'),
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               Container(
@@ -191,7 +194,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  delivery.statusText,
+                  _t(context, delivery.statusText),
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
@@ -201,8 +204,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'الوقت المتوقع',
+              Text(
+                _t(context, 'الوقت المتوقع'),
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               Row(
@@ -210,7 +213,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                   const Icon(Icons.timer, color: Colors.white, size: 16),
                   const SizedBox(width: 4),
                   Text(
-                    delivery.estimatedTime,
+                    _t(context, delivery.estimatedTime),
                     style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -222,7 +225,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildTrackingMap(bool isDark) {
+  Widget _buildTrackingMap(bool isDark, BuildContext context) {
     return GestureDetector(
       onTap: () {
         // ✅ فتح الخريطة التفاعلية
@@ -259,7 +262,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'اضغط لعرض الخريطة',
+                      _t(context, 'اضغط لعرض الخريطة'),
                       style: TextStyle(
                         color: isDark ? Colors.grey : Colors.grey,
                         fontSize: 14,
@@ -267,7 +270,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'تتبع موقع المندوب في الوقت الفعلي',
+                      _t(context, 'تتبع موقع المندوب في الوقت الفعلي'),
                       style: TextStyle(
                         color: isDark ? Colors.grey : Colors.grey,
                         fontSize: 12,
@@ -329,7 +332,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildTimeline(bool isDark, Color primaryColor) {
+  Widget _buildTimeline(bool isDark, Color primaryColor, BuildContext context) {
     final steps = [
       {'label': 'تم الطلب', 'icon': Icons.receipt_long_rounded},
       {'label': 'تم التجهيز', 'icon': Icons.pending_actions_rounded},
@@ -352,8 +355,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'حالة الطلب',
+          Text(
+            _t(context, 'حالة الطلب'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -387,7 +390,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        step['label'] as String,
+                        _t(context, step['label'] as String),
                         style: TextStyle(
                           fontWeight: isCompleted || isActive ? FontWeight.bold : FontWeight.normal,
                           color: isCompleted || isActive
@@ -397,7 +400,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                       ),
                       if (isActive)
                         Text(
-                          'جاري التنفيذ...',
+                          _t(context, 'جاري التنفيذ...'),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.primary,
@@ -409,7 +412,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                 // ✅ الوقت
                 if (isCompleted)
                   Text(
-                    'تم',
+                    _t(context, 'تم'),
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.grey : Colors.grey,
@@ -423,7 +426,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildCourierCard(CourierModel courier, bool isDark) {
+  Widget _buildCourierCard(CourierModel courier, bool isDark, BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -439,8 +442,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'معلومات المندوب',
+          Text(
+            _t(context, 'معلومات المندوب'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
@@ -487,7 +490,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'متصل الآن',
+                          _t(context, 'متصل الآن'),
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.green,
@@ -521,7 +524,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.map_rounded, size: 18),
-                  label: const Text('تتبع على الخريطة'),
+                  label: Text(_t(context, 'تتبع على الخريطة')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF0D5257),
                     side: const BorderSide(color: Color(0xFF0D5257)),
@@ -537,7 +540,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.call, size: 18),
-                  label: const Text('اتصال'),
+                  label: Text(_t(context, 'اتصال')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D5257),
                     foregroundColor: Colors.white,
