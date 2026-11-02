@@ -2,6 +2,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class DeliveryOptionsScreen extends StatefulWidget {
   final double orderAmount;
@@ -18,6 +19,8 @@ class DeliveryOptionsScreen extends StatefulWidget {
 }
 
 class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   int _selectedCompany = 0;
   int _selectedSpeed = 1; // 0=عادي، 1=سريع، 2=فوري
   
@@ -107,7 +110,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('خيارات التوصيل', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t(context, 'خيارات التوصيل'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -115,9 +118,9 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // ========== اختيار شركة التوصيل ==========
-          const Text('اختر شركة التوصيل', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(_t(context, 'اختر شركة التوصيل'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('شركات توصيل موثوقة في اليمن', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(_t(context, 'شركات توصيل موثوقة في اليمن'), style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 12),
           
           ...List.generate(_companies.length, (i) {
@@ -143,7 +146,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                         Text(c['name'], style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c['color'])),
                         if (c['insurance']) ...[
                           const SizedBox(width: 6),
-                          Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: const Text('مؤمن', style: TextStyle(fontSize: 8, color: AppColors.success))),
+                          Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: Text(_t(context, 'مؤمن'), style: TextStyle(fontSize: 8, color: AppColors.success))),
                         ],
                       ]),
                       const SizedBox(height: 2),
@@ -152,15 +155,15 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                         const SizedBox(width: 4),
                         Text('(${c['reviews']})', style: TextStyle(fontSize: 10, color: Colors.grey)),
                       ]),
-                      Text('التغطية: ${c['coverage']}', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      Text('${_t(context, 'التغطية:')} ${_t(context, c['coverage'] as String)}', style: TextStyle(fontSize: 10, color: Colors.grey)),
                     ])),
                     if (sel) Icon(Icons.check_circle, color: c['color'], size: 28),
                   ]),
                   const Divider(height: 16),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                    _miniPrice(c, 'عادي', 'normal'),
-                    _miniPrice(c, 'سريع', 'express'),
-                    _miniPrice(c, 'فوري', 'instant'),
+                    _miniPrice(context, c, 'عادي', 'normal'),
+                    _miniPrice(context, c, 'سريع', 'express'),
+                    _miniPrice(context, c, 'فوري', 'instant'),
                   ]),
                 ]),
               ),
@@ -170,7 +173,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
           const SizedBox(height: 24),
 
           // ========== سرعة التوصيل ==========
-          const Text('سرعة التوصيل', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(_t(context, 'سرعة التوصيل'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Row(children: List.generate(3, (i) {
             final sel = _selectedSpeed == i;
@@ -189,9 +192,9 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                   child: Column(children: [
                     Text(s['icon'], style: TextStyle(fontSize: 28)),
                     const SizedBox(height: 4),
-                    Text(s['title'], style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: sel ? AppColors.primary : Colors.grey.shade700)),
+                    Text(_t(context, s['title'] as String), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: sel ? AppColors.primary : Colors.grey.shade700)),
                     const SizedBox(height: 2),
-                    Text(s['desc'], style: TextStyle(fontSize: 9, color: Colors.grey), textAlign: TextAlign.center),
+                    Text(_t(context, s['desc'] as String), style: TextStyle(fontSize: 9, color: Colors.grey), textAlign: TextAlign.center),
                   ]),
                 ),
               ),
@@ -205,22 +208,22 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(14)),
             child: Column(children: [
-              _summaryRow('قيمة الطلب', '${widget.orderAmount} ر.ي'),
-              _summaryRow('شركة التوصيل', company['name']),
-              _summaryRow('سرعة التوصيل', _speeds[_selectedSpeed]['title']),
-              _summaryRow('رسوم التوصيل', deliveryPrice == 'غير متاح' ? 'غير متاح' : '$deliveryPrice ر.ي'),
-              _summaryRow('الوقت المتوقع', deliveryTime),
+              _summaryRow(context, 'قيمة الطلب', '${widget.orderAmount} ${_t(context, 'ر.ي')}'),
+              _summaryRow(context, 'شركة التوصيل', company['name']),
+              _summaryRow(context, 'سرعة التوصيل', _speeds[_selectedSpeed]['title']),
+              _summaryRow(context, 'رسوم التوصيل', deliveryPrice == 'غير متاح' ? _t(context, 'غير متاح') : '$deliveryPrice ${_t(context, 'ر.ي')}'),
+              _summaryRow(context, 'الوقت المتوقع', _t(context, deliveryTime)),
               if (company['codAvailable'] == true)
-                Container(margin: const EdgeInsets.only(top: 4), padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.06), borderRadius: BorderRadius.circular(6)), child: Row(children: [Icon(Icons.check, color: AppColors.success, size: 14), SizedBox(width: 4), Text('الدفع عند الاستلام متاح', style: TextStyle(fontSize: 10, color: AppColors.success))])),
+                Container(margin: const EdgeInsets.only(top: 4), padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.06), borderRadius: BorderRadius.circular(6)), child: Row(children: [Icon(Icons.check, color: AppColors.success, size: 14), SizedBox(width: 4), Text(_t(context, 'الدفع عند الاستلام متاح'), style: TextStyle(fontSize: 10, color: AppColors.success))])),
               const Divider(height: 16),
-              _summaryRow('الإجمالي النهائي', deliveryPrice == 'غير متاح' ? '${widget.orderAmount} ر.ي' : '$total ر.ي', bold: true, color: AppColors.primary),
+              _summaryRow(context, 'الإجمالي النهائي', deliveryPrice == 'غير متاح' ? '${widget.orderAmount} ${_t(context, 'ر.ي')}' : '$total ${_t(context, 'ر.ي')}', bold: true, color: AppColors.primary),
             ]),
           ),
 
           const SizedBox(height: 20),
 
           // ========== عنوان التوصيل ==========
-          const Text('عنوان التوصيل', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(_t(context, 'عنوان التوصيل'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(14),
@@ -228,8 +231,8 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
             child: Row(children: [
               const Icon(Icons.location_on, color: AppColors.primary, size: 28),
               const SizedBox(width: 10),
-              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('المنزل', style: TextStyle(fontWeight: FontWeight.bold)), Text('صنعاء - شارع الزبيري - أمام مستشفى الثورة', style: TextStyle(fontSize: 11, color: Colors.grey))])),
-              TextButton(onPressed: () {}, child: const Text('تغيير')),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(context, 'المنزل'), style: const TextStyle(fontWeight: FontWeight.bold)), Text(widget.deliveryAddress, style: const TextStyle(fontSize: 11, color: Colors.grey))])),
+              TextButton(onPressed: () {}, child: Text(_t(context, 'تغيير'))),
             ]),
           ),
 
@@ -247,7 +250,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                   'total': total,
                   'time': deliveryTime,
                 });
-                ToastService.showSuccess(context, '✅ تم تأكيد الطلب! التوصيل عبر ${company['name']} - $deliveryTime');
+                ToastService.showSuccess(context, '${_t(context, 'تم تأكيد الطلب! التوصيل عبر')} ${company['name']} - ${_t(context, deliveryTime)}');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.success,
@@ -257,7 +260,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text('🚀', style: TextStyle(fontSize: 22)),
                 const SizedBox(width: 8),
-                Text('تأكيد الطلب وإتمام الدفع (${deliveryPrice == 'غير متاح' ? widget.orderAmount : total} ر.ي)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                Text('${_t(context, 'تأكيد الطلب وإتمام الدفع')} (${deliveryPrice == 'غير متاح' ? widget.orderAmount : total} ${_t(context, 'ر.ي')})', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
               ]),
             ),
           ),
@@ -267,11 +270,11 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
     );
   }
 
-  Widget _miniPrice(Map<String, dynamic> c, String label, String key) {
+  Widget _miniPrice(BuildContext context, Map<String, dynamic> c, String label, String key) {
     final price = c['prices'][key];
     return Column(children: [
-      Text(label, style: TextStyle(fontSize: 9, color: Colors.grey)),
-      Text(price != null ? '$price ر.ي' : '—', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: price != null ? AppColors.primary : Colors.grey)),
+      Text(_t(context, label), style: TextStyle(fontSize: 9, color: Colors.grey)),
+      Text(price != null ? '$price ${_t(context, 'ر.ي')}' : '—', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: price != null ? AppColors.primary : Colors.grey)),
     ]);
   }
 
@@ -279,11 +282,11 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
     return Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.star, color: AppColors.amber, size: 12), const SizedBox(width: 2), Text(rating.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))]);
   }
 
-  Widget _summaryRow(String label, String value, {bool bold = false, Color? color}) {
+  Widget _summaryRow(BuildContext context, String label, String value, {bool bold = false, Color? color}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(label, style: TextStyle(fontSize: 13, color: Colors.grey)),
+        Text(_t(context, label), style: TextStyle(fontSize: 13, color: Colors.grey)),
         Text(value, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.normal, color: color ?? Colors.grey.shade700)),
       ]),
     );
