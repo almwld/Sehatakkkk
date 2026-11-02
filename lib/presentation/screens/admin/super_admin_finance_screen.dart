@@ -151,7 +151,7 @@ class _SuperAdminFinanceScreenState extends State<SuperAdminFinanceScreen> {
                 subtitle: Text(_dateLabel(entry['createdAt']) + ' • ' + _t('المستخدم: ') + (entry['userId']?.toString() ?? '—')),
                 trailing: Text(_money(_number(entry['amount'])), style: const TextStyle(fontWeight: FontWeight.w800)),
               );
-            }).toList())),
+            }).toList()));
           },
         ),
         const SizedBox(height: 20),
@@ -184,7 +184,7 @@ class _SuperAdminFinanceScreenState extends State<SuperAdminFinanceScreen> {
             if (!snapshot.hasData) return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
             final docs = snapshot.data!.docs.toList()..sort((a, b) => (_dateOf(b.data()['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0)).compareTo(_dateOf(a.data()['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0)));
             if (docs.isEmpty) return Card(color: surface, child: Padding(padding: const EdgeInsets.all(24), child: Center(child: Text(_t('لا توجد معاملات ضمن هذا العرض')))));
-            return Column(children: docs.map((doc) => _transactionCard(doc, surface, textColor)).toList()),
+            return Column(children: docs.map((doc) => _transactionCard(doc, surface, textColor)).toList());
           },
         ),
         const SizedBox(height: 12),
