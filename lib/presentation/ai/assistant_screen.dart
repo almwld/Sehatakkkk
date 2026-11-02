@@ -18,6 +18,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
   final ScrollController _scrollController = ScrollController();
   final ChatBot _chatBot = ChatBot(); // ✅ استخدام ChatBot من local_ai
   bool _isLoading = false;
+  bool _welcomeAdded = false;
 
   // ✅ الأسئلة الافتراضية
   final List<String> _suggestedQuestions = [
@@ -32,13 +33,15 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_welcomeAdded) return;
     _messages.add(ChatMessage(
       text: _t('مرحباً! 👋\nأنا المساعد الصحي الذكي. كيف يمكنني مساعدتك اليوم؟'),
       isUser: false,
       timestamp: DateTime.now(),
     ));
+    _welcomeAdded = true;
   }
 
   @override
