@@ -1655,7 +1655,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(width: 8),
             Text(
-              _passwordStrength,
+              AppStrings.of(context).translate(_passwordStrength),
               style: TextStyle(
                 color: _passwordStrengthColor,
                 fontSize: 12,
@@ -1667,7 +1667,7 @@ class _AuthScreenState extends State<AuthScreen>
         ),
         const SizedBox(height: 4),
         Text(
-          'كلمة المرور يجب أن تحتوي على حروف وأرقام وأحرف خاصة',
+          AppStrings.of(context).translate('كلمة المرور يجب أن تحتوي على حروف وأرقام وأحرف خاصة'),
           style: TextStyle(
             fontSize: 10,
             color: isDark
