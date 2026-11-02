@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/reports/reports_service.dart';
@@ -44,6 +45,8 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
     }
   }
 
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -51,7 +54,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'التقارير والإحصائيات',
+        title: _t(context, 'التقارير والإحصائيات'),
         backgroundColor: const Color(0xFF0D5257),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -65,26 +68,26 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _stats == null
-              ? _buildErrorWidget(isDark)
+              ? _buildErrorWidget(isDark, context)
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // ✅ بطاقة الإحصائيات
-                      _buildStatsCards(isDark),
+                      _buildStatsCards(isDark, context),
                       const SizedBox(height: 16),
 
                       // ✅ الرسم البياني
-                      _buildChartSection(isDark),
+                      _buildChartSection(isDark, context),
                       const SizedBox(height: 16),
 
                       // ✅ تبويبات التقارير
-                      _buildTabs(isDark),
+                      _buildTabs(isDark, context),
                       const SizedBox(height: 16),
 
                       // ✅ المحتوى حسب التبويب
-                      _buildTabContent(isDark),
+                      _buildTabContent(isDark, context),
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -92,7 +95,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
     );
   }
 
-  Widget _buildErrorWidget(bool isDark) {
+  Widget _buildErrorWidget(bool isDark, BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -104,7 +107,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
           ),
           const SizedBox(height: 16),
           Text(
-            'حدث خطأ في تحميل التقارير',
+            _t(context, 'حدث خطأ في تحميل التقارير'),
             style: TextStyle(
               color: isDark ? Colors.grey : Colors.grey,
             ),
@@ -116,7 +119,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
               backgroundColor: const Color(0xFF0D5257),
               foregroundColor: Colors.white,
             ),
-            child: const Text('إعادة المحاولة'),
+            child: Text(_t(context, 'إعادة المحاولة')),
           ),
         ],
       ),
@@ -126,7 +129,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
   // ============================================================
   // 📊 بطاقات الإحصائيات
   // ============================================================
-  Widget _buildStatsCards(bool isDark) {
+  Widget _buildStatsCards(bool isDark, BuildContext context) {
     final stats = _stats!;
     final cards = [
       {
@@ -198,7 +201,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                 ),
               ),
               Text(
-                card['label'] as String,
+                _t(context, card['label'] as String),
                 style: TextStyle(
                   fontSize: 11,
                   color: isDark ? Colors.grey : Colors.grey,
@@ -214,7 +217,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
   // ============================================================
   // 📈 الرسم البياني
   // ============================================================
-  Widget _buildChartSection(bool isDark) {
+  Widget _buildChartSection(bool isDark, BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -228,7 +231,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'الرسم البياني',
+                _t(context, 'الرسم البياني'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -244,7 +247,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                 items: ChartType.values.map((type) {
                   return DropdownMenuItem(
                     value: type,
-                    child: Text(_getChartLabel(type)),
+                    child: Text(_getChartLabel(type, context)),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -305,23 +308,23 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
     );
   }
 
-  String _getChartLabel(ChartType type) {
+  String _getChartLabel(ChartType type, BuildContext context) {
     switch (type) {
       case ChartType.appointments:
-        return 'المواعيد';
+        return _t(context, 'المواعيد');
       case ChartType.orders:
-        return 'الطلبات';
+        return _t(context, 'الطلبات');
       case ChartType.spending:
-        return 'المصروف';
+        return _t(context, 'المصروف');
       case ChartType.consultations:
-        return 'الاستشارات';
+        return _t(context, 'الاستشارات');
     }
   }
 
   // ============================================================
   // 📋 تبويبات التقارير
   // ============================================================
-  Widget _buildTabs(bool isDark) {
+  Widget _buildTabs(bool isDark, BuildContext context) {
     final tabs = ['التقارير الطبية', 'الأدوية'];
     return Container(
       height: 40,
@@ -344,7 +347,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                 ),
                 child: Center(
                   child: Text(
-                    tabs[index],
+                    _t(context, tabs[index]),
                     style: TextStyle(
                       color: _selectedTab == index
                           ? Colors.white
@@ -363,22 +366,22 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
     );
   }
 
-  Widget _buildTabContent(bool isDark) {
+  Widget _buildTabContent(bool isDark, BuildContext context) {
     return _selectedTab == 0
-        ? _buildMedicalReports(isDark)
-        : _buildMedicationReports(isDark);
+        ? _buildMedicalReports(isDark, context)
+        : _buildMedicationReports(isDark, context);
   }
 
   // ============================================================
   // 📋 التقارير الطبية
   // ============================================================
-  Widget _buildMedicalReports(bool isDark) {
+  Widget _buildMedicalReports(bool isDark, BuildContext context) {
     if (_medicalReports.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
           child: Text(
-            'لا توجد تقارير طبية',
+            _t(context, 'لا توجد تقارير طبية'),
             style: TextStyle(
               color: isDark ? Colors.grey : Colors.grey,
             ),
@@ -393,12 +396,12 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
       itemCount: _medicalReports.length,
       itemBuilder: (context, index) {
         final report = _medicalReports[index];
-        return _buildMedicalReportCard(report, isDark);
+        return _buildMedicalReportCard(report, isDark, context);
       },
     );
   }
 
-  Widget _buildMedicalReportCard(MedicalReportModel report, bool isDark) {
+  Widget _buildMedicalReportCard(MedicalReportModel report, bool isDark, BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -433,7 +436,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  report.statusLabel,
+                  _t(context, report.statusLabel),
                   style: TextStyle(
                     fontSize: 10,
                     color: report.status == 'مكتمل' ? Colors.green : Colors.orange,
@@ -490,13 +493,13 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
   // ============================================================
   // 💊 تقارير الأدوية
   // ============================================================
-  Widget _buildMedicationReports(bool isDark) {
+  Widget _buildMedicationReports(bool isDark, BuildContext context) {
     if (_medicationReports.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
           child: Text(
-            'لا توجد أدوية',
+            _t(context, 'لا توجد أدوية'),
             style: TextStyle(
               color: isDark ? Colors.grey : Colors.grey,
             ),
@@ -511,12 +514,12 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
       itemCount: _medicationReports.length,
       itemBuilder: (context, index) {
         final medication = _medicationReports[index];
-        return _buildMedicationCard(medication, isDark);
+        return _buildMedicationCard(medication, isDark, context);
       },
     );
   }
 
-  Widget _buildMedicationCard(MedicationReportModel medication, bool isDark) {
+  Widget _buildMedicationCard(MedicationReportModel medication, bool isDark, BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -554,7 +557,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  medication.statusLabel,
+                  _t(context, medication.statusLabel),
                   style: TextStyle(
                     fontSize: 10,
                     color: medication.status == 'نشط' ? Colors.green : Colors.grey,
@@ -569,7 +572,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
               const Icon(Icons.medical_services_rounded, size: 14, color: Color(0xFF0D5257)),
               const SizedBox(width: 4),
               Text(
-                'الجرعة: ${medication.dosage}',
+                '${_t(context, 'الجرعة:')} ${medication.dosage}',
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.grey : Colors.grey,
@@ -583,7 +586,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
               const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF0D5257)),
               const SizedBox(width: 4),
               Text(
-                'المدة: ${medication.duration}',
+                '${_t(context, 'المدة:')} ${medication.duration}',
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.grey : Colors.grey,
@@ -598,7 +601,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'متبقي ${medication.remainingDays} يوم',
+                    '${_t(context, 'متبقي ')}${medication.remainingDays} ${_t(context, 'يوم')}',
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.blue,
