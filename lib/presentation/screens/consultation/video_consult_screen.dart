@@ -133,7 +133,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   children: [
                     const Icon(Icons.calendar_today, color: AppColors.primary),
                     const SizedBox(width: 8),
-                    Text(DateFormat('EEEE، dd MMMM yyyy', AppStrings.of(context).locale.languageCode).format(_selectedDate)),
+                    Text(DateFormat(AppStrings.of(context).locale.languageCode == 'ar' ? 'EEEE، dd MMMM yyyy' : 'EEEE, dd MMMM yyyy', AppStrings.of(context).locale.languageCode).format(_selectedDate)),
                     const Spacer(),
                     const Icon(Icons.arrow_drop_down),
                   ],
