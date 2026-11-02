@@ -526,6 +526,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /platform_finance/{documentId} {
+      allow read: if isSuperAdmin();
+      allow write: if false;
+    }
+
+    match /platform_finance_ledger/{entryId} {
+      allow read: if isSuperAdmin();
+      allow write: if false;
+    }
+
     match /orders/{orderId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid;
