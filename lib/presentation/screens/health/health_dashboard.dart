@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/health_score_service.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/screens/health/health_detail_screen.dart';
@@ -17,6 +18,7 @@ class HealthDashboard extends StatefulWidget {
 
 class _HealthDashboardState extends State<HealthDashboard>
     with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
   String _userName = 'مستخدم';
   double _healthScore = 0.0;
   bool _isLoading = true;
@@ -265,7 +267,7 @@ class _HealthDashboardState extends State<HealthDashboard>
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'صحتي',
+        title: _t('صحتي'),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -295,11 +297,11 @@ class _HealthDashboardState extends State<HealthDashboard>
                   const SizedBox(height: 16),
                   _buildHealthScoreCard(isDark),
                   const SizedBox(height: 20),
-                  _buildSectionHeader('المؤشرات الحيوية', isDark),
+                  _buildSectionHeader(_t('المؤشرات الحيوية'), isDark),
                   const SizedBox(height: 12),
                   _buildMetricsGrid(isDark),
                   const SizedBox(height: 20),
-                  _buildSectionHeader('النصائح الصحية', isDark),
+                  _buildSectionHeader(_t('النصائح الصحية'), isDark),
                   const SizedBox(height: 12),
                   _buildTipsGrid(isDark),
                   const SizedBox(height: 20),
@@ -362,8 +364,8 @@ class _HealthDashboardState extends State<HealthDashboard>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'مرحباً 👋',
+                Text(
+                  _t('مرحباً 👋'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white70,
@@ -471,7 +473,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'من 100',
+                      _t('من 100'),
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -492,9 +494,9 @@ class _HealthDashboardState extends State<HealthDashboard>
                 Wrap(
                   spacing: 6,
                   children: [
-                    _buildStatusChip('ممتاز', Colors.green, isDark),
-                    _buildStatusChip('جيد', Colors.blue, isDark),
-                    _buildStatusChip('يحتاج تحسين', Colors.orange, isDark),
+                    _buildStatusChip(_t('ممتاز'), Colors.green, isDark),
+                    _buildStatusChip(_t('جيد'), Colors.blue, isDark),
+                    _buildStatusChip(_t('يحتاج تحسين'), Colors.orange, isDark),
                   ],
                 ),
               ],
@@ -537,8 +539,8 @@ class _HealthDashboardState extends State<HealthDashboard>
         ),
         TextButton(
           onPressed: () => _showAllSection(context, title, isDark),
-          child: const Text(
-            'عرض الكل',
+          child: Text(
+            _t('عرض الكل'),
             style: TextStyle(
               fontSize: 12,
               color: AppColors.primary,
@@ -651,11 +653,11 @@ class _HealthDashboardState extends State<HealthDashboard>
               context,
               MaterialPageRoute(
                 builder: (_) => HealthDetailScreen(
-                  title: metric['label'] as String,
+                  title: _t(metric['label'] as String),
                   icon: metric['icon'] as String,
                   color: metric['color'] as Color,
                   value: metric['value'] as String,
-                  unit: metric['unit'] as String,
+                  unit: _t(metric['unit'] as String),
                   data: metric['data'] as List<dynamic>,
                 ),
               ),
@@ -730,7 +732,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        metric['status'] as String,
+                        _t(metric['status'] as String),
                         style: TextStyle(
                           fontSize: 9,
                           color: metric['statusColor'] as Color,
@@ -870,8 +872,8 @@ class _HealthDashboardState extends State<HealthDashboard>
       ),
       child: Row(
         children: [
-          _buildTabItem('الفحوصات', 0, isDark),
-          _buildTabItem('المواعيد', 1, isDark),
+          _buildTabItem(_t('الفحوصات'), 0, isDark),
+          _buildTabItem(_t('المواعيد'), 1, isDark),
         ],
       ),
     );
@@ -950,7 +952,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      record['title'] as String,
+                      _t(record['title'] as String),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -975,7 +977,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  record['status'] as String,
+                  _t(record['status'] as String),
                   style: TextStyle(
                     fontSize: 10,
                     color: record['statusColor'] as Color,
@@ -1031,7 +1033,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${appointment['specialty']} • ${appointment['date']}',
+                      '${${_t(appointment['specialty'] as String)} • ${appointment['date']}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -1056,7 +1058,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  appointment['status'] as String,
+                  _t(appointment['status'] as String),
                   style: TextStyle(
                     fontSize: 10,
                     color: appointment['statusColor'] as Color,
@@ -1079,14 +1081,14 @@ class _HealthDashboardState extends State<HealthDashboard>
   }
 
   String _getScoreStatus(double score) {
-    if (score >= 80) return 'ممتاز';
-    if (score >= 60) return 'جيد';
-    return 'يحتاج تحسين';
+    if (score >= 80) return _t('ممتاز');
+    if (score >= 60) return _t('جيد');
+    return _t('يحتاج تحسين');
   }
 
   String _getScoreDescription(double score) {
-    if (score >= 80) return 'صحتك في أفضل حالاتها، استمر على هذا المنوال!';
-    if (score >= 60) return 'صحتك جيدة، يمكنك تحسين بعض العادات.';
-    return 'يجب الانتباه لبعض المؤشرات، استشر طبيبك.';
+    if (score >= 80) return _t('صحتك في أفضل حالاتها، استمر على هذا المنوال!');
+    if (score >= 60) return _t('صحتك جيدة، يمكنك تحسين بعض العادات.');
+    return _t('يجب الانتباه لبعض المؤشرات، استشر طبيبك.');
   }
 }
