@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
@@ -6,6 +7,8 @@ import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
 
 class ShareAppScreen extends StatelessWidget {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   const ShareAppScreen({super.key});
 
   final List<Map<String, dynamic>> _socialPlatforms = const [
@@ -26,7 +29,7 @@ class ShareAppScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('مشاركة التطبيق'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
+      appBar: AppBar(title: Text(_t(context, 'مشاركة التطبيق')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(children: [
@@ -43,7 +46,7 @@ class ShareAppScreen extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: _shareApp,
                 icon: LocalAssetIcon(AppImages.uiShareApp, color: AppColors.primary, size: 20),
-                label: const Text('مشاركة الآن'),
+                label: Text(_t(context, 'مشاركة الآن')),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             ]),
@@ -65,7 +68,7 @@ class ShareAppScreen extends StatelessWidget {
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Container(width: 48, height: 48, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Center(child: LocalAssetIcon(platform['icon'] as String, size: 28))),
                     const SizedBox(height: 6),
-                    Text(platform['name'] as String, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black87)),
+                    Text(_t(context, platform['name'] as String), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black87)),
                   ]),
                 ),
               );
