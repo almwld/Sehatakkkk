@@ -2663,6 +2663,12 @@ class AppStrings {
       'تغيرات الطقس قد تؤثر على مرضى الربو والحساسية': ['Weather changes may affect people with asthma and allergies', 'Les changements météorologiques peuvent affecter les personnes asthmatiques ou allergiques'],
       'الرطوبة العالية تزيد من الشعور بالتعب': ['High humidity can make you feel more tired', 'Une forte humidité peut accentuer la fatigue'],
       'أيام الشمس مفيدة لنقص فيتامين د ولكن احذر من أشعة الشمس المباشرة': ['Sunlight can support vitamin D production, but avoid excessive direct sun exposure', 'La lumière du soleil favorise la production de vitamine D, mais évitez une exposition directe excessive.'],
+      'صنعاء، اليمن': ['Sanaa, Yemen', 'Sanaa, Yémen'],
+      'عدن، اليمن': ['Aden, Yemen', 'Aden, Yémen'],
+      'تعز، اليمن': ['Taiz, Yemen', 'Taëz, Yémen'],
+      'الحديدة، اليمن': ['Al Hudaydah, Yemen', 'Al Hudaydah, Yémen'],
+      'المكلا، اليمن': ['Mukalla, Yemen', 'Mukalla, Yémen'],
+      'مشمس مع غيوم': ['Sunny with clouds', 'Ensoleillé avec des nuages'],
     };
     final entry = translations[value];
     if (entry == null) return value;
