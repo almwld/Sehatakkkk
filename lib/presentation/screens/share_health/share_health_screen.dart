@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class ShareHealthScreen extends StatefulWidget {
   const ShareHealthScreen({super.key});
@@ -14,6 +15,8 @@ class ShareHealthScreen extends StatefulWidget {
 }
 
 class _ShareHealthScreenState extends State<ShareHealthScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -93,41 +96,41 @@ class _ShareHealthScreenState extends State<ShareHealthScreen> {
     final List<String> shareTargets = [];
 
     if (_shareWithDoctor && _selectedDoctor.isNotEmpty) {
-      shareTargets.add('👨‍⚕️ الطبيب: $_selectedDoctor');
+      shareTargets.add('👨‍⚕️ ${_t(context, 'الطبيب:')} $_selectedDoctor');
     }
     if (_shareWithFamily && _selectedFamily.isNotEmpty) {
-      shareTargets.add('👨‍👩‍👧‍👦 العائلة: $_selectedFamily');
+      shareTargets.add('👨‍👩‍👧‍👦 ${_t(context, 'العائلة:')} $_selectedFamily');
     }
     if (_shareWithHospital && _selectedHospital.isNotEmpty) {
-      shareTargets.add('🏥 المستشفى: $_selectedHospital');
+      shareTargets.add('🏥 ${_t(context, 'المستشفى:')} $_selectedHospital');
     }
 
     if (shareTargets.isEmpty) {
-      ToastService.showError(context, '⚠️ يرجى اختيار جهة مشاركة واحدة على الأقل');
+      ToastService.showError(context, _t(context, 'يرجى اختيار جهة مشاركة واحدة على الأقل'));
       return;
     }
 
     final shareText = '''
-📋 المشاركة الصحية - صحتك
+📋 ${_t(context, 'المشاركة الصحية - صحتك')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👤 المريض: ${_patientData['name'] ?? 'مستخدم'}
-📧 البريد: ${_patientData['email'] ?? 'غير متوفر'}
-📱 الهاتف: ${_patientData['phone'] ?? 'غير متوفر'}
+👤 ${_t(context, 'المريض:')} ${_patientData['name'] ?? _t(context, 'مستخدم')}
+📧 ${_t(context, 'البريد:')} ${_patientData['email'] ?? _t(context, 'غير متوفر')}
+📱 ${_t(context, 'الهاتف:')} ${_patientData['phone'] ?? _t(context, 'غير متوفر')}
 
-📊 المؤشرات الحيوية:
-• ضغط الدم: ${_patientData['bloodPressure'] ?? '--'}
-• السكر: ${_patientData['glucose'] ?? '--'} mg/dL
-• الوزن: ${_patientData['weight'] ?? '--'} كجم
-• فصيلة الدم: ${_patientData['bloodType'] ?? 'غير محدد'}
+📊 ${_t(context, 'المؤشرات الحيوية:')}
+• ${_t(context, 'ضغط الدم:')} ${_patientData['bloodPressure'] ?? '--'}
+• ${_t(context, 'السكر:')} ${_patientData['glucose'] ?? '--'} mg/dL
+• ${_t(context, 'الوزن:')} ${_patientData['weight'] ?? '--'} ${_t(context, 'كجم')}
+• ${_t(context, 'فصيلة الدم:')} ${_patientData['bloodType'] ?? _t(context, 'غير محدد')}
 
-📋 السجل الطبي:
+📋 ${_t(context, 'السجل الطبي:')}
 ${_medicalRecords.isEmpty ? 'لا توجد سجلات طبية' : _medicalRecords.map((r) => '• ${r['title'] ?? 'تقرير'} - ${r['date'] ?? ''}').join('\n')}
 
 ${_shareNotes.isNotEmpty ? '\n📝 ملاحظات:\n$_shareNotes' : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📱 تم المشاركة عبر تطبيق صحتك
+📱 ${_t(context, 'تمت المشاركة عبر تطبيق صحتك')}
 ${shareTargets.join('\n')}
 ''';
 
@@ -141,7 +144,7 @@ ${shareTargets.join('\n')}
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: const Text('مشاركة الملف الصحي', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t(context, 'مشاركة الملف الصحي'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -160,23 +163,23 @@ ${shareTargets.join('\n')}
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ✅ ملخص الملف الصحي
-                  _buildHealthSummary(isDark),
+                  _buildHealthSummary(context, isDark),
                   const SizedBox(height: 20),
                   // ✅ خيارات المشاركة
-                  _buildShareOptions(isDark),
+                  _buildShareOptions(context, isDark),
                   const SizedBox(height: 20),
                   // ✅ ملاحظات
-                  _buildNotesField(isDark),
+                  _buildNotesField(context, isDark),
                   const SizedBox(height: 20),
                   // ✅ زر المشاركة
-                  _buildShareButton(),
+                  _buildShareButton(context),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildHealthSummary(bool isDark) {
+  Widget _buildHealthSummary(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -192,25 +195,25 @@ ${shareTargets.join('\n')}
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'ملخص الملف الصحي',
+          Text(
+            _t(context, 'ملخص الملف الصحي'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          _infoRow(Icons.person_rounded, 'الاسم', _patientData['name'] ?? 'مستخدم'),
-          _infoRow(Icons.email_rounded, 'البريد', _patientData['email'] ?? 'غير متوفر'),
-          _infoRow(Icons.phone_rounded, 'الهاتف', _patientData['phone'] ?? 'غير متوفر'),
-          _infoRow(Icons.monitor_heart_rounded, 'ضغط الدم', _patientData['bloodPressure'] ?? '--'),
-          _infoRow(Icons.biotech_rounded, 'السكر', _patientData['glucose'] != null ? '${_patientData['glucose']} mg/dL' : '--'),
-          _infoRow(Icons.monitor_weight_rounded, 'الوزن', _patientData['weight'] != null ? '${_patientData['weight']} كجم' : '--'),
-          _infoRow(Icons.bloodtype_rounded, 'فصيلة الدم', _patientData['bloodType'] ?? 'غير محدد'),
-          _infoRow(Icons.description_rounded, 'السجلات الطبية', '${_medicalRecords.length} سجل'),
+          _infoRow(context, Icons.person_rounded, 'الاسم', _patientData['name'] ?? _t(context, 'مستخدم')),
+          _infoRow(context, Icons.email_rounded, 'البريد', _patientData['email'] ?? _t(context, 'غير متوفر')),
+          _infoRow(context, Icons.phone_rounded, 'الهاتف', _patientData['phone'] ?? _t(context, 'غير متوفر')),
+          _infoRow(context, Icons.monitor_heart_rounded, 'ضغط الدم', _patientData['bloodPressure'] ?? '--'),
+          _infoRow(context, Icons.biotech_rounded, 'السكر', _patientData['glucose'] != null ? '${_patientData['glucose']} mg/dL' : '--'),
+          _infoRow(context, Icons.monitor_weight_rounded, 'الوزن', _patientData['weight'] != null ? '${_patientData['weight']} ${_t(context, 'كجم')}' : '--'),
+          _infoRow(context, Icons.bloodtype_rounded, 'فصيلة الدم', _patientData['bloodType'] ?? _t(context, 'غير محدد')),
+          _infoRow(context, Icons.description_rounded, 'السجلات الطبية', '${_medicalRecords.length} ${_t(context, 'سجل')}'),
         ],
       ),
     );
   }
 
-  Widget _infoRow(IconData icon, String label, String value) {
+  Widget _infoRow(BuildContext context, IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -218,7 +221,7 @@ ${shareTargets.join('\n')}
           Icon(icon, size: 16, color: AppColors.primary),
           const SizedBox(width: 8),
           Text(
-            '$label: ',
+            '${_t(context, label)}: ',
             style: const TextStyle(fontSize: 12, color: AppColors.grey),
           ),
           Expanded(
@@ -233,7 +236,7 @@ ${shareTargets.join('\n')}
     );
   }
 
-  Widget _buildShareOptions(bool isDark) {
+  Widget _buildShareOptions(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -249,15 +252,15 @@ ${shareTargets.join('\n')}
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'اختر جهة المشاركة',
+          Text(
+            _t(context, 'اختر جهة المشاركة'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           // ✅ مشاركة مع طبيب
           _buildShareOption(
             icon: Icons.medical_services_rounded,
-            title: 'مشاركة مع طبيب',
+            title: _t(context, 'مشاركة مع طبيب'),
             value: _shareWithDoctor,
             onChanged: (value) {
               setState(() => _shareWithDoctor = value);
@@ -265,10 +268,11 @@ ${shareTargets.join('\n')}
             },
             child: _shareWithDoctor
                 ? _buildDropdown(
+                    context: context,
                     value: _selectedDoctor,
                     items: _doctors,
                     onChanged: (value) => setState(() => _selectedDoctor = value!),
-                    hint: 'اختر الطبيب',
+                    hint: _t(context, 'اختر الطبيب'),
                   )
                 : null,
           ),
@@ -276,7 +280,7 @@ ${shareTargets.join('\n')}
           // ✅ مشاركة مع العائلة
           _buildShareOption(
             icon: Icons.family_restroom_rounded,
-            title: 'مشاركة مع العائلة',
+            title: _t(context, 'مشاركة مع العائلة'),
             value: _shareWithFamily,
             onChanged: (value) {
               setState(() => _shareWithFamily = value);
@@ -287,7 +291,7 @@ ${shareTargets.join('\n')}
                     value: _selectedFamily,
                     items: _familyMembers,
                     onChanged: (value) => setState(() => _selectedFamily = value!),
-                    hint: 'اختر فرد العائلة',
+                    hint: _t(context, 'اختر فرد العائلة'),
                   )
                 : null,
           ),
@@ -295,7 +299,7 @@ ${shareTargets.join('\n')}
           // ✅ مشاركة مع مستشفى
           _buildShareOption(
             icon: Icons.local_hospital_rounded,
-            title: 'مشاركة مع مستشفى',
+            title: _t(context, 'مشاركة مع مستشفى'),
             value: _shareWithHospital,
             onChanged: (value) {
               setState(() => _shareWithHospital = value);
@@ -306,7 +310,7 @@ ${shareTargets.join('\n')}
                     value: _selectedHospital,
                     items: _hospitals,
                     onChanged: (value) => setState(() => _selectedHospital = value!),
-                    hint: 'اختر المستشفى',
+                    hint: _t(context, 'اختر المستشفى'),
                   )
                 : null,
           ),
@@ -314,12 +318,12 @@ ${shareTargets.join('\n')}
           // ✅ مشاركة مجهولة
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'مشاركة مجهولة',
+            title: Text(
+              _t(context, 'مشاركة مجهولة'),
               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
             ),
-            subtitle: const Text(
-              'إخفاء الاسم والمعلومات الشخصية',
+            subtitle: Text(
+              _t(context, 'إخفاء الاسم والمعلومات الشخصية'),
               style: TextStyle(fontSize: 11, color: AppColors.grey),
             ),
             value: _shareAnonymous,
@@ -368,6 +372,7 @@ ${shareTargets.join('\n')}
   }
 
   Widget _buildDropdown({
+    required BuildContext context,
     required String value,
     required List<Map<String, String>> items,
     required ValueChanged<String?> onChanged,
@@ -395,7 +400,7 @@ ${shareTargets.join('\n')}
     );
   }
 
-  Widget _buildNotesField(bool isDark) {
+  Widget _buildNotesField(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -411,8 +416,8 @@ ${shareTargets.join('\n')}
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'ملاحظات (اختياري)',
+          Text(
+            _t(context, 'ملاحظات (اختياري)'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -422,7 +427,7 @@ ${shareTargets.join('\n')}
             maxLines: 3,
             textAlign: TextAlign.right,
             decoration: InputDecoration(
-              hintText: 'أضف ملاحظاتك هنا...',
+              hintText: _t(context, 'أضف ملاحظاتك هنا...'),
               hintStyle: const TextStyle(fontSize: 12, color: AppColors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -437,15 +442,15 @@ ${shareTargets.join('\n')}
     );
   }
 
-  Widget _buildShareButton() {
+  Widget _buildShareButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: ElevatedButton.icon(
         onPressed: _shareHealthData,
         icon: const Icon(Icons.share_rounded),
-        label: const Text(
-          'مشاركة الملف الصحي',
+        label: Text(
+          _t(context, 'مشاركة الملف الصحي'),
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
