@@ -303,7 +303,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
   // ============================================================
   Widget _buildMessageBubble(ChatMessage message, bool isDark) {
     final isUser = message.isUser;
-    final displayText = !isUser && message.text == _welcomeMessage ? _t(_welcomeMessage) : message.text;
+    final displayText = message.text;
 
     return Padding(
       padding: const EdgeInsets.only(
