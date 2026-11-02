@@ -28,7 +28,12 @@ class _HelpScreenState extends State<HelpScreen> {
   List<_Faq> get _filteredFaqs {
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return _faqs;
-    return _faqs.where((faq) => (faq.question + ' ' + faq.answer).toLowerCase().contains(q)).toList();
+    final strings = AppStrings.of(context);
+    return _faqs.where((faq) {
+      final question = strings.translate(faq.question);
+      final answer = strings.translate(faq.answer);
+      return ('$question $answer').toLowerCase().contains(q);
+    }).toList();
   }
 
   @override
