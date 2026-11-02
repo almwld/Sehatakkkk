@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
@@ -11,6 +12,7 @@ class HomeServicesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final strings = AppStrings.of(context);
 
     final services = [
       {'icon': Icons.health_and_safety, 'title': 'تمريض منزلي', 'subtitle': 'رعاية تمريضية في منزلك', 'color': Colors.blue, 'screen': const ChatScreen()},
@@ -26,7 +28,7 @@ class HomeServicesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'الخدمات المنزلية',
+        title: strings.translate('الخدمات المنزلية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -90,7 +92,7 @@ class HomeServicesScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    service['title'] as String,
+                    strings.translate(service['title'] as String),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -99,7 +101,7 @@ class HomeServicesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    service['subtitle'] as String,
+                    strings.translate(service['subtitle'] as String),
                     style: TextStyle(
                       fontSize: 13,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
