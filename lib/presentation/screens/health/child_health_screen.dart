@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/health/child_section_screen.dart';
 
@@ -29,6 +29,8 @@ class ChildHealthScreen extends StatelessWidget {
     'عند وجود صعوبة تنفس أو فقدان وعي أو نزيف شديد، اطلب الطوارئ فوراً.',
   ];
 
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
@@ -43,7 +45,7 @@ class ChildHealthScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: bg,
         appBar: AppBar(
-          title: const Text('صحة الطفل', style: TextStyle(fontWeight: FontWeight.w800)),
+          title: Text(_t(context, 'صحة الطفل'), style: TextStyle(fontWeight: FontWeight.w800)),
           backgroundColor: sky,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -53,17 +55,17 @@ class ChildHealthScreen extends StatelessWidget {
           children: [
             _hero(context),
             const SizedBox(height: 16),
-            _sectionTitle('ملف الطفل'),
+            _sectionTitle(context, 'ملف الطفل'),
             const SizedBox(height: 8),
             _profileCard(context),
             const SizedBox(height: 18),
-            _sectionTitle('الخدمات والمتابعة'),
+            _sectionTitle(context, 'الخدمات والمتابعة'),
             const SizedBox(height: 8),
             ..._services.map((s) => _serviceCard(context, s)),
             const SizedBox(height: 10),
-            _sectionTitle('نصائح يومية للأهل'),
+            _sectionTitle(context, 'نصائح يومية للأهل'),
             const SizedBox(height: 8),
-            ..._tips.map((tip) => _tipCard(context, tip)),
+            ..._tips.map((tip) => _tipCard(context, _t(context, tip))),
             const SizedBox(height: 12),
             _notice(context),
           ],
@@ -84,9 +86,9 @@ class ChildHealthScreen extends StatelessWidget {
           CircleAvatar(radius: 31, backgroundColor: Colors.white24, child: Icon(Icons.child_care_rounded, color: Colors.white, size: 34)),
           SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('عناية متكاملة بطفلك', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(_t(context, 'عناية متكاملة بطفلك'), style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
             SizedBox(height: 6),
-            Text('النمو والتطعيمات والتغذية والنوم والتعلم والسلامة في مكان واحد.', style: TextStyle(color: Colors.white, height: 1.45, fontSize: 12)),
+            Text(_t(context, 'النمو والتطعيمات والتغذية والنوم والتعلم والسلامة في مكان واحد.'), style: TextStyle(color: Colors.white, height: 1.45, fontSize: 12)),
           ])),
         ],
       ),
@@ -101,8 +103,8 @@ class ChildHealthScreen extends StatelessWidget {
         child: Row(children: [
           Container(width: 52, height: 52, decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(.12), borderRadius: BorderRadius.circular(16)), child: const Icon(Icons.face_rounded, color: Color(0xFF0284C7), size: 30)),
           const SizedBox(width: 12),
-          const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('أضف ملف طفلك', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), SizedBox(height: 4), Text('العمر وتاريخ الميلاد والجنس والطول والوزن والتطعيمات.', style: TextStyle(fontSize: 11, height: 1.4))])),
-          IconButton(onPressed: () { if (childId == null || childId!.isEmpty) { ToastService.showInfo('أضف ملف الطفل أولاً من حساب العائلة'); return; } Navigator.push(context, MaterialPageRoute(builder: (_) => ChildSectionScreen(childId: childId!, section: 'growth'))); }, icon: const Icon(Icons.add_circle_outline_rounded)),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(context, 'أضف ملف طفلك'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), const SizedBox(height: 4), Text(_t(context, 'العمر وتاريخ الميلاد والجنس والطول والوزن والتطعيمات.'), style: const TextStyle(fontSize: 11, height: 1.4))])),
+          IconButton(onPressed: () { if (childId == null || childId!.isEmpty) { ToastService.showInfo(_t(context, 'أضف ملف الطفل أولاً من حساب العائلة')); return; } Navigator.push(context, MaterialPageRoute(builder: (_) => ChildSectionScreen(childId: childId!, section: 'growth'))); }, icon: const Icon(Icons.add_circle_outline_rounded)),
         ]),
       ),
     );
@@ -115,10 +117,10 @@ class ChildHealthScreen extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 3),
         leading: Container(width: 45, height: 45, decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(.10), borderRadius: BorderRadius.circular(13)), child: Icon(service[2] as IconData, color: const Color(0xFF0284C7))),
-        title: Text(service[0] as String, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-        subtitle: Text(service[1] as String, style: const TextStyle(fontSize: 11, height: 1.35)),
+        title: Text(_t(context, service[0] as String), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+        subtitle: Text(_t(context, service[1] as String), style: const TextStyle(fontSize: 11, height: 1.35)),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15),
-        onTap: () { if (childId == null || childId!.isEmpty) { ToastService.showInfo('يجب إضافة ملف الطفل أولاً من حساب العائلة'); return; } const m={'النمو والتطور':'growth','التطعيمات':'vaccines','التغذية':'nutrition','النوم':'sleep','صحة الفم والأسنان':'dental','الفحوصات الدورية':'checkups','النظر والسمع':'vision','النشاط واللعب':'activity','الصحة النفسية':'mental','الإسعافات الأولية':'firstaid'}; final k=m[service[0] as String]; if(k!=null) Navigator.push(context, MaterialPageRoute(builder: (_) => ChildSectionScreen(childId: childId!, section: k))); },
+        onTap: () { if (childId == null || childId!.isEmpty) { ToastService.showInfo(_t(context, 'يجب إضافة ملف الطفل أولاً من حساب العائلة')); return; } const m={'النمو والتطور':'growth','التطعيمات':'vaccines','التغذية':'nutrition','النوم':'sleep','صحة الفم والأسنان':'dental','الفحوصات الدورية':'checkups','النظر والسمع':'vision','النشاط واللعب':'activity','الصحة النفسية':'mental','الإسعافات الأولية':'firstaid'}; final k=m[service[0] as String]; if(k!=null) Navigator.push(context, MaterialPageRoute(builder: (_) => ChildSectionScreen(childId: childId!, section: k))); },
       ),
     );
   }
@@ -128,10 +130,10 @@ class ChildHealthScreen extends StatelessWidget {
   }
 
   Widget _notice(BuildContext context) {
-    return Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF38BDF8).withOpacity(.18))), child: const Text('هذه الشاشة مخصصة لصحة الطفل فقط. الحمل وصحة المرأة لهما شاشات مستقلة داخل صحة الأسرة.', style: TextStyle(fontSize: 11, height: 1.5, fontWeight: FontWeight.w600)));
+    return Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF38BDF8).withOpacity(.18))), child: Text(_t(context, 'هذه الشاشة مخصصة لصحة الطفل فقط. الحمل وصحة المرأة لهما شاشات مستقلة داخل صحة الأسرة.'), style: TextStyle(fontSize: 11, height: 1.5, fontWeight: FontWeight.w600)));
   }
 
-  Widget _sectionTitle(String text) => Text(text, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800));
+  Widget _sectionTitle(BuildContext context, String text) => Text(_t(context, text), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800));
 
-  void _message(BuildContext context, String text) => showDialog<void>(context: context, builder: (_) => AlertDialog(title: const Text('صحة الطفل'), content: Text(text, style: const TextStyle(height: 1.5)), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('حسناً'))]));
+  void _message(BuildContext context, String text) => showDialog<void>(context: context, builder: (_) => AlertDialog(title: Text(_t(context, 'صحة الطفل')), content: Text(_t(context, text), style: const TextStyle(height: 1.5)), actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(_t(context, 'حسناً')))]));
 }
