@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HealthMapScreen extends StatefulWidget {
   const HealthMapScreen({super.key});
@@ -10,6 +11,7 @@ class HealthMapScreen extends StatefulWidget {
 
 class _HealthMapScreenState extends State<HealthMapScreen> {
   String _selectedCategory = 'الكل';
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   final List<Map<String, dynamic>> _facilities = [
     // مستشفيات
@@ -47,7 +49,7 @@ class _HealthMapScreenState extends State<HealthMapScreen> {
     final filtered = _filtered;
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('خرائط المرافق الصحية 🗺️', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('خرائط المرافق الصحية'), style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [IconButton(icon: const Icon(Icons.map), onPressed: () {}), IconButton(icon: const Icon(Icons.search), onPressed: () {})],
       ),
       body: Column(children: [
@@ -61,7 +63,7 @@ class _HealthMapScreenState extends State<HealthMapScreen> {
             itemBuilder: (context, i) {
               final cat = ['الكل', 'مستشفيات', 'صيدليات', 'مختبرات', 'عيادات', 'مراكز طبية'][i];
               final selected = _selectedCategory == cat;
-              return ChoiceChip(label: Text(cat, style: const TextStyle(fontSize: 11)), selected: selected, selectedColor: AppColors.primary, labelStyle: TextStyle(color: selected ? Colors.white : AppColors.darkGrey), onSelected: (v) => setState(() => _selectedCategory = v! ? cat : 'الكل'));
+              return ChoiceChip(label: Text(_t(cat), style: const TextStyle(fontSize: 11)), selected: selected, selectedColor: AppColors.primary, labelStyle: TextStyle(color: selected ? Colors.white : AppColors.darkGrey), onSelected: (v) => setState(() => _selectedCategory = v! ? cat : 'الكل'));
             },
           ),
         ),
@@ -89,7 +91,7 @@ class _HealthMapScreenState extends State<HealthMapScreen> {
                             ? Image.network(f['image'], fit: BoxFit.cover, errorBuilder: (_, __, ___) => Center(child: Text(f['icon'], style: const TextStyle(fontSize: 50))))
                             : Center(child: Text(f['icon'], style: const TextStyle(fontSize: 50))),
                       ),
-                      Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)), child: Text(f['category'], style: const TextStyle(color: Colors.white, fontSize: 10)))),
+                      Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)), child: Text(_t(f['category'] as String), style: const TextStyle(color: Colors.white, fontSize: 10)))),
                       Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: AppColors.amber, borderRadius: BorderRadius.circular(8)), child: Row(children: [const Icon(Icons.star, color: Colors.white, size: 12), const SizedBox(width: 2), Text('${f['rating']}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))]))),
                     ]),
                   ),
@@ -106,15 +108,15 @@ class _HealthMapScreenState extends State<HealthMapScreen> {
                       Row(children: [const Icon(Icons.location_on, size: 14, color: AppColors.grey), const SizedBox(width: 4), Expanded(child: Text(f['address'], style: const TextStyle(fontSize: 11, color: AppColors.grey)))]),
                       const SizedBox(height: 6),
                       // تفاصيل حسب النوع
-                      if (f['category'] == 'مستشفيات') Row(children: [_tag('${f['beds']} سرير', AppColors.primary), const SizedBox(width: 6), if (f['emergency']) _tag('طوارئ 24 ساعة', AppColors.error)]),
-                      if (f['category'] == 'صيدليات') Row(children: [_tag(f['hours'], AppColors.success), const SizedBox(width: 6), if (f['delivery']) _tag('توصيل متاح', AppColors.info)]),
-                      if (f['category'] == 'مختبرات') Row(children: [_tag('${f['tests']} فحص', AppColors.info), const SizedBox(width: 6), if (f['homeService']) _tag('خدمة منزلية', AppColors.success)]),
-                      if (f['category'] == 'عيادات' || f['category'] == 'مراكز طبية') Text(f['specialties'], style: const TextStyle(fontSize: 11, color: AppColors.primary)),
+                      if (f['category'] == 'مستشفيات') Row(children: [_tag('${f['beds']} ${_t('سرير')}', AppColors.primary), const SizedBox(width: 6), if (f['emergency']) _tag(_t('طوارئ 24 ساعة'), AppColors.error)]),
+                      if (f['category'] == 'صيدليات') Row(children: [_tag(_t(f['hours'] as String), AppColors.success), const SizedBox(width: 6), if (f['delivery']) _tag(_t('توصيل متاح'), AppColors.info)]),
+                      if (f['category'] == 'مختبرات') Row(children: [_tag('${f['tests']} ${_t('فحص')}', AppColors.info), const SizedBox(width: 6), if (f['homeService']) _tag(_t('خدمة منزلية'), AppColors.success)]),
+                      if (f['category'] == 'عيادات' || f['category'] == 'مراكز طبية') Text(_t(f['specialties'] as String), style: const TextStyle(fontSize: 11, color: AppColors.primary)),
                       const SizedBox(height: 10),
                       Row(children: [
                         Expanded(child: OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.call, size: 14), label: Text(f['phone'], style: const TextStyle(fontSize: 11)), style: OutlinedButton.styleFrom(foregroundColor: AppColors.success, padding: const EdgeInsets.symmetric(vertical: 8)))),
                         const SizedBox(width: 8),
-                        Expanded(child: ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.navigation, size: 14), label: const Text('توجيه', style: TextStyle(fontSize: 11)), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 8)))),
+                        Expanded(child: ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.navigation, size: 14), label: Text(_t('توجيه'), style: const TextStyle(fontSize: 11)), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 8)))),
                       ]),
                     ]),
                   ),
