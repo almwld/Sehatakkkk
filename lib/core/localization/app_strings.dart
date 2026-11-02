@@ -3391,6 +3391,16 @@ class AppStrings {
       'جلسة': ['Session', 'Séance'],
       'تدليك عضلي لتخفيف التوتر': ['Muscle massage to relieve tension', 'Massage musculaire pour soulager les tensions'],
       'احجز': ['Book', 'Réserver'],
+      '8:00 ص': ['8:00 AM', '08:00'],
+      '9:00 ص': ['9:00 AM', '09:00'],
+      '10:00 ص': ['10:00 AM', '10:00'],
+      '11:00 ص': ['11:00 AM', '11:00'],
+      '12:00 م': ['12:00 PM', '12:00'],
+      '1:00 م': ['1:00 PM', '13:00'],
+      '2:00 م': ['2:00 PM', '14:00'],
+      '3:00 م': ['3:00 PM', '15:00'],
+      'المسعفون المتاحون الآن': ['Available field responders now', 'Secouristes disponibles actuellement'],
+      'اعرض المسعفين المتواجدين في مناطق الخدمة والمتاحين للاستجابة للطوارئ.': ['View responders in service areas who are available for emergencies.', 'Consultez les secouristes présents dans les zones de service et disponibles pour les urgences.'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
