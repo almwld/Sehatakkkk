@@ -107,7 +107,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'ساعدنا في تحسين التطبيق من خلال الإبلاغ عن أي مشكلة تواجهها. سنعمل على حلها في أقرب وقت.',
+                      _t('ساعدنا في تحسين التطبيق من خلال الإبلاغ عن أي مشكلة تواجهها. سنعمل على حلها في أقرب وقت.'),
                       style: TextStyle(
                         fontSize: 13,
                         color: isDark ? Colors.white70 : Colors.black87,
@@ -133,7 +133,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                   setState(() => _selectedCategory = value);
                 }
               },
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: _t('تصنيف المشكلة'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -146,7 +146,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
             TextField(
               controller: _titleController,
               enabled: !_isLoading,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: _t('عنوان المشكلة'),
                 hintText: _t('مثال: تعذر تسجيل الدخول'),
                 border: OutlineInputBorder(
@@ -161,7 +161,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               controller: _descriptionController,
               maxLines: 6,
               enabled: !_isLoading,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: _t('وصف المشكلة بالتفصيل'),
                 hintText: _t('يرجى وصف المشكلة بالتفصيل مع ذكر خطوات حدوثها...'),
                 border: OutlineInputBorder(
@@ -180,7 +180,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               controller: _emailController,
               enabled: !_isLoading,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: _t('البريد الإلكتروني (اختياري)'),
                 hintText: _t('للتواصل معك بخصوص المشكلة'),
                 border: OutlineInputBorder(
