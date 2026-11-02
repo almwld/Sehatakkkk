@@ -21,6 +21,8 @@ class _AppointmentsScreenState
 
   String _filter = 'all';
 
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final Map<String, String> _statusLabels = const {
     'pending': 'قيد الانتظار',
     'confirmed': 'مؤكد',
@@ -151,7 +153,7 @@ class _AppointmentsScreenState
         itemBuilder: (context, index) {
           final filter = filters[index];
           final key = filter['key'] as String;
-          final label = filter['label'] as String;
+          final label = _t(filter['label'] as String);
           final isSelected = _filter == key;
 
           return GestureDetector(
@@ -216,8 +218,8 @@ class _AppointmentsScreenState
     final color =
         _statusColors[status] ?? Colors.grey;
 
-    final label =
-        _statusLabels[status] ?? status;
+    final rawLabel = _statusLabels[status];
+    final label = rawLabel == null ? status : _t(rawLabel);
 
     final date = _readDate(
       appointment['date'],
@@ -229,7 +231,7 @@ class _AppointmentsScreenState
 
     final doctorName =
         appointment['doctorName']?.toString() ??
-            'طبيب';
+            _t('طبيب');
 
     final specialty =
         appointment['doctorSpecialty']?.toString() ??
@@ -419,7 +421,7 @@ class _AppointmentsScreenState
             const SizedBox(height: 16),
 
             const Text(
-              'تعذر تحميل المواعيد',
+              _t('تعذر تحميل المواعيد'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight:
@@ -430,7 +432,7 @@ class _AppointmentsScreenState
             const SizedBox(height: 8),
 
             Text(
-              'تحقق من الاتصال والصلاحيات.',
+              _t('تحقق من الاتصال والصلاحيات.'),
               textAlign:
                   TextAlign.center,
               style: TextStyle(
@@ -482,7 +484,7 @@ class _AppointmentsScreenState
           const SizedBox(height: 16),
 
           Text(
-            'لا توجد مواعيد',
+            _t('لا توجد مواعيد'),
             style: TextStyle(
               fontSize: 18,
               fontWeight:
@@ -496,7 +498,7 @@ class _AppointmentsScreenState
           const SizedBox(height: 8),
 
           Text(
-            'ابدأ بحجز موعد جديد من صفحة الطبيب',
+            _t('ابدأ بحجز موعد جديد من صفحة الطبيب'),
             style: TextStyle(
               fontSize: 14,
               color: isDark
