@@ -268,12 +268,10 @@ exports.reviewTransaction = onCall(async (request) => {
       tx.set(platformWalletRef, {balance: platformBalance + amount, totalDeposits: Number(platformWallet.totalDeposits || 0) + amount, totalFees: Number(platformWallet.totalFees || 0) + fee, updatedAt: now, createdAt: platformWallet.createdAt || now}, {merge: true});
       tx.set(db.collection('platform_finance_ledger').doc(transactionId), {transactionId, userId: data.userId, type: 'deposit', amount, fee, balanceAfter: platformBalance + amount, reviewedBy: uid, createdAt: now});
     } else if (data.type === 'refund') {
-      if (platformBalance < amount) throw new HttpsError('failed-precondition', 'رصيد المحفظة الرئيسية لا يكفي لتنفيذ الاسترداد');
       tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, totalSpent: Math.max(0, Number(wallet.totalSpent || 0) - amount), updatedAt: now, lastTransactionAt: now});
       tx.set(platformWalletRef, {balance: platformBalance - amount, totalRefunds: Number(platformWallet.totalRefunds || 0) + amount, updatedAt: now}, {merge: true});
       tx.set(db.collection('platform_finance_ledger').doc(transactionId), {transactionId, userId: data.userId, type: 'refund', amount, balanceAfter: platformBalance - amount, reviewedBy: uid, createdAt: now});
     } else if (data.type === 'withdrawal') {
-      if (platformBalance < amount) throw new HttpsError('failed-precondition', 'رصيد المحفظة الرئيسية لا يكفي لتنفيذ السحب');
       tx.update(walletRef, {pendingBalance: Math.max(0, Number(wallet.pendingBalance || 0) - amount), totalWithdrawn: Number(wallet.totalWithdrawn || 0) + amount, updatedAt: now, lastTransactionAt: now});
       tx.set(platformWalletRef, {balance: platformBalance - amount, totalWithdrawals: Number(platformWallet.totalWithdrawals || 0) + amount, updatedAt: now}, {merge: true});
       tx.set(db.collection('platform_finance_ledger').doc(transactionId), {transactionId, userId: data.userId, type: 'withdrawal', amount, balanceAfter: platformBalance - amount, reviewedBy: uid, createdAt: now});
