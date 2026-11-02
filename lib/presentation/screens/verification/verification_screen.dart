@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -14,6 +15,7 @@ class VerificationScreen extends StatefulWidget {
   @override State<VerificationScreen> createState()=>_VerificationScreenState();
 }
 class _VerificationScreenState extends State<VerificationScreen>{
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _name=TextEditingController(),_age=TextEditingController(),_license=TextEditingController(),_experience=TextEditingController(),_specialty=TextEditingController(),_academic=TextEditingController();
   final Map<String,List<Map<String,dynamic>>> _docs={};
   bool _loading=true,_submitting=false,_verified=false;
@@ -75,7 +77,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
     if (_submitting || _verified || _status == 'pending') return;
     final u = FirebaseAuth.instance.currentUser;
     if (u == null) {
-      ToastService.showError('يجب تسجيل الدخول أولاً');
+      ToastService.showError(_t('يجب تسجيل الدخول أولاً'));
       return;
     }
     if (_name.text.trim().isEmpty || _license.text.trim().isEmpty || _specialty.text.trim().isEmpty) {
@@ -115,7 +117,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
         'academicSummary': _academic.text.trim(),
       });
       if (mounted) setState(() => _status = 'pending');
-      ToastService.showSuccess('تم إرسال طلب التوثيق للمراجعة');
+      ToastService.showSuccess(_t('تم إرسال طلب التوثيق للمراجعة'));
     } catch (e) {
       ToastService.showError('تعذر إرسال طلب التوثيق');
     } finally {
@@ -237,8 +239,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
               _upload('healthRecord', 'السجل الصحي/اللياقة المهنية'),
               _upload('identity', 'الهوية والمستندات الرسمية'),
               const SizedBox(height: 10),
-              const Text(
-                'الملفات المدعومة: PDF و JPG و PNG — الحد الأقصى 12MB للملف.',
+              Text(_t('الملفات المدعومة: PDF و JPG و PNG — الحد الأقصى 12MB للملف.'),
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
               const SizedBox(height: 80),
