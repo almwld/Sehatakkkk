@@ -330,7 +330,10 @@ exports.adminUpdateUser = onCall(async (request) => {
   const snap = await userRef.get();
   if (!snap.exists) throw new HttpsError('not-found', 'المستخدم غير موجود');
   const current = snap.data() || {};
-  const isSuper = (await db.collection('users').doc(actorId).get()).data()?.role === 'superAdmin';
+  const actorSnap = await db.collection('users').doc(actorId).get();
+  const isSuper = actorSnap.exists && actorSnap.data()?.role === 'superAdmin';
+  if (userId === actorId) throw new HttpsError('permission-denied', 'لا يمكن تعديل حسابك الإداري من هذه الواجهة');
+  if (current.role === 'superAdmin') throw new HttpsError('permission-denied', 'حساب المدير الأعلى محمي ولا يمكن لأي مشرف تعديله');
   const updates = {updatedAt: FieldValue.serverTimestamp()};
   if (action === 'block' || action === 'unblock') updates.isSuspended = action === 'block';
   else if (action === 'verify') updates.isVerified = true;
