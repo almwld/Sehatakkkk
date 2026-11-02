@@ -362,20 +362,20 @@ class _PatientDashboardState extends State<PatientDashboard> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+        ToastService.showError('❌ ${AppStrings.of(context).translate('يرجى تسجيل الدخول أولاً')}');
         return;
       }
 
       final shareText = '''
-🏥 ملفي الصحي - صحتك (Sehatak)
+🏥 ${AppStrings.of(context).translate('ملفي الصحي - صحتك')} (Sehatak)
 
-👤 الاسم: $_userName
-📧 البريد: $_userEmail
-📱 الهاتف: $_userPhone
-🩸 فصيلة الدم: $_bloodType
-🔢 رقم المريض: $_patientNumber
+👤 ${AppStrings.of(context).translate('الاسم')}: $_userName
+📧 ${AppStrings.of(context).translate('البريد')}: $_userEmail
+📱 ${AppStrings.of(context).translate('الهاتف')}: $_userPhone
+🩸 ${AppStrings.of(context).translate('فصيلة الدم')}: $_bloodType
+🔢 ${AppStrings.of(context).translate('رقم المريض')}: $_patientNumber
 ''';
-      await Share.share(shareText, subject: 'ملفي الصحي - صحتك');
+      await Share.share(shareText, subject: AppStrings.of(context).translate('ملفي الصحي - صحتك'));
     } catch (e) {
       ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'فشل مشاركة الملف' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Échec du partage du fichier' : 'File sharing failed'}: $e');
     } finally {
