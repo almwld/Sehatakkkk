@@ -2565,6 +2565,14 @@ class AppStrings {
       'ثانية': ['seconds', 'secondes'],
       'نتائج القياس تقديرية ولا تغني عن جهاز طبي معتمد أو تقييم مختص.': ['These readings are estimates and do not replace a certified medical device or professional assessment.', 'Ces mesures sont indicatives et ne remplacent pas un dispositif médical certifié ni l’évaluation d’un professionnel.'],
 
+      'حدث خطأ في تحميل بيانات الطلب': ['An error occurred while loading order details', 'Une erreur est survenue lors du chargement de la commande'],
+      'الوقت المتوقع': ['Estimated time', 'Délai estimé'],
+      'اضغط لعرض الخريطة': ['Tap to view the map', 'Appuyez pour afficher la carte'],
+      'تتبع موقع المندوب في الوقت الفعلي': ['Track the courier’s location in real time', 'Suivez la position du livreur en temps réel'],
+      'تم الطلب': ['Order placed', 'Commande passée'],
+      'جاري التنفيذ...': ['In progress...', 'En cours…'],
+      'معلومات المندوب': ['Courier information', 'Informations sur le livreur'],
+      'تتبع على الخريطة': ['Track on map', 'Suivre sur la carte'],
     };
     final entry = translations[value];
     if (entry == null) return value;
