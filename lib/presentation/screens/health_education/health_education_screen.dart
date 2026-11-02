@@ -2,6 +2,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HealthEducationScreen extends StatefulWidget {
   const HealthEducationScreen({super.key});
@@ -11,6 +12,8 @@ class HealthEducationScreen extends StatefulWidget {
 }
 
 class _HealthEducationScreenState extends State<HealthEducationScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   String _selectedCategory = 'الكل';
   final List<String> _categories = [
     'الكل',
@@ -239,7 +242,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              video['title'],
+              _t(context, video['title'] as String),
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -267,7 +270,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  video['category'],
+                  _t(context, video['category'] as String),
                   style: const TextStyle(fontSize: 11, color: AppColors.grey),
                 ),
                 const Spacer(),
@@ -285,7 +288,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              video['description'],
+              _t(context, video['description'] as String),
               style: const TextStyle(fontSize: 14, height: 1.6),
             ),
             const SizedBox(height: 16),
@@ -295,10 +298,10 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
-                      ToastService.showSuccess(context, '▶️ جاري تشغيل: ${video['title']}');
+                      ToastService.showSuccess(context, '${_t(context, 'جاري تشغيل:')} ${_t(context, video['title'] as String)}');
                     },
                     icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('تشغيل الفيديو'),
+                    label: Text(_t(context, 'تشغيل الفيديو')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -327,7 +330,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إغلاق'),
+                child: Text(_t(context, 'إغلاق')),
               ),
             ),
           ],
@@ -344,7 +347,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: const Text('التثقيف الصحي', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t(context, 'التثقيف الصحي'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -358,17 +361,17 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
       body: Column(
         children: [
           // ✅ التصنيفات
-          _buildCategories(),
+          _buildCategories(context),
           // ✅ قائمة الفيديوهات
           Expanded(
             child: filtered.isEmpty
-                ? _buildEmptyState()
+                ? _buildEmptyState(context)
                 : ListView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final video = filtered[index];
-                      return _buildVideoCard(video, isDark);
+                      return _buildVideoCard(video, isDark, context);
                     },
                   ),
           ),
@@ -377,7 +380,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
     );
   }
 
-  Widget _buildCategories() {
+  Widget _buildCategories(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       color: Colors.white,
@@ -397,7 +400,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  category,
+                  _t(context, category),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -412,7 +415,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -431,8 +434,8 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'لا توجد فيديوهات',
+          Text(
+            _t(context, 'لا توجد فيديوهات'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -440,7 +443,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'سيتم إضافة فيديوهات جديدة قريباً',
+            _t(context, 'سيتم إضافة فيديوهات جديدة قريباً'),
             style: TextStyle(
               fontSize: 14,
               color: AppColors.grey,
@@ -451,7 +454,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
     );
   }
 
-  Widget _buildVideoCard(Map<String, dynamic> video, bool isDark) {
+  Widget _buildVideoCard(Map<String, dynamic> video, bool isDark, BuildContext context) {
     return GestureDetector(
       onTap: () => _showVideoDetails(video),
       child: Container(
@@ -515,7 +518,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    video['title'],
+                    _t(context, video['title'] as String),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -541,7 +544,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          video['category'],
+                          _t(context, video['category'] as String),
                           style: TextStyle(
                             fontSize: 8,
                             color: AppColors.primary,
