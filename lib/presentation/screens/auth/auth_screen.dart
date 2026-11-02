@@ -693,9 +693,9 @@ class _AuthScreenState extends State<AuthScreen>
       if (mounted) setState(() => _isLoading = false);
       debugPrint('[GoogleAuth] TIMEOUT: $e');
       if (!firebaseAuthenticated) {
-        ToastService.showError(
+        ToastService.showError(AppStrings.of(context).translate(
           'انتهت مهلة تسجيل الدخول عبر Google. تحقق من الإنترنت وإعدادات Google ثم حاول مرة أخرى.',
-        );
+        ));
       }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
@@ -711,7 +711,7 @@ class _AuthScreenState extends State<AuthScreen>
         } else if (e.code == 'network-request-failed') {
           message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
         }
-        ToastService.showError(message);
+        ToastService.showError(AppStrings.of(context).translate(message));
       }
     } catch (e) {
       _hideLoading();
@@ -1103,7 +1103,7 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _showMessage(String message, bool isError) {
-    ToastService.showError(message);
+    ToastService.showError(AppStrings.of(context).translate(message));
   }
 
   Widget _buildHospitalFields(bool isDark, Color primaryColor) {
