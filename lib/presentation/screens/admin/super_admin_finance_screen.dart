@@ -67,6 +67,43 @@ class _SuperAdminFinanceScreenState extends State<SuperAdminFinanceScreen> {
         ]),
         Text(_t('ملخص الأرصدة والحركات المالية المسجلة في المنصة.'), style: TextStyle(color: textColor.withOpacity(.7))),
         const SizedBox(height: 14),
+        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('platform_finance').doc('main_wallet').snapshots(),
+          builder: (context, snapshot) {
+            final data = snapshot.data?.data() ?? <String, dynamic>{};
+            final balance = _number(data['balance']);
+            final fees = _number(data['totalFees']);
+            return Card(
+              color: AppColors.primary,
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    const Icon(Icons.account_balance, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_t('المحفظة الرئيسية للمنصة'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
+                    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData)
+                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                  ]),
+                  const SizedBox(height: 10),
+                  Text(_money(balance), style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 10),
+                  Wrap(spacing: 16, runSpacing: 6, children: [
+                    Text(_t('إجمالي الإيداعات: ') + _money(_number(data['totalDeposits'])), style: const TextStyle(color: Colors.white)),
+                    Text(_t('إجمالي السحوبات: ') + _money(_number(data['totalWithdrawals'])), style: const TextStyle(color: Colors.white)),
+                    Text(_t('الاستردادات: ') + _money(_number(data['totalRefunds'])), style: const TextStyle(color: Colors.white)),
+                    Text(_t('الرسوم المسجلة: ') + _money(fees), style: const TextStyle(color: Colors.white)),
+                  ]),
+                  if (snapshot.hasError) Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(_t('تعذر تحميل المحفظة الرئيسية: ') + snapshot.error.toString(), style: const TextStyle(color: Colors.white)),
+                  ),
+                ]),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 14),
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance.collection('wallets').snapshots(),
           builder: (context, snapshot) {
@@ -90,6 +127,29 @@ class _SuperAdminFinanceScreenState extends State<SuperAdminFinanceScreen> {
               const SizedBox(height: 8),
               Align(alignment: Alignment.centerRight, child: Text(_t('عدد المحافظ المسجلة: ') + snapshot.data!.size.toString(), style: TextStyle(color: textColor.withOpacity(.7)))),
             ]);
+          },
+        ),
+        const SizedBox(height: 20),
+        Text(_t('سجل المحفظة الرئيسية'), style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: textColor)),
+        const SizedBox(height: 8),
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('platform_finance_ledger').orderBy('createdAt', descending: true).limit(30).snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) return _errorCard(_t('تعذر تحميل سجل المحفظة الرئيسية: ') + snapshot.error.toString());
+            if (!snapshot.hasData) return const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator()));
+            if (snapshot.data!.docs.isEmpty) return Card(color: surface, child: Padding(padding: const EdgeInsets.all(16), child: Text(_t('لا توجد حركات مالية معتمدة بعد'))));
+            return Card(color: surface, child: Column(children: snapshot.data!.docs.map((doc) {
+              final entry = doc.data();
+              final type = entry['type']?.toString() ?? '';
+              final incoming = type == 'deposit';
+              return ListTile(
+                dense: true,
+                leading: Icon(incoming ? Icons.south_west : Icons.north_east, color: incoming ? Colors.green : Colors.orange),
+                title: Text(_transactionType(type)),
+                subtitle: Text(_dateLabel(entry['createdAt']) + ' • ' + _t('المستخدم: ') + (entry['userId']?.toString() ?? '—')),
+                trailing: Text(_money(_number(entry['amount'])), style: const TextStyle(fontWeight: FontWeight.w800)),
+              );
+            }).toList())),
           },
         ),
         const SizedBox(height: 20),
