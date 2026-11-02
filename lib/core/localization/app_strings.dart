@@ -79,6 +79,12 @@ class AppStrings {
   /// Translates a literal Arabic UI label without network access. Unknown and
   /// user-generated content is intentionally preserved.
   String translate(String value) {
+    const stepPrefix = 'نشاطك اليومي قريب من الهدف. تبقى ';
+    const stepSuffix = ' خطوة تقريباً.';
+    if (value.startsWith(stepPrefix) && value.endsWith(stepSuffix)) {
+      final remaining = value.substring(stepPrefix.length, value.length - stepSuffix.length);
+      return _pick('Your daily activity is close to the goal. About $remaining steps remaining.', 'Votre activité quotidienne est proche de l’objectif. Il reste environ $remaining pas.');
+    }
     if (value.startsWith('تعذر إكمال عملية Google: ')) {
       final detail = value.substring('تعذر إكمال عملية Google: '.length);
       return _pick('تعذر إكمال عملية Google: ', 'Could not complete Google sign-in: ', 'Impossible de terminer la connexion Google : ') + detail;
@@ -3091,6 +3097,7 @@ class AppStrings {
       'بعد العشاء': ['After dinner', 'Après le dîner'],
       'ضمن النطاق المرجعي': ['Within reference range', 'Dans la plage de référence'],
       'آخر قراءة': ['Latest reading', 'Dernière mesure'],
+      '% من هدف 10,000 خطوة': ['% of the 10,000-step goal', '% de l’objectif de 10 000 pas'],
     };
     final entry = translations[value];
     if (entry == null) return value;
