@@ -165,7 +165,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                   debugPrint('save vaccination failed: $e');
                   if (dialogContext.mounted) {
                     setDialogState(() => saving = false);
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text(_t('تعذر حفظ التطعيم'))));
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text(_t('تعذر حفظ التطعيم'))));
                   }
                 }
               },
