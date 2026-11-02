@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/steps/steps_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
@@ -14,6 +15,7 @@ class StepTrackerScreen extends StatefulWidget {
 }
 
 class _StepTrackerScreenState extends State<StepTrackerScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final StepsService _service = StepsService.instance;
   StreamSubscription<StepsSnapshot>? _subscription;
   Timer? _refreshTimer;
@@ -56,7 +58,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       final ok = await _service.startTracking();
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى السماح بإذن النشاط والحركة لتتبع الخطوات')),
+          const SnackBar(content: Text(_t('يرجى السماح بإذن النشاط والحركة لتتبع الخطوات'))),
         );
       }
     }
@@ -77,7 +79,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     final goalRemaining = math.max(0, 10000 - _steps);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تتبع الخطوات'),
+        title: Text(_t('تتبع الخطوات')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -147,7 +149,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
                 const Icon(Icons.directions_walk_rounded, size: 30, color: AppColors.primary),
                 const SizedBox(height: 4),
                 Text(_steps.toString(), style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black87)),
-                Text('خطوة اليوم', style: TextStyle(color: isDark ? Colors.white60 : Colors.black54)),
+                Text(_t('خطوة اليوم'), style: TextStyle(color: isDark ? Colors.white60 : Colors.black54)),
               ]),
             ]),
           ),
@@ -158,7 +160,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
         SizedBox(width: double.infinity, child: ElevatedButton.icon(
           onPressed: _toggle,
           icon: Icon(_tracking ? Icons.stop : Icons.play_arrow),
-          label: Text(_tracking ? 'إيقاف التتبع' : 'بدء التتبع'),
+          label: Text(_t(_tracking ? 'إيقاف التتبع' : 'بدء التتبع')),
           style: ElevatedButton.styleFrom(
             backgroundColor: _tracking ? Colors.redAccent : AppColors.primary,
             foregroundColor: Colors.white,
@@ -178,7 +180,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       const SizedBox(height: 8),
       Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 3),
-      Text(title, style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.black45)),
+      Text(_t(title), style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.black45)),
     ]),
   );
 
@@ -191,10 +193,10 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
         Row(children: [
           Icon(Icons.show_chart_rounded, color: AppColors.primary),
           const SizedBox(width: 8),
-          Text('نشاط الخطوات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+          Text(_t('نشاط الخطوات'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
         ]),
         const SizedBox(height: 4),
-        Text('مستوى النشاط اليومي بالنسبة لهدفك', style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black45)),
+        Text(_t('مستوى النشاط اليومي بالنسبة لهدفك'), style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black45)),
         const SizedBox(height: 12),
         SizedBox(
           height: 210,
@@ -209,7 +211,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
               bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 25, getTitlesWidget: (v, m) {
                 const labels = ['أح','إث','ث','أر','خ','ج','س'];
                 final i=v.toInt(); if(i<0||i>6) return const SizedBox.shrink();
-                return Text(labels[i], style: TextStyle(fontSize: 10, color: isDark ? Colors.white60 : Colors.black54));
+                return Text(_t(labels[i]), style: TextStyle(fontSize: 10, color: isDark ? Colors.white60 : Colors.black54));
               })),
             ),
             barGroups: values.asMap().entries.map((e) => BarChartGroupData(x:e.key, barRods:[BarChartRodData(toY:e.value, width:20, borderRadius:const BorderRadius.vertical(top:Radius.circular(7)), color:e.key==6?AppColors.primary:AppColors.primary.withOpacity(.42))])).toList(),
@@ -223,7 +225,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(color: isDark ? const Color(0xFF172033) : Colors.white, borderRadius: BorderRadius.circular(18)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('مؤشرات النشاط', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+      Text(_t('مؤشرات النشاط'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 14),
       Row(children: [
         Expanded(child: _miniMetric('الهدف', '10,000', Icons.flag_outlined, isDark)),
@@ -260,11 +262,11 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
         Icon(Icons.auto_awesome, color: AppColors.primary),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('تحليل النشاط', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+          Text(_t('تحليل النشاط'), style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 6),
-          Text(text, style: TextStyle(height: 1.55, color: isDark ? Colors.white70 : Colors.black54)),
+          Text(_t(text), style: TextStyle(height: 1.55, color: isDark ? Colors.white70 : Colors.black54)),
           const SizedBox(height: 8),
-          Text('التتبع ' + (_tracking ? 'نشط الآن' : 'متوقف'), style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+          Text(_t('التتبع ') + (_tracking ? 'نشط الآن' : 'متوقف'), style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
         ])),
       ]),
     );
