@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,8 @@ class InteractiveMapScreen extends StatefulWidget {
 
 class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   late final MapController _mapController;
   late AnimationController _animationController;
   final TextEditingController _searchController = TextEditingController();
@@ -405,7 +408,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                       _launchUrl(url);
                     },
                     icon: Image.asset('assets/icons/settings/select_location.webp', width: 20, height: 20),
-                    label: const Text('الاتجاهات'),
+                    label: Text(_t('الاتجاهات')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -424,7 +427,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                       }
                     },
                     icon: Image.asset('assets/icons/settings/select_location.webp', width: 20, height: 20),
-                    label: const Text('اتصال'),
+                    label: Text(_t('اتصال')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
@@ -595,7 +598,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الخريطة الصحية'),
+        title: Text(_t('الخريطة الصحية')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -613,7 +616,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: UnifiedSearchBar(controller: _searchController, onChanged: (value) {
                 setState(() => _searchQuery = value);
-              }, hintText: 'ابحث عن مستشفى، صيدلية، مختبر، عيادة...'),
+              }, hintText: _t('ابحث عن مستشفى، صيدلية، مختبر، عيادة...')),
           ),
           
           // 🏷️ فلتر الفئات
@@ -731,7 +734,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              tooltip: 'تكبير الخريطة',
+                              tooltip: _t('تكبير الخريطة'),
                               onPressed: () {
                                 final zoom = _mapController.camera.zoom;
                                 _mapController.move(_mapController.camera.center, (zoom + 1).clamp(8, 19));
@@ -739,7 +742,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                               icon: const Icon(Icons.add, color: AppColors.primary),
                             ),
                             IconButton(
-                              tooltip: 'تصغير الخريطة',
+                              tooltip: _t('تصغير الخريطة'),
                               onPressed: () {
                                 final zoom = _mapController.camera.zoom;
                                 _mapController.move(_mapController.camera.center, (zoom - 1).clamp(8, 19));
@@ -747,7 +750,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                               icon: const Icon(Icons.remove, color: AppColors.primary),
                             ),
                             IconButton(
-                              tooltip: 'موقعي الحالي',
+                              tooltip: _t('موقعي الحالي'),
                               onPressed: _getCurrentLocation,
                               icon: const Icon(Icons.my_location, color: AppColors.primary),
                             ),
@@ -766,8 +769,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                         ),
                         child: const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          child: Text(
-                            'بيانات المنشآت من صحتك • الخرائط من OpenStreetMap',
+                          child: Text(_t('بيانات المنشآت من صحتك • الخرائط من OpenStreetMap'),
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 12),
                           ),
