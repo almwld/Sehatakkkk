@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/report_service.dart';
 
@@ -11,6 +12,7 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
   late TabController _tabController;
   final ReportService _reportService = ReportService();
   bool _isLoading = true;
@@ -42,7 +44,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'التقارير والإحصائيات',
+        title: _t('التقارير والإحصائيات'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -60,7 +62,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
             const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_forward, size: 16)),
             Expanded(child: _dateButton(_endDate, _selectEndDate)),
             const SizedBox(width: 8),
-            ElevatedButton(onPressed: _loadReport, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary), child: const Text('تحديث')),
+            ElevatedButton(onPressed: _loadReport, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary), child: Text(_t('تحديث'))),
           ]),
         ),
         Container(
@@ -70,7 +72,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
             indicatorColor: AppColors.primary,
             labelColor: AppColors.primary,
             unselectedLabelColor: AppColors.grey,
-            tabs: const [Tab(text: 'الإيرادات'), Tab(text: 'الحجوزات'), Tab(text: 'المستخدمين'), Tab(text: 'مخصص')],
+            tabs: [Tab(text: _t('الإيرادات')), Tab(text: _t('الحجوزات')), Tab(text: _t('المستخدمين')), Tab(text: _t('مخصص'))],
           ),
         ),
         Expanded(child: _isLoading ? const Center(child: CircularProgressIndicator()) : TabBarView(
@@ -116,7 +118,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     return ListView(padding: const EdgeInsets.all(16), children: [
       _buildStatCard('إجمالي المستخدمين', '${data['totalUsers'] ?? 0}', Icons.people, Colors.blue),
       const SizedBox(height: 16),
-      ...roles.entries.map((entry) => ListTile(leading: Icon(_roleIcon(entry.key), color: _roleColor(entry.key)), title: Text(_roleName(entry.key)), trailing: Text('${entry.value}'))),
+      ...roles.entries.map((entry) => ListTile(leading: Icon(_roleIcon(entry.key), color: _roleColor(entry.key)), title: Text(_t(_roleName(entry.key))), trailing: Text('${entry.value}'))),
     ]);
   }
 
@@ -125,7 +127,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
   Widget _buildStatCard(String title, String value, IconData icon, Color color) => Expanded(child: Container(
     margin: const EdgeInsets.all(4), padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: color, size: 18), const SizedBox(height: 4), Text(title, style: const TextStyle(fontSize: 10, color: Colors.grey)), Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color))]),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: color, size: 18), const SizedBox(height: 4), Text(_t(title), style: const TextStyle(fontSize: 10, color: Colors.grey)), Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color))]),
   ));
 
   IconData _roleIcon(String role) { switch (role) { case 'doctor': return Icons.local_hospital; case 'pharmacist': return Icons.local_pharmacy; case 'lab': return Icons.science; case 'veterinarian': return Icons.pets; case 'admin': return Icons.admin_panel_settings; default: return Icons.person_outline; } }
@@ -135,7 +137,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
   Future<void> _selectStartDate() async { final date = await showDatePicker(context: context, initialDate: _startDate, firstDate: DateTime(2020), lastDate: _endDate); if (date != null) { setState(() => _startDate = date); await _loadReport(); } }
   Future<void> _selectEndDate() async { final date = await showDatePicker(context: context, initialDate: _endDate, firstDate: _startDate, lastDate: DateTime.now()); if (date != null) { setState(() => _endDate = date); await _loadReport(); } }
 
-  Future<void> _exportReport() async { if (_reportData != null) ToastService.showSuccess('📥 جاري تصدير التقرير...'); }
+  Future<void> _exportReport() async { if (_reportData != null) ToastService.showSuccess('📥 ${_t('جاري تصدير التقرير...')}'); }
 
   @override
   void dispose() { _tabController.dispose(); super.dispose(); }
