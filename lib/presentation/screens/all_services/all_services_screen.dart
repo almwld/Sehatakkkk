@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
@@ -50,6 +51,8 @@ class AllServicesScreen extends StatefulWidget {
 }
 
 class _AllServicesScreenState extends State<AllServicesScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
   bool _isGridView = true;
@@ -479,7 +482,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('جميع الخدمات'),
+        title: Text(_t('جميع الخدمات')),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -538,7 +541,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: UnifiedSearchBar(onChanged: (value) => setState(() => _searchQuery = value), hintText: 'ابحث عن خدمة...'),
+            child: UnifiedSearchBar(onChanged: (value) => setState(() => _searchQuery = value), hintText: _t('ابحث عن خدمة...')),
           ),
           if (_searchQuery.isNotEmpty)
             IconButton(
@@ -724,8 +727,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
                   children: [
                     LocalAssetIcon(AppAssets.starIcon, size: 12, color: Colors.amber),
                     const SizedBox(width: 4),
-                    Text(
-                      'الأكثر طلباً',
+                    Text(_t('الأكثر طلباً'),
                       style: TextStyle(
                         fontSize: 9,
                         color: Colors.amber,
@@ -825,8 +827,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
                             children: [
                               LocalAssetIcon(AppAssets.starIcon, size: 10, color: Colors.amber),
                               const SizedBox(width: 2),
-                              Text(
-                                'شائع',
+                              Text(_t('شائع'),
                                 style: TextStyle(
                                   fontSize: 8,
                                   color: Colors.amber,
@@ -888,8 +889,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
             color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
           ),
           const SizedBox(height: 16),
-          Text(
-            'لا توجد خدمات',
+          Text(_t('لا توجد خدمات'),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -897,8 +897,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'لم يتم العثور على خدمات تطابق بحثك',
+          Text(_t('لم يتم العثور على خدمات تطابق بحثك'),
             style: TextStyle(
               fontSize: 14,
               color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -913,7 +912,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
               });
             },
             icon: LocalAssetIcon(AppAssets.refreshIcon, size: 20, color: Colors.white),
-            label: const Text('إعادة تعيين الفلتر'),
+            label: Text(_t('إعادة تعيين الفلتر')),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
