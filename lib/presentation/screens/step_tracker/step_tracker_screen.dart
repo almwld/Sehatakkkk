@@ -266,7 +266,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
           const SizedBox(height: 6),
           Text(_t(text), style: TextStyle(height: 1.55, color: isDark ? Colors.white70 : Colors.black54)),
           const SizedBox(height: 8),
-          Text(_t('التتبع ') + (_tracking ? 'نشط الآن' : 'متوقف'), style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+          Text(_t('التتبع ') + _t(_tracking ? 'نشط الآن' : 'متوقف'), style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
         ])),
       ]),
     );
