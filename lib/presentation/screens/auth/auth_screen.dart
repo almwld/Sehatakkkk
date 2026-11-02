@@ -1320,7 +1320,7 @@ class _AuthScreenState extends State<AuthScreen>
             padding:
                 const EdgeInsets.only(left: 8.0),
             child: ChoiceChip(
-              label: Text(role['name']),
+              label: Text(AppStrings.of(context).translate(role['name'] as String)),
               selected: isSelected,
               onSelected: (selected) {
                 if (selected) {
