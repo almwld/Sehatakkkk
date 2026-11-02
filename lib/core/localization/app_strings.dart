@@ -132,6 +132,7 @@ class AppStrings {
       'العنوان: ': ['Address: ', 'Adresse : '],
       'الهاتف: ': ['Phone: ', 'Téléphone : '],
       'المستخدمون': ['Users', 'Utilisateurs'],
+      'مستخدمون': ['Users', 'Utilisateurs'],
       'الصيادلة': ['Pharmacists', 'Pharmaciens'],
       'ملاك الصيدليات': ['Pharmacy owners', 'Propriétaires de pharmacies'],
       'المشافي': ['Hospitals', 'Hôpitaux'],
