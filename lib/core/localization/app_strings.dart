@@ -2607,6 +2607,15 @@ class AppStrings {
       '1-2 ساعات': ['1–2 hours', '1 à 2 heures'],
       '5-7 أيام': ['5–7 days', '5 à 7 jours'],
       'تم تأكيد الطلب! التوصيل عبر': ['Order confirmed! Delivery by', 'Commande confirmée ! Livraison par'],
+      'التقارير والإحصائيات': ['Reports and analytics', 'Rapports et statistiques'],
+      'حدث خطأ في تحميل التقارير': ['An error occurred while loading reports', 'Une erreur est survenue lors du chargement des rapports'],
+      'المصروف': ['Spending', 'Dépenses'],
+      'الرسم البياني': ['Chart', 'Graphique'],
+      'لا توجد تقارير طبية': ['No medical reports', 'Aucun rapport médical'],
+      'لا توجد أدوية': ['No medications', 'Aucun médicament'],
+      'الجرعة:': ['Dosage:', 'Posologie :'],
+      'المدة:': ['Duration:', 'Durée :'],
+      'متبقي ': ['Remaining ', 'Restant '],
     };
     final entry = translations[value];
     if (entry == null) return value;
