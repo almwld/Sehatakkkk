@@ -500,7 +500,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
               size: 22,
             ),
             onPressed: () => setState(() => _isGridView = !_isGridView),
-            tooltip: _isGridView ? 'عرض كقائمة' : 'عرض كشبكة',
+            tooltip: _isGridView ? _t('عرض كقائمة') : _t('عرض كشبكة'),
           ),
         ],
       ),
@@ -590,7 +590,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
                 ),
               ),
               child: Text(
-                category,
+                _t(category),
                 style: TextStyle(
                   color: isSelected
                       ? Colors.white
@@ -691,7 +691,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
             const SizedBox(height: 10),
             // ✅ اسم الخدمة
             Text(
-              service['name'] as String,
+              _t(service['name'] as String),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -704,7 +704,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
             const SizedBox(height: 4),
             // ✅ الوصف
             Text(
-              service['description'] as String,
+              _t(service['description'] as String),
               style: TextStyle(
                 fontSize: 11,
                 color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -805,7 +805,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          service['name'] as String,
+                          _t(service['name'] as String),
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -841,7 +841,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    service['description'] as String,
+                    _t(service['description'] as String),
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -857,7 +857,7 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      service['category'] as String,
+                      _t(service['category'] as String),
                       style: TextStyle(
                         fontSize: 9,
                         color: color,
