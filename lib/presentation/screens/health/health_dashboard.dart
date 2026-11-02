@@ -552,7 +552,7 @@ class _HealthDashboardState extends State<HealthDashboard>
   }
 
   void _showAllSection(BuildContext context, String title, bool isDark) {
-    final isMetrics = title == 'المؤشرات الحيوية';
+    final isMetrics = title == _t('المؤشرات الحيوية');
     final items = isMetrics ? _healthMetrics : _healthTips;
     showModalBottomSheet<void>(
       context: context,
@@ -808,7 +808,7 @@ class _HealthDashboardState extends State<HealthDashboard>
               ),
               const SizedBox(height: 8),
               Text(
-                tip['title'] as String,
+                _t(tip['title'] as String),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -816,7 +816,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                 ),
               ),
               Text(
-                tip['subtitle'] as String,
+                _t(tip['subtitle'] as String),
                 style: TextStyle(
                   fontSize: 9,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -842,7 +842,7 @@ class _HealthDashboardState extends State<HealthDashboard>
               ),
               const SizedBox(height: 4),
               Text(
-                tip['target'] as String,
+                _t(tip['target'] as String),
                 style: TextStyle(
                   fontSize: 8,
                   color: isDark ? Colors.grey[500] : Colors.grey[400],
@@ -1033,7 +1033,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${${_t(appointment['specialty'] as String)} • ${appointment['date']}',
+                      '${_t(appointment['specialty'] as String)} • ${appointment['date']}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
