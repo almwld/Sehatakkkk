@@ -16,16 +16,16 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  String _selectedCategory = _t('مشكلة تقنية');
+  String _selectedCategory = 'مشكلة تقنية';
   bool _isLoading = false;
 
   final List<String> _categories = [
-    _t('مشكلة تقنية'),
-    _t('خطأ في البيانات'),
-    _t('مشكلة في الدفع'),
-    _t('اقتراح تحسين'),
-    _t('شكوى عامة'),
-    _t('أخرى'),
+    'مشكلة تقنية',
+    'خطأ في البيانات',
+    'مشكلة في الدفع',
+    'اقتراح تحسين',
+    'شكوى عامة',
+    'أخرى',
   ];
 
   @override
@@ -57,12 +57,12 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
       await Future.delayed(const Duration(seconds: 2));
       
       if (mounted) {
-        ToastService.showSuccess('✅ تم إرسال التقرير بنجاح');
+        ToastService.showSuccess('✅ ${_t('تم إرسال التقرير بنجاح')}');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ToastService.showError('❌ فشل إرسال التقرير: $e');
+        ToastService.showError('❌ ${_t('فشل إرسال التقرير: ')}$e');
       }
     } finally {
       if (mounted) {
@@ -125,7 +125,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               items: _categories.map((category) {
                 return DropdownMenuItem(
                   value: category,
-                  child: Text(category),
+                  child: Text(_t(category)),
                 );
               }).toList(),
               onChanged: (value) {
