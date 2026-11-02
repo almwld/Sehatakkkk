@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class WeatherHealthScreen extends StatefulWidget {
   const WeatherHealthScreen({super.key});
@@ -10,6 +11,8 @@ class WeatherHealthScreen extends StatefulWidget {
 }
 
 class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   final List<Map<String, dynamic>> _weatherData = [
     {
       'day': 'اليوم',
@@ -86,7 +89,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الطقس وصحتك 🌤️'),
+        title: Text(_t(context, 'الطقس وصحتك 🌤️')),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -122,7 +125,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                         children: [
                           const Icon(Icons.location_on, color: AppColors.primary, size: 18),
                           const SizedBox(width: 8),
-                          Text(location),
+                          Text(_t(context, location)),
                         ],
                       ),
                     );
@@ -139,7 +142,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
 
             // ✅ توقعات الطقس
             Text(
-              'توقعات الطقس',
+              _t(context, 'توقعات الطقس'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -170,7 +173,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _weatherData[0]['day'],
+                          _t(context, _weatherData[0]['day'] as String),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
@@ -187,7 +190,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                           ),
                         ),
                         Text(
-                          _weatherData[0]['condition'],
+                          _t(context, _weatherData[0]['condition'] as String),
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.8),
                             fontSize: 14,
@@ -209,7 +212,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                             Icon(Icons.air, color: Colors.white.withOpacity(0.8), size: 14),
                             const SizedBox(width: 4),
                             Text(
-                              _weatherData[0]['wind'],
+                              _weatherData[0]['wind'].toString().replaceAll('كم/س', _t(context, 'كم/س')),
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.8),
                                 fontSize: 12,
@@ -236,7 +239,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            _weatherData[0]['healthTip'],
+                            _t(context, _weatherData[0]['healthTip'] as String),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
@@ -288,7 +291,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                           ),
                         ),
                         Text(
-                          weather['condition'],
+                          _t(context, weather['condition'] as String),
                           style: TextStyle(
                             fontSize: 10,
                             color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -307,7 +310,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
 
             // ✅ نصائح صحية حسب الطقس
             Text(
-              'نصائح صحية حسب الطقس',
+              _t(context, 'نصائح صحية حسب الطقس'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -332,7 +335,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                     Row(
                       children: [
                         Text(
-                          item['weather'],
+                          item['weather'].toString().replaceAll('مشمس مع غيوم', _t(context, 'مشمس مع غيوم')).replaceAll('غائم جزئياً', _t(context, 'غائم جزئياً')).replaceAll('مشمس', _t(context, 'مشمس')).replaceAll('غائم', _t(context, 'غائم')).replaceAll('ممطر', _t(context, 'ممطر')),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -347,7 +350,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'نصائح',
+                            _t(context, 'نصائح'),
                             style: TextStyle(
                               fontSize: 10,
                               color: item['color'] as Color,
@@ -369,7 +372,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              tip,
+                              _t(context, tip),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
@@ -403,7 +406,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                       const Icon(Icons.info, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Text(
-                        'تأثير الطقس على صحتك',
+                        _t(context, 'تأثير الطقس على صحتك'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -422,7 +425,7 @@ class _WeatherHealthScreenState extends State<WeatherHealthScreen> {
                           Text('• ', style: TextStyle(fontSize: 14, color: AppColors.primary)),
                           Expanded(
                             child: Text(
-                              effect,
+                              _t(context, effect),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
