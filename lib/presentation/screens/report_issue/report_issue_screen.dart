@@ -212,8 +212,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'إرسال التقرير',
+                    : Text(
+                        _t('إرسال التقرير'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
