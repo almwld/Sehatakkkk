@@ -148,7 +148,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
     final record = _todayRecord;
     return _buildCard(isDark, 'سجل اليوم', record == null
         ? 'لا يوجد سجل نوم اليوم'
-        : 'مدة النوم: ' + (record.durationMinutes ~/ 60).toString() + ' ساعة و' + record.durationMinutes.remainder(60).toString() + ' دقيقة');
+        : _t('مدة النوم: ') + (record.durationMinutes ~/ 60).toString() + _t(' ساعة و') + record.durationMinutes.remainder(60).toString() + _t(' دقيقة'));
   }
 
   Widget _buildWeeklyStats(bool isDark) {
