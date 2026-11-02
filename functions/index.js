@@ -250,19 +250,36 @@ exports.reviewTransaction = onCall(async (request) => {
     const amount = Number(data.amount || 0);
     if (!Number.isFinite(amount) || amount <= 0) throw new HttpsError('failed-precondition', 'مبلغ المعاملة غير صالح');
     const walletRef = db.collection('wallets').doc(data.userId);
-    const walletSnap = await tx.get(walletRef);
+    const platformWalletRef = db.collection('platform_finance').doc('main_wallet');
+    const [walletSnap, platformWalletSnap] = await Promise.all([tx.get(walletRef), tx.get(platformWalletRef)]);
     if (!walletSnap.exists) throw new HttpsError('failed-precondition', 'محفظة المستخدم غير موجودة');
     const wallet = walletSnap.data();
+    const platformWallet = platformWalletSnap.exists ? platformWalletSnap.data() : {};
+    const platformBalance = Number(platformWallet.balance || 0);
     const now = FieldValue.serverTimestamp();
     if (decision === 'reject') {
       if (data.type === 'withdrawal') tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, pendingBalance: Math.max(0, Number(wallet.pendingBalance || 0) - amount), updatedAt: now});
       tx.update(txRef, {status: 'failed', completedAt: now, updatedAt: now, reviewedBy: uid});
       return;
     }
-    if (data.type === 'deposit') tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, totalDeposited: Number(wallet.totalDeposited || 0) + amount, updatedAt: now, lastTransactionAt: now});
-    else if (data.type === 'refund') tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, totalSpent: Math.max(0, Number(wallet.totalSpent || 0) - amount), updatedAt: now, lastTransactionAt: now});
-    else if (data.type === 'withdrawal') tx.update(walletRef, {pendingBalance: Math.max(0, Number(wallet.pendingBalance || 0) - amount), totalWithdrawn: Number(wallet.totalWithdrawn || 0) + amount, updatedAt: now, lastTransactionAt: now});
-    else throw new HttpsError('failed-precondition', 'نوع المعاملة لا يدعم المراجعة');
+    if (data.type === 'deposit') {
+      const fee = Math.max(0, Number(data.fee || 0));
+      tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, totalDeposited: Number(wallet.totalDeposited || 0) + amount, updatedAt: now, lastTransactionAt: now});
+      tx.set(platformWalletRef, {balance: platformBalance + amount, totalDeposits: Number(platformWallet.totalDeposits || 0) + amount, totalFees: Number(platformWallet.totalFees || 0) + fee, updatedAt: now, createdAt: platformWallet.createdAt || now}, {merge: true});
+      tx.set(db.collection('platform_finance_ledger').doc(transactionId), {transactionId, userId: data.userId, type: 'deposit', amount, fee, balanceAfter: platformBalance + amount, reviewedBy: uid, createdAt: now});
+    } else if (data.type === 'refund') {
+      if (platformBalance < amount) throw new HttpsError('failed-precondition', 'رصيد المحفظة الرئيسية لا يكفي لتنفيذ الاسترداد');
+      tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, totalSpent: Math.max(0, Number(wallet.totalSpent || 0) - amount), updatedAt: now, lastTransactionAt: now});
+      tx.set(platformWalletRef, {balance: platformBalance - amount, totalRefunds: Number(platformWallet.totalRefunds || 0) + amount, updatedAt: now}, {merge: true});
+      tx.set(db.collection('platform_finance_ledger').doc(transactionId), {transactionId, userId: data.userId, type: 'refund', amount, balanceAfter: platformBalance - amount, reviewedBy: uid, createdAt: now});
+    } else if (data.type === 'withdrawal') {
+      if (platformBalance < amount) throw new HttpsError('failed-precondition', 'رصيد المحفظة الرئيسية لا يكفي لتنفيذ السحب');
+      tx.update(walletRef, {pendingBalance: Math.max(0, Number(wallet.pendingBalance || 0) - amount), totalWithdrawn: Number(wallet.totalWithdrawn || 0) + amount, updatedAt: now, lastTransactionAt: now});
+      tx.set(platformWalletRef, {balance: platformBalance - amount, totalWithdrawals: Number(platformWallet.totalWithdrawals || 0) + amount, updatedAt: now}, {merge: true});
+      tx.set(db.collection('platform_finance_ledger').doc(transactionId), {transactionId, userId: data.userId, type: 'withdrawal', amount, balanceAfter: platformBalance - amount, reviewedBy: uid, createdAt: now});
+    } else {
+      throw new HttpsError('failed-precondition', 'نوع المعاملة لا يدعم المراجعة');
+    }
     tx.update(txRef, {status: 'completed', completedAt: now, reviewedBy: uid, updatedAt: now});
   });
   return {transactionId, status: 'completed'};
