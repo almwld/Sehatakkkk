@@ -317,6 +317,7 @@ class _HealthDashboardState extends State<HealthDashboard>
 
   // ✅ بطاقة الترحيب
   Widget _buildWelcomeCard(bool isDark) {
+    final displayName = _userName == 'مستخدم' ? _t('مستخدم') : _userName;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -350,7 +351,7 @@ class _HealthDashboardState extends State<HealthDashboard>
               radius: 30,
               backgroundColor: Colors.white.withOpacity(0.2),
               child: Text(
-                _userName.substring(0, 1).toUpperCase(),
+                displayName.substring(0, 1).toUpperCase(),
                 style: const TextStyle(
                   fontSize: 24,
                   color: Colors.white,
@@ -372,7 +373,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   ),
                 ),
                 Text(
-                  _userName,
+                  displayName,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
