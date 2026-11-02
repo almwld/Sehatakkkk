@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class WomensHealthScreen extends StatelessWidget {
   const WomensHealthScreen({super.key});
@@ -35,6 +36,8 @@ class WomensHealthScreen extends StatelessWidget {
     'استمرار الحزن أو القلق أو صعوبة أداء الحياة اليومية يستحق طلب الدعم.',
   ];
 
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
@@ -47,7 +50,7 @@ class WomensHealthScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: bg,
         appBar: AppBar(
-          title: const Text('صحة المرأة', style: TextStyle(fontWeight: FontWeight.w800)),
+          title: Text(_t(context, 'صحة المرأة'), style: TextStyle(fontWeight: FontWeight.w800)),
           backgroundColor: _rose,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -57,17 +60,17 @@ class WomensHealthScreen extends StatelessWidget {
           children: [
             _hero(),
             const SizedBox(height: 16),
-            _title('الخدمات الصحية'),
+            _title(context, 'الخدمات الصحية'),
             const SizedBox(height: 8),
             ..._services.map((s) => _service(context, s)),
             const SizedBox(height: 12),
-            _title('الفحوصات والمتابعة الدورية'),
+            _title(context, 'الفحوصات والمتابعة الدورية'),
             const SizedBox(height: 8),
-            ..._screenings.map(_bullet),
+            ..._screenings.map((text) => _bullet(_t(context, text))),
             const SizedBox(height: 14),
-            _title('نصائح لصحة المرأة'),
+            _title(context, 'نصائح لصحة المرأة'),
             const SizedBox(height: 8),
-            ..._tips.map(_tip),
+            ..._tips.map((text) => _tip(_t(context, text))),
             const SizedBox(height: 12),
             _separationNote(),
           ],
@@ -86,9 +89,9 @@ class WomensHealthScreen extends StatelessWidget {
           CircleAvatar(radius: 31, backgroundColor: Colors.white24, child: Icon(Icons.female_rounded, color: Colors.white, size: 34)),
           SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('رعاية صحية متكاملة للمرأة', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(_t(context, 'رعاية صحية متكاملة للمرأة'), style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
             SizedBox(height: 6),
-            Text('الدورة والصحة الإنجابية والثدي وعنق الرحم والعظام والصحة النفسية والرعاية الوقائية.', style: TextStyle(color: Colors.white, fontSize: 12, height: 1.45)),
+            Text(_t(context, 'الدورة والصحة الإنجابية والثدي وعنق الرحم والعظام والصحة النفسية والرعاية الوقائية.'), style: TextStyle(color: Colors.white, fontSize: 12, height: 1.45)),
           ])),
         ]),
       );
@@ -104,10 +107,10 @@ class WomensHealthScreen extends StatelessWidget {
             decoration: BoxDecoration(color: _rose.withOpacity(.10), borderRadius: BorderRadius.circular(13)),
             child: Icon(service[2] as IconData, color: _rose),
           ),
-          title: Text(service[0] as String, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-          subtitle: Text(service[1] as String, style: const TextStyle(fontSize: 11, height: 1.35)),
+          title: Text(_t(context, service[0] as String), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+          subtitle: Text(_t(context, service[1] as String), style: const TextStyle(fontSize: 11, height: 1.35)),
           trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15),
-          onTap: () => _info(context, service[0] as String, service[1] as String),
+          onTap: () => _info(context, _t(context, service[0] as String), _t(context, service[1] as String)),
         ),
       );
 
@@ -137,12 +140,12 @@ class WomensHealthScreen extends StatelessWidget {
         ),
       );
 
-  Widget _title(String text) => Text(text, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800));
+  Widget _title(BuildContext context, String text) => Text(_t(context, text), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800));
 
   Widget _separationNote() => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(color: _rose.withOpacity(.07), borderRadius: BorderRadius.circular(16)),
-        child: const Text('هذه الشاشة مخصصة لصحة المرأة العامة والوقائية. رعاية الحمل والمتابعة الأسبوعية للحمل لها شاشة مستقلة.', style: TextStyle(fontSize: 11, height: 1.5, fontWeight: FontWeight.w600)),
+        child: Text(_t(context, 'هذه الشاشة مخصصة لصحة المرأة العامة والوقائية. رعاية الحمل والمتابعة الأسبوعية للحمل لها شاشة مستقلة.'), style: TextStyle(fontSize: 11, height: 1.5, fontWeight: FontWeight.w600)),
       );
 
   void _info(BuildContext context, String title, String body) {
@@ -150,8 +153,8 @@ class WomensHealthScreen extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: Text(title),
-        content: Text('$body\n\nالمحتوى توعوي ولا يستبدل التشخيص أو خطة الطبيبة.', style: const TextStyle(height: 1.5)),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('حسنًا'))],
+        content: Text('$body\n\n${_t(context, 'المحتوى توعوي ولا يستبدل التشخيص أو خطة الطبيبة.')}', style: const TextStyle(height: 1.5)),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(_t(context, 'حسنًا')))],
       ),
     );
   }
