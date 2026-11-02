@@ -252,7 +252,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              data['status'] == 'completed' ? 'منتهية' : 'قيد الانتظار',
+                              AppStrings.of(context).translate(data['status'] == 'completed' ? 'منتهية' : 'قيد الانتظار'),
                               style: TextStyle(
                                 fontSize: 9,
                                 color: data['status'] == 'completed' ? AppColors.success : AppColors.warning,
