@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
@@ -10,6 +11,8 @@ class RateAppScreen extends StatefulWidget {
 }
 
 class _RateAppScreenState extends State<RateAppScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   int _rating = 0;
 
   @override
@@ -19,7 +22,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('تقييم التطبيق'),
+        title: Text(_t('تقييم التطبيق')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -59,7 +62,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
               ElevatedButton(
                 onPressed: _rating > 0
                     ? () {
-                        ToastService.showSuccess('✅ شكراً لتقييمك! $_rating نجوم');
+                        ToastService.showSuccess('${_t('شكراً لتقييمك!')} $_rating ${_t('نجوم')}');
                         Navigator.pop(context);
                       }
                     : null,
@@ -71,7 +74,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('إرسال التقييم'),
+                child: Text(_t('إرسال التقييم')),
               ),
             ],
           ),
