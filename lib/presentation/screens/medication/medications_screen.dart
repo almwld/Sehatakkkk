@@ -286,7 +286,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
-          label,
+          AppStrings.of(context).translate(label),
           style: TextStyle(
             fontSize: 10,
             color: selected ? Colors.white : AppColors.darkGrey,
@@ -402,7 +402,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                 Row(
                   children: [
                     Text(
-                      '${item['price']} ر.ي',
+                      AppStrings.of(context).formatCurrency((item['price'] as num?) ?? num.tryParse(item['price']?.toString() ?? '') ?? 0),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -417,7 +417,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        item['category'] ?? 'دواء',
+                        AppStrings.of(context).translate((item['category'] ?? 'دواء').toString()),
                         style: const TextStyle(fontSize: 7, color: AppColors.primary),
                       ),
                     ),
@@ -521,8 +521,8 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                                   color: AppColors.success.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  '📦 توصيل',
+                                child: Text(
+                                  '📦 ${AppStrings.of(context).translate('توصيل')}',
                                   style: TextStyle(fontSize: 8, color: AppColors.success),
                                 ),
                               ),
