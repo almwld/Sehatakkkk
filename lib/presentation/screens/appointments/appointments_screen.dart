@@ -420,7 +420,7 @@ class _AppointmentsScreenState
 
             const SizedBox(height: 16),
 
-            const Text(
+            Text(
               _t('تعذر تحميل المواعيد'),
               style: TextStyle(
                 fontSize: 18,
