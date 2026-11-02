@@ -155,7 +155,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        Text((progress * 100).round().toString() + '% من هدف 10,000 خطوة', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+        Text((progress * 100).round().toString() + _t('% من هدف 10,000 خطوة'), style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
         const SizedBox(height: 16),
         SizedBox(width: double.infinity, child: ElevatedButton.icon(
           onPressed: _toggle,
