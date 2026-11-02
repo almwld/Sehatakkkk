@@ -55,8 +55,8 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   value: beneficiaryType,
-                  decoration: const InputDecoration(labelText: _t('المستفيد من التطعيم')),
-                  items: const [
+                  decoration: InputDecoration(labelText: _t('المستفيد من التطعيم')),
+                  items: [
                     DropdownMenuItem(value: 'self', child: Text(_t('صاحب الحساب'))),
                     DropdownMenuItem(value: 'child', child: Text(_t('طفل'))),
                     DropdownMenuItem(value: 'woman', child: Text(_t('امرأة'))),
@@ -68,20 +68,20 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                   TextField(
                     controller: beneficiaryName,
                     decoration: InputDecoration(
-                      labelText: beneficiaryType == 'child' ? 'اسم الطفل *' : 'اسم المرأة *',
+                      labelText: beneficiaryType == 'child' ? _t('اسم الطفل *') : _t('اسم المرأة *'),
                     ),
                   ),
                 ],
                 const SizedBox(height: 8),
                 TextField(
                   controller: name,
-                  decoration: const InputDecoration(labelText: _t('اسم اللقاح *')),
+                  decoration: InputDecoration(labelText: _t('اسم اللقاح *')),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: status,
-                  decoration: const InputDecoration(labelText: _t('الحالة')),
-                  items: const [
+                  decoration: InputDecoration(labelText: _t('الحالة')),
+                  items: [
                     DropdownMenuItem(value: 'مكتمل', child: Text(_t('مكتمل'))),
                     DropdownMenuItem(value: 'قادم', child: Text(_t('قادم'))),
                     DropdownMenuItem(value: 'متأخر', child: Text(_t('متأخر'))),
@@ -92,7 +92,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(date == null ? 'تاريخ التطعيم' : _fmt(date)),
+                  title: Text(date == null ? _t('تاريخ التطعيم') : _fmt(date)),
                   leading: const Icon(Icons.event),
                   onTap: () async {
                     final d = await showDatePicker(
@@ -107,7 +107,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(nextDate == null
-                      ? 'الجرعة القادمة (اختياري)'
+                      ? _t('الجرعة القادمة (اختياري)')
                       : _fmt(nextDate)),
                   leading: const Icon(Icons.event_available),
                   onTap: () async {
@@ -123,7 +123,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 TextField(
                   controller: location,
                   decoration:
-                      const InputDecoration(labelText: _t('المركز / المستشفى')),
+                      InputDecoration(labelText: _t('المركز / المستشفى')),
                 ),
               ],
             ),
@@ -188,7 +188,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
 
   void _msg(String value) {
     if (mounted) ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(value)));
+        .showSnackBar(SnackBar(content: Text(_t(value))));
   }
 
   @override
@@ -196,7 +196,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
     final uid = _auth.currentUser?.uid;
     final dark = Theme.of(context).brightness == Brightness.dark;
     if (uid == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: Text(_t('يرجى تسجيل الدخول لعرض تطعيماتك'))),
       );
     }
@@ -211,7 +211,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
           IconButton(
             onPressed: _add,
             icon: const Icon(Icons.add),
-            tooltip: 'إضافة تطعيم',
+            tooltip: _t('إضافة تطعيم'),
           ),
         ],
       ),
@@ -219,7 +219,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
         stream: _items(uid).orderBy('date', descending: true).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(
+            return Center(
               child: Text(_t('تعذر تحميل تطعيماتك. حاول مرة أخرى.')),
             );
           }
