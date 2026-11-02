@@ -1236,6 +1236,7 @@ class AppStrings {
       'تعديل الفحص': ['Edit test', 'Modifier l’analyse'],
       'اسم الفحص': ['Test name', 'Nom de l’analyse'],
       'السعر': ['Price', 'Prix'],
+      'مميزات الباقة:': ['Plan features:', 'Avantages de la formule :'],
       'المدة': ['Duration', 'Durée'],
       'الاسم والسعر مطلوبان': ['Name and price are required', 'Le nom et le prix sont obligatoires'],
       'تمت إضافة الفحص': ['Test added', 'Analyse ajoutée'],
