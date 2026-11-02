@@ -92,14 +92,14 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
     const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
       Text(_t('آخر قياس مسجل'),style:TextStyle(color:Colors.white70,fontSize:13)),
       const SizedBox(height:4),Text(r==null?_t('لا توجد قراءة'):'${_num(r['value'])} mg/dL',style:const TextStyle(color:Colors.white,fontSize:28,fontWeight:FontWeight.w900)),
-      if(r!=null) Text(_t(r['meal'] as String,style:const TextStyle(color:Colors.white70,fontSize:11)),
+      if(r!=null) Text(_t(r['meal'] as String),style:const TextStyle(color:Colors.white70,fontSize:11)),
     ]))
   ]));
 
   Widget _readingCard(Map<String,dynamic> r,bool dark) { final c=_statusColor(r['status'] as String); return Container(margin:const EdgeInsets.only(bottom:10),padding:const EdgeInsets.all(15),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(children:[
     Container(width:44,height:44,decoration:BoxDecoration(color:c.withOpacity(.1),borderRadius:BorderRadius.circular(12)),child:Icon(Icons.water_drop_outlined,color:c)),
     const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(r['meal'] as String,style:const TextStyle(fontWeight:FontWeight.bold)),Text(_time(r['time']?.toString()??''),style:TextStyle(fontSize:11,color:dark?Colors.grey[400]:Colors.grey[600]))])),
-    Column(crossAxisAlignment:CrossAxisAlignment.end,children:[Text('${_num(r['value'])}',style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900)),Text(_t(r['status'] as String,style:TextStyle(fontSize:10,color:c))])
+    Column(crossAxisAlignment:CrossAxisAlignment.end,children:[Text('${_num(r['value'])}',style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900)),Text(_t(r['status'] as String),style:TextStyle(fontSize:10,color:c))])
   ])); }
 
   Widget _empty(bool dark)=>Container(padding:const EdgeInsets.all(28),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(18)),child:Text(_t('لم تُدخل أي قراءة بعد. أضف القياس الفعلي من جهازك ليظهر هنا وفي المؤشرات الصحية.'),textAlign:TextAlign.center));
