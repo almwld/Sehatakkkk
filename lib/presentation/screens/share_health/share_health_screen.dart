@@ -388,7 +388,7 @@ ${shareTargets.join('\n')}
       ),
       child: DropdownButton<String>(
         value: value.isNotEmpty ? value : null,
-        hint: Text(hint, style: const TextStyle(fontSize: 12)),
+        hint: Text(_t(context, hint), style: const TextStyle(fontSize: 12)),
         isExpanded: true,
         underline: const SizedBox(),
         items: items.map((item) {
