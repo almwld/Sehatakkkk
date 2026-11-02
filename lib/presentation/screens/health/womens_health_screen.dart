@@ -72,7 +72,7 @@ class WomensHealthScreen extends StatelessWidget {
             const SizedBox(height: 8),
             ..._tips.map((text) => _tip(_t(context, text))),
             const SizedBox(height: 12),
-            _separationNote(),
+            _separationNote(context),
           ],
         ),
       ),
@@ -142,7 +142,7 @@ class WomensHealthScreen extends StatelessWidget {
 
   Widget _title(BuildContext context, String text) => Text(_t(context, text), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800));
 
-  Widget _separationNote() => Container(
+  Widget _separationNote(BuildContext context) => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(color: _rose.withOpacity(.07), borderRadius: BorderRadius.circular(16)),
         child: Text(_t(context, 'هذه الشاشة مخصصة لصحة المرأة العامة والوقائية. رعاية الحمل والمتابعة الأسبوعية للحمل لها شاشة مستقلة.'), style: TextStyle(fontSize: 11, height: 1.5, fontWeight: FontWeight.w600)),
