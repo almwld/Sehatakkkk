@@ -2727,7 +2727,6 @@ class AppStrings {
       'مجهول': ['Unknown', 'Inconnu'],
       'حافظ على مواعيد نوم واستيقاظ منتظمة قدر الإمكان، وقلل المنبهات قرب وقت النوم.': ['Keep regular sleep and wake times where possible, and reduce stimulants near bedtime.', 'Gardez des heures de coucher et de réveil régulières autant que possible et limitez les stimulants avant le coucher.'],
       'يرجى إدخال البريد الإلكتروني': ['Please enter an email address', 'Veuillez saisir une adresse e-mail'],
-      'المستخدم غير موجود': ['User not found', 'Utilisateur introuvable'],
       'تم مشاركة الملف بنجاح': ['Record shared successfully', 'Dossier partagé avec succès'],
       'فشل المشاركة:': ['Sharing failed:', 'Échec du partage :'],
       'تم مشاركة ملف طبي معك من منصة صحتك': ['A medical record has been shared with you via Sehatak', 'Un dossier médical a été partagé avec vous via Sehatak'],
@@ -2739,7 +2738,6 @@ class AppStrings {
       'قم بإنشاء رابط للملف لمشاركته مع أي شخص': ['Create a link to share this record with anyone', 'Créez un lien pour partager ce dossier avec n’importe qui'],
       'إنشاء رابط مشاركة': ['Create sharing link', 'Créer un lien de partage'],
       'مشاركة عبر وسائل التواصل': ['Share via social media', 'Partager sur les réseaux sociaux'],
-      'البريد الإلكتروني': ['Email address', 'Adresse e-mail'],
       'المريض:': ['Patient:', 'Patient :'],
     };
     final entry = translations[value];
