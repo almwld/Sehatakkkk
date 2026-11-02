@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/article/article_model.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
@@ -31,6 +32,8 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
   String _query = '';
   bool _loading = true;
   String? _error;
+
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   void initState() {
@@ -138,7 +141,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF081A1A) : const Color(0xFFF6F9F9),
       appBar: CustomAppBar(
-        title: 'المقالات الصحية',
+        title: _t('المقالات الصحية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -159,7 +162,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                     _searchController.clear();
                     _query = '';
                   }),
-                  hintText: 'ابحث عن مقال أو موضوع صحي...',
+                  hintText: _t('ابحث عن مقال أو موضوع صحي...'),
                   isDark: dark,
                 ),
               ),
@@ -175,7 +178,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                   itemBuilder: (_, i) {
                     final selected = _category == categories[i];
                     return ChoiceChip(
-                      label: Text(categories[i]),
+                      label: Text(_t(categories[i])),
                       selected: selected,
                       onSelected: (_) => setState(() => _category = categories[i]),
                       selectedColor: AppColors.primary,
@@ -207,9 +210,9 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                 hasScrollBody: false,
                 child: _StateMessage(
                   icon: Icons.cloud_off_rounded,
-                  title: 'تعذر تحميل المقالات',
-                  message: 'تحقق من الاتصال ثم حاول مرة أخرى.',
-                  action: 'إعادة المحاولة',
+                  title: _t('تعذر تحميل المقالات'),
+                  message: _t('تحقق من الاتصال ثم حاول مرة أخرى.'),
+                  action: _t('إعادة المحاولة'),
                   onAction: _load,
                 ),
               )
@@ -219,12 +222,12 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                 child: _StateMessage(
                   icon: Icons.article_outlined,
                   title: _query.isEmpty && _category == 'الكل'
-                      ? 'لا توجد مقالات منشورة حالياً'
-                      : 'لا توجد مقالات مطابقة',
+                      ? _t('لا توجد مقالات منشورة حالياً')
+                      : _t('لا توجد مقالات مطابقة'),
                   message: _query.isEmpty && _category == 'الكل'
-                      ? 'ستظهر المقالات الصحية هنا عند نشرها.'
-                      : 'جرّب تغيير البحث أو التصنيف.',
-                  action: _query.isEmpty && _category == 'الكل' ? null : 'مسح الفلاتر',
+                      ? _t('ستظهر المقالات الصحية هنا عند نشرها.')
+                      : _t('جرّب تغيير البحث أو التصنيف.'),
+                  action: _query.isEmpty && _category == 'الكل' ? null : _t('مسح الفلاتر'),
                   onAction: _clearFilters,
                 ),
               )
@@ -317,7 +320,7 @@ class _ArticleCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            article.category!,
+                            AppStrings.of(context).translate(article.category!),
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontSize: 10,
@@ -366,7 +369,7 @@ class _ArticleCard extends StatelessWidget {
                         child: Text(
                           article.authorName?.trim().isNotEmpty == true
                               ? article.authorName!
-                              : 'فريق صحتك',
+                              : AppStrings.of(context).translate('فريق صحتك'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -438,7 +441,7 @@ class ArticleReaderScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF081A1A) : const Color(0xFFF6F9F9),
       appBar: CustomAppBar(
-        title: 'المقال',
+        title: AppStrings.of(context).translate('المقال'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -461,7 +464,7 @@ class ArticleReaderScreen extends StatelessWidget {
             if (imageUrl != null) const SizedBox(height: 16),
             if ((article.category ?? '').trim().isNotEmpty)
               Text(
-                article.category!,
+                AppStrings.of(context).translate(article.category!),
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontSize: 12,
@@ -514,7 +517,7 @@ class ArticleReaderScreen extends StatelessWidget {
               ),
               child: SelectableText(
                 (article.content ?? article.summary ?? '').trim().isEmpty
-                    ? 'لا يوجد محتوى متاح لهذا المقال حالياً.'
+                    ? AppStrings.of(context).translate('لا يوجد محتوى متاح لهذا المقال حالياً.')
                     : (article.content ?? article.summary!).trim(),
                 style: TextStyle(color: body, fontSize: 15, height: 1.85),
               ),
