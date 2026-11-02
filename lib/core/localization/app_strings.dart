@@ -3349,6 +3349,25 @@ class AppStrings {
       'هل أنت متأكد من رغبتك في الاشتراك؟': ['Are you sure you want to subscribe?', 'Confirmez-vous votre souhait de vous abonner ?'],
       'تأكيد الاشتراك': ['Confirm subscription', 'Confirmer l’abonnement'],
     };
+      'فحص منزلي': ['Home test', 'Analyse à domicile'],
+      'فحوصات في منزلك': ['Lab tests at your home', 'Analyses médicales à domicile'],
+      'تحليل CBC': ['CBC test', 'Analyse NFS (CBC)'],
+      'سكر صائم': ['Fasting blood glucose', 'Glycémie à jeun'],
+      'دهون ثلاثية': ['Triglycerides', 'Triglycérides'],
+      'فيتامين د': ['Vitamin D', 'Vitamine D'],
+      'تحليل بول': ['Urinalysis', 'Analyse d’urine'],
+      'إنزيمات الكبد': ['Liver enzymes', 'Enzymes hépatiques'],
+      '4 ساعات': ['4 hours', '4 heures'],
+      '2 ساعة': ['2 hours', '2 heures'],
+      '6 ساعات': ['6 hours', '6 heures'],
+      '1 ساعة': ['1 hour', '1 heure'],
+      '48 ساعة': ['48 hours', '48 heures'],
+      'لا يحتاج صيام': ['No fasting required', 'Aucun jeûne requis'],
+      'صيام 8 س': ['8-hour fast', 'Jeûne de 8 heures'],
+      'صيام 12 س': ['12-hour fast', 'Jeûne de 12 heures'],
+      'لا يحتاج': ['Not required', 'Non requis'],
+      'عينة صباحية': ['Morning sample', 'Échantillon du matin'],
+      'طلب الفحص': ['Request test', 'Demander une analyse'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
