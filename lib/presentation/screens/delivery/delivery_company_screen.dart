@@ -4,6 +4,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/delivery/delivery_company_model.dart';
 import 'package:sehatak/core/services/delivery_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class DeliveryCompanyScreen extends StatefulWidget {
   final String? selectedCompanyId;
@@ -24,6 +25,8 @@ class DeliveryCompanyScreen extends StatefulWidget {
 }
 
 class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   static const _areaKey = 'delivery_area';
   final _service = DeliveryService();
   List<DeliveryCompanyModel> _companies = [];
@@ -61,7 +64,7 @@ class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'اختر شركة التوصيل',
+        title: _t(context, 'اختر شركة التوصيل'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -78,15 +81,15 @@ class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
                         const SizedBox(height: 12),
                         Text(
                           _area.isEmpty
-                              ? 'حدد منطقتك من الإعدادات لعرض شركات التوصيل المتاحة'
-                              : 'لا توجد شركات توصيل متاحة في $_area',
+                              ? _t(context, 'حدد منطقتك من الإعدادات لعرض شركات التوصيل المتاحة')
+                              : '${_t(context, 'لا توجد شركات توصيل متاحة في')} $_area',
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
                         if (_area.isEmpty)
                           OutlinedButton(
                             onPressed: () => Navigator.pushNamed(context, '/settings'),
-                            child: const Text('تحديد منطقتي'),
+                            child: Text(_t(context, 'تحديد منطقتي')),
                           ),
                       ],
                     ),
@@ -99,7 +102,7 @@ class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                         child: Align(
                           alignment: AlignmentDirectional.centerStart,
-                          child: Text('المنطقة: $_area', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                          child: Text('${_t(context, 'المنطقة:')} $_area', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
                         ),
                       ),
                     Expanded(
@@ -114,7 +117,7 @@ class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
                               onTap: () => setState(() => _selected = c.id),
                               leading: const Icon(Icons.delivery_dining),
                               title: Text(c.name),
-                              subtitle: Text('${c.rating} ★ • ${_service.calculateDeliveryFee(c, widget.distance).toStringAsFixed(0)} ريال • ${_service.estimateDeliveryTime(c, widget.distance)} دقيقة'),
+                              subtitle: Text('${c.rating} ★ • ${_service.calculateDeliveryFee(c, widget.distance).toStringAsFixed(0)} ${_t(context, 'ريال')} • ${_service.estimateDeliveryTime(c, widget.distance)} ${_t(context, 'دقيقة')}'),
                               trailing: Icon(selected ? Icons.check_circle : Icons.radio_button_unchecked, color: selected ? AppColors.primary : Colors.grey),
                             ),
                           );
@@ -134,7 +137,7 @@ class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
                                   widget.onSelect(c);
                                   Navigator.pop(context);
                                 },
-                          child: const Text('تأكيد التوصيل'),
+                          child: Text(_t(context, 'تأكيد التوصيل')),
                         ),
                       ),
                     ),
