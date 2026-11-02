@@ -67,6 +67,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: TableCalendar(
+                locale: AppStrings.of(context).locale.languageCode,
                 firstDay: DateTime.now(),
                 lastDay: DateTime.now().add(const Duration(days: 30)),
                 focusedDay: _focusedDay,
@@ -135,7 +136,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                 return ChoiceChip(
                   selected: isSelected,
                   label: Text(
-                    time,
+                    _t(time),
                     style: TextStyle(
                       color: isSelected
                           ? Colors.white
