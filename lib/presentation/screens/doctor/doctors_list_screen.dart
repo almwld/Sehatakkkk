@@ -13,7 +13,6 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
@@ -389,13 +388,10 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () {
-                          final uid = doctor.userId?.trim();
-                          if (uid == null || uid.isEmpty) {
-                            ToastService.showError(_t('حساب الطبيب غير مرتبط بملف شخصي'));
-                            return;
-                          }
                           Navigator.of(context, rootNavigator: true).push(
-                            MaterialPageRoute(builder: (_) => PatientProfile(userId: uid)),
+                            MaterialPageRoute(
+                              builder: (_) => DoctorDetailsScreen(doctorId: doctor.id),
+                            ),
                           );
                         },
                         child: AppImage(
