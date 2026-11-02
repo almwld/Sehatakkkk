@@ -514,12 +514,15 @@ service cloud.firestore {
     }
 
     match /wallets/{walletId} {
-      allow read: if isSignedIn() && isSelf(walletId);
+      // Only the account owner and the super administrator can inspect balances.
+      allow read: if isSignedIn() && (isSelf(walletId) || isSuperAdmin());
       allow write: if false;
     }
 
     match /transactions/{txnId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Transaction history remains private to its owner; platform finance
+      // oversight is restricted to the super administrator.
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperAdmin());
       allow write: if false;
     }
 
