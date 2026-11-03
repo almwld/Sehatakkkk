@@ -179,8 +179,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
               // ✅ عنوان الخادم
               TextFormField(
                 controller: _baseUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'عنوان خادم Nextcloud',
+                decoration: InputDecoration(
+                  labelText: _t('عنوان خادم Nextcloud'),
                   hintText: 'https://nextcloud.example.com',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.cloud_rounded),
@@ -198,8 +198,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
               // ✅ اسم المستخدم
               TextFormField(
                 controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم المستخدم',
+                decoration: InputDecoration(
+                  labelText: _t('اسم المستخدم'),
                   hintText: 'admin',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person_rounded),
@@ -218,8 +218,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'كلمة المرور',
+                decoration: InputDecoration(
+                  labelText: _t('كلمة المرور'),
                   hintText: '••••••••',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock_rounded),
