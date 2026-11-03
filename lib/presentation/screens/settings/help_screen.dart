@@ -25,6 +25,9 @@ class _HelpScreenState extends State<HelpScreen> {
     _Faq('كيف أتواصل مع الدعم؟', 'استخدم البريد الإلكتروني أو الاتصال الهاتفي من قسم تواصل مع الدعم أدناه.', Icons.support_agent_rounded),
   ];
 
+  TextDirection _textDirection(BuildContext context) =>
+      AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr;
+
   List<_Faq> get _filteredFaqs {
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return _faqs;
@@ -169,7 +172,7 @@ class _FaqTile extends StatelessWidget {
         ),
         title: Text(
           AppStrings.of(context).translate(faq.question),
-          textDirection: TextDirection.rtl,
+          textDirection: AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
           style: TextStyle(color: dark ? Colors.white : const Color(0xFF173131), fontSize: 14, fontWeight: FontWeight.w800),
         ),
         children: [
