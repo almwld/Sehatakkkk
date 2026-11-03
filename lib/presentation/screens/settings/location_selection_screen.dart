@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 class LocationSelectionScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class LocationSelectionScreen extends StatefulWidget {
 }
 
 class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   static const _areaKey = 'delivery_area';
   static const _addressKey = 'delivery_address';
   static const _latKey = 'delivery_latitude';
@@ -81,7 +83,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
     setState(() => _locating = true);
     try {
       if (!await Geolocator.isLocationServiceEnabled()) {
-        ToastService.showError('فعّل خدمة الموقع (GPS) في الهاتف ثم حاول مرة أخرى');
+        ToastService.showError(_t('فعّل خدمة الموقع (GPS) في الهاتف ثم حاول مرة أخرى'));
         return;
       }
       var permission = await Geolocator.checkPermission();
@@ -89,11 +91,11 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
         permission = await Geolocator.requestPermission();
       }
       if (permission == LocationPermission.denied) {
-        ToastService.showError('تم رفض إذن الموقع');
+        ToastService.showError(_t('تم رفض إذن الموقع'));
         return;
       }
       if (permission == LocationPermission.deniedForever) {
-        ToastService.showError('إذن الموقع مرفوض نهائياً. فعّله من إعدادات الهاتف');
+        ToastService.showError(_t('إذن الموقع مرفوض نهائياً. فعّله من إعدادات الهاتف'));
         return;
       }
 
@@ -120,9 +122,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
         }
       } catch (_) {}
 
-      ToastService.showSuccess('تم تحديد موقعك الحالي بدقة');
+      ToastService.showSuccess(_t('تم تحديد موقعك الحالي بدقة'));
     } catch (e) {
-      ToastService.showError('تعذر تحديد موقعك. تأكد من تشغيل GPS والمحاولة مرة أخرى');
+      ToastService.showError(_t('تعذر تحديد موقعك. تأكد من تشغيل GPS والمحاولة مرة أخرى'));
       debugPrint('LocationSelection GPS error: ${e}');
     } finally {
       if (mounted) setState(() => _locating = false);
@@ -138,15 +140,15 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
     final area = _selectedArea;
     final address = _addressController.text.trim();
     if (area == null || area.isEmpty) {
-      ToastService.showError('اختر المحافظة أولاً');
+      ToastService.showError(_t('اختر المحافظة أولاً'));
       return;
     }
     if (address.isEmpty) {
-      ToastService.showError('أدخل موقعك بالتفصيل لتسهيل التوصيل');
+      ToastService.showError(_t('أدخل موقعك بالتفصيل لتسهيل التوصيل'));
       return;
     }
     if (_selectedLocation == null) {
-      ToastService.showError('حدد موقعك على الخريطة أو استخدم GPS الهاتف');
+      ToastService.showError(_t('حدد موقعك على الخريطة أو استخدم GPS الهاتف'));
       return;
     }
 
@@ -195,7 +197,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
       }
 
       if (!mounted) return;
-      ToastService.showSuccess('تم حفظ موقعك لاستخدامه في خدمات التوصيل');
+      ToastService.showSuccess(_t('تم حفظ موقعك لاستخدامه في خدمات التوصيل'));
       Navigator.pop(context, {
         'area': area,
         'address': address,
@@ -203,7 +205,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
         'longitude': point.longitude,
       });
     } catch (e) {
-      ToastService.showError('تعذر حفظ الموقع، حاول مرة أخرى');
+      ToastService.showError(_t('تعذر حفظ الموقع، حاول مرة أخرى'));
       debugPrint('Location save error: ${e}');
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -338,7 +340,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
           padding: const EdgeInsets.all(16),
           child: DropdownButtonFormField<String>(
             value: _selectedArea,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'المحافظة',
               prefixIcon: Icon(Icons.location_city_outlined),
               border: OutlineInputBorder(),
@@ -374,9 +376,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
             controller: _addressController,
             maxLines: 3,
             decoration: const InputDecoration(
-              labelText: 'موقعك بالتفصيل',
-              hintText: 'مثال: شارع حدة، جوار ...، الحي ...، أقرب معلم ...',
-              helperText: 'اكتب الوصف الذي يساعد مندوب التوصيل على الوصول إليك',
+              labelText: _t('موقعك بالتفصيل'),
+              hintText: _t('مثال: شارع حدة، جوار ...، الحي ...، أقرب معلم ...'),
+              helperText: _t('اكتب الوصف الذي يساعد مندوب التوصيل على الوصول إليك'),
               prefixIcon: Padding(
                 padding: EdgeInsets.only(bottom: 42),
                 child: Icon(Icons.edit_location_alt_outlined),
@@ -399,7 +401,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
           icon: _locating
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.my_location),
-          label: Text(_locating ? 'جارٍ تحديد موقعك...' : 'تحديد موقعي بدقة عبر GPS'),
+          label: Text(_locating ? _t('جارٍ تحديد موقعك...') : _t('تحديد موقعي بدقة عبر GPS')),
         ),
       );
 
@@ -453,7 +455,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                   borderRadius: BorderRadius.circular(10),
                   elevation: 2,
                   child: IconButton(
-                    tooltip: 'تحديد موقعي عبر GPS',
+                    tooltip: _t('تحديد موقعي عبر GPS'),
                     onPressed: _locating ? null : _useGps,
                     icon: const Icon(Icons.my_location, color: AppColors.primary),
                   ),
@@ -468,10 +470,10 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                     color: dark ? Colors.black87 : Colors.white.withOpacity(.94),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Text(
-                      'اضغط على الخريطة لوضع الدبوس في الموقع الدقيق',
+                      _t('اضغط على الخريطة لوضع الدبوس في الموقع الدقيق'),
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12),
                     ),
@@ -506,7 +508,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: _saving ? null : _clearLocation,
-                    child: const Text('حذف الموقع'),
+                    child: Text(_t('حذف الموقع')),
                   ),
                 ),
               if (_selectedArea != null || _selectedLocation != null || _addressController.text.isNotEmpty)
@@ -524,7 +526,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                   icon: _saving
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.save_outlined),
-                  label: Text(_saving ? 'جارٍ الحفظ...' : 'حفظ الموقع'),
+                  label: Text(_saving ? _t('جارٍ الحفظ...') : _t('حفظ الموقع')),
                 ),
               ),
             ],
