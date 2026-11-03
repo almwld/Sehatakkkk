@@ -1,9 +1,11 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class ChildGrowthScreen extends StatelessWidget {
   const ChildGrowthScreen({super.key});
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
   final List<Map<String, dynamic>> _stages = const [
     {'age': '0-3 أشهر', 'motor': 'يرفع ر.يه', 'social': 'يبتسم', 'language': 'يصدر أصواتاً', 'icon': '👶', 'color': AppColors.pink},
@@ -17,9 +19,9 @@ class ChildGrowthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('نمو الطفل', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_t(context, 'نمو الطفل'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.pink, AppColors.purple]), borderRadius: BorderRadius.circular(16)), child: const Row(children: [Icon(Icons.child_care, color: Colors.white, size: 40), SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('مراحل نمو طفلك', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text('تابع تطور طفلك خطوة بخطوة', style: TextStyle(color: Colors.white70, fontSize: 12))]))])),
+        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.pink, AppColors.purple]), borderRadius: BorderRadius.circular(16)), child: Row(children: [const Icon(Icons.child_care, color: Colors.white, size: 40), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(context, 'مراحل نمو طفلك'), style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text(_t(context, 'تابع تطور طفلك خطوة بخطوة'), style: const TextStyle(color: Colors.white70, fontSize: 12))]))])),
         const SizedBox(height: 16),
         ..._stages.map((s) => Container(
           margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(14),
@@ -27,12 +29,12 @@ class ChildGrowthScreen extends StatelessWidget {
           child: Row(children: [
             Text(s['icon'], style: const TextStyle(fontSize: 32)), const SizedBox(width: 8),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(s['age'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              Row(children: [_chip('🏃 ${s['motor']}', s['color']), const SizedBox(width: 4), _chip('👥 ${s['social']}', s['color']), const SizedBox(width: 4), _chip('🗣️ ${s['language']}', s['color'])]),
+              Text(_t(context, s['age']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Row(children: [_chip('🏃 ${_t(context, s['motor'])}', s['color']), const SizedBox(width: 4), _chip('👥 ${_t(context, s['social'])}', s['color']), const SizedBox(width: 4), _chip('🗣️ ${_t(context, s['language'])}', s['color'])]),
             ])),
           ]),
         )),
-        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.05), borderRadius: BorderRadius.circular(14)), child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('💡 نصائح', style: TextStyle(fontWeight: FontWeight.bold)), Text('• كل طفل يتطور بوتيرته الخاصة', style: TextStyle(fontSize: 12)), Text('• استشر الطبيب إذا تأخر في 3 مراحل', style: TextStyle(fontSize: 12)), Text('• تحدث مع طفلك كثيراً لتنمية اللغة', style: TextStyle(fontSize: 12))])),
+        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.05), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(context, '💡 نصائح'), style: const TextStyle(fontWeight: FontWeight.bold)), Text(_t(context, '• كل طفل يتطور بوتيرته الخاصة'), style: const TextStyle(fontSize: 12)), Text(_t(context, '• استشر الطبيب إذا تأخر في 3 مراحل'), style: const TextStyle(fontSize: 12)), Text(_t(context, '• تحدث مع طفلك كثيراً لتنمية اللغة'), style: const TextStyle(fontSize: 12))])),
       ])),
     );
   }
