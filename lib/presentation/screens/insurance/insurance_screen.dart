@@ -445,7 +445,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${AppStrings.of(context).translate('الاشتراك في')} ${company['name']}'),
+        title: Text('${AppStrings.of(context).translate('الاشتراك في')} ${AppStrings.of(context).translate(company['name'])}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
