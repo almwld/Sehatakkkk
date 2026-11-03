@@ -10,6 +10,8 @@ class InsurancePlans extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    String t(String value) => strings.translate(value);
     final plans = [
       {'name': 'الخطة الأساسية', 'price': 15000.0, 'duration': 'سنوي', 'coverage': ['استشارات', 'فحوصات أساسية']},
       {'name': 'الخطة المتوسطة', 'price': 30000.0, 'duration': 'سنوي', 'coverage': ['استشارات', 'فحوصات', 'عمليات صغيرة']},
@@ -17,7 +19,7 @@ class InsurancePlans extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: CustomAppBar(title: 'خطط التأمين'),
+      appBar: CustomAppBar(title: t('خطط التأمين')),
       body: ListView.builder(
         padding: const EdgeInsets.all(AppDimensions.paddingL),
         itemCount: plans.length,
@@ -37,7 +39,7 @@ class InsurancePlans extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(plan['name'] as String, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(t(plan['name'] as String), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
@@ -53,11 +55,11 @@ class InsurancePlans extends StatelessWidget {
                   children: [
                     const Icon(Icons.check_circle, color: AppColors.success, size: 16),
                     const SizedBox(width: 8),
-                    Text(c, style: Theme.of(context).textTheme.bodyMedium),
+                    Text(t(c), style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ))),
                 const SizedBox(height: 16),
-                ElevatedButton(onPressed: () {}, child: const Text('اشترك الآن')),
+                ElevatedButton(onPressed: () {}, child: Text(t('اشترك الآن'))),
               ],
             ),
           );
