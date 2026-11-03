@@ -140,7 +140,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
               maxLines: 4,
               textAlign: TextAlign.right,
               decoration: InputDecoration(
-                hintText: 'ماذا تريد مشاركته مع المجتمع؟',
+                hintText: _t('ماذا تريد مشاركته مع المجتمع؟'),
                 border: OutlineInputBorder(),
                 filled: true,
               ),
@@ -317,10 +317,10 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
         indicatorColor: AppColors.primary,
         labelColor: AppColors.primary,
         unselectedLabelColor: AppColors.grey,
-        tabs: const [
-          Tab(text: 'الرئيسية'),
-          Tab(text: 'الأسئلة'),
-          Tab(text: 'الأطباء'),
+        tabs: [
+          Tab(text: _t('الرئيسية')),
+          Tab(text: _t('الأسئلة')),
+          Tab(text: _t('الأطباء')),
         ],
       ),
     );
