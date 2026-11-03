@@ -3779,6 +3779,8 @@ class AppStrings {
       'حذف الموقع': ['Clear location', 'Supprimer la position'],
       'حفظ الموقع': ['Save location', 'Enregistrer la position'],
 
+      'التغطية: صنعاء، عدن، تعز، الحديدة': ['Coverage: Sana’a, Aden, Taiz, and Al Hudaydah', 'Couverture : Sanaa, Aden, Taïz et Al Hudaydah'],
+      'التغطية: صنعاء، عدن، تعز': ['Coverage: Sana’a, Aden, and Taiz', 'Couverture : Sanaa, Aden et Taïz'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
