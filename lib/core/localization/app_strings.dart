@@ -1846,7 +1846,7 @@ class AppStrings {
       'اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.': ['Tell me what you want to do or which symptoms you are experiencing, and I will guide you step by step.', 'Dites-moi ce que vous souhaitez faire ou quels symptômes vous ressentez, et je vous guiderai étape par étape.'],
       'داخل صحتك': ['In Sehatak', 'Dans Sehatak'],
       'اختر الخدمة المناسبة من الأزرار أسفل الرد.': ['Choose the relevant service using the buttons below the reply.', 'Choisissez le service approprié à l’aide des boutons sous la réponse.'],
-      'اكتب لي التفاصيل التي تعرفها: مكان المشكلة، متى بدأت، شدتها، والأعراض المصاحبة. ويمكنك الكتابة بالفصحى أو باللهجة اليمنية أو بأي أسلوب طبيعي، وسأرتب المعلومات وأتابع معك خطوة بخطوة.': ['Share the details you know: where the problem is, when it started, how severe it is, and any accompanying symptoms. I will organize the information and guide you step by step.', 'Indiquez les détails connus : localisation du problème, date de début, intensité et symptômes associés. Je structurerai les informations et vous accompagnerai étape par étape.']
+      'اكتب لي التفاصيل التي تعرفها: مكان المشكلة، متى بدأت، شدتها، والأعراض المصاحبة. ويمكنك الكتابة بالفصحى أو باللهجة اليمنية أو بأي أسلوب طبيعي، وسأرتب المعلومات وأتابع معك خطوة بخطوة.': ['Share the details you know: where the problem is, when it started, how severe it is, and any accompanying symptoms. I will organize the information and guide you step by step.', 'Indiquez les détails connus : localisation du problème, date de début, intensité et symptômes associés. Je structurerai les informations et vous accompagnerai étape par étape.'],
       'البحث عن طبيب واختيار التخصص والموعد المناسب.': ['Find a doctor and choose a suitable specialty and appointment.', 'Trouvez un médecin et choisissez une spécialité et un rendez-vous adaptés.'],
       'البحث عن الأدوية والمنتجات الصحية داخل الصيدلية.': ['Find medicines and health products in the pharmacy.', 'Recherchez des médicaments et des produits de santé dans la pharmacie.'],
       'الوصول إلى المختبرات والفحوصات والنتائج.': ['Access laboratories, tests, and results.', 'Accédez aux laboratoires, aux analyses et aux résultats.'],
@@ -3532,7 +3532,7 @@ class AppStrings {
       '• 8 أحرف على الأقل': ['• At least 8 characters', '• Au moins 8 caractères'],
       '• حرف كبير وصغير': ['• Uppercase and lowercase letters', '• Lettres majuscules et minuscules'],
       '• رقم واحد على الأقل': ['• At least one number', '• Au moins un chiffre'],
-      '• رمز خاص (!@#\\$%^&*)': ['• A special character (!@#\\$%^&*)', '• Un caractère spécial (!@#\\$%^&*)'],
+      '• رمز خاص (!@#\$%^&*)': ['• A special character (!@#\$%^&*)', '• Un caractère spécial (!@#\$%^&*)'],
       'حفظ كلمة المرور الجديدة': ['Save new password', 'Enregistrer le nouveau mot de passe'],
       'ابحث في التواصل الصحي...': ['Search health contacts...', 'Rechercher des contacts santé...'],
       'لا توجد حسابات صحية متاحة للتواصل حالياً.': ['No health accounts are currently available to contact.', 'Aucun compte santé n’est actuellement disponible pour communiquer.'],
