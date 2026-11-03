@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HealthCommunityScreen extends StatefulWidget {
   const HealthCommunityScreen({super.key});
@@ -11,6 +12,7 @@ class HealthCommunityScreen extends StatefulWidget {
 
 class _HealthCommunityScreenState extends State<HealthCommunityScreen>
     with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
   late TabController _tabController;
   final TextEditingController _postController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
@@ -157,7 +159,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('إلغاء'),
+                    child: Text(_t('إلغاء')),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -165,13 +167,13 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      ToastService.showSuccess('✅ تم نشر المنشور بنجاح');
+                      ToastService.showSuccess(_t('تم نشر المنشور بنجاح'));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text('نشر'),
+                    child: Text(_t('نشر')),
                   ),
                 ),
               ],
@@ -196,7 +198,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
         children: [
           Icon(icon, size: 14, color: AppColors.primary),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(fontSize: 11)),
+          Text(_t(label), style: const TextStyle(fontSize: 11)),
         ],
       ),
     );
@@ -224,7 +226,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text('مجتمع صحتك'),
+        title: Text(_t('مجتمع صحتك')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -232,7 +234,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
           IconButton(
             icon: const Icon(Icons.add_rounded),
             onPressed: _showAddPostDialog,
-            tooltip: 'إنشاء منشور',
+            tooltip: _t('إنشاء منشور'),
           ),
         ],
       ),
@@ -291,7 +293,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      category['label'] as String,
+                      _t(category['label'] as String),
                       style: TextStyle(
                         fontSize: 11,
                         color: isSelected ? Colors.white : color,
@@ -467,7 +469,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
               const Spacer(),
               GestureDetector(
                 onTap: () {
-                  ToastService.showSuccess('✅ تم المشاركة');
+                  ToastService.showSuccess(_t('تم المشاركة'));
                 },
                 child: Row(
                   children: [
@@ -506,7 +508,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
             Icon(Icons.inbox_rounded, size: 60, color: AppColors.grey),
             const SizedBox(height: 16),
             Text(
-              'لا توجد منشورات',
+              _t('لا توجد منشورات'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
