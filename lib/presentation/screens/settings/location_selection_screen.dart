@@ -315,8 +315,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
         elevation: 0,
         color: dark ? const Color(0xFF1A2540) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Padding(
-          padding: EdgeInsets.all(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Icon(Icons.local_shipping_outlined, color: AppColors.primary, size: 32),
@@ -375,11 +375,11 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
           child: TextField(
             controller: _addressController,
             maxLines: 3,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: _t('موقعك بالتفصيل'),
               hintText: _t('مثال: شارع حدة، جوار ...، الحي ...، أقرب معلم ...'),
               helperText: _t('اكتب الوصف الذي يساعد مندوب التوصيل على الوصول إليك'),
-              prefixIcon: Padding(
+              prefixIcon: const Padding(
                 padding: EdgeInsets.only(bottom: 42),
                 child: Icon(Icons.edit_location_alt_outlined),
               ),
