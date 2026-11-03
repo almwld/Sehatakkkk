@@ -63,7 +63,7 @@ class ShareAppScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final platform = _socialPlatforms[index];
               return GestureDetector(
-                onTap: _shareApp,
+                onTap: () => _shareApp(context),
                 child: Container(
                   decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
