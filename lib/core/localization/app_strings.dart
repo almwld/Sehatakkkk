@@ -3496,6 +3496,7 @@ class AppStrings {
       'مندوب توصيل': ['Delivery agent', 'Livreur'],
       'عينة مخبر منزلي': ['Home laboratory sample collection', 'Prélèvement de laboratoire à domicile'],
       'حساب صحي': ['Health account', 'Compte santé'],
+      'دقيقة نوم': ['minutes', 'minutes'],
     };
       'فحص منزلي': ['Home test', 'Analyse à domicile'],
       'فحوصات في منزلك': ['Lab tests at your home', 'Analyses médicales à domicile'],
