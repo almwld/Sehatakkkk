@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -51,6 +52,22 @@ import 'presentation/screens/chat/chat_room_screen.dart';
 import 'presentation/screens/verification/verification_screen.dart';
 import 'presentation/screens/medication/medication_reminder_screen.dart';
 
+Future<String> _localizedNotificationFallback(
+  String arabic,
+  String english,
+  String french,
+) async {
+  try {
+    final code = (await SharedPreferences.getInstance())
+        .getString('app_locale_code');
+    if (code == 'en') return english;
+    if (code == 'fr') return french;
+  } catch (error) {
+    debugPrint('Could not read notification locale: $error');
+  }
+  return arabic;
+}
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('═══════ [BG FCM] START ═══════');
@@ -79,8 +96,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       type: type,
       title: message.data['title']?.toString() ??
           message.data['senderName']?.toString() ??
-          'صحتك',
-      body: message.data['body']?.toString() ?? 'لديك إشعار جديد',
+          await _localizedNotificationFallback('صحتك', 'Sehatak', 'Sehatak'),
+      body: message.data['body']?.toString() ?? await _localizedNotificationFallback('لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'),
       data: Map<String, dynamic>.from(message.data),
       messageId: message.messageId,
     );
@@ -105,7 +122,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     if (callId != null && callId.isNotEmpty) {
       try {
         await notificationService.showIncomingCallNotification(
-          callerName: message.data['callerName']?.toString() ?? 'مكالمة واردة',
+          callerName: message.data['callerName']?.toString() ?? await _localizedNotificationFallback('مكالمة واردة', 'Incoming call', 'Appel entrant'),
           callId: callId,
           isVideo: message.data['isVideo']?.toString() == 'true' ||
               message.data['callType']?.toString() == 'video',
@@ -128,7 +145,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         title: message.data['title']?.toString() ??
             message.data['senderName']?.toString() ??
             'صحتك',
-        body: message.data['body']?.toString() ?? 'لديك إشعار جديد',
+        body: message.data['body']?.toString() ?? await _localizedNotificationFallback('لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'),
         data: Map<String, dynamic>.from(message.data),
         payload: jsonEncode(<String, dynamic>{
           'type': type,
@@ -531,8 +548,8 @@ class _SehatakAppState extends State<SehatakApp>
     final type = message.data['type']?.toString() ?? 'system';
     await _notificationService.persistIncomingNotification(
       type: type,
-      title: message.notification?.title ?? message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? 'صحتك',
-      body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك إشعار جديد',
+      title: message.notification?.title ?? message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? await _localizedNotificationFallback('صحتك', 'Sehatak', 'Sehatak'),
+      body: message.notification?.body ?? message.data['body']?.toString() ?? await _localizedNotificationFallback('لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'),
       data: Map<String, dynamic>.from(message.data),
       messageId: message.messageId,
     );
@@ -550,7 +567,7 @@ class _SehatakAppState extends State<SehatakApp>
         await _notificationService.showIncomingCallNotification(
             callerName: message.data['callerName']?.toString() ??
                 message.notification?.title ??
-                'مكالمة واردة',
+                await _localizedNotificationFallback('مكالمة واردة', 'Incoming call', 'Appel entrant'),
             callId: callId,
             isVideo: message.data['isVideo']?.toString() == 'true' ||
                 message.data['callType']?.toString() == 'video',
@@ -569,10 +586,10 @@ class _SehatakAppState extends State<SehatakApp>
       title: message.notification?.title ??
           message.data['title']?.toString() ??
           message.data['senderName']?.toString() ??
-          'صحتك',
+          await _localizedNotificationFallback('صحتك', 'Sehatak', 'Sehatak'),
       body: message.notification?.body ??
           message.data['body']?.toString() ??
-          'لديك إشعار جديد',
+          await _localizedNotificationFallback('لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'),
       data: Map<String, dynamic>.from(message.data),
       payload: _notificationPayloadFor(message),
     );
@@ -589,8 +606,8 @@ class _SehatakAppState extends State<SehatakApp>
       final type = message.data['type']?.toString() ?? 'system';
       await _notificationService.persistIncomingNotification(
         type: type,
-        title: message.notification?.title ?? message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? 'صحتك',
-        body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك إشعار جديد',
+        title: message.notification?.title ?? message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? await _localizedNotificationFallback('صحتك', 'Sehatak', 'Sehatak'),
+        body: message.notification?.body ?? message.data['body']?.toString() ?? await _localizedNotificationFallback('لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'),
         data: Map<String, dynamic>.from(message.data),
         messageId: message.messageId,
       );
