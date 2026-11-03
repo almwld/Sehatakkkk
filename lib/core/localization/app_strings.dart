@@ -3810,6 +3810,19 @@ class AppStrings {
       'لا توجد توصيات': ['No recommendations available', 'Aucune recommandation disponible'],
       'تم تطبيق التوصية: ': ['Recommendation applied: ', 'Recommandation appliquée : '],
       'تطبيق التوصية': ['Apply recommendation', 'Appliquer la recommandation'],
+      'اضغط على الميكروفون للتحدث': ['Tap the microphone to speak', 'Appuyez sur le microphone pour parler'],
+      'يمكنك استخدام خدمة فحص الأعراض في قسم الصحة': ['You can use the symptom checker in the Health section', 'Vous pouvez utiliser le vérificateur de symptômes dans la rubrique Santé'],
+      'يمكنك حجز موعد مع طبيب من قسم الأطباء': ['You can book a doctor’s appointment in the Doctors section', 'Vous pouvez prendre rendez-vous avec un médecin dans la rubrique Médecins'],
+      'موعد': ['Appointment', 'Rendez-vous'],
+      'يمكنك إدارة مواعيدك من قسم المواعيد': ['You can manage your appointments in the Appointments section', 'Vous pouvez gérer vos rendez-vous dans la rubrique Rendez-vous'],
+      'يمكنك طلب الأدوية من قسم الصيدلية': ['You can order medication from the Pharmacy section', 'Vous pouvez commander des médicaments dans la rubrique Pharmacie'],
+      'تحليل': ['Lab test', 'Analyse'],
+      'يمكنك طلب تحاليل من قسم التحاليل': ['You can request lab tests in the Laboratory section', 'Vous pouvez demander des analyses dans la rubrique Laboratoire'],
+      'أنا هنا لمساعدتك! اختر الخدمة التي تريدها': ['I’m here to help! Choose the service you need', 'Je suis là pour vous aider ! Choisissez le service dont vous avez besoin'],
+      'لم أفهم طلبك. يمكنك قول: أعراض، طبيب، موعد، دواء، تحليل، أو مساعدة': ['I didn’t understand. You can say: symptoms, doctor, appointment, medication, lab test, or help.', 'Je n’ai pas compris. Vous pouvez dire : symptômes, médecin, rendez-vous, médicament, analyse ou aide.'],
+      'المساعد الصوتي': ['Voice assistant', 'Assistant vocal'],
+      'جاري الاستماع...': ['Listening...', 'Écoute en cours…'],
+      'اضغط للتحدث': ['Tap to speak', 'Appuyez pour parler'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
