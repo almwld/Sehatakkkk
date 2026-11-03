@@ -72,6 +72,38 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
   String _selectedFilter = 'الكل';
   final List<String> _filters = ['الكل', 'وطني', 'خاص', 'حكومي', 'الأعلى تقييماً'];
 
+  String _translateInsuranceText(String value) {
+    final strings = AppStrings.of(context);
+    const translations = <String, List<String>>{
+      'شركة اليمن للتأمين': ['Yemen Insurance Company', 'Compagnie d’assurance du Yémen'],
+      'شركة الرعاية للتأمين': ['Care Insurance Company', 'Compagnie d’assurance Al-Riaya'],
+      'هيئة التأمين الصحي الوطنية': ['National Health Insurance Authority', 'Autorité nationale d’assurance maladie'],
+      'شركة الصفوة للتأمين': ['Al-Safwa Insurance Company', 'Compagnie d’assurance Al-Safwa'],
+      'شركة الثقة للتأمين': ['Al-Thiqa Insurance Company', 'Compagnie d’assurance Al-Thiqa'],
+      'تغطية شاملة': ['Comprehensive coverage', 'Couverture complète'],
+      'شبكة واسعة من المستشفيات': ['Extensive hospital network', 'Vaste réseau hospitalier'],
+      'خدمة عملاء 24/7': ['24/7 customer support', 'Service client 24 h/24 et 7 j/7'],
+      'تغطية متقدمة': ['Enhanced coverage', 'Couverture renforcée'],
+      'خصومات على الأدوية': ['Medicine discounts', 'Réductions sur les médicaments'],
+      'استشارات مجانية': ['Free consultations', 'Consultations gratuites'],
+      'تغطية أساسية': ['Basic coverage', 'Couverture de base'],
+      'أسعار مخفضة': ['Reduced prices', 'Tarifs réduits'],
+      'شبكة حكومية': ['Public healthcare network', 'Réseau de santé public'],
+      'مستشفيات ممتازة': ['Partner hospitals', 'Hôpitaux partenaires'],
+      'خدمة سريعة': ['Fast service', 'Service rapide'],
+      'تغطية متوسطة': ['Standard coverage', 'Couverture standard'],
+      'أسعار تنافسية': ['Competitive prices', 'Prix compétitifs'],
+      'دعم فوري': ['Immediate support', 'Assistance immédiate'],
+      'الكل': ['All', 'Tout'],
+      'الأعلى تقييماً': ['Top rated', 'Les mieux notés'],
+    };
+    final translated = translations[value];
+    if (translated == null) return strings.translate(value);
+    if (strings.locale.languageCode == 'en') return translated[0];
+    if (strings.locale.languageCode == 'fr') return translated[1];
+    return value;
+  }
+
   List<Map<String, dynamic>> get _filteredCompanies {
     var list = List<Map<String, dynamic>>.from(_companies);
     
@@ -137,7 +169,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        AppStrings.of(context).translate(filter),
+                        _translateInsuranceText(filter),
                         style: TextStyle(
                           color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -213,7 +245,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      company['name'],
+                      _translateInsuranceText(company['name'].toString()),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -285,7 +317,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  AppStrings.of(context).translate(feature),
+                  _translateInsuranceText(feature.toString()),
                   style: TextStyle(
                     fontSize: 10,
                     color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -375,7 +407,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        company['name'],
+                        _translateInsuranceText(company['name'].toString()),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -408,7 +440,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   children: [
                     const Icon(Icons.check_circle, size: 16, color: Colors.green),
                     const SizedBox(width: 8),
-                    Text(AppStrings.of(context).translate(feature)),
+                    Text(_translateInsuranceText(feature.toString())),
                   ],
                 ),
               );
@@ -445,7 +477,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${AppStrings.of(context).translate('الاشتراك في')} ${AppStrings.of(context).translate(company['name'])}'),
+        title: Text('${AppStrings.of(context).translate('الاشتراك في')} ${_translateInsuranceText(company['name'].toString())}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -465,7 +497,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              ToastService.showSuccess('✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم الاشتراك في' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Abonnement à' : 'Subscribed to'} ${company['name']} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'بنجاح!' : AppStrings.of(context).locale.languageCode == 'fr' ? 'avec succès !' : 'successfully!'}');
+              ToastService.showSuccess('✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم الاشتراك في' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Abonnement à' : 'Subscribed to'} ${_translateInsuranceText(company['name'].toString())} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'بنجاح!' : AppStrings.of(context).locale.languageCode == 'fr' ? 'avec succès !' : 'successfully!'}');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
