@@ -21,7 +21,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
   bool _loading=true,_submitting=false,_verified=false;
   String _status='notSubmitted',_role='user'; String? _error;
   static const _labels=<String,String>{'doctor':'طبيب','nurse':'ممرض','midwife':'قابلة وتوليد','physiotherapist':'أخصائي علاج طبيعي','pharmacist':'صيدلي','lab':'مختبر','paramedic':'مسعف','hospital':'مستشفى','clinic':'عيادة','medical_center':'مركز طبي','dentist':'طبيب أسنان','dental':'عيادة أسنان','ophthalmology':'طبيب عيون','eye_clinic':'مركز عيون','optometrist':'أخصائي بصريات','veterinarian':'طبيب بيطري','delivery':'موصل طلبات','service':'خدمي'};
-  String get _roleLabel=>_labels[_role]??'الحساب المهني';
+  String get _roleLabel => _t(_labels[_role] ?? 'الحساب المهني');
   List<String> get _specialRequirements{switch(_role){case 'lab':return ['ترخيص المختبر','نطاق الفحوصات والخدمات','المسؤول الفني'];case 'hospital':return ['ترخيص المنشأة','الأقسام والخدمات','بيانات المسؤول'];case 'dental':case 'dentist':return ['ترخيص طب الأسنان','التخصص والخدمات السنية'];case 'ophthalmology':case 'eye_clinic':case 'optometrist':return ['ترخيص العيون/البصريات','الخدمات والأجهزة'];default:return ['رقم الترخيص أو المزاولة','التخصص والخدمات'];}}
   @override void initState(){super.initState();_load();}
 
