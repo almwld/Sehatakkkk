@@ -144,7 +144,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         type: type,
         title: message.data['title']?.toString() ??
             message.data['senderName']?.toString() ??
-            'صحتك',
+            await _localizedNotificationFallback('صحتك', 'Sehatak', 'Sehatak'),
         body: message.data['body']?.toString() ?? await _localizedNotificationFallback('لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'),
         data: Map<String, dynamic>.from(message.data),
         payload: jsonEncode(<String, dynamic>{
@@ -810,7 +810,7 @@ class _SehatakAppState extends State<SehatakApp>
             BlocBuilder<ThemeBloc, ThemeState>(
           builder: (context, themeState) => Consumer<FontSizeProvider>(
             builder: (context, fontProvider, child) => MaterialApp.router(
-              title: 'صحتك - Sehatak',
+              title: localeController.locale.languageCode == 'ar' ? 'صحتك' : 'Sehatak',
               debugShowCheckedModeBanner: false,
               locale: localeController.locale,
               theme: ThemeManager.lightTheme,
