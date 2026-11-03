@@ -143,7 +143,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
-                        Text(c['name'], style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c['color'])),
+                        Text(_t(context, c['name'] as String), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c['color'])),
                         if (c['insurance']) ...[
                           const SizedBox(width: 6),
                           Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: Text(_t(context, 'مؤمن'), style: TextStyle(fontSize: 8, color: AppColors.success))),
