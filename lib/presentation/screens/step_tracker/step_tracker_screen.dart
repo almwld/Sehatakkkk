@@ -58,7 +58,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       final ok = await _service.startTracking();
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t('يرجى السماح بإذن النشاط والحركة لتتبع الخطوات'))),
+          SnackBar(content: Text(_t('يرجى السماح بإذن النشاط والحركة لتتبع الخطوات'))),
         );
       }
     }
