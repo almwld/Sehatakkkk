@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/core/utils/permission_helper.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
@@ -72,19 +73,21 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
   }
 
   Future<void> _showPermissionHelp() async {
+    final strings = AppStrings.of(context);
+    String t(String value) => strings.translate(value);
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('الإشعارات غير مفعلة'),
-        content: const Text('لضمان وصول الرسائل والمكالمات والتنبيهات المهمة، فعّل إشعارات تطبيق صحتك من إعدادات النظام.'),
+        title: Text(t('الإشعارات غير مفعلة')),
+        content: Text(t('لضمان وصول الرسائل والمكالمات والتنبيهات المهمة، فعّل إشعارات تطبيق صحتك من إعدادات النظام.')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('لاحقاً')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(t('لاحقاً'))),
           FilledButton(
             onPressed: () async {
               Navigator.pop(context);
               await PermissionHelper.openAppSettings();
             },
-            child: const Text('فتح إعدادات التطبيق'),
+            child: Text(t('فتح إعدادات التطبيق')),
           ),
         ],
       ),
@@ -94,9 +97,11 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final strings = AppStrings.of(context);
+    String t(String value) => strings.translate(value);
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(title: 'إعدادات الإشعارات', backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
+      appBar: CustomAppBar(title: t('إعدادات الإشعارات'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -105,19 +110,19 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
                 Card(
                   child: ListTile(
                     leading: Icon(_pushEnabled ? Icons.notifications_active : Icons.notifications_off, color: _pushEnabled ? AppColors.primary : Colors.grey),
-                    title: Text(_pushEnabled ? 'خدمة التنبيهات تعمل' : 'خدمة التنبيهات متوقفة'),
-                    subtitle: Text(_pushEnabled ? 'الرسائل والمكالمات والتنبيهات الفورية جاهزة.' : 'اضغط على الإشعارات الفورية لتفعيلها.'),
+                    title: Text(_pushEnabled ? t('خدمة التنبيهات تعمل') : t('خدمة التنبيهات متوقفة')),
+                    subtitle: Text(_pushEnabled ? t('الرسائل والمكالمات والتنبيهات الفورية جاهزة.') : t('اضغط على الإشعارات الفورية لتفعيلها.')),
                   ),
                 ),
                 const SizedBox(height: 10),
-                _buildSwitchTile(title: 'الإشعارات الفورية', subtitle: _pushEnabled ? 'مفعلة من إعدادات الجهاز' : 'موقوفة من إعدادات الجهاز', value: _pushEnabled, onChanged: _setPushEnabled, isDark: isDark),
-                _buildSwitchTile(title: 'الإشعارات عبر البريد', subtitle: 'استلام إشعارات عبر البريد الإلكتروني', value: _emailEnabled, onChanged: (v) => setState(() => _emailEnabled = v), isDark: isDark),
+                _buildSwitchTile(title: t('الإشعارات الفورية'), subtitle: _pushEnabled ? t('مفعلة من إعدادات الجهاز') : t('موقوفة من إعدادات الجهاز'), value: _pushEnabled, onChanged: _setPushEnabled, isDark: isDark),
+                _buildSwitchTile(title: t('الإشعارات عبر البريد'), subtitle: t('استلام إشعارات عبر البريد الإلكتروني'), value: _emailEnabled, onChanged: (v) => setState(() => _emailEnabled = v), isDark: isDark),
                 const Divider(),
-                _buildSwitchTile(title: 'تذكير المواعيد', subtitle: 'تذكير بالمواعيد القادمة', value: _appointmentsEnabled, onChanged: (v) => setState(() => _appointmentsEnabled = v), isDark: isDark),
-                _buildSwitchTile(title: 'العروض والتخفيضات', subtitle: 'إشعارات العروض والتخفيضات', value: _promotionsEnabled, onChanged: (v) => setState(() => _promotionsEnabled = v), isDark: isDark),
+                _buildSwitchTile(title: t('تذكير المواعيد'), subtitle: t('تذكير بالمواعيد القادمة'), value: _appointmentsEnabled, onChanged: (v) => setState(() => _appointmentsEnabled = v), isDark: isDark),
+                _buildSwitchTile(title: t('العروض والتخفيضات'), subtitle: t('إشعارات العروض والتخفيضات'), value: _promotionsEnabled, onChanged: (v) => setState(() => _promotionsEnabled = v), isDark: isDark),
                 const Divider(),
-                _buildSwitchTile(title: 'صوت الإشعارات', subtitle: 'تشغيل صوت عند الإشعارات', value: _soundEnabled, onChanged: (v) => setState(() => _soundEnabled = v), isDark: isDark),
-                _buildSwitchTile(title: 'الاهتزاز', subtitle: 'تشغيل الاهتزاز عند الإشعارات', value: _vibrationEnabled, onChanged: (v) => setState(() => _vibrationEnabled = v), isDark: isDark),
+                _buildSwitchTile(title: t('صوت الإشعارات'), subtitle: t('تشغيل صوت عند الإشعارات'), value: _soundEnabled, onChanged: (v) => setState(() => _soundEnabled = v), isDark: isDark),
+                _buildSwitchTile(title: t('الاهتزاز'), subtitle: t('تشغيل الاهتزاز عند الإشعارات'), value: _vibrationEnabled, onChanged: (v) => setState(() => _vibrationEnabled = v), isDark: isDark),
               ],
             ),
     );
