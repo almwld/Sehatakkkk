@@ -3671,7 +3671,6 @@ class AppStrings {
       'فيديو تعليمي': ['Educational video', 'Vidéo éducative'],
       'تعليمي': ['Educational', 'Éducatif'],
       'مجهول': ['Unknown', 'Inconnu'],
-    };
       'فحص منزلي': ['Home test', 'Analyse à domicile'],
       'فحوصات في منزلك': ['Lab tests at your home', 'Analyses médicales à domicile'],
       'تحليل CBC': ['CBC test', 'Analyse NFS (CBC)'],
@@ -3823,6 +3822,10 @@ class AppStrings {
       'المساعد الصوتي': ['Voice assistant', 'Assistant vocal'],
       'جاري الاستماع...': ['Listening...', 'Écoute en cours…'],
       'اضغط للتحدث': ['Tap to speak', 'Appuyez pour parler'],
+      'يمن إكسبر.ي': ['Yemen Express', 'Yemen Express'],
+      'سرعة': ['Speed', 'Rapidité'],
+      'البريد اليمني': ['Yemen Post', 'Poste yéménite'],
+    };
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
