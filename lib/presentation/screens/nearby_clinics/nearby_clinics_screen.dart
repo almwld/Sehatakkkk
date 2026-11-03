@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class NearbyClinicsScreen extends StatelessWidget {
   const NearbyClinicsScreen({super.key});
@@ -15,8 +16,11 @@ class NearbyClinicsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    String t(String value) => strings.translate(value);
+    String distanceLabel(String value) => strings.locale.languageCode == 'ar' ? value : value.replaceAll('كم', 'km');
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('عيادات قريبة', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.map), onPressed: () {})]),
+      appBar: CustomAppBar(title: Text(t('عيادات قريبة'), style: const TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.map), onPressed: () {})]),
       body: ListView.builder(
         padding: const EdgeInsets.all(14),
         itemCount: _clinics.length,
@@ -31,20 +35,20 @@ class NearbyClinicsScreen extends StatelessWidget {
                 Container(width: 50, height: 50, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.06), borderRadius: BorderRadius.circular(12)), child: Center(child: Text(c['image'], style: const TextStyle(fontSize: 26)))),
                 const SizedBox(width: 10),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(c['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  Text(c['specialties'], style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-                  Row(children: [const Icon(Icons.star, color: AppColors.amber, size: 14), Text(' ${c['rating']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(width: 8), const Icon(Icons.location_on, size: 14, color: AppColors.grey), Text(' ${c['distance']}', style: const TextStyle(fontSize: 11, color: AppColors.grey))]),
+                  Text(t(c['name'] as String), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(t(c['specialties'] as String), style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+                  Row(children: [const Icon(Icons.star, color: AppColors.amber, size: 14), Text(' ${c['rating']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(width: 8), const Icon(Icons.location_on, size: 14, color: AppColors.grey), Text(' ${distanceLabel(c['distance'] as String)}', style: const TextStyle(fontSize: 11, color: AppColors.grey))]),
                 ])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: c['open'] ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(c['open'] ? 'مفتوح' : 'مغلق', style: TextStyle(fontSize: 9, color: c['open'] ? AppColors.success : AppColors.error, fontWeight: FontWeight.bold))),
-                  Text(c['closes'], style: const TextStyle(fontSize: 9, color: AppColors.grey)),
+                  Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: c['open'] ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(c['open'] ? t('مفتوح') : t('مغلق'), style: TextStyle(fontSize: 9, color: c['open'] ? AppColors.success : AppColors.error, fontWeight: FontWeight.bold))),
+                  Text(t(c['closes'] as String), style: const TextStyle(fontSize: 9, color: AppColors.grey)),
                 ]),
               ]),
               const SizedBox(height: 10),
               Row(children: [
                 Expanded(child: OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.call, size: 14), label: Text(c['phone']), style: OutlinedButton.styleFrom(foregroundColor: AppColors.success, padding: const EdgeInsets.symmetric(vertical: 8)))),
                 const SizedBox(width: 8),
-                Expanded(child: ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.navigation, size: 14), label: const Text('توجيه'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 8)))),
+                Expanded(child: ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.navigation, size: 14), label: Text(t('توجيه')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 8)))),
               ]),
             ]),
           );
