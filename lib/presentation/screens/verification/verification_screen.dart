@@ -42,7 +42,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
   }
 
   Future<bool> _handleExit() async {
-    if (_submitting) { ToastService.showError('انتظر حتى تكتمل العملية الحالية'); return false; }
+    if (_submitting) { ToastService.showError(_t('انتظر حتى تكتمل العملية الحالية')); return false; }
     await _saveDraft();
     return true;
   }
@@ -67,8 +67,8 @@ class _VerificationScreenState extends State<VerificationScreen>{
         if (mounted) setState(() => _docs[category] = [...(_docs[category] ?? <Map<String,dynamic>>[]), {'name':x.name,'size':size,'url':upload.url!,'uploadedAt':DateTime.now().toIso8601String()}]);
         count++; await _saveDraft();
       }
-      if (count > 0) ToastService.showSuccess('تم رفع '+count.toString()+' ملف وحفظه كمسودة');
-      else ToastService.showError('الملفات المحددة مرفوعة مسبقاً أو لم يتم اختيار ملف صالح');
+      if (count > 0) ToastService.showSuccess(_t('تم رفع ') + count.toString() + _t(' ملف وحفظه كمسودة'));
+      else ToastService.showError(_t('الملفات المحددة مرفوعة مسبقاً أو لم يتم اختيار ملف صالح'));
     } catch(e) { ToastService.showError(e.toString().replaceFirst('Exception: ','')); await _saveDraft(); }
     finally { if (mounted) setState(() => _submitting = false); }
   }
@@ -81,11 +81,11 @@ class _VerificationScreenState extends State<VerificationScreen>{
       return;
     }
     if (_name.text.trim().isEmpty || _license.text.trim().isEmpty || _specialty.text.trim().isEmpty) {
-      ToastService.showError('أكمل الاسم والتخصص ورقم الترخيص قبل الإرسال');
+      ToastService.showError(_t('أكمل الاسم والتخصص ورقم الترخيص قبل الإرسال'));
       return;
     }
     if ((_docs['identity'] ?? []).isEmpty) {
-      ToastService.showError('ارفع الهوية والمستندات الرسمية أولاً');
+      ToastService.showError(_t('ارفع الهوية والمستندات الرسمية أولاً'));
       return;
     }
     setState(() => _submitting = true);
@@ -119,7 +119,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
       if (mounted) setState(() => _status = 'pending');
       ToastService.showSuccess(_t('تم إرسال طلب التوثيق للمراجعة'));
     } catch (e) {
-      ToastService.showError('تعذر إرسال طلب التوثيق');
+      ToastService.showError(_t('تعذر إرسال طلب التوثيق'));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
