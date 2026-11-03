@@ -3869,7 +3869,6 @@ class AppStrings {
       'يمن إكسبر.ي': ['Yemen Express', 'Yemen Express'],
       'سرعة': ['Speed', 'Rapidité'],
       'البريد اليمني': ['Yemen Post', 'Poste yéménite'],
-    };
       'مستشفى الثورة العام': ['Al-Thawra General Hospital', 'Hôpital général Al-Thawra'],
       'شارع الزبيري، باب اليمن': ['Al-Zubairi Street, Bab al-Yemen', 'Rue Al-Zubairi, Bab al-Yemen'],
       'مستشفى الكويت الجامعي': ['Kuwait University Hospital', 'Hôpital universitaire du Koweït'],
