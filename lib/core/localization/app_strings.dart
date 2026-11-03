@@ -3501,6 +3501,7 @@ class AppStrings {
       'اضغط على الخريطة لوضع الدبوس في الموقع الدقيق': ['Tap the map to place the pin at the exact location', 'Touchez la carte pour placer le repère à l’emplacement exact'],
       'حذف الموقع': ['Clear location', 'Supprimer la position'],
       'حفظ الموقع': ['Save location', 'Enregistrer la position'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
