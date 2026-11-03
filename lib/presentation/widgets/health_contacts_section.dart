@@ -11,6 +11,7 @@ import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/widgets/status_row.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HealthContactsSection extends StatefulWidget {
   final bool isDark;
@@ -27,6 +28,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
   Future<List<_DirectoryRecord>>? _directoryFuture;
   String _search = '';
   bool _opening = false;
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   void initState() {
@@ -64,7 +66,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: UnifiedSearchBar(
                     controller: _searchController,
-                    hintText: 'ابحث في التواصل الصحي...',
+                    hintText: _t('ابحث في التواصل الصحي...'),
                     isDark: widget.isDark,
                     onClear: _searchController.clear,
                   ),
@@ -116,7 +118,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
     const order = <String>['أطباء', 'صيدليات', 'مرافق صحية', 'مستشفيات', 'مختبرات', 'مندوب توصيل', 'مسعف ميداني', 'عينة مخبر منزلي'];
     final visible = order.where((title) => grouped[title]?.isNotEmpty ?? false).toList();
     if (visible.isEmpty) {
-      return Center(child: Text(_search.isEmpty ? 'لا توجد حسابات صحية متاحة للتواصل حالياً.' : 'لا توجد نتائج مطابقة.', style: TextStyle(color: widget.isDark ? Colors.white70 : Colors.black54)));
+      return Center(child: Text(_t(_search.isEmpty ? 'لا توجد حسابات صحية متاحة للتواصل حالياً.' : 'لا توجد نتائج مطابقة.'), style: TextStyle(color: widget.isDark ? Colors.white70 : Colors.black54)));
     }
 
     return ListView.builder(
@@ -136,7 +138,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
             children: [
               Container(width: 4, height: 22, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4))),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+              Text(_t(title), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
               const Spacer(),
               Text('${items.length}', style: TextStyle(color: widget.isDark ? Colors.white54 : Colors.black45, fontSize: 12)),
             ],
@@ -156,8 +158,8 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         leading: CircleAvatar(radius: 25, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: item.image.isNotEmpty ? NetworkImage(item.image) : null, child: item.image.isEmpty ? Icon(item.icon, color: AppColors.primary) : null),
-        title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(_t(item.name), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(_t(item.subtitle), maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
         onTap: item.userId.isEmpty ? null : () => _openChat(item),
       ),
