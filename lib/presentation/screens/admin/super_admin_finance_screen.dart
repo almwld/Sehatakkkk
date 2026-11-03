@@ -19,7 +19,7 @@ class _SuperAdminFinanceScreenState extends State<SuperAdminFinanceScreen> {
 
   String _t(String value) => AppStrings.of(context).translate(value);
 
-  String _money(num value) => '${value.toStringAsFixed(2)} YER';
+  String _money(num value) => AppStrings.of(context).formatCurrency(value);
 
   DateTime? _dateOf(dynamic value) {
     if (value is Timestamp) return value.toDate();
