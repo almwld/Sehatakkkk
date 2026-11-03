@@ -245,7 +245,7 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
+                      : Text(
                           _t('حفظ الإعدادات'),
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
