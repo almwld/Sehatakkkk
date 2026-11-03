@@ -152,7 +152,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
       },
       {
         'label': 'المصروف',
-        'value': '${stats.totalSpent.toStringAsFixed(0)} ر.ي',
+        'value': AppStrings.of(context).formatCurrency(stats.totalSpent),
         'icon': Icons.payment_rounded,
         'color': Colors.blue,
       },
