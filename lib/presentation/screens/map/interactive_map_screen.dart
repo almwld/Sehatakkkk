@@ -767,8 +767,8 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                           color: isDark ? Colors.black87 : Colors.white.withOpacity(.94),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           child: Text(_t('بيانات المنشآت من صحتك • الخرائط من OpenStreetMap'),
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 12),
