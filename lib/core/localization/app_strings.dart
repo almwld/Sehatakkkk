@@ -76,6 +76,13 @@ class AppStrings {
   String get biometricFailure => _pick('فشل التحقق من البصمة، حاول مرة أخرى', 'Fingerprint verification failed. Try again.', 'Échec de la vérification de l’empreinte. Réessayez.');
   String get biometricUpdateFailure => _pick('تعذر تحديث إعداد البصمة', 'Could not update biometric settings', 'Impossible de mettre à jour les paramètres biométriques');
 
+  /// Formats amounts using the platform's Yemeni rial display convention.
+  String formatCurrency(num amount) {
+    final fractionDigits = amount % 1 == 0 ? 0 : 2;
+    final formatted = amount.toStringAsFixed(fractionDigits);
+    return '$formatted ${locale.languageCode == 'ar' ? 'ر.ي' : 'YER'}';
+  }
+
   /// Translates a literal Arabic UI label without network access. Unknown and
   /// user-generated content is intentionally preserved.
   String translate(String value) {
