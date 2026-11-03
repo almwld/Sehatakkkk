@@ -47,10 +47,10 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           color: AppColors.warning.withOpacity(0.08),
-          child: const Row(children: [
-            Icon(Icons.info, size: 14, color: AppColors.warning),
-            SizedBox(width: 4),
-            Expanded(child: Text('يعمل محلياً بدون إنترنت', style: TextStyle(fontSize: 10))),
+          child: Row(children: [
+            const Icon(Icons.info, size: 14, color: AppColors.warning),
+            const SizedBox(width: 4),
+            Expanded(child: Text(_t('يعمل محلياً بدون إنترنت'), style: const TextStyle(fontSize: 10))),
           ]),
         ),
         Expanded(
@@ -59,11 +59,11 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
             itemCount: _chat.length + (_isTyping ? 1 : 0),
             itemBuilder: (context, i) {
               if (_isTyping && i == _chat.length) {
-                return const Align(
+                return Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Text('...يكتب', style: TextStyle(color: AppColors.grey)),
+                    padding: const EdgeInsets.all(8),
+                    child: Text(_t('...يكتب'), style: const TextStyle(color: AppColors.grey)),
                   ),
                 );
               }
