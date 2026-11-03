@@ -90,9 +90,9 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text('الحالات اليومية', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text(_t('الحالات اليومية'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           ),
           SizedBox(
             height: 112,
