@@ -637,6 +637,8 @@ class AppStrings {
       'المحافظة': ['Governorate', 'Gouvernorat'],
       'تسجيل الدخول بالبصمة': ['Fingerprint sign-in', 'Connexion par empreinte'],
       'صحتك - الإصدار 1.1.0': ['Sehatak - Version 1.1.0', 'Sehatak - Version 1.1.0'],
+      'المبلغ الإجمالي': ['Total amount', 'Montant total'],
+      'تأكيد الدفع': ['Confirm payment', 'Confirmer le paiement'],
       'تحديد موقعك': ['Set your location', 'Définir votre position'],
       'تم حذف الموقع المحفوظ': ['Saved location cleared', 'Position enregistrée supprimée'],
       'حضرموت': ['Hadramout', 'Hadramaout'],
