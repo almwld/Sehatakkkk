@@ -139,7 +139,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
               controller: _postController,
               maxLines: 4,
               textAlign: TextAlign.right,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'ماذا تريد مشاركته مع المجتمع؟',
                 border: OutlineInputBorder(),
                 filled: true,
