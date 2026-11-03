@@ -3497,6 +3497,10 @@ class AppStrings {
       'عينة مخبر منزلي': ['Home laboratory sample collection', 'Prélèvement de laboratoire à domicile'],
       'حساب صحي': ['Health account', 'Compte santé'],
       'دقيقة نوم': ['minutes', 'minutes'],
+      'تم إرسال': ['Sent', 'Envoyé'],
+      'منذ': ['Ago', 'Il y a'],
+      'دقيقة قصيرة': ['min', 'min'],
+      'ساعة قصيرة': ['hr', 'h'],
     };
       'فحص منزلي': ['Home test', 'Analyse à domicile'],
       'فحوصات في منزلك': ['Lab tests at your home', 'Analyses médicales à domicile'],
