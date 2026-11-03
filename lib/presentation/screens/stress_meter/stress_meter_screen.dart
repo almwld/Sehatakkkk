@@ -210,9 +210,9 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
         padding: const EdgeInsets.all(14),
         color: Colors.white,
         child: Row(children: [
-          Text('${_answers.where((a) => a >= 0).length}/${_questions.length} تمت الإجابة', style: const TextStyle(color: AppColors.grey, fontSize: 12)),
+          Text('${_answers.where((a) => a >= 0).length}/${_questions.length} ${_t('تمت الإجابة')}', style: const TextStyle(color: AppColors.grey, fontSize: 12)),
           const Spacer(),
-          ElevatedButton.icon(onPressed: _submitTest, icon: const Icon(Icons.check), label: const Text('عرض النتيجة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary)),
+          ElevatedButton.icon(onPressed: _submitTest, icon: const Icon(Icons.check), label: Text(_t('عرض النتيجة')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary)),
         ]),
       ),
     ]);
