@@ -106,8 +106,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                       children: [
                         Icon(Icons.cloud_rounded, color: AppColors.primary),
                         const SizedBox(width: 8),
-                        const Text(
-                          '☁️ Nextcloud مفتوح المصدر',
+                        Text(
+                          _t('☁️ Nextcloud مفتوح المصدر'),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -117,11 +117,7 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Nextcloud هو خادم مفتوح المصدر بالكامل، يمكنك تثبيته على خادمك الخاص.\n\n'
-                      '✅ مجاني 100%\n'
-                      '✅ لا يحتاج مفاتيح API\n'
-                      '✅ بياناتك ملكك أنت فقط\n'
-                      '✅ يمكن تثبيته على أي خادم',
+                      _t('Nextcloud هو خادم مفتوح المصدر بالكامل، يمكنك تثبيته على خادمك الخاص.\n\n✅ مجاني 100%\n✅ لا يحتاج مفاتيح API\n✅ بياناتك ملكك أنت فقط\n✅ يمكن تثبيته على أي خادم'),
                       style: TextStyle(
                         fontSize: 13,
                         color: isDark ? Colors.grey[300] : Colors.grey[700],
@@ -158,8 +154,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                     Expanded(
                       child: Text(
                         _isConnected
-                            ? '✅ متصل بخادم Nextcloud'
-                            : '❌ غير متصل بخادم Nextcloud',
+                            ? _t('متصل بخادم Nextcloud')
+                            : _t('غير متصل بخادم Nextcloud'),
                         style: TextStyle(
                           color: _isConnected ? Colors.green : Colors.red,
                           fontWeight: FontWeight.w500,
