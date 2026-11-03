@@ -100,7 +100,7 @@ class AppStrings {
       final detail = value.substring('تعذر فتح المحادثة: '.length);
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
-    const translations = <String, List<String>>{
+    final translations = <String, List<String>>{
       'عيادات قريبة': ['Nearby clinics', 'Cliniques à proximité'],
       'مجمع الرازي الطبي': ['Al-Razi Medical Complex', 'Complexe médical Al-Razi'],
       'العيادة الشاملة': ['Comprehensive Clinic', 'Clinique polyvalente'],
@@ -1859,11 +1859,11 @@ class AppStrings {
       'العثور على المنشآت والخدمات الصحية القريبة.': ['Find nearby healthcare facilities and services.', 'Trouvez les établissements et services de santé à proximité.'],
       'الوصول إلى أدوات ومعلومات التغذية الصحية.': ['Access healthy nutrition tools and information.', 'Accédez aux outils et informations sur la nutrition saine.'],
       'متابعة النوم وتحسين عادات النوم.': ['Track your sleep and improve your sleep habits.', 'Suivez votre sommeil et améliorez vos habitudes de sommeil.'],
-      'الوصول إلى الملف الشخصي والبيانات الصحية.': ['Access your profile and health information.', 'Accédez à votre profil et à vos informations de santé.']
+      'الوصول إلى الملف الشخصي والبيانات الصحية.': ['Access your profile and health information.', 'Accédez à votre profil et à vos informations de santé.'],
       'الاسم': ['Name', 'Nom'],
       'البريد': ['Email', 'E-mail'],
       'فصيلة الدم': ['Blood type', 'Groupe sanguin'],
-      'رقم المريض': ['Patient number', 'Numéro de patient']
+      'رقم المريض': ['Patient number', 'Numéro de patient'],
       'لاستخدام ميزات': ['To use the features available to', 'Pour utiliser les fonctionnalités accessibles à'],
       'يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.': ['you must complete verification and attach the required qualifications and documents.', 'vous devez terminer la vérification et joindre les qualifications et documents requis.'],
       'لاستخدام ميزات الحساب المهني يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.': ['To use professional account features, complete verification and attach the required qualifications and documents.', 'Pour utiliser les fonctionnalités du compte professionnel, terminez la vérification et joignez les qualifications et documents requis.'],
@@ -3902,9 +3902,9 @@ class AppStrings {
       'شارع الستين، منطقة الحصبة': ['Al-Siteen Street, Al-Hasabah area', 'Rue Al-Siteen, quartier Al-Hasabah'],
       'شارع التحرير، بجانب البنك المركزي': ['Al-Tahrir Street, next to the Central Bank', 'Rue Al-Tahrir, à côté de la Banque centrale'],
       'مختبر الوطنية': ['Al-Wataniya Laboratory', 'Laboratoire Al-Wataniya'],
-      'منذ $count دقيقة': ['$count minute(s) ago', 'Il y a $count minute(s)'],
-      'منذ $count ساعة': ['$count hour(s) ago', 'Il y a $count heure(s)'],
-      'منذ $count يوم': ['$count day(s) ago', 'Il y a $count jour(s)'],
+      'منذ \$count دقيقة': ['\$count minute(s) ago', 'Il y a \$count minute(s)'],
+      'منذ \$count ساعة': ['\$count hour(s) ago', 'Il y a \$count heure(s)'],
+      'منذ \$count يوم': ['\$count day(s) ago', 'Il y a \$count jour(s)'],
     };
     final entry = translations[value];
     if (entry == null) return value;
@@ -3913,12 +3913,6 @@ class AppStrings {
       case 'fr': return entry[1];
       default: return value;
     }
-  }
-
-  String formatCurrency(num amount) {
-    final fractionDigits = amount % 1 == 0 ? 0 : 2;
-    final formatted = amount.toStringAsFixed(fractionDigits);
-    return '$formatted ${locale.languageCode == 'ar' ? 'ر.ي' : 'YER'}';
   }
 
   String _pick(String ar, String en, String fr) {
