@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class NextcloudSettingsScreen extends StatefulWidget {
   const NextcloudSettingsScreen({super.key});
@@ -11,6 +12,7 @@ class NextcloudSettingsScreen extends StatefulWidget {
 }
 
 class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _formKey = GlobalKey<FormState>();
   final _baseUrlController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -60,12 +62,12 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
       await _checkConnection();
       
       if (_isConnected) {
-        ToastService.showSuccess('✅ تم حفظ الإعدادات والاتصال بالخادم');
+        ToastService.showSuccess(_t('تم حفظ الإعدادات والاتصال بالخادم'));
       } else {
-        ToastService.showWarning('⚠️ تم حفظ الإعدادات ولكن لا يمكن الاتصال بالخادم');
+        ToastService.showWarning(_t('تم حفظ الإعدادات ولكن لا يمكن الاتصال بالخادم'));
       }
     } catch (e) {
-      ToastService.showError('❌ فشل حفظ الإعدادات: $e');
+      ToastService.showError('${_t('فشل حفظ الإعدادات:')} $e');
     }
 
     setState(() => _isLoading = false);
@@ -78,7 +80,7 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('إعدادات Nextcloud'),
+        title: Text(_t('إعدادات Nextcloud')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -167,7 +169,7 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                     if (!_isConnected)
                       TextButton(
                         onPressed: _checkConnection,
-                        child: const Text('إعادة المحاولة'),
+                        child: Text(_t('إعادة المحاولة')),
                       ),
                   ],
                 ),
@@ -182,11 +184,11 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                   hintText: 'https://nextcloud.example.com',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.cloud_rounded),
-                  helperText: 'أدخل عنوان IP أو دومين الخادم الخاص بك',
+                  helperText: _t('أدخل عنوان IP أو دومين الخادم الخاص بك'),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال عنوان الخادم';
+                    return _t('يرجى إدخال عنوان الخادم');
                   }
                   return null;
                 },
@@ -201,11 +203,11 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                   hintText: 'admin',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person_rounded),
-                  helperText: 'اسم المستخدم الذي أنشأته في Nextcloud',
+                  helperText: _t('اسم المستخدم الذي أنشأته في Nextcloud'),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال اسم المستخدم';
+                    return _t('يرجى إدخال اسم المستخدم');
                   }
                   return null;
                 },
@@ -221,11 +223,11 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                   hintText: '••••••••',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock_rounded),
-                  helperText: 'كلمة مرور مستخدم Nextcloud',
+                  helperText: _t('كلمة مرور مستخدم Nextcloud'),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال كلمة المرور';
+                    return _t('يرجى إدخال كلمة المرور');
                   }
                   return null;
                 },
