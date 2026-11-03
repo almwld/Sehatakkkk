@@ -108,8 +108,8 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
     onTap:()=>setState(()=>_isAdding=false),
     child:Container(color:Colors.black54,child:Center(child:GestureDetector(onTap:(){},child:Container(margin:const EdgeInsets.all(24),padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(22)),child:Column(mainAxisSize:MainAxisSize.min,children:[
       Text(_t('إضافة قراءة سكر'),style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),const SizedBox(height:14),
-      DropdownButtonFormField<String>(value:_selectedMeal,items:_mealOptions.map((e)=>DropdownMenuItem(value:e,child:Text(_t(e)))).toList(),onChanged:(v){if(v!=null)setState(()=>_selectedMeal=v);},decoration:const InputDecoration(labelText:_t('التوقيت'),border:OutlineInputBorder())),
-      const SizedBox(height:12),TextField(controller:_glucoseCtrl,keyboardType:const TextInputType.numberWithOptions(decimal:true),textAlign:TextAlign.center,decoration:const InputDecoration(labelText:_t('القياس mg/dL'),border:OutlineInputBorder())),
+      DropdownButtonFormField<String>(value:_selectedMeal,items:_mealOptions.map((e)=>DropdownMenuItem(value:e,child:Text(_t(e)))).toList(),onChanged:(v){if(v!=null)setState(()=>_selectedMeal=v);},decoration:InputDecoration(labelText:_t('التوقيت'),border:OutlineInputBorder())),
+      const SizedBox(height:12),TextField(controller:_glucoseCtrl,keyboardType:const TextInputType.numberWithOptions(decimal:true),textAlign:TextAlign.center,decoration:InputDecoration(labelText:_t('القياس mg/dL'),border:OutlineInputBorder())),
       const SizedBox(height:16),Row(children:[Expanded(child:TextButton(onPressed:()=>setState(()=>_isAdding=false),child:Text(_t('إلغاء')))),const SizedBox(width:10),Expanded(child:ElevatedButton(onPressed:_save,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:Text(_t('حفظ'))))])
     ]))))));
 
