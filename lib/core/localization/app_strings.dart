@@ -3653,6 +3653,7 @@ class AppStrings {
       'الأسئلة': ['Questions', 'Questions'],
       'تم المشاركة': ['Shared successfully', 'Partagé avec succès'],
       'لا توجد منشورات': ['No posts available', 'Aucune publication disponible'],
+      'اسم المستخدم': ['Username', 'Nom d’utilisateur'],
     };
       'فحص منزلي': ['Home test', 'Analyse à domicile'],
       'فحوصات في منزلك': ['Lab tests at your home', 'Analyses médicales à domicile'],
