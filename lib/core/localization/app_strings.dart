@@ -379,6 +379,8 @@ class AppStrings {
       'اسأل الآن عن صحتك': ['Ask about your health', 'Posez vos questions sur votre santé'],
       'لا توجد محادثات بعد\nابدأ محادثة مع طبيب من تبويب تواصل صحي': ['No chats yet\nStart a conversation with a doctor from Health Connections', 'Aucune discussion\nCommencez une conversation avec un médecin depuis Contacts santé'],
       'لا توجد نتائج مطابقة': ['No matching results', 'Aucun résultat correspondant'],
+      'حدد موقعك بدقة ليتم استخدامه في التوصيل والخدمات القريبة منك. يمكنك إدخال العنوان أو تحديده مباشرة عبر GPS والخريطة.': ['Set your precise location for delivery and nearby services. Enter an address or select it using GPS and the map.', 'Définissez votre position précise pour la livraison et les services à proximité. Saisissez une adresse ou sélectionnez-la avec le GPS et la carte.'],
+      'الإحداثيات المحفوظة:': ['Saved coordinates:', 'Coordonnées enregistrées :'],
       'اضغط لفتح المحادثة': ['Tap to open the chat', 'Appuyez pour ouvrir la discussion'],
       'الحالات اليومية': ['Daily stories', 'Actualités du jour'],
       'محادثة': ['Message', 'Message'],
