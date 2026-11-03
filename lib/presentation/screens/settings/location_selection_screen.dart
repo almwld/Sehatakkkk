@@ -270,7 +270,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
       _selectedLocation = null;
       _addressController.clear();
     });
-    ToastService.showSuccess('تم حذف الموقع المحفوظ');
+    ToastService.showSuccess(_t('تم حذف الموقع المحفوظ'));
   }
 
   @override
@@ -278,7 +278,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تحديد موقعك'),
+        title: Text(_t('تحديد موقعك')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -323,7 +323,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
               SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'حدد موقعك بدقة ليتم استخدامه في التوصيل والخدمات القريبة منك. يمكنك إدخال العنوان أو تحديده مباشرة عبر GPS والخريطة.',
+                  _t('حدد موقعك بدقة ليتم استخدامه في التوصيل والخدمات القريبة منك. يمكنك إدخال العنوان أو تحديده مباشرة عبر GPS والخريطة.'),
                   style: TextStyle(height: 1.5),
                 ),
               ),
@@ -354,7 +354,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
             items: _areas.map((area) => DropdownMenuItem<String>(
               value: area,
               child: Text(
-                area,
+                _t(area),
                 style: TextStyle(
                   color: dark ? Colors.white : const Color(0xFF263238),
                   fontWeight: FontWeight.w500,
@@ -488,7 +488,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
   Widget _buildCoordinates(bool dark) {
     final point = _selectedLocation!;
     return Text(
-      'الإحداثيات المحفوظة: ${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}',
+      '${_t('الإحداثيات المحفوظة:')} ${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}',
       textAlign: TextAlign.center,
       style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600]),
     );
