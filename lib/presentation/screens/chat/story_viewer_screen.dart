@@ -5,7 +5,6 @@ import 'package:video_player/video_player.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/status_model.dart';
 import 'package:sehatak/core/services/status_service.dart';
-import 'package:sehatak/core/localization/app_strings.dart';
 
 class StoryViewerScreen extends StatefulWidget {
   const StoryViewerScreen({
