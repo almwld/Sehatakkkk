@@ -812,7 +812,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  layerName,
+                  _t(layerName),
                   style: TextStyle(
                     color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
                     fontSize: 12,
