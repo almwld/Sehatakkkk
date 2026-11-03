@@ -71,14 +71,14 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
   Future<void> _startTracking() async {
     await _sleepService.startSleepTracking();
     if (!mounted) return;
-    ToastService.showSuccess(context, 'بدأ تتبع النوم وسيستمر حتى مغادرة هذه الشاشة');
+    ToastService.showSuccess(context, _t('بدأ تتبع النوم وسيستمر حتى مغادرة هذه الشاشة'));
   }
 
   Future<void> _stopTracking() async {
     final record = await _sleepService.stopSleepTracking();
     if (!mounted) return;
     if (record != null) {
-      ToastService.showSuccess(context, 'تم حفظ سجل النوم بنجاح');
+      ToastService.showSuccess(context, _t('تم حفظ سجل النوم بنجاح'));
       await _loadData();
     }
   }
@@ -159,10 +159,10 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
         Text(_t('إحصائيات الأسبوع'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
         const SizedBox(height: 16),
         Row(children: [
-          Expanded(child: _buildStatItem('المتوسط', _formatStat(_stats['avgDuration']), isDark)),
-          Expanded(child: _buildStatItem('الكفاءة', (_stats['avgEfficiency'] ?? 0).toStringAsFixed(0) + '%', isDark)),
-          Expanded(child: _buildStatItem('الإجمالي', _formatStat(_stats['totalHours']), isDark)),
-          Expanded(child: _buildStatItem('الأفضل', _formatStat(_stats['bestDay']), isDark)),
+          Expanded(child: _buildStatItem(_t('المتوسط'), _formatStat(_stats['avgDuration']), isDark)),
+          Expanded(child: _buildStatItem(_t('الكفاءة'), (_stats['avgEfficiency'] ?? 0).toStringAsFixed(0) + '%', isDark)),
+          Expanded(child: _buildStatItem(_t('الإجمالي'), _formatStat(_stats['totalHours']), isDark)),
+          Expanded(child: _buildStatItem(_t('الأفضل'), _formatStat(_stats['bestDay']), isDark)),
         ]),
       ]),
     );
@@ -242,7 +242,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
 
   Widget _buildSleepAnalysisCard(SleepRecord? r, double avg, double efficiency, bool isDark) {
     final message = r == null ? 'سجّل ليلة كاملة أولاً للحصول على تحليل مبني على بيانات نومك.' : r.durationMinutes < 420 ? 'مدة النوم المسجلة أقل من 7 ساعات. راقب هذا الاتجاه عبر عدة ليالٍ وحافظ على روتين نوم منتظم.' : r.sleepEfficiency >= 85 ? 'الكفاءة المسجلة جيدة. استمر على روتين ثابت وراقب توزيع المراحل مع مرور الأيام.' : 'هناك مساحة لتحسين انتظام النوم. راقب وقت الاستغراق والاستيقاظ وتكرار فترات اليقظة.';
-    return Container(width: double.infinity, padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: isDark ? AppColors.primary.withOpacity(.12) : AppColors.primary.withOpacity(.07), borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.primary.withOpacity(.15))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.auto_awesome, color: AppColors.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t('تحليل النوم'), style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), const SizedBox(height: 6), Text(message, style: TextStyle(height: 1.55, color: isDark ? Colors.white70 : Colors.black54)), if (avg > 0 || efficiency > 0) ...[const SizedBox(height: 8), Text(_t('المتوسط الأسبوعي: ') + _formatStat(avg) + ' • الكفاءة: ' + efficiency.toStringAsFixed(0) + '%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary))]]))]));
+    return Container(width: double.infinity, padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: isDark ? AppColors.primary.withOpacity(.12) : AppColors.primary.withOpacity(.07), borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.primary.withOpacity(.15))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.auto_awesome, color: AppColors.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t('تحليل النوم'), style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), const SizedBox(height: 6), Text(_t(message), style: TextStyle(height: 1.55, color: isDark ? Colors.white70 : Colors.black54)), if (avg > 0 || efficiency > 0) ...[const SizedBox(height: 8), Text(_t('المتوسط الأسبوعي: ') + _formatStat(avg) + ' • الكفاءة: ' + efficiency.toStringAsFixed(0) + '%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary))]]))]));
   }
 
   String _dayLabel(DateTime date) {
