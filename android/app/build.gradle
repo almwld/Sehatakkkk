@@ -57,6 +57,12 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    packaging {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+
     defaultConfig {
         applicationId "com.sehatak.app"
         minSdkVersion 23
