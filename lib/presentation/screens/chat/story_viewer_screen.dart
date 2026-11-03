@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/status_model.dart';
 import 'package:sehatak/core/services/status_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class StoryViewerScreen extends StatefulWidget {
   const StoryViewerScreen({
@@ -21,6 +23,7 @@ class StoryViewerScreen extends StatefulWidget {
 
 class _StoryViewerScreenState extends State<StoryViewerScreen>
     with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
   late final PageController _pageController;
   late final AnimationController _progressController;
   final StatusService _statusService = StatusService();
@@ -99,7 +102,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     await _statusService.addReaction(status: widget.status, emoji: emoji);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم إرسال $emoji'), duration: const Duration(milliseconds: 700)),
+        SnackBar(content: Text('${_t('تم إرسال')} $emoji'), duration: const Duration(milliseconds: 700)),
       );
     }
   }
@@ -115,7 +118,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       if (mounted) {
         FocusScope.of(context).unfocus();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم إرسال الرد'), duration: Duration(milliseconds: 700)),
+          SnackBar(content: Text(_t('تم إرسال الرد')), duration: const Duration(milliseconds: 700)),
         );
       }
     } finally {
@@ -272,7 +275,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                     textDirection: TextDirection.rtl,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'رد سريع...',
+                      hintText: _t('رد سريع...'),
                       hintStyle: TextStyle(color: Colors.white.withOpacity(.7)),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -312,11 +315,11 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   String _relativeTime(DateTime date) {
     final minutes = DateTime.now().difference(date).inMinutes;
-    if (minutes < 1) return 'الآن';
-    if (minutes < 60) return 'منذ $minutes د';
+    if (minutes < 1) return _t('الآن');
+    if (minutes < 60) return '${_t('منذ')} $minutes ${_t('دقيقة قصيرة')}';
     final hours = minutes ~/ 60;
-    if (hours < 24) return 'منذ $hours س';
-    return 'منذ يوم';
+    if (hours < 24) return '${_t('منذ')} $hours ${_t('ساعة قصيرة')}';
+    return '${_t('منذ')} ${_t('يوم')}';
   }
 }
 
@@ -373,7 +376,7 @@ class _StoryContentState extends State<_StoryContent> {
       return Image.network(
         widget.story.url,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _textContent('تعذر تحميل الصورة'),
+        errorBuilder: (_, __, ___) => _textContent(AppStrings.of(context).translate('تعذر تحميل الصورة')),
         loadingBuilder: (_, child, progress) => progress == null
             ? child
             : const Center(child: CircularProgressIndicator(color: Colors.white)),
