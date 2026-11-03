@@ -314,11 +314,20 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   String _relativeTime(DateTime date) {
     final minutes = DateTime.now().difference(date).inMinutes;
+    final language = AppStrings.of(context).locale.languageCode;
     if (minutes < 1) return _t('الآن');
-    if (minutes < 60) return '${_t('منذ')} $minutes ${_t('دقيقة قصيرة')}';
+    if (minutes < 60) {
+      if (language == 'fr') return 'Il y a $minutes min';
+      if (language == 'en') return '$minutes min ago';
+      return 'منذ $minutes د';
+    }
     final hours = minutes ~/ 60;
-    if (hours < 24) return '${_t('منذ')} $hours ${_t('ساعة قصيرة')}';
-    return '${_t('منذ')} ${_t('يوم')}';
+    if (hours < 24) {
+      if (language == 'fr') return 'Il y a $hours h';
+      if (language == 'en') return '$hours hr ago';
+      return 'منذ $hours س';
+    }
+    return language == 'ar' ? 'منذ يوم' : language == 'fr' ? 'Il y a un jour' : '1 day ago';
   }
 }
 
