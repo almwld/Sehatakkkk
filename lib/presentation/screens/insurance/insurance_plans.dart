@@ -2,6 +2,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/app_strings.dart' as localization;
 import '../../../core/constants/app_dimensions.dart';
 
 class InsurancePlans extends StatelessWidget {
@@ -10,7 +11,7 @@ class InsurancePlans extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final strings = AppStrings.of(context);
+    final strings = localization.AppStrings.of(context);
     String t(String value) => strings.translate(value);
     final plans = [
       {'name': 'الخطة الأساسية', 'price': 15000.0, 'duration': 'سنوي', 'coverage': ['استشارات', 'فحوصات أساسية']},
