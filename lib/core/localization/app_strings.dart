@@ -3251,7 +3251,7 @@ class AppStrings {
       'صحة عامة': ['General health', 'Santé générale'],
       'صحة نفسية': ['Mental health', 'Santé mentale'],
       'جلدية': ['Dermatology', 'Dermatologie'],
-      'أطفال': ['Children', 'Enfants'],
+      'أطفال': ['Pediatrics', 'Pédiatrie'],
       'المقالات الصحية': ['Health articles', 'Articles de santé'],
       'ابحث عن مقال أو موضوع صحي...': ['Search for an article or health topic...', 'Rechercher un article ou un sujet de santé…'],
       'تعذر تحميل المقالات': ['Could not load articles', 'Impossible de charger les articles'],
