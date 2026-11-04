@@ -1,4 +1,5 @@
 name: 🚀 Build Sehatak APK
+# Flutter 3.16.0 reference rebuild trigger — no build configuration changes.
 # Release build with signing + Firebase config from secrets.
 
 permissions:
