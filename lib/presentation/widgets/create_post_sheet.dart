@@ -7,6 +7,7 @@ import 'package:sehatak/bloc/community/community_bloc.dart';
 import 'package:sehatak/bloc/community/community_event.dart';
 import 'package:sehatak/bloc/community/community_state.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 class CreatePostSheet extends StatefulWidget {
@@ -33,6 +34,7 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
   String _selectedCategory = 'عام';
   List<PlatformFile> _selectedFiles = [];
   bool _isLoading = false;
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   final List<String> _categories = ['عام', 'صحة عامة', 'تغذية', 'نفسية', 'أطفال', 'نساء وولادة', 'قلبية', 'باطنية', 'جلدية', 'عظام'];
 
@@ -69,12 +71,12 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
   Future<void> _submitPost() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedFiles.isEmpty && _contentController.text.trim().isEmpty) {
-      ToastService.showWarning('يرجى إضافة محتوى أو صورة/فيديو للمنشور');
+      ToastService.showWarning(_t('يرجى إضافة محتوى أو صورة/فيديو للمنشور'));
       return;
     }
     setState(() => _isLoading = true);
     try {
-      if (!await _isVerifiedDoctor()) throw Exception('النشر متاح للأطباء الموثقين فقط');
+      if (!await _isVerifiedDoctor()) throw Exception(_t('النشر متاح للأطباء الموثقين فقط'));
       if (!mounted) return;
       context.read<CommunityBloc>().add(CreateCommunityPost(
             title: _titleController.text.trim(),
@@ -85,7 +87,7 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ToastService.showError(e.toString().replaceFirst('Exception: ', ''));
+      ToastService.showError(_t(e.toString().replaceFirst('Exception: ', '')));
     }
   }
 
@@ -96,10 +98,10 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
       listener: (context, state) {
         if (state.status == CommunityStatus.loaded && _isLoading) {
           Navigator.of(context).pop();
-          ToastService.showSuccess('تم نشر المنشور بنجاح');
+          ToastService.showSuccess(_t('تم نشر المنشور بنجاح'));
         } else if (state.status == CommunityStatus.error && _isLoading) {
           setState(() => _isLoading = false);
-          ToastService.showError(state.errorMessage ?? 'فشل النشر');
+          ToastService.showError(_t(state.errorMessage ?? 'فشل النشر'));
         }
       },
       child: Container(
@@ -113,9 +115,9 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
           children: [
             Row(children: [
               const Spacer(),
-              Text('منشور جديد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+              Text(_t('منشور جديد'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
               const Spacer(),
-              TextButton(onPressed: _isLoading ? null : () => Navigator.pop(context), child: const Text('إغلاق')),
+              TextButton(onPressed: _isLoading ? null : () => Navigator.pop(context), child: Text(_t('إغلاق'))),
             ]),
             const Divider(),
             Expanded(
@@ -125,14 +127,14 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
                   child: Column(children: [
                     TextFormField(
                       controller: _titleController,
-                      decoration: InputDecoration(labelText: 'العنوان *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
-                      validator: (v) => v?.trim().isEmpty ?? true ? 'أدخل العنوان' : null,
+                      decoration: InputDecoration(labelText: _t('العنوان *'), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
+                      validator: (v) => v?.trim().isEmpty ?? true ? _t('أدخل العنوان') : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _contentController,
                       maxLines: 5,
-                      decoration: InputDecoration(labelText: 'المحتوى', hintText: 'اكتب محتوى منشورك...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
+                      decoration: InputDecoration(labelText: _t('المحتوى'), hintText: _t('اكتب محتوى منشورك...'), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
                     ),
                     const SizedBox(height: 12),
                     InkWell(
@@ -169,15 +171,15 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: _selectedCategory,
-                      decoration: InputDecoration(labelText: 'التصنيف', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
-                      items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      decoration: InputDecoration(labelText: _t('التصنيف'), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
+                      items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(_t(c)))).toList(),
                       onChanged: _isLoading ? null : (v) => setState(() => _selectedCategory = v!),
                     ),
                     const SizedBox(height: 20),
                     Row(children: [
-                      Expanded(child: OutlinedButton(onPressed: _isLoading ? null : () => Navigator.pop(context), child: const Text('إلغاء'))),
+                      Expanded(child: OutlinedButton(onPressed: _isLoading ? null : () => Navigator.pop(context), child: Text(_t('إلغاء')))),
                       const SizedBox(width: 12),
-                      Expanded(flex: 2, child: ElevatedButton(onPressed: _isLoading ? null : _submitPost, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white), child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('نشر'))),
+                      Expanded(flex: 2, child: ElevatedButton(onPressed: _isLoading ? null : _submitPost, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white), child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(_t('نشر')))),
                     ]),
                   ]),
                 ),

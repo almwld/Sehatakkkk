@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
 class CalorieCalculatorScreen extends StatefulWidget {
@@ -10,6 +11,8 @@ class CalorieCalculatorScreen extends StatefulWidget {
 }
 
 class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   final List<Map<String, dynamic>> _foods = const [
     {'name': 'رز أبيض (كوب)', 'cal': 206, 'icon': '🍚'},
     {'name': 'دجاج مشوي (صدر)', 'cal': 165, 'icon': '🍗'},
@@ -32,31 +35,31 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _query.isEmpty ? _foods : _foods.where((f) => (f['name'] as String).contains(_query)).toList();
+    final filtered = _query.isEmpty ? _foods : _foods.where((f) => (_t(context, f['name'] as String).contains(_query) || (f['name'] as String).contains(_query))).toList();
 
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('حاسبة السعرات', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_t(context, 'حاسبة السعرات'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         Container(
           margin: const EdgeInsets.all(14), padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.success, AppColors.teal]), borderRadius: BorderRadius.circular(16)),
           child: Column(children: [
-            const Text('إجمالي السعرات', style: TextStyle(color: Colors.white70)), Text('$_total', style: const TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold)),
+            Text(_t(context, 'إجمالي السعرات'), style: TextStyle(color: Colors.white70)), Text('$_total', style: const TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold)),
             LinearProgressIndicator(value: (_total / 2000).clamp(0.0, 1.0), backgroundColor: Colors.white24, color: Colors.white, minHeight: 6, borderRadius: BorderRadius.circular(3)),
           ]),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: UnifiedSearchBar(onChanged: (v) => setState(() => _query = v), hintText: 'ابحث عن طعام...'),
+          child: UnifiedSearchBar(onChanged: (v) => setState(() => _query = v), hintText: _t(context, 'ابحث عن طعام...')),
         ),
-        if (_selected.isNotEmpty) Padding(padding: const EdgeInsets.all(8), child: Wrap(spacing: 6, children: _selected.map((f) => Chip(label: Text('${f['name']} (${f['cal']})'), onDeleted: () => setState(() => _selected.remove(f)))).toList())),
+        if (_selected.isNotEmpty) Padding(padding: const EdgeInsets.all(8), child: Wrap(spacing: 6, children: _selected.map((f) => Chip(label: Text('${_t(context, f['name'] as String)} (${f['cal']})'), onDeleted: () => setState(() => _selected.remove(f)))).toList())),
         Expanded(
           child: ListView.builder(padding: const EdgeInsets.symmetric(horizontal: 14), itemCount: filtered.length, itemBuilder: (ctx, i) {
             final f = filtered[i];
             return ListTile(
               leading: Text(f['icon'], style: const TextStyle(fontSize: 28)),
-              title: Text(f['name'], style: const TextStyle(fontWeight: FontWeight.w500)),
-              subtitle: Text('${f['cal']} سعرة', style: const TextStyle(color: AppColors.primary)),
+              title: Text(_t(context, f['name'] as String), style: const TextStyle(fontWeight: FontWeight.w500)),
+              subtitle: Text('${f['cal']} ${_t(context, 'سعرة')}', style: const TextStyle(color: AppColors.primary)),
               trailing: ElevatedButton(onPressed: () => setState(() => _selected.add(f)), style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, minimumSize: Size.zero, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)), child: const Text('+', style: TextStyle(fontSize: 18))),
             );
           }),

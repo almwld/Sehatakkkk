@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/message_model.dart';
 import 'package:sehatak/core/services/chat_service.dart';
@@ -48,7 +49,7 @@ class _MessageSearchScreenState extends State<MessageSearchScreen> {
       if (!mounted || query != _query) return;
       setState(() => _results = results);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر البحث داخل الرسائل')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر البحث داخل الرسائل'))));
     } finally {
       if (mounted && query == _query) setState(() => _loading = false);
     }
@@ -62,16 +63,16 @@ class _MessageSearchScreenState extends State<MessageSearchScreen> {
     super.dispose();
   }
 
-  String _preview(MessageModel m) {
+  String _preview(BuildContext context, MessageModel m) {
     final text = m.text?.trim();
     if (text != null && text.isNotEmpty) return text;
     switch (m.type) {
-      case MessageType.image: return '📷 صورة';
-      case MessageType.video: return '🎬 فيديو';
-      case MessageType.audio: return '🎤 رسالة صوتية';
-      case MessageType.file: return '📎 ملف';
-      case MessageType.location: return '📍 موقع';
-      default: return 'مرفق';
+      case MessageType.image: return AppStrings.of(context).translate('صورة');
+      case MessageType.video: return AppStrings.of(context).translate('فيديو');
+      case MessageType.audio: return AppStrings.of(context).translate('رسالة صوتية');
+      case MessageType.file: return AppStrings.of(context).translate('ملف');
+      case MessageType.location: return AppStrings.of(context).translate('موقع');
+      default: return AppStrings.of(context).translate('مرفق');
     }
   }
 
@@ -79,13 +80,13 @@ class _MessageSearchScreenState extends State<MessageSearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: UnifiedSearchBar(controller: _controller, hintText: 'ابحث داخل الرسائل...'),
+        title: UnifiedSearchBar(controller: _controller, hintText: AppStrings.of(context).translate('ابحث داخل الرسائل...')),
         actions: [if (_loading) const Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)))],
       ),
       body: _query.isEmpty
-          ? const Center(child: Text('اكتب كلمة أو عبارة للبحث'))
+          ? Center(child: Text(AppStrings.of(context).translate('اكتب كلمة أو عبارة للبحث')))
           : _results.isEmpty && !_loading
-              ? const Center(child: Text('لا توجد رسائل مطابقة'))
+              ? Center(child: Text(AppStrings.of(context).translate('لا توجد رسائل مطابقة')))
               : ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: _results.length,
@@ -95,7 +96,7 @@ class _MessageSearchScreenState extends State<MessageSearchScreen> {
                     return ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.message_outlined)),
                       title: Text(message.senderName, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      subtitle: Text(_preview(message), maxLines: 2, overflow: TextOverflow.ellipsis),
+                      subtitle: Text(_preview(context, message), maxLines: 2, overflow: TextOverflow.ellipsis),
                       trailing: const Icon(Icons.chevron_left, color: AppColors.primary),
                       onTap: () => Navigator.of(context).pop(message.id),
                     );

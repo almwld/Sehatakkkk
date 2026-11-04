@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
@@ -93,20 +94,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       if (value) {
         final authenticated = await _localAuth.authenticate(
-          localizedReason: 'سجل باستخدام بصمة الإصبع لتأكيد الهوية',
+          localizedReason: AppStrings.of(context).translate('سجل باستخدام بصمة الإصبع لتأكيد الهوية'),
           options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
         );
         if (!authenticated) {
-          ToastService.showError('فشل التحقق من البصمة، حاول مرة أخرى');
+          ToastService.showError(AppStrings.of(context).translate('فشل التحقق من البصمة، حاول مرة أخرى'));
           return;
         }
       }
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('biometric_enabled', value);
       if (mounted) setState(() => _isBiometricEnabled = value);
-      ToastService.showSuccess(value ? 'تم تفعيل تسجيل الدخول بالبصمة' : 'تم إلغاء تفعيل تسجيل الدخول بالبصمة');
+      ToastService.showSuccess(AppStrings.of(context).translate(value ? 'تم تفعيل تسجيل الدخول بالبصمة' : 'تم إلغاء تفعيل تسجيل الدخول بالبصمة'));
     } catch (_) {
-      ToastService.showError('تعذر تحديث إعداد البصمة');
+      ToastService.showError(AppStrings.of(context).translate('تعذر تحديث إعداد البصمة'));
     }
   }
 
@@ -128,6 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final fontProvider = context.watch<FontSizeProvider>();
     final scale = fontProvider.fontScale;
@@ -135,13 +137,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF7F9FA),
       appBar: CustomAppBar(
-        title: 'الإعدادات',
+        title: strings.settings,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            tooltip: 'الإعدادات',
+            tooltip: AppStrings.of(context).translate('الإعدادات'),
             icon: _localImage(AppImages.uiSettingsGear, color: Colors.white),
             onPressed: _loadThemeMode,
           ),
@@ -150,28 +152,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _section('المظهر', isDark),
+          _section(strings.appearance, isDark),
           _card(isDark, Column(children: [
-            _switchTile(AppImages.uiSettingsGear, 'الوضع المظلم', 'تفعيل الوضع المظلم للتطبيق', isDark, isDark, (v) {
+            _switchTile(AppImages.uiSettingsGear, strings.darkMode, strings.darkModeDescription, isDark, isDark, (v) {
               context.read<ThemeBloc>().setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
               setState(() => _isSystemMode = false);
             }),
             _divider(isDark),
-            _switchTile(_autoModeIcon, 'الوضع التلقائي', 'متابعة إعدادات النظام', isDark, _isSystemMode, (v) {
+            _switchTile(_autoModeIcon, strings.automaticMode, strings.systemModeDescription, isDark, _isSystemMode, (v) {
               context.read<ThemeBloc>().setThemeMode(v ? ThemeMode.system : ThemeMode.light);
               setState(() => _isSystemMode = v);
             }, tint: false),
           ])),
           const SizedBox(height: 16),
-          _section('الموقع والتوصيل', isDark),
+          _section(strings.locationAndDelivery, isDark),
           _card(isDark, Column(children: [
             _listTileAsset(
               _locationIcon,
-              'تحديد منطقتك',
+              strings.locationTitle,
               _deliveryArea == null
-                  ? 'اختر محافظتك وحدد موقعك بالتفصيل أو عبر GPS'
+                  ? strings.chooseLocation
                   : (_deliveryAddress == null || _deliveryAddress!.isEmpty
-                      ? 'المحافظة: $_deliveryArea'
+                      ? '${AppStrings.of(context).translate('المحافظة')}: $_deliveryArea'
                       : '$_deliveryArea — $_deliveryAddress'),
               isDark,
               () async {
@@ -182,13 +184,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ])),
           const SizedBox(height: 16),
-          _section('الأمان', isDark),
+          _section(strings.security, isDark),
           _card(isDark, Column(children: [
             if (_isBiometricSupported) ...[
               _switchTile(
                 _fingerprintIcon,
-                'تسجيل الدخول بالبصمة',
-                _isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع',
+                AppStrings.of(context).translate('تسجيل الدخول بالبصمة'),
+                AppStrings.of(context).translate(_isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع'),
                 isDark,
                 _isBiometricEnabled,
                 _toggleBiometric,
@@ -198,66 +200,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
             _listTileAsset(
               AppImages.uiSettingsGear,
-              'الأمان والأجهزة',
-              'إدارة الجلسات وتسجيل الخروج وحذف الحساب',
+              strings.securityDevices,
+              strings.manageSessions,
               isDark,
               () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SecuritySettingsScreen())),
             ),
           ])),
           const SizedBox(height: 16),
-          _section('حجم الخط', isDark),
+          _section(strings.fontSize, isDark),
           _card(isDark, Padding(
             padding: const EdgeInsets.all(16),
             child: Column(children: [
               Row(children: [
                 _localTileIcon(_fontSizeIcon, tint: false),
                 const SizedBox(width: 12),
-                Expanded(child: Text('حجم الخط الحالي', style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87))),
+                Expanded(child: Text(strings.currentFontSize, style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87))),
                 Text('${(scale * 100).round()}%', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
               ]),
               Row(children: [
-                IconButton(onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6)), icon: const Text('−', style: TextStyle(fontSize: 26, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: 'تصغير الخط'),
+                IconButton(onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6)), icon: const Text('−', style: TextStyle(fontSize: 26, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: AppStrings.of(context).translate('تصغير الخط')),
                 Expanded(child: Slider(value: scale.clamp(.8, 1.6), min: .8, max: 1.6, divisions: 16, activeColor: AppColors.primary, onChanged: fontProvider.setFontScale)),
-                IconButton(onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6)), icon: const Text('+', style: TextStyle(fontSize: 24, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: 'تكبير الخط'),
+                IconButton(onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6)), icon: const Text('+', style: TextStyle(fontSize: 24, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: AppStrings.of(context).translate('تكبير الخط')),
               ]),
               Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
-                _sizeButton('صغير', .8, fontProvider, isDark),
-                _sizeButton('متوسط', 1.0, fontProvider, isDark),
-                _sizeButton('كبير', 1.3, fontProvider, isDark),
-                _sizeButton('كبير جداً', 1.6, fontProvider, isDark),
+                _sizeButton(strings.small, .8, fontProvider, isDark),
+                _sizeButton(strings.medium, 1.0, fontProvider, isDark),
+                _sizeButton(strings.large, 1.3, fontProvider, isDark),
+                _sizeButton(strings.extraLarge, 1.6, fontProvider, isDark),
               ]),
             ]),
           )),
           const SizedBox(height: 16),
-          _section('الحساب', isDark),
+          _section(strings.account, isDark),
           _card(isDark, Column(children: [
-            _listTileAsset(AppImages.uiUserProfile, 'الملف الشخصي', 'تعديل بياناتك الشخصية', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
+            _listTileAsset(AppImages.uiUserProfile, strings.profile, strings.editPersonalInfo, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
             _divider(isDark),
-            _listTileAsset(_changePasswordIcon, 'تغيير كلمة المرور', 'تحديث كلمة المرور الخاصة بك', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())), tint: false),
+            _listTileAsset(_changePasswordIcon, strings.changePassword, strings.updatePassword, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())), tint: false),
             _divider(isDark),
-            _listTileAsset(AppImages.notificationsIcon, 'الإشعارات', 'إدارة الإشعارات الفورية والأنواع والتفضيلات', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()))),
+            _listTileAsset(AppImages.notificationsIcon, strings.notifications, strings.notifications, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()))),
           ])),
           const SizedBox(height: 16),
-          _section('التطبيق', isDark),
+          _section(strings.appSection, isDark),
           _card(isDark, Column(children: [
-            _listTileAsset(_languageIcon, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen())), tint: false),
+            _listTileAsset(_languageIcon, strings.language, strings.changeLanguage, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen())), tint: false),
             _divider(isDark),
-            _listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())), tint: false),
+            _listTileAsset(AppImages.uiHelpCenter, strings.helpSupport, strings.helpSupport, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())), tint: false),
             _divider(isDark),
-            _listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen())), tint: false),
+            _listTileAsset(AppImages.uiPrivacy, strings.privacy, strings.privacy, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen())), tint: false),
             _divider(isDark),
-            _listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false),
+            _listTileAsset(AppImages.uiAboutApp, strings.about, AppStrings.of(context).translate('الإصدار 1.1.0'), isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())), tint: false),
           ])),
           const SizedBox(height: 16),
           _card(isDark, ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: _localImage(_logoutIcon),
-            title: const Text('تسجيل الخروج', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+            title: Text(strings.logout, style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
             trailing: _arrow(isDark, color: Colors.red),
             onTap: () => _showLogoutDialog(context),
           )),
           const SizedBox(height: 20),
-          Center(child: Text('صحتك - الإصدار 1.1.0', style: TextStyle(fontSize: 12, color: Colors.grey[500]))),
+          Center(child: Text(AppStrings.of(context).translate('صحتك - الإصدار 1.1.0'), style: TextStyle(fontSize: 12, color: Colors.grey[500]))),
           const SizedBox(height: 10),
         ],
       ),
@@ -314,10 +316,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('تسجيل الخروج'),
-        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+        title: Text(AppStrings.of(context).logout),
+        content: Text(AppStrings.of(context).confirmLogout),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppStrings.of(context).cancel)),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () async {
@@ -329,10 +331,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await FirebaseAuth.instance.signOut();
                 if (context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
               } catch (e) {
-                ToastService.showError('خطأ في تسجيل الخروج: $e');
+                ToastService.showError('${AppStrings.of(context).translate('خطأ في تسجيل الخروج')}: $e');
               }
             },
-            child: const Text('تسجيل الخروج'),
+            child: Text(AppStrings.of(context).logout),
           ),
         ],
       ),

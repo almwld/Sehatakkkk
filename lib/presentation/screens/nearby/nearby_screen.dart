@@ -1,7 +1,7 @@
-import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class NearbyScreen extends StatefulWidget {
   const NearbyScreen({super.key});
@@ -12,6 +12,7 @@ class NearbyScreen extends StatefulWidget {
 
 class _NearbyScreenState extends State<NearbyScreen> {
   final List<Map<String, dynamic>> _all = [];
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,7 @@ class _NearbyScreenState extends State<NearbyScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'بالقرب منك 🗺️',
+        title: _t('بالقرب منك 🗺️'),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
       ),
@@ -27,36 +28,16 @@ class _NearbyScreenState extends State<NearbyScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.location_on,
-              size: 80,
-              color: Colors.green.withOpacity(0.5),
-            ),
+            Icon(Icons.location_on, size: 80, color: Colors.green.withOpacity(0.5)),
             const SizedBox(height: 16),
-            Text(
-              'الخدمات القريبة',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
+            Text(_t('الخدمات القريبة'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
             const SizedBox(height: 8),
-            Text(
-              'هذه الشاشة قيد التطوير',
-              style: TextStyle(
-                fontSize: 16,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
+            Text(_t('هذه الشاشة قيد التطوير'), style: TextStyle(fontSize: 16, color: isDark ? Colors.grey[400] : Colors.grey[600])),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('رجوع'),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              child: Text(_t('رجوع')),
             ),
           ],
         ),

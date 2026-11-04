@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
@@ -10,6 +11,8 @@ class ReportIssueScreen extends StatefulWidget {
 }
 
 class _ReportIssueScreenState extends State<ReportIssueScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -39,12 +42,12 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     final email = _emailController.text.trim();
 
     if (title.isEmpty) {
-      ToastService.showError('يرجى إدخال عنوان للمشكلة');
+      ToastService.showError(_t('يرجى إدخال عنوان للمشكلة'));
       return;
     }
 
     if (description.isEmpty) {
-      ToastService.showError('يرجى وصف المشكلة بالتفصيل');
+      ToastService.showError(_t('يرجى وصف المشكلة بالتفصيل'));
       return;
     }
 
@@ -54,12 +57,12 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
       await Future.delayed(const Duration(seconds: 2));
       
       if (mounted) {
-        ToastService.showSuccess('✅ تم إرسال التقرير بنجاح');
+        ToastService.showSuccess('✅ ${_t('تم إرسال التقرير بنجاح')}');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ToastService.showError('❌ فشل إرسال التقرير: $e');
+        ToastService.showError('❌ ${_t('فشل إرسال التقرير: ')}$e');
       }
     } finally {
       if (mounted) {
@@ -75,7 +78,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الإبلاغ عن مشكلة'),
+        title: Text(_t('الإبلاغ عن مشكلة')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -104,7 +107,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'ساعدنا في تحسين التطبيق من خلال الإبلاغ عن أي مشكلة تواجهها. سنعمل على حلها في أقرب وقت.',
+                      _t('ساعدنا في تحسين التطبيق من خلال الإبلاغ عن أي مشكلة تواجهها. سنعمل على حلها في أقرب وقت.'),
                       style: TextStyle(
                         fontSize: 13,
                         color: isDark ? Colors.white70 : Colors.black87,
@@ -122,7 +125,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               items: _categories.map((category) {
                 return DropdownMenuItem(
                   value: category,
-                  child: Text(category),
+                  child: Text(_t(category)),
                 );
               }).toList(),
               onChanged: (value) {
@@ -130,8 +133,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                   setState(() => _selectedCategory = value);
                 }
               },
-              decoration: const InputDecoration(
-                labelText: 'تصنيف المشكلة',
+              decoration: InputDecoration(
+                labelText: _t('تصنيف المشكلة'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -143,9 +146,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
             TextField(
               controller: _titleController,
               enabled: !_isLoading,
-              decoration: const InputDecoration(
-                labelText: 'عنوان المشكلة',
-                hintText: 'مثال: تعذر تسجيل الدخول',
+              decoration: InputDecoration(
+                labelText: _t('عنوان المشكلة'),
+                hintText: _t('مثال: تعذر تسجيل الدخول'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -158,9 +161,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               controller: _descriptionController,
               maxLines: 6,
               enabled: !_isLoading,
-              decoration: const InputDecoration(
-                labelText: 'وصف المشكلة بالتفصيل',
-                hintText: 'يرجى وصف المشكلة بالتفصيل مع ذكر خطوات حدوثها...',
+              decoration: InputDecoration(
+                labelText: _t('وصف المشكلة بالتفصيل'),
+                hintText: _t('يرجى وصف المشكلة بالتفصيل مع ذكر خطوات حدوثها...'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -177,9 +180,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               controller: _emailController,
               enabled: !_isLoading,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'البريد الإلكتروني (اختياري)',
-                hintText: 'للتواصل معك بخصوص المشكلة',
+              decoration: InputDecoration(
+                labelText: _t('البريد الإلكتروني (اختياري)'),
+                hintText: _t('للتواصل معك بخصوص المشكلة'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -209,8 +212,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'إرسال التقرير',
+                    : Text(
+                        _t('إرسال التقرير'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/ambulance/ambulance_request_screen.dart';
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
@@ -17,6 +18,7 @@ class HomeServicesScreen extends StatefulWidget {
 }
 
 class _HomeServicesScreenState extends State<HomeServicesScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
@@ -43,7 +45,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
   List<Map<String, dynamic>> get _filteredServices {
     var list = _services;
     if (_searchQuery.isNotEmpty) {
-      list = list.where((s) => s['title'].toString().contains(_searchQuery) || s['subtitle'].toString().contains(_searchQuery)).toList();
+      list = list.where((s) => s['title'].toString().contains(_searchQuery) || s['subtitle'].toString().contains(_searchQuery) || _t(s['title'] as String).toLowerCase().contains(_searchQuery.toLowerCase()) || _t(s['subtitle'] as String).toLowerCase().contains(_searchQuery.toLowerCase())).toList();
     }
     if (_selectedCategory != 'الكل') list = list.where((s) => s['category'] == _selectedCategory).toList();
     return list;
@@ -60,12 +62,12 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
     final filtered = _filteredServices;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(title: const Text('الخدمات المنزلية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
+      appBar: CustomAppBar(title: Text(AppStrings.of(context).translate('الخدمات المنزلية')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: UnifiedSearchBar(controller: _searchController, onChanged: (value) => setState(() => _searchQuery = value.trim()), onClear: _clearSearch, hintText: 'ابحث عن خدمة...', isDark: isDark),
+            child: UnifiedSearchBar(controller: _searchController, onChanged: (value) => setState(() => _searchQuery = value.trim()), onClear: _clearSearch, hintText: AppStrings.of(context).translate('ابحث عن خدمة...'), isDark: isDark),
           ),
           _buildCategoryChips(isDark),
           Expanded(child: filtered.isEmpty ? _buildEmptyState(isDark) : ListView.builder(padding: const EdgeInsets.all(16), itemCount: filtered.length, itemBuilder: (context, index) => _buildServiceCard(filtered[index], isDark))),
@@ -86,7 +88,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
           final isSelected = _selectedCategory == category;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(label: Text(category), selected: isSelected, onSelected: (selected) => setState(() => _selectedCategory = selected ? category : 'الكل'), backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white, selectedColor: AppColors.primary, labelStyle: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300)))),
+            child: FilterChip(label: Text(AppStrings.of(context).translate(category)), selected: isSelected, onSelected: (selected) => setState(() => _selectedCategory = selected ? category : 'الكل'), backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white, selectedColor: AppColors.primary, labelStyle: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300)))),
           );
         },
       ),
@@ -97,9 +99,9 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Icon(Icons.home_work_outlined, size: 80, color: isDark ? Colors.grey[600] : Colors.grey[300]),
       const SizedBox(height: 16),
-      Text('لا توجد خدمات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+      Text(AppStrings.of(context).translate('لا توجد خدمات'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 8),
-      Text('جرب تغيير البحث أو التصنيف', style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+      Text(AppStrings.of(context).translate('جرب تغيير البحث أو التصنيف'), style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600])),
     ]));
   }
 
@@ -118,11 +120,11 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
           Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Icon(service['icon'] as IconData, color: color, size: 28)),
           const SizedBox(width: 16),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [Expanded(child: Text(service['title'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87))), if (badge != null) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: Colors.blue.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(badge, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.blue)))]),
+            Row(children: [Expanded(child: Text(AppStrings.of(context).translate(service['title'] as String), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87))), if (badge != null) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: Colors.blue.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(AppStrings.of(context).translate(badge), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.blue)))]),
             const SizedBox(height: 4),
-            Text(service['subtitle'] as String, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+            Text(AppStrings.of(context).translate(service['subtitle'] as String), style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600])),
             const SizedBox(height: 6),
-            Text(service['category'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+            Text(_t(service['category'] as String), style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
           ])),
           Icon(isAvailable ? Icons.arrow_forward_ios : Icons.lock_outline, size: 16, color: Colors.grey[500]),
         ]),

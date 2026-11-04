@@ -8,6 +8,7 @@ import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/notification_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class CallScreen extends StatefulWidget {
   final String chatId, doctorName, doctorId;
@@ -18,6 +19,7 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _auth = FirebaseAuth.instance;
   final _calls = CallService();
   final _liveKit = LiveKitService();
@@ -35,14 +37,14 @@ class _CallScreenState extends State<CallScreen> {
   Future<void> _start() async {
     try {
       final uid = _auth.currentUser?.uid;
-      if (uid == null) throw Exception('يجب تسجيل الدخول');
+      if (uid == null) throw Exception(_t('يجب تسجيل الدخول'));
       if (widget.isOutgoing) {
         final call = await _calls.initiateCall(receiverId: widget.doctorId, receiverName: widget.doctorName, receiverPhotoUrl: widget.doctorImage, chatId: widget.chatId, type: widget.isVideo ? CallType.video : CallType.audio);
-        if (call == null) throw Exception('تعذر إنشاء المكالمة');
+        if (call == null) throw Exception(_t('تعذر إنشاء المكالمة'));
         _callId = call.id;
       } else {
         _callId = widget.callId;
-        if (_callId == null || _callId!.isEmpty) throw Exception('معرّف المكالمة غير موجود');
+        if (_callId == null || _callId!.isEmpty) throw Exception(_t('معرّف المكالمة غير موجود'));
       }
 
       final id = _callId!;
@@ -81,7 +83,7 @@ class _CallScreenState extends State<CallScreen> {
     try {
       final room = await _liveKit.connectRoom(
         roomName: 'call_$id',
-        participantName: _auth.currentUser?.displayName ?? 'مستخدم',
+        participantName: _auth.currentUser?.displayName ?? _t('مستخدم'),
       );
       _room = room;
       room.addListener(_onRoomChanged);
@@ -150,7 +152,7 @@ class _CallScreenState extends State<CallScreen> {
         _mediaStarting = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعذر تشغيل وسائط المكالمة. حاول مرة أخرى.')),
+        SnackBar(content: Text(_t('تعذر تشغيل وسائط المكالمة. حاول مرة أخرى.'))),
       );
       Navigator.pop(context);
     }
@@ -172,7 +174,7 @@ class _CallScreenState extends State<CallScreen> {
       await NotificationService().cancelIncomingCallNotification(failedCallId);
     }
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر الاتصال بالمكالمة. حاول مرة أخرى.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر الاتصال بالمكالمة. حاول مرة أخرى.'))));
       Navigator.pop(context);
     }
   }
@@ -292,7 +294,7 @@ class _CallScreenState extends State<CallScreen> {
           const SizedBox(height: 16),
           Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text(_connected ? _duration : (widget.isOutgoing ? 'في انتظار الرد...' : 'جارٍ تجهيز المكالمة...'), style: const TextStyle(color: Colors.white70)),
+          Text(_connected ? _duration : (widget.isOutgoing ? _t('في انتظار الرد...') : _t('جارٍ تجهيز المكالمة...')), style: const TextStyle(color: Colors.white70)),
         ],
       ),
     );

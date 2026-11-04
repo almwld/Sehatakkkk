@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -94,7 +95,7 @@ class _HomeTabState extends State<HomeTab> {
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.center,
-        child: const Text('لا توجد بانرات', style: TextStyle(color: Colors.grey)),
+        child: Text(AppStrings.of(context).translate('لا توجد بانرات'), style: TextStyle(color: Colors.grey)),
       );
     }
 
@@ -298,6 +299,7 @@ class _HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final greetingName = _userName == 'مستخدم' ? AppStrings.of(context).translate('مستخدم') : _userName;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -325,7 +327,7 @@ class _HomeTabState extends State<HomeTab> {
                             child: Text(_userName[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 16)),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: Text('${_getGreeting()}، $_userName 👋', style: const TextStyle(color: Colors.white, fontSize: 16))),
+                          Expanded(child: Text('${AppStrings.of(context).translate(_getGreeting())}، $greetingName 👋', style: const TextStyle(color: Colors.white, fontSize: 16))),
                           IconButton(icon: const Icon(Icons.notifications, color: Colors.white), onPressed: () {}),
                         ],
                       ),
@@ -337,7 +339,7 @@ class _HomeTabState extends State<HomeTab> {
                           children: [
                             const Icon(Icons.search, color: Colors.white70, size: 18),
                             const SizedBox(width: 8),
-                            Expanded(child: Text('ابحث عن طبيب، دواء...', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13))),
+                            Expanded(child: Text(AppStrings.of(context).translate('ابحث عن طبيب، دواء...'), style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13))),
                           ],
                         ),
                       ),
@@ -353,7 +355,7 @@ class _HomeTabState extends State<HomeTab> {
               delegate: SliverChildListDelegate([
                 _buildBannerCarousel(isDark),
                 const SizedBox(height: 16),
-                const Text('خدمات سريعة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(AppStrings.of(context).translate('خدمات سريعة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 SizedBox(
                   height: 80,
@@ -370,7 +372,7 @@ class _HomeTabState extends State<HomeTab> {
                           children: [
                             Image.asset(service['icon'] as String, width: 35, height: 35),
                             const SizedBox(height: 4),
-                            Text(service['label'] as String, style: const TextStyle(fontSize: 10)),
+                            Text(AppStrings.of(context).translate(service['label'] as String), style: const TextStyle(fontSize: 10)),
                           ],
                         ),
                       );
@@ -378,7 +380,7 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('أفضل الأطباء', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(AppStrings.of(context).translate('أفضل الأطباء'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 if (_topDoctors.isEmpty)
                   Container(
@@ -387,8 +389,8 @@ class _HomeTabState extends State<HomeTab> {
                       color: isDark ? const Color(0xFF1A2540) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Center(
-                      child: Text('لا يوجد أطباء موثقون متاحون حاليًا'),
+                    child: Center(
+                      child: Text(AppStrings.of(context).translate('لا يوجد أطباء موثقون متاحون حاليًا')),
                     ),
                   )
                 else
@@ -426,9 +428,9 @@ class _HomeTabState extends State<HomeTab> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text(AppStrings.of(context).translate(name), style: const TextStyle(fontWeight: FontWeight.bold)),
                                   Text(
-                                    doctor['specialty'] as String,
+                                    AppStrings.of(context).translate(doctor['specialty'] as String),
                                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                                   ),
                                 ],

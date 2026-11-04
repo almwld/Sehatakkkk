@@ -1,0 +1,219 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sehatak/core/providers/app_locale_controller.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
+
+void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  test('persists the selected language across controller instances', () async {
+    final controller = AppLocaleController();
+    await controller.setLanguage('fr');
+    expect(controller.locale, const Locale('fr', 'FR'));
+
+    final restored = AppLocaleController();
+    await restored.load();
+    expect(restored.locale, const Locale('fr', 'FR'));
+  });
+
+  test('restores Arabic when no supported language is saved', () async {
+    final controller = AppLocaleController();
+    await controller.load();
+    expect(controller.locale, const Locale('ar', 'SA'));
+  });
+
+  group('AppStrings locale translations', () {
+    test('translates common healthcare labels to English', () {
+      final strings = AppStrings(const Locale('en', 'US'));
+      expect(strings.translate('الأطباء'), 'Doctors');
+      expect(strings.translate('الصيدلية'), 'Pharmacy');
+      expect(strings.translate('المختبرات'), 'Laboratories');
+    });
+
+    test('translates common healthcare labels to French', () {
+      final strings = AppStrings(const Locale('fr', 'FR'));
+      expect(strings.translate('الأطباء'), 'Médecins');
+      expect(strings.translate('الصيدلية'), 'Pharmacie');
+      expect(strings.translate('المختبرات'), 'Laboratoires');
+    });
+
+    test('keeps Arabic labels in Arabic locale', () {
+      final strings = AppStrings(const Locale('ar', 'SA'));
+      expect(strings.translate('الأطباء'), 'الأطباء');
+    });
+
+
+    test('translates medication and laboratory workflows to English', () {
+      final strings = AppStrings(const Locale('en', 'US'));
+      expect(strings.translate('تذكير الأدوية'), 'Medication reminders');
+      expect(strings.translate('إضافة دواء'), 'Add medication');
+      expect(strings.translate('حجز الفحوصات'), 'Book laboratory tests');
+      expect(strings.translate('نتائج الفحوصات'), 'Test results');
+    });
+
+    test('translates medication and laboratory workflows to French', () {
+      final strings = AppStrings(const Locale('fr', 'FR'));
+      expect(strings.translate('تذكير الأدوية'), 'Rappels de médicaments');
+      expect(strings.translate('إضافة دواء'), 'Ajouter un médicament');
+      expect(strings.translate('حجز الفحوصات'), 'Réserver des analyses');
+      expect(strings.translate('نتائج الفحوصات'), 'Résultats des analyses');
+    });
+
+    test('translates cart and chat actions', () {
+      final strings = AppStrings(const Locale('en', 'US'));
+      expect(strings.translate('سلة المشتريات'), 'Shopping cart');
+      expect(strings.translate('الرسائل المثبتة'), 'Pinned messages');
+      expect(strings.translate('متصل الآن'), 'Online now');
+    });
+
+    test('translates home and permission prompts to English and French', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('تفعيل المكالمات الواردة'), 'Enable incoming calls');
+      expect(english.translate('لاحقاً'), 'Later');
+      expect(english.translate('فتح إعدادات النظام'), 'Open system settings');
+      expect(french.translate('تفعيل المكالمات الواردة'), 'Activer les appels entrants');
+      expect(french.translate('لاحقاً'), 'Plus tard');
+      expect(french.translate('فتح إعدادات النظام'), 'Ouvrir les paramètres système');
+    });
+
+    test('formats Yemeni rial consistently for each locale', () {
+      expect(AppStrings(const Locale('ar', 'SA')).formatCurrency(1250), '1250 ر.ي');
+      expect(AppStrings(const Locale('en', 'US')).formatCurrency(1250), '1250 YER');
+      expect(AppStrings(const Locale('fr', 'FR')).formatCurrency(1250), '1250 YER');
+      expect(AppStrings(const Locale('en', 'US')).formatCurrency(1250.5), '1250.50 YER');
+    });
+
+    test('translates biometric settings feedback', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('سجل باستخدام بصمة الإصبع لتأكيد الهوية'),
+          'Use your fingerprint to verify your identity');
+      expect(english.translate('فشل التحقق من البصمة، حاول مرة أخرى'),
+          'Fingerprint verification failed. Try again.');
+      expect(french.translate('تسجيل الدخول بالبصمة'),
+          'Connexion par empreinte');
+    });
+
+    test('translates laboratory dashboard actions and statuses', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('لوحة المختبر'), 'Laboratory dashboard');
+      expect(english.translate('إضافة فحص جديد'), 'Add new test');
+      expect(english.translate('تم تحديث حالة الحجز'), 'Booking status updated');
+      expect(french.translate('حالة التوثيق'), 'Statut de vérification');
+    });
+
+    test('translates doctor booking and profile labels', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('تاريخ الموعد'), 'Appointment date');
+      expect(english.translate('تأكيد الحجز'), 'Confirm booking');
+      expect(french.translate('مكالمة مرئية'), 'Appel vidéo');
+      expect(french.translate('استشارة تخصصية'), 'Consultation spécialisée');
+    });
+
+    test('translates doctor directory specialties and empty states', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('قلبية'), 'Cardiology');
+      expect(english.translate('أطفال'), 'Pediatrics');
+      expect(french.translate('لا توجد نتائج'), 'Aucun résultat');
+      expect(french.translate('أنف وأذن وحنجرة'), 'ORL');
+    });
+
+    test('translates hospital dashboard metrics and status labels', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('لوحة تحكم المستشفى'), 'Hospital dashboard');
+      expect(english.translate('أحدث الحجوزات'), 'Latest bookings');
+      expect(french.translate('الإيرادات'), 'Revenus');
+      expect(french.translate('مغلق'), 'Fermé');
+    });
+
+    test('translates pharmacy marketplace tabs and stock states', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('متاجر مميزة'), 'Featured pharmacies');
+      expect(english.translate('نفد المخزون'), 'Out of stock');
+      expect(french.translate('قيد التوصيل'), 'En cours de livraison');
+      expect(french.translate('مضادات حيوية'), 'Antibiotiques');
+    });
+
+    test('translates chat navigation and conversation states', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('المحادثات'), 'Chats');
+      expect(english.translate('تعذر فتح المحادثة'), 'Could not open the conversation');
+      expect(french.translate('المكالمات'), 'Appels');
+    });
+
+    test('translates message search previews and hints', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('رسالة صوتية'), 'Voice message');
+      expect(english.translate('ابحث داخل الرسائل...'), 'Search messages...');
+      expect(french.translate('مرفق'), 'Pièce jointe');
+    });
+
+    test('translates voice recording and media controls', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('جاهز للإرسال'), 'Ready to send');
+      expect(english.translate('يلزم السماح بالوصول إلى الميكروفون.'),
+          'Microphone permission is required.');
+      expect(french.translate('الملفات الحديثة'), 'Fichiers récents');
+    });
+
+    test('translates pharmacy product loading states', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('لا توجد منتجات متاحة في هذه الصيدلية حالياً'),
+          'No products are currently available at this pharmacy');
+      expect(french.translate('تعذر تحميل منتجات الصيدلية حالياً'),
+          'Impossible de charger les produits de la pharmacie pour le moment');
+    });
+
+    test('translates home weather and discovery labels', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+      expect(english.translate('صباح الخير'), 'Good morning');
+      expect(english.translate('عواصف رعدية'), 'Thunderstorms');
+      expect(french.translate('جميع الخدمات'), 'Tous les services');
+    });
+
+    test('translates incoming call permission guidance', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      expect(
+        english.translate('لإظهار شاشة المكالمة الواردة فوق شاشة القفل، يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. إذا لم تمنح الإذن، سيستمر إشعار المكالمة العادي بالعمل.'),
+        'To show incoming calls over the lock screen, allow full-screen notifications in system settings. If you do not grant permission, regular call notifications will continue to work.',
+      );
+    });
+
+    test('translates wallet, status, template, and password flows', () {
+      final english = AppStrings(const Locale('en', 'US'));
+      final french = AppStrings(const Locale('fr', 'FR'));
+
+      expect(english.translate('تغذية المحفظة'), 'Wallet top-up');
+      expect(english.translate('إرسال طلب التغذية'), 'Submit top-up request');
+      expect(english.translate('إضافة حالة'), 'Add status');
+      expect(english.translate('حفظ وإرسال الحالة'), 'Save and post status');
+      expect(english.translate('قوالب الصور'), 'Image templates');
+      expect(english.translate('كلمة مرور جديدة'), 'New password');
+
+      expect(french.translate('تغذية المحفظة'), 'Recharger le portefeuille');
+      expect(french.translate('إرسال طلب التغذية'), 'Envoyer la demande de recharge');
+      expect(french.translate('إضافة حالة'), 'Ajouter un statut');
+      expect(french.translate('قوالب الصور'), 'Modèles d’images');
+      expect(french.translate('كلمة مرور جديدة'), 'Nouveau mot de passe');
+    });
+
+    test('preserves unknown and user-provided content', () {
+      final strings = AppStrings(const Locale('en', 'US'));
+      expect(strings.translate('A patient supplied note'), 'A patient supplied note');
+    });
+  });
+}

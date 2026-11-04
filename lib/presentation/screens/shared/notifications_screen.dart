@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
@@ -14,6 +15,7 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _watchNotifications(String uid) {
@@ -69,13 +71,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   String _formatTime(dynamic value) {
     final date = _timestamp(value);
-    if (date == null) return 'الآن';
+    final strings = AppStrings.of(context);
+    final languageCode = strings.locale.languageCode;
+    if (date == null) return strings.translate('الآن');
     final difference = DateTime.now().difference(date);
-    if (difference.inSeconds < 60) return 'الآن';
-    if (difference.inMinutes < 60) return 'منذ ${difference.inMinutes} دقيقة';
-    if (difference.inHours < 24) return 'منذ ${difference.inHours} ساعة';
-    if (difference.inDays < 7) return 'منذ ${difference.inDays} يوم';
-    return DateFormat('yyyy/MM/dd - HH:mm', 'ar').format(date);
+    if (difference.inSeconds < 60) return strings.translate('الآن');
+    if (difference.inMinutes < 60) {
+      final count = difference.inMinutes;
+      if (languageCode == 'en') return '${count} min ago';
+      if (languageCode == 'fr') return 'Il y a ${count} min';
+      return 'منذ $count دقيقة';
+    }
+    if (difference.inHours < 24) {
+      final count = difference.inHours;
+      if (languageCode == 'en') return '${count} hr ago';
+      if (languageCode == 'fr') return 'Il y a ${count} h';
+      return 'منذ $count ساعة';
+    }
+    if (difference.inDays < 7) {
+      final count = difference.inDays;
+      if (languageCode == 'en') return '${count} days ago';
+      if (languageCode == 'fr') return 'Il y a ${count} jour(s)';
+      return 'منذ $count يوم';
+    }
+    return DateFormat('yyyy/MM/dd - HH:mm', languageCode).format(date);
   }
 
   IconData _iconFor(String type) {
@@ -195,20 +214,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(_t('الإشعارات'), style: const TextStyle(fontWeight: FontWeight.bold)),
           backgroundColor: Colors.transparent,
           foregroundColor: isDark ? Colors.white : Colors.black87,
           elevation: 0,
         ),
-        body: const Center(
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey),
               SizedBox(height: 16),
-              Text('لا توجد إشعارات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(_t('لا توجد إشعارات'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
-              Text('ستظهر الإشعارات هنا عند استلامها'),
+              Text(_t('ستظهر الإشعارات هنا عند استلامها')),
             ],
           ),
         ),
@@ -218,7 +237,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('الإشعارات'), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -227,7 +246,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         stream: _watchNotifications(uid),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('تعذر تحميل الإشعارات: ${snapshot.error}'));
+            return Center(child: Text(_t('تعذر تحميل الإشعارات') + ': ${snapshot.error}'));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -242,15 +261,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           final unreadCount = docs.where((doc) => doc.data()['isRead'] != true).length;
 
           if (docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('لا توجد إشعارات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(_t('لا توجد إشعارات'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   SizedBox(height: 8),
-                  Text('ستظهر الإشعارات هنا عند استلامها'),
+                  Text(_t('ستظهر الإشعارات هنا عند استلامها')),
                 ],
               ),
             );
@@ -264,7 +283,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: TextButton.icon(
                     onPressed: () => _markAllRead(uid, docs),
                     icon: const Icon(Icons.done_all),
-                    label: Text('تحديد الكل كمقروء ($unreadCount)'),
+                    label: Text('${_t('تحديد الكل كمقروء')} ($unreadCount)'),
                   ),
                 ),
               Expanded(
@@ -304,7 +323,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(data['title']?.toString() ?? 'صحتك', style: TextStyle(fontWeight: isRead ? FontWeight.w500 : FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+                                  Text(data['title']?.toString() ?? _t('صحتك'), style: TextStyle(fontWeight: isRead ? FontWeight.w500 : FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
                                   const SizedBox(height: 3),
                                   Text(data['body']?.toString() ?? '', maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                                   const SizedBox(height: 4),

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -44,6 +45,8 @@ class ChatInputBar extends StatefulWidget {
 }
 
 class _ChatInputBarState extends State<ChatInputBar> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final _controller = TextEditingController();
   final _focus = FocusNode();
   final _picker = ImagePicker();
@@ -117,7 +120,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       final permission = await PhotoManager.requestPermissionExtend();
       if (!permission.isAuth) {
         if (mounted) {
-          ToastService.showError('اسمح بالوصول إلى الصور لعرض الملفات الحديثة.');
+          ToastService.showError(_t('اسمح بالوصول إلى الصور لعرض الملفات الحديثة.'));
         }
         return;
       }
@@ -138,7 +141,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _sendRecentAsset(AssetEntity asset) async {
     final file = await asset.file;
     if (file == null) {
-      ToastService.showError('تعذر الوصول إلى هذا الملف.');
+      ToastService.showError(_t('تعذر الوصول إلى هذا الملف.'));
       return;
     }
     final isVideo = asset.type == AssetType.video;
@@ -146,7 +149,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       file,
       type: isVideo ? 'video' : 'image',
       folder: isVideo ? 'videos' : 'images',
-      preview: isVideo ? '🎬 فيديو' : '📷 صورة',
+      preview: isVideo ? '🎬 ${_t('فيديو')}' : '📷 ${_t('صورة')}',
       name: file.path.split(Platform.pathSeparator).last,
       size: _formatBytes(await file.length()),
       mime: isVideo ? 'video/mp4' : 'image/jpeg',
@@ -169,7 +172,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       );
     } catch (e) {
       debugPrint('chat text send: $e');
-      ToastService.showError('تعذر إرسال الرسالة. تحقق من الاتصال.');
+      ToastService.showError(_t('تعذر إرسال الرسالة. تحقق من الاتصال.'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -203,7 +206,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       'id': id,
       'chatId': widget.chatId,
       'senderId': 'local',
-      'senderName': 'مستخدم',
+      'senderName': _t('مستخدم'),
       'type': type,
       'text': preview,
       'imageUrl': type == 'image' ? localPath : null,
@@ -253,7 +256,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       );
     } catch (e) {
       debugPrint('media enqueue: $e');
-      ToastService.showError('تعذر تجهيز الوسائط للإرسال.');
+      ToastService.showError(_t('تعذر تجهيز الوسائط للإرسال.'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -263,12 +266,12 @@ class _ChatInputBarState extends State<ChatInputBar> {
     if (source == ImageSource.gallery) {
       final xs = await _picker.pickMultiImage(imageQuality: 90);
       for (final x in xs) {
-        await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 صورة');
+        await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 ${_t('صورة')}');
       }
       return;
     }
     final x = await _picker.pickImage(source: source, imageQuality: 90);
-    if (x != null) await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 صورة');
+    if (x != null) await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 ${_t('صورة')}');
   }
 
   Future<void> _pickVideo() async {
@@ -281,7 +284,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
         File(x.path),
         type: 'video',
         folder: 'videos',
-        preview: '🎬 فيديو',
+        preview: '🎬 ${_t('فيديو')}',
       );
     }
   }
@@ -297,15 +300,15 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final send = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isAudio ? 'معاينة الملف الصوتي' : 'معاينة الملف'),
+        title: Text(isAudio ? _t('معاينة الملف الصوتي') : _t('معاينة الملف')),
         content: ListTile(
           leading: Icon(isAudio ? Icons.audiotrack : Icons.insert_drive_file_outlined),
           title: Text(picked.name, maxLines: 2, overflow: TextOverflow.ellipsis),
           subtitle: Text(size),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إرسال')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t('إلغاء'))),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t('إرسال'))),
         ],
       ),
     );
@@ -315,7 +318,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
         File(picked.path!),
         type: 'audio',
         folder: 'audio',
-        preview: '🎤 ملف صوتي',
+        preview: '🎤 ${_t('ملف صوتي')}',
         name: picked.name,
         size: size,
         mime: _guessAudioMime(ext),
@@ -374,44 +377,79 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _startRecording() async {
     if (_sending || _recording || _hasRecording || _hasText) return;
-    if (!await _recorder.hasPermission()) {
-      ToastService.showError('يلزم السماح بالوصول إلى الميكروفون.');
-      return;
-    }
-    final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/sehatak_chat_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    String? path;
     try {
+      final permitted = await _recorder.hasPermission();
+      if (!permitted) {
+        if (mounted) ToastService.showError(_t('يلزم السماح بالوصول إلى الميكروفون.'));
+        return;
+      }
+      if (!mounted) return;
+      final dir = await getTemporaryDirectory();
+      path = '${dir.path}/sehatak_chat_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _recorder.start(
-        const RecordConfig(encoder: AudioEncoder.aacLc),
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          sampleRate: 44100,
+          bitRate: 128000,
+        ),
         path: path,
       );
+      if (!mounted) {
+        try { await _recorder.stop(); } catch (_) {}
+        try { await File(path).delete(); } catch (_) {}
+        return;
+      }
       _duration = Duration.zero;
       _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted && _recording && !_paused) {
-          setState(() => _duration += const Duration(seconds: 1));
-        }
-      });
       setState(() {
         _recording = true;
         _paused = false;
         _recordPath = path;
       });
-    } catch (e) {
-      debugPrint('record start: $e');
-      ToastService.showError('تعذر بدء التسجيل الصوتي.');
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted && _recording && !_paused) {
+          setState(() => _duration += const Duration(seconds: 1));
+        }
+      });
+    } catch (e, st) {
+      debugPrint('record start failed: $e\\n$st');
+      _timer?.cancel();
+      _timer = null;
+      try { await _recorder.stop(); } catch (_) {}
+      if (path != null) {
+        try { await File(path).delete(); } catch (_) {}
+      }
+      if (mounted) {
+        setState(() {
+          _recording = false;
+          _paused = false;
+          _recordPath = null;
+          _duration = Duration.zero;
+        });
+        ToastService.showError(_t('تعذر بدء التسجيل الصوتي. تحقق من إذن الميكروفون ثم حاول مجددًا.'));
+      }
     }
   }
 
   Future<void> _stopRecording() async {
     if (!_recording) return;
-    _timer?.cancel();
     try {
-      await _recorder.stop();
-    } catch (e) {
-      debugPrint('record stop: $e');
+      final stoppedPath = await _recorder.stop();
+      if (stoppedPath != null && stoppedPath.isNotEmpty) {
+        _recordPath = stoppedPath;
+      }
+      final path = _recordPath;
+      if (path == null || !await File(path).exists()) {
+        throw StateError('recording file missing after recorder stop');
+      }
+      _timer?.cancel();
+      _timer = null;
+      if (mounted) setState(() { _recording = false; _paused = false; });
+    } catch (e, st) {
+      debugPrint('record stop failed: $e\\n$st');
+      if (mounted) ToastService.showError(_t('تعذر إنهاء التسجيل وحفظه. حاول الإيقاف مرة أخرى.'));
     }
-    if (mounted) setState(() { _recording = false; _paused = false; });
   }
 
   Future<void> _togglePause() async {
@@ -430,12 +468,17 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _deleteRecording() async {
     _timer?.cancel();
+    _timer = null;
     try { await _recorder.stop(); } catch (_) {}
     final path = _recordPath;
     _recordPath = null;
     if (path != null) {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (e) {
+        debugPrint('recording cleanup failed: $e');
+      }
     }
     if (mounted) {
       setState(() {
@@ -448,68 +491,49 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _sendRecording() async {
     if (_sending || _recordPath == null) return;
-
-    if (_recording) {
-      await _stopRecording();
-    }
-
+    if (_recording) await _stopRecording();
+    if (_recording) return;
     final path = _recordPath;
     if (path == null) return;
-
     final file = File(path);
-
-    if (!await file.exists() || await file.length() < 1000) {
-      await _deleteRecording();
-      ToastService.showError('التسجيل قصير جدًا.');
+    try {
+      if (!await file.exists()) throw StateError('recording file missing');
+      final length = await file.length();
+      if (length < 1000) {
+        await _deleteRecording();
+        if (mounted) ToastService.showError(_t('التسجيل قصير جدًا. سجّل مدة أطول ثم أرسل.'));
+        return;
+      }
+    } catch (e) {
+      debugPrint('recording validation failed: $e');
+      if (mounted) ToastService.showError(_t('تعذر قراءة التسجيل المحفوظ. ألغِ التسجيل وحاول مجددًا.'));
       return;
     }
-
     if (!mounted) return;
-
     setState(() => _sending = true);
-
     var enqueued = false;
-
     try {
       await _enqueueMedia(
         file,
         type: 'audio',
         folder: 'audio',
-        preview: '🎤 رسالة صوتية',
+        preview: '🎤 ${_t('رسالة صوتية')}',
         name: file.path.split(Platform.pathSeparator).last,
         mime: 'audio/mp4',
         audioDuration: _duration.inSeconds.toString(),
       );
-
       enqueued = true;
-
-      if (mounted) {
-        setState(() {
-          _recordPath = null;
-          _duration = Duration.zero;
-          _recording = false;
-          _paused = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('audio enqueue: $e');
-      ToastService.showError('تعذر تجهيز التسجيل للإرسال.');
+      _recordPath = null;
+      _duration = Duration.zero;
+      if (mounted) setState(() { _recording = false; _paused = false; });
+    } catch (e, st) {
+      debugPrint('audio enqueue failed: $e\\n$st');
+      if (mounted) ToastService.showError(_t('تعذر تجهيز التسجيل للإرسال. التسجيل محفوظ؛ حاول الإرسال مرة أخرى.'));
     } finally {
-      // enqueue() has copied the recording into the durable outbox before
-      // returning. Keep the original file if enqueue failed so retry remains possible.
       if (enqueued) {
-        try {
-          if (await file.exists()) {
-            await file.delete();
-          }
-        } catch (e) {
-          debugPrint('temporary audio cleanup: $e');
-        }
+        try { if (await file.exists()) await file.delete(); } catch (_) {}
       }
-
-      if (mounted) {
-        setState(() => _sending = false);
-      }
+      if (mounted) setState(() => _sending = false);
     }
   }
 
@@ -549,7 +573,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           IconButton(
-                            tooltip: 'المرفقات',
+                            tooltip: _t('المرفقات'),
                             onPressed: _sending ? null : _toggleAttachments,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -575,7 +599,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                                 fontSize: 16,
                               ),
                               decoration: InputDecoration(
-                                hintText: 'اكتب رسالة...',
+                                hintText: _t('اكتب رسالة...'),
                                 hintStyle: TextStyle(color: muted, fontSize: 15),
                                 border: InputBorder.none,
                                 isDense: true,
@@ -588,7 +612,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                           ),
                           if (!_hasText)
                             IconButton(
-                              tooltip: 'الكاميرا',
+                              tooltip: _t('الكاميرا'),
                               onPressed: _sending
                                   ? null
                                   : () => _pickImage(ImageSource.camera),
@@ -758,7 +782,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    _recording ? 'تسجيل...' : 'جاهز للإرسال',
+                                    _recording ? _t('تسجيل...') : _t('جاهز للإرسال'),
                                     style: TextStyle(
                                       color: dark
                                           ? Colors.white70
@@ -852,12 +876,12 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Widget get _mediaItemPlaceholder => Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _mediaItem(Icons.camera_alt, 'كاميرا', () => _pickImage(ImageSource.camera)),
-          _mediaItem(Icons.photo_library_outlined, 'المعرض', () => _pickImage(ImageSource.gallery)),
-          _mediaItem(Icons.video_library, 'فيديو', _pickVideo),
-          _mediaItem(Icons.attach_file, 'ملف', _pickFile),
-          _mediaItem(Icons.description_outlined, 'نماذج الطبيب', widget.onDoctorMedicalForms ?? () {}),
-          _mediaItem(Icons.location_on_outlined, 'موقعي', () {
+          _mediaItem(Icons.camera_alt, _t('كاميرا'), () => _pickImage(ImageSource.camera)),
+          _mediaItem(Icons.photo_library_outlined, _t('المعرض'), () => _pickImage(ImageSource.gallery)),
+          _mediaItem(Icons.video_library, _t('فيديو'), _pickVideo),
+          _mediaItem(Icons.attach_file, _t('ملف'), _pickFile),
+          _mediaItem(Icons.description_outlined, _t('نماذج الطبيب'), widget.onDoctorMedicalForms ?? () {}),
+          _mediaItem(Icons.location_on_outlined, _t('موقعي'), () {
             setState(() => _attachments = false);
             widget.onShareLocation?.call();
           }),
@@ -874,7 +898,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 Icon(Icons.history_rounded, size: 17, color: AppColors.primary),
                 const SizedBox(width: 5),
                 Text(
-                  'الملفات الحديثة',
+                  _t('الملفات الحديثة'),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: dark ? Colors.white : const Color(0xFF263238)),
                 ),
               ],
