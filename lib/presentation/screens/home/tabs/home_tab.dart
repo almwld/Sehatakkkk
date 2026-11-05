@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
@@ -37,6 +38,8 @@ class HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<HomeTab>
     with AutomaticKeepAliveClientMixin<HomeTab> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   Timer? _startTimer;
   late Future<List<ProductModel>> _products;
   late Future<Map<String, dynamic>> _weatherFuture;
@@ -49,6 +52,8 @@ class _HomeTabState extends State<HomeTab>
 
   @override
   bool get wantKeepAlive => true;
+
+  String get _currency => AppStrings.of(context).locale.languageCode == 'ar' ? 'ريال' : 'YER';
 
   @override
   void initState() {
@@ -98,18 +103,18 @@ class _HomeTabState extends State<HomeTab>
         'condition': _weatherText(code),
       };
     } catch (_) {
-      return {'condition': 'تعذر تحديث الطقس الآن'};
+      return {'condition': _t('تعذر تحديث الطقس الآن')};
     }
   }
 
   String _weatherText(int code) {
-    if (code == 0) return 'صحو';
-    if (code <= 3) return 'غائم جزئياً';
-    if (code <= 48) return 'ضباب';
-    if (code <= 67) return 'أمطار';
-    if (code <= 77) return 'ثلوج';
-    if (code <= 82) return 'زخات مطر';
-    return 'عواصف رعدية';
+    if (code == 0) return _t('صحو');
+    if (code <= 3) return _t('غائم جزئياً');
+    if (code <= 48) return _t('ضباب');
+    if (code <= 67) return _t('أمطار');
+    if (code <= 77) return _t('ثلوج');
+    if (code <= 82) return _t('زخات مطر');
+    return _t('عواصف رعدية');
   }
 
   @override
@@ -135,16 +140,16 @@ class _HomeTabState extends State<HomeTab>
                     SliverToBoxAdapter(child: _quickServices(dark)),
                     SliverToBoxAdapter(child: _doctors(state, dark)),
                     SliverToBoxAdapter(child: _productsSection(dark)),
-                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: 'مستشفيات مميزة', items: state.hospitals, isHospital: true, isDark: dark)),
-                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: 'مختبرات مميزة', items: state.labs, isHospital: false, isDark: dark)),
-                    SliverToBoxAdapter(child: _places('صيدليات مميزة', state.pharmacies, Icons.local_pharmacy_outlined, dark, more: () => _go(AppRouter.pharmacy))),
+                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: AppStrings.of(context).translate('مستشفيات مميزة'), items: state.hospitals, isHospital: true, isDark: dark)),
+                    SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: AppStrings.of(context).translate('مختبرات مميزة'), items: state.labs, isHospital: false, isDark: dark)),
+                    SliverToBoxAdapter(child: _places(AppStrings.of(context).translate('صيدليات مميزة'), state.pharmacies, Icons.local_pharmacy_outlined, dark, more: () => _go(AppRouter.pharmacy))),
                     SliverToBoxAdapter(child: _articles(state.articles, dark)),
                     SliverToBoxAdapter(child: _tips(state.tips, dark)),
                     SliverToBoxAdapter(child: _discover(dark)),
                     SliverToBoxAdapter(child: _weather(dark)),
                     SliverToBoxAdapter(child: _community(state.communityPosts, dark)),
                     if (state.isLoading) const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(strokeWidth: 2)))),
-                    if (state.hasError) SliverToBoxAdapter(child: _error(state.errorMessage ?? 'حدث خطأ غير متوقع', dark)),
+                    if (state.hasError) SliverToBoxAdapter(child: _error(state.errorMessage ?? AppStrings.of(context).translate('حدث خطأ غير متوقع'), dark)),
                     const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
                 ),
@@ -158,9 +163,9 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _header(HomeState state) {
     final hour = DateTime.now().hour;
-    final greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
-    final name = state.userName.trim().isEmpty ? 'مستخدم' : state.userName.trim();
-    final first = name.characters.isEmpty ? 'ص' : name.characters.first;
+    final greeting = _t(hour < 12 ? 'صباح الخير' : 'مساء الخير');
+    final name = state.userName.trim().isEmpty ? _t('مستخدم') : state.userName.trim();
+    final first = name.characters.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'ص' : 'U') : name.characters.first;
     return Container(
       height: 194,
       padding: EdgeInsets.fromLTRB(18, MediaQuery.of(context).padding.top + 10, 18, 18),
@@ -175,7 +180,7 @@ class _HomeTabState extends State<HomeTab>
           _headerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart, Icons.shopping_cart_outlined),
         ]),
         const SizedBox(height: 18),
-        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء، أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
+        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: Row(children: [Image.asset('assets/icons/search/Search_button.png', width: 25, height: 25, errorBuilder: (_, __, ___) => const Icon(Icons.search_rounded, color: AppColors.primary, size: 25)), SizedBox(width: 10), Expanded(child: Text(AppStrings.of(context).translate('ابحث عن طبيب، دواء، أو خدمة...'), style: TextStyle(color: _muted, fontSize: 13))), Image.asset('assets/icons/chat/microphone.png', width: 23, height: 23, errorBuilder: (_, __, ___) => const Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23))]))),
       ]),
     );
   }
@@ -183,7 +188,7 @@ class _HomeTabState extends State<HomeTab>
   Widget _headerActionAsset(String asset, String route, IconData fallbackIcon) => InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), alignment: Alignment.center, child: Image.asset(asset, width: 22, height: 22, errorBuilder: (_, __, ___) => Icon(fallbackIcon, color: Colors.white, size: 21))));
 
   Widget _banner(HomeState state, bool dark) => state.bannerImages.isEmpty
-      ? Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Container(height: 150, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, child: Text('صحتك معك كل يوم', style: TextStyle(color: dark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
+      ? Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Container(height: 150, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, child: Text(AppStrings.of(context).translate('صحتك معك كل يوم'), style: TextStyle(color: dark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
       : Padding(padding: const EdgeInsets.only(top: 14), child: BannerCarousel(images: state.bannerImages, height: 180, autoPlay: true));
 
   Widget _quickServices(bool dark) => QuickServicesWidget(isDark: dark, onNavigate: (screen) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen)));
@@ -193,10 +198,10 @@ class _HomeTabState extends State<HomeTab>
   Widget _doctors(HomeState state, bool dark) {
     final doctors = state.doctors.take(6).toList();
     if (doctors.isEmpty) {
-      return _section(title: 'أفضل الأطباء', dark: dark, more: () => _go(AppRouter.doctors), child: _empty('لا يوجد أطباء موثقون متاحون حالياً', dark));
+      return _section(title: AppStrings.of(context).translate('أفضل الأطباء'), dark: dark, more: () => _go(AppRouter.doctors), child: _empty(AppStrings.of(context).translate('لا يوجد أطباء موثقون متاحون حالياً'), dark));
     }
     return _section(
-      title: 'أفضل الأطباء',
+      title: AppStrings.of(context).translate('أفضل الأطباء'),
       dark: dark,
       more: () => _go(AppRouter.doctors),
       child: GridView.builder(
@@ -224,9 +229,9 @@ class _HomeTabState extends State<HomeTab>
                 ),
                 const SizedBox(width: 8),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text((doctor['name'] ?? 'طبيب').toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                  Text((doctor['name'] ?? AppStrings.of(context).translate('طبيب')).toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
                   const SizedBox(height: 3),
-                  Text((doctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
+                  Text(AppStrings.of(context).translate((doctor['specialty'] ?? 'تخصص طبي').toString()), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
                   if (doctor['rating'] != null) ...[
                     const SizedBox(height: 4),
                     Row(children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 13), const SizedBox(width: 2), Text(doctor['rating'].toString(), style: TextStyle(fontSize: 9, color: dark ? Colors.white70 : _muted))]),
@@ -241,7 +246,7 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _productsSection(bool dark) => _section(
-        title: 'منتجات مميزة',
+        title: AppStrings.of(context).translate('منتجات مميزة'),
         dark: dark,
         more: () => _go(AppRouter.pharmacy),
         child: FutureBuilder<List<ProductModel>>(
@@ -249,7 +254,7 @@ class _HomeTabState extends State<HomeTab>
           builder: (_, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
             final products = snapshot.data ?? const <ProductModel>[];
-            if (products.isEmpty) return _empty('لا توجد منتجات متاحة حالياً', dark);
+            if (products.isEmpty) return _empty(AppStrings.of(context).translate('لا توجد منتجات متاحة حالياً'), dark);
             return SizedBox(
               height: 210,
               child: ListView.separated(
@@ -274,7 +279,7 @@ class _HomeTabState extends State<HomeTab>
                           const SizedBox(height: 6),
                           Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
                           const Spacer(),
-                          Text('${product.price} ريال', style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
+                          Text('${product.price} $_currency', style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
@@ -288,14 +293,14 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _discover(bool dark) {
     final items = [
-      {'name': 'حجز موعد', 'asset': 'assets/images/services/calendar_booking.webp', 'route': AppRouter.appointments},
-      {'name': 'طوارئ', 'asset': 'assets/images/services/emergency.webp', 'route': AppRouter.emergency},
-      {'name': 'خريطة', 'asset': 'assets/images/services/map_location.webp', 'route': AppRouter.map},
-      {'name': 'باقات', 'asset': 'assets/images/services/packages.webp', 'route': AppRouter.packages},
-      {'name': 'جميع الخدمات', 'asset': 'assets/images/ui/all_services.webp', 'route': AppRouter.services},
+      {'name': _t('حجز موعد'), 'asset': 'assets/images/services/calendar_booking.webp', 'route': AppRouter.appointments},
+      {'name': _t('طوارئ'), 'asset': 'assets/images/services/emergency.webp', 'route': AppRouter.emergency},
+      {'name': _t('خريطة'), 'asset': 'assets/images/services/map_location.webp', 'route': AppRouter.map},
+      {'name': _t('باقات'), 'asset': 'assets/images/services/packages.webp', 'route': AppRouter.packages},
+      {'name': _t('جميع الخدمات'), 'asset': 'assets/images/ui/all_services.webp', 'route': AppRouter.services},
     ];
     return _section(
-      title: 'اكتشف المزيد',
+      title: AppStrings.of(context).translate('اكتشف المزيد'),
       dark: dark,
       child: SizedBox(
         height: 112,
@@ -340,7 +345,7 @@ class _HomeTabState extends State<HomeTab>
             child: Row(
               children: [
                 Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text))),
-                if (more != null) TextButton(onPressed: more, child: const Text('المزيد')),
+                if (more != null) TextButton(onPressed: more, child: Text(AppStrings.of(context).translate('المزيد'))),
               ],
             ),
           ),
@@ -358,7 +363,7 @@ class _HomeTabState extends State<HomeTab>
       dark: dark,
       more: more,
       child: items.isEmpty
-          ? _empty('لا توجد بيانات متاحة حالياً', dark)
+          ? _empty(AppStrings.of(context).translate('لا توجد بيانات متاحة حالياً'), dark)
           : SizedBox(
               height: 176,
               child: ListView.separated(
@@ -368,7 +373,7 @@ class _HomeTabState extends State<HomeTab>
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
                   final item = items[i] as Map<String, dynamic>;
-                  final name = (item['name'] ?? item['pharmacyName'] ?? 'صيدلية').toString();
+                  final name = (item['name'] ?? item['pharmacyName'] ?? _t('صيدلية')).toString();
                   final image = (item['imageUrl'] ?? item['image'] ?? item['photoUrl'] ?? '').toString();
                   final location = (item['location'] ?? item['city'] ?? item['address'] ?? '').toString();
                   return InkWell(
@@ -400,9 +405,9 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _articles(List<dynamic> items, bool dark) => _dataCards('مقالات طبية', items, dark, 'assets/images/services/medical_articles.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArticlesScreen())), 'لا توجد مقالات منشورة حالياً', 'summary');
+  Widget _articles(List<dynamic> items, bool dark) => _dataCards(_t('مقالات طبية'), items, dark, 'assets/images/services/medical_articles.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArticlesScreen())), _t('لا توجد مقالات منشورة حالياً'), 'summary');
 
-  Widget _tips(List<dynamic> items, bool dark) => _dataCards('نصائح يومية', items, dark, 'assets/images/services/health_tips.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), 'لا توجد نصائح منشورة حالياً', 'content');
+  Widget _tips(List<dynamic> items, bool dark) => _dataCards(_t('نصائح يومية'), items, dark, 'assets/images/services/health_tips.webp', () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthTipsScreen())), _t('لا توجد نصائح منشورة حالياً'), 'content');
 
   Widget _dataCards(String title, List<dynamic> items, bool dark, String asset, VoidCallback onMore, String emptyText, String subtitleKey) {
     return _section(
@@ -456,7 +461,7 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _weather(bool dark) {
     return _section(
-      title: 'الطقس',
+      title: AppStrings.of(context).translate('الطقس'),
       dark: dark,
       child: FutureBuilder<Map<String, dynamic>>(
         future: _weatherFuture,
@@ -464,7 +469,7 @@ class _HomeTabState extends State<HomeTab>
           if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 92, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
           final data = snapshot.data ?? const <String, dynamic>{};
           final temp = data['temp']?.toString();
-          final condition = data['condition']?.toString() ?? 'غير متوفر';
+          final condition = data['condition']?.toString() ?? AppStrings.of(context).translate('غير متوفر');
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
@@ -485,12 +490,12 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _community(List<dynamic> items, bool dark) {
     return _section(
-      title: 'المجتمع', dark: dark, more: () => _go(AppRouter.community),
-      child: items.isEmpty ? _empty('لا توجد منشورات منشورة حالياً', dark) :
+      title: AppStrings.of(context).translate('المجتمع'), dark: dark, more: () => _go(AppRouter.community),
+      child: items.isEmpty ? _empty(AppStrings.of(context).translate('لا توجد منشورات منشورة حالياً'), dark) :
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Column(children: items.take(3).map((raw) {
           final data = Map<String, dynamic>.from(raw as Map);
           final createdAt = data['createdAt'] is Timestamp ? (data['createdAt'] as Timestamp).toDate() : data['createdAt'] is DateTime ? data['createdAt'] as DateTime : null;
-          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? 'مستخدم'}', title: '${data['title'] ?? 'منشور'}', content: data['content']?.toString(), imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: data['category']?.toString(), likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
+          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? AppStrings.of(context).translate('مستخدم')}', title: '${data['title'] ?? AppStrings.of(context).translate('منشور')}', content: data['content']?.toString(), imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: data['category']?.toString(), likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
           return Padding(padding: const EdgeInsets.only(bottom: 12), child: _HomeCommunityPost(post: post, dark: dark));
         }).toList())),
     );
@@ -514,10 +519,10 @@ class _HomeCommunityPostState extends State<_HomeCommunityPost> {
     await FirebaseFirestore.instance.runTransaction((tx) async { final snap = await tx.get(ref); final ls = await tx.get(likeRef); final likes = (snap.data()?['likes'] as num?)?.toInt() ?? 0; if (ls.exists) { tx.update(ref, {'likes': likes > 0 ? likes - 1 : 0}); tx.delete(likeRef); } else { tx.update(ref, {'likes': likes + 1}); tx.set(likeRef, {'postId': widget.post.id, 'likedAt': FieldValue.serverTimestamp()}); } });
     if (mounted) setState(() { _liked = !_liked; _likes += _liked ? 1 : -1; });
   }
-  Future<void> _share() async { try { await FirebaseFirestore.instance.collection('community_posts').doc(widget.post.id).update({'shares': FieldValue.increment(1)}); await Share.share('${widget.post.title}\n${widget.post.content ?? ''}', subject: 'منشور من صحتك'); if (mounted) setState(() => _shares++); } catch (_) {} }
+  Future<void> _share() async { try { await FirebaseFirestore.instance.collection('community_posts').doc(widget.post.id).update({'shares': FieldValue.increment(1)}); await Share.share('${widget.post.title}\n${widget.post.content ?? ''}', subject: AppStrings.of(context).translate('منشور من صحتك')); if (mounted) setState(() => _shares++); } catch (_) {} }
   @override Widget build(BuildContext context) { final p = widget.post; final image = p.images?.isNotEmpty == true ? p.images!.first : p.imageUrl;
     return Container(decoration: BoxDecoration(color: widget.dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(20)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Padding(padding: const EdgeInsets.fromLTRB(14,14,14,8), child: Row(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(p.userName.isEmpty ? 'ص' : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87)), Text('${p.category ?? 'عام'} • ${p.timeAgo}', style: TextStyle(fontSize: 10, color: widget.dark ? Colors.white60 : Colors.black54))]))])),
+      Padding(padding: const EdgeInsets.fromLTRB(14,14,14,8), child: Row(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(p.userName.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'ص' : 'S') : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87)), Text('${p.category ?? AppStrings.of(context).translate('عام')} • ${p.timeAgo}', style: TextStyle(fontSize: 10, color: widget.dark ? Colors.white60 : Colors.black54))]))])),
       Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Text(p.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87))),
       if ((p.content ?? '').trim().isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(14,6,14,10), child: Text(p.content!, style: TextStyle(height: 1.5, color: widget.dark ? Colors.white70 : Colors.black87))),
       if (image != null && image.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: ClipRRect(borderRadius: BorderRadius.circular(16), child: AppImage(imageUrl: image, height: 250, width: double.infinity, fit: BoxFit.cover))),
