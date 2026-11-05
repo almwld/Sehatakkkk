@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class AlternativeMedicineScreen extends StatelessWidget {
   const AlternativeMedicineScreen({super.key});
@@ -16,12 +17,14 @@ class AlternativeMedicineScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    String tr(String value) => strings.translate(value);
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('الطب البديل', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(tr('الطب البديل'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.success, AppColors.teal]), borderRadius: BorderRadius.circular(16)), child: const Column(children: [Text('🌿', style: TextStyle(fontSize: 48)), SizedBox(height: 8), Text('الطب البديل والتكميلي', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text('علاجات طبيعية مكملة للطب الحديث', style: TextStyle(color: Colors.white70, fontSize: 12))])),
+          Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.success, AppColors.teal]), borderRadius: BorderRadius.circular(16)), child: Column(children: [const Text('🌿', style: TextStyle(fontSize: 48)), const SizedBox(height: 8), Text(tr('الطب البديل والتكميلي'), style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text(tr('علاجات طبيعية مكملة للطب الحديث'), style: const TextStyle(color: Colors.white70, fontSize: 12))])),
           const SizedBox(height: 16),
           GridView.count(
             crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
@@ -33,16 +36,16 @@ class AlternativeMedicineScreen extends StatelessWidget {
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(Icons.eco, color: t['color'], size: 36),
                   const SizedBox(height: 8),
-                  Text(t['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  Text(t['desc'], style: const TextStyle(fontSize: 9, color: AppColors.grey), textAlign: TextAlign.center),
+                  Text(tr(t['name'] as String), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text(tr(t['desc'] as String), style: const TextStyle(fontSize: 9, color: AppColors.grey), textAlign: TextAlign.center),
                   const SizedBox(height: 4),
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: (t['color'] as Color).withOpacity(0.08), borderRadius: BorderRadius.circular(6)), child: Text('${t['price']} ر.ي', style: TextStyle(fontSize: 10, color: t['color'], fontWeight: FontWeight.bold))),
+                  Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: (t['color'] as Color).withOpacity(0.08), borderRadius: BorderRadius.circular(6)), child: Text('${t['price']} ${tr('ر.ي')}', style: TextStyle(fontSize: 10, color: t['color'], fontWeight: FontWeight.bold))),
                 ]),
               );
             }).toList(),
           ),
           const SizedBox(height: 16),
-          Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.05), borderRadius: BorderRadius.circular(14)), child: const Row(children: [Icon(Icons.info, color: AppColors.warning), SizedBox(width: 8), Expanded(child: Text('استشر طبيبك قبل تجربة أي علاج بديل', style: TextStyle(fontSize: 12)))])),
+          Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.05), borderRadius: BorderRadius.circular(14)), child: Row(children: [const Icon(Icons.info, color: AppColors.warning), const SizedBox(width: 8), Expanded(child: Text(tr('استشر طبيبك قبل تجربة أي علاج بديل'), style: const TextStyle(fontSize: 12)))])),
         ]),
       ),
     );
