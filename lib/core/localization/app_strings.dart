@@ -4136,6 +4136,8 @@ class AppStrings {
       "تفاصيل المنتج": ["Product details", "Détails du produit"],
       "راجع اسم الدواء ومعلوماته ومصدره وتوفره قبل إضافته إلى السلة.": ["Review the medicine name, information, source, and availability before adding it to your cart.", "Vérifiez le nom du médicament, ses informations, sa source et sa disponibilité avant de l’ajouter au panier."],
       "إذا كان المنتج متوفراً، استخدم زر الإضافة لبناء طلبك خطوة بخطوة.": ["If the product is available, use the add button to build your order step by step.", "Si le produit est disponible, utilisez le bouton d’ajout pour composer votre commande étape par étape."],
+      "الدواء": ["Medicine", "Médicament"],
+      "تم نسخ معلومات الدواء": ["Medicine information copied", "Informations sur le médicament copiées"],
     };
     final entry = translations[value];
     if (entry == null) return value;
