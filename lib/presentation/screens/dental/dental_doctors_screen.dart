@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/models/dental/dental_models.dart';
@@ -9,13 +10,13 @@ class DentalDoctorsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('أطباء الأسنان')),
+      appBar: AppBar(title: Text(AppStrings.of(context).translate('أطباء الأسنان'))),
       body: StreamBuilder<List<DentalDoctor>>(
         stream: DentalService().streamDoctors(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final data = snapshot.data!;
-          if (data.isEmpty) return const Center(child: Text('لا توجد بيانات لأطباء الأسنان'));
+          if (data.isEmpty) return Center(child: Text(AppStrings.of(context).translate('لا توجد بيانات لأطباء الأسنان')));
           return ListView.builder(
             itemCount: data.length,
             itemBuilder: (_, i) {
@@ -24,7 +25,7 @@ class DentalDoctorsScreen extends StatelessWidget {
                 child: ListTile(
                   onTap: () => context.push(AppRouter.dentalDoctorDetail.replaceFirst(':id', doctor.id)),
                   title: Text(doctor.name),
-                  subtitle: Text('${doctor.specialty} • ${doctor.experienceYears} سنوات خبرة'),
+                  subtitle: Text('${doctor.specialty} • ${doctor.experienceYears} ${AppStrings.of(context).translate('سنوات خبرة')}'),
                   trailing: Text('★${doctor.rating.toStringAsFixed(1)}'),
                 ),
               );
