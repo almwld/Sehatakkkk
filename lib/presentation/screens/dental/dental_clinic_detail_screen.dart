@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/dental/dental_models.dart';
 import 'package:sehatak/core/services/dental_service.dart';
 
@@ -13,7 +14,7 @@ class DentalClinicDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تفاصيل عيادة الأسنان')),
+      appBar: AppBar(title: Text(AppStrings.of(context).translate('تفاصيل عيادة الأسنان'))),
       body: FutureBuilder<DentalClinic?>(
         future: DentalService().getClinic(clinicId),
         builder: (context, snapshot) {
@@ -23,7 +24,7 @@ class DentalClinicDetailScreen extends StatelessWidget {
 
           final clinic = snapshot.data;
           if (clinic == null) {
-            return const Center(child: Text('العيادة غير متوفرة'));
+            return Center(child: Text(AppStrings.of(context).translate('العيادة غير متوفرة')));
           }
 
           return ListView(
@@ -37,9 +38,9 @@ class DentalClinicDetailScreen extends StatelessWidget {
                 ),
               ),
               Text(clinic.address),
-              Text('الهاتف: ${clinic.phone}'),
-              Text('التقييم: ${clinic.rating.toStringAsFixed(1)}'),
-              Text(clinic.isOpen ? 'مفتوح الآن' : 'مغلق الآن'),
+              Text('${AppStrings.of(context).translate('الهاتف:')} ${clinic.phone}'),
+              Text('${AppStrings.of(context).translate('التقييم:')} ${clinic.rating.toStringAsFixed(1)}'),
+              Text(AppStrings.of(context).translate(clinic.isOpen ? 'مفتوح الآن' : 'مغلق الآن')),
             ],
           );
         },
