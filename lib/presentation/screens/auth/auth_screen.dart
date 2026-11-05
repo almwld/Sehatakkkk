@@ -390,7 +390,7 @@ class _AuthScreenState extends State<AuthScreen>
         if (doc.exists) {
           final role = doc.data()?['role'] ?? 'user';
 
-          if (role == 'admin' || role == 'superAdmin') {
+          if ((role == 'admin' || role == 'superAdmin') && mounted) {
             setState(() => _showAdminTab = true);
           }
         }
@@ -440,6 +440,7 @@ class _AuthScreenState extends State<AuthScreen>
 
     if (available) {
       final types = await _biometricService.getAvailableTypes();
+      if (!mounted) return;
 
       setState(() {
         _hasBiometric = true;
