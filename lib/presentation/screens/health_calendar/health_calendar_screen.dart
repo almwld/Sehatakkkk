@@ -321,7 +321,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
             ),
             const SizedBox(height: 12),
             if (events.isEmpty)
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
