@@ -1,4 +1,5 @@
 import 'package:sehatak/core/models/doctor_model.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -189,7 +190,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                 children: [
                   Row(
                     children: [
-                      const Text('التصنيف:'),
+                      Text(_localizedUiText(context, 'التصنيف:')),
                       const SizedBox(width: 8),
                       Expanded(
                         child: SingleChildScrollView(
@@ -227,7 +228,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Text('التقييم:'),
+                      Text(_localizedUiText(context, 'التقييم:')),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Row(
@@ -254,7 +255,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Text('السعر:'),
+                      Text(_localizedUiText(context, 'السعر:')),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Row(
@@ -290,7 +291,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 8),
                       ),
-                      child: const Text('بحث'),
+                      child: Text(_localizedUiText(context, 'بحث')),
                     ),
                   ),
                 ],
@@ -319,8 +320,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
             color: isDark ? Colors.grey[600] : Colors.grey[300],
           ),
           const SizedBox(height: 16),
-          Text(
-            'ابحث عن ما تريد',
+          Text(_localizedUiText(context, 'ابحث عن ما تريد'),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -328,8 +328,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'اكتب كلمة البحث أعلاه',
+          Text(_localizedUiText(context, 'اكتب كلمة البحث أعلاه'),
             style: TextStyle(
               color: isDark ? Colors.grey[500] : Colors.grey[400],
             ),
@@ -339,8 +338,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'عمليات البحث الأخيرة:',
+                Text(_localizedUiText(context, 'عمليات البحث الأخيرة:'),
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -355,7 +353,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                 )),
                 TextButton(
                   onPressed: _clearSearchHistory,
-                  child: const Text('مسح سجل البحث'),
+                  child: Text(_localizedUiText(context, 'مسح سجل البحث')),
                 ),
               ],
             ),
@@ -620,3 +618,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
     super.dispose();
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
