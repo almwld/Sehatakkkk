@@ -55,7 +55,7 @@ class AppSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return const Center(
+    return Center(
       child: Text(_localizedUiText(context, 'ابحث عن أطباء، خدمات، أو أدوية')),
     );
   }
