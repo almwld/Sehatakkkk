@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/vision_test/vision_test_screen.dart';
@@ -44,7 +45,7 @@ class EyeCareScreen extends StatelessWidget {
                     _openDoctors(context);
                   },
                   icon: const Icon(Icons.person_search_rounded),
-                  label: const Text('البحث عن طبيب عيون'),
+                  label: Text(_localizedUiText(context, 'البحث عن طبيب عيون')),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
                 ),
               ),
@@ -60,7 +61,7 @@ class EyeCareScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF4F6F7),
-      appBar: AppBar(title: const Text('صحة العين'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
+      appBar: AppBar(title: Text(_localizedUiText(context, 'صحة العين')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -75,9 +76,9 @@ class EyeCareScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('رعاية العين', style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)),
+                      Text(_localizedUiText(context, 'رعاية العين'), style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)),
                       SizedBox(height: 5),
-                      Text('اختبارات داخلية ومتابعة مع طبيب العيون عند الحاجة.', style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4)),
+                      Text(_localizedUiText(context, 'اختبارات داخلية ومتابعة مع طبيب العيون عند الحاجة.'), style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4)),
                     ],
                   ),
                 ),
@@ -85,7 +86,7 @@ class EyeCareScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Text('الاختبارات والخدمات', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(_localizedUiText(context, 'الاختبارات والخدمات'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           _test(context, 'اختبار حدة البصر', 'اختبار النظر التفاعلي داخل التطبيق', Icons.visibility_rounded, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VisionTestScreen()))),
           _test(context, 'فحص تمييز الألوان', 'إرشادات وفحص أولي للأعراض', Icons.palette_outlined, () => _showInfo(context, 'فحص تمييز الألوان', ['اختبار تمييز الألوان يعطي مؤشراً أولياً ولا يغني عن فحص طبي متخصص.', 'إذا كانت صعوبة تمييز الألوان جديدة أو تؤثر على حياتك اليومية، احجز موعداً مع طبيب عيون.'])),
@@ -98,7 +99,7 @@ class EyeCareScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('العناية اليومية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(_localizedUiText(context, 'العناية اليومية'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 10),
                   _tip('قاعدة 20-20-20 عند استخدام الشاشات لفترات طويلة.'),
                   _tip('احرص على الإضاءة المناسبة وخذ فواصل منتظمة.'),
@@ -113,7 +114,7 @@ class EyeCareScreen extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: () => _openDoctors(context),
               icon: const Icon(Icons.person_search_rounded),
-              label: const Text('عرض أطباء العيون والحجز'),
+              label: Text(_localizedUiText(context, 'عرض أطباء العيون والحجز')),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
             ),
           ),
@@ -170,3 +171,7 @@ class EyeCareScreen extends StatelessWidget {
         ),
       );
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
