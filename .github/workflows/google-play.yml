@@ -103,11 +103,11 @@ jobs:
           from pathlib import Path
           p = Path("pubspec.yaml")
           s = p.read_text()
-          marker = "dependency_overrides:\\n"
+          marker = "dependency_overrides:\n"
           if marker not in s:
               raise SystemExit("dependency_overrides section not found")
-          if "  path: 1.9.0\\n" not in s[s.index(marker):]:
-              s = s.replace(marker, marker + "  path: 1.9.0\\n", 1)
+          if "  path: 1.9.0\n" not in s[s.index(marker):]:
+              s = s.replace(marker, marker + "  path: 1.9.0\n", 1)
           p.write_text(s)
           PY
           grep -A4 '^dependency_overrides:' pubspec.yaml
