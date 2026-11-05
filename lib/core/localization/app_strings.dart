@@ -4442,6 +4442,15 @@ class AppStrings {
       "تخطي →": ["Skip →", "Passer →"],
       "تعذر تشغيل التسجيل": ["Unable to play the recording", "Impossible de lire l’enregistrement"],
       "توثيق مقدمي الخدمة": ["Provider verification", "Vérification des prestataires"],
+      "موعد طبي": ["Medical appointment", "Rendez-vous médical"],
+      "تذكير دواء": ["Medication reminder", "Rappel de médicament"],
+      "عنوان الحدث": ["Event title", "Titre de l’événement"],
+      "نوع الحدث": ["Event type", "Type d’événement"],
+      "تم إضافة الحدث": ["Event added", "Événement ajouté"],
+      "تفاصيل المستشفى": ["Hospital details", "Détails de l’hôpital"],
+      "اسم المستشفى": ["Hospital name", "Nom de l’hôpital"],
+      "الموقع غير معروف": ["Location unknown", "Emplacement inconnu"],
+      "عدد الأسرة": ["Number of beds", "Nombre de lits"],
       "عرض النتائج": ["View results", "Voir les résultats"],
     };
     final entry = translations[value];
