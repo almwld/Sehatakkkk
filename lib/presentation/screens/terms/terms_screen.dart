@@ -1580,7 +1580,7 @@ class TermsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            sections.map((section) => AppStrings.of(context).translate(section)).join('\\n'),
+            sections.map((section) => AppStrings.of(context).translate(section)).join('\n'),
             style: const TextStyle(fontSize: 13, height: 1.8),
           ),
         ],
@@ -1589,7 +1589,6 @@ class TermsScreen extends StatelessWidget {
   }
 
   Widget _buildSection(
-              context,
     BuildContext context, {
     required String title,
     required String content,
@@ -1617,7 +1616,6 @@ class TermsScreen extends StatelessWidget {
   }
 
   Widget _buildWarningSection(
-              context,
     BuildContext context, {
     required String title,
     required String content,
