@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
@@ -184,7 +185,7 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: widget.onComplete,
-                child: const Text('تخطي →'),
+                child: Text(_localizedUiText(context, 'تخطي →')),
               ),
             ),
           ),
@@ -310,3 +311,7 @@ class OnboardingPage {
     required this.color,
   });
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
