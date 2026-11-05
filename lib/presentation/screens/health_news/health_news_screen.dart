@@ -2,6 +2,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HealthNewsScreen extends StatefulWidget {
   const HealthNewsScreen({super.key});
@@ -11,11 +12,13 @@ class HealthNewsScreen extends StatefulWidget {
 }
 
 class _HealthNewsScreenState extends State<HealthNewsScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   String _selectedCategory = 'الكل';
   final List<String> _categories = [
     'الكل',
     'أخبار طبية',
-    'در.يات',
+    'دراسات طبية',
     'أبحاث',
     'تقنيات صحية',
     'أحداث ومؤتمرات',
@@ -36,8 +39,8 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
     },
     {
       'id': '2',
-      'title': 'در.ية: المشي 30 دقيقة يومياً يقلل خطر الاكتئاب',
-      'category': 'در.يات',
+      'title': 'دراسة: المشي 30 دقيقة يومياً يقلل خطر الاكتئاب',
+      'category': 'دراسات طبية',
       'source': 'جامعة هارفارد',
       'date': '2026-07-01',
       'image': 'https://images.unsplash.com/photo-1449300079326-7b6bc2d1d28?w=400',
@@ -108,8 +111,8 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
     },
     {
       'id': '8',
-      'title': 'در.ية: النظام الغذائي المتوسطي يعزز صحة الدماغ',
-      'category': 'در.يات',
+      'title': 'دراسة: النظام الغذائي المتوسطي يعزز صحة الدماغ',
+      'category': 'دراسات طبية',
       'source': 'جامعة كامبريدج',
       'date': '2026-06-24',
       'image': 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400',
@@ -213,8 +216,8 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
                   children: [
                     Icon(Icons.circle, size: 8, color: AppColors.error),
                     const SizedBox(width: 4),
-                    const Text(
-                      'خبر عاجل',
+                    Text(
+                      _t(context, 'خبر عاجل'),
                       style: TextStyle(
                         color: AppColors.error,
                         fontSize: 10,
@@ -226,7 +229,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
               ),
             const SizedBox(height: 8),
             Text(
-              news['title'],
+              _t(context, news['title'] as String),
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -272,7 +275,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              news['summary'],
+              _t(context, news['summary'] as String),
               style: const TextStyle(fontSize: 14, height: 1.6),
             ),
             const SizedBox(height: 16),
@@ -282,10 +285,10 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
-                      ToastService.showSuccess(context, '📰 جاري فتح الخبر: ${news['title']}');
+                      ToastService.showSuccess(context, '📰 ${_t(context, 'جاري فتح الخبر: ')}${_t(context, news['title'] as String)}');
                     },
                     icon: const Icon(Icons.open_in_browser_rounded),
-                    label: const Text('قراءة الخبر'),
+                    label: Text(_t(context, 'قراءة الخبر')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -313,7 +316,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إغلاق'),
+                child: Text(_t(context, 'إغلاق')),
               ),
             ),
           ],
@@ -330,7 +333,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: const Text('أخبار صحية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t(context, 'أخبار صحية'), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -383,7 +386,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  category,
+                  _t(context, category),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -417,8 +420,8 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'لا توجد أخبار',
+          Text(
+            _t(context, 'لا توجد أخبار'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -426,7 +429,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'سيتم إضافة أخبار جديدة قريباً',
+            _t(context, 'سيتم إضافة أخبار جديدة قريباً'),
             style: TextStyle(
               fontSize: 14,
               color: AppColors.grey,
@@ -487,8 +490,8 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
                         color: AppColors.error,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
-                        'عاجل',
+                      child: Text(
+                        _t(context, 'عاجل'),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 7,
@@ -506,7 +509,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    news['title'],
+                    _t(context, news['title'] as String),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -516,7 +519,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    news['summary'],
+                    _t(context, news['summary'] as String),
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.grey,
@@ -534,7 +537,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          news['category'],
+                          _t(context, news['category'] as String),
                           style: TextStyle(
                             fontSize: 8,
                             color: AppColors.primary,
