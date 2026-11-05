@@ -91,7 +91,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 14),
             child: Text(_localizedUiText(context, 'وجبات اليوم'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ),
