@@ -4662,6 +4662,22 @@ class AppStrings {
     };
 
 
+      'استشارات طبية فورية': ['Instant medical consultations', 'Consultations médicales instantanées'],
+      'تواصل مع أفضل الأطباء': ['Connect with leading doctors', 'Consultez les meilleurs médecins'],
+      'صيدلية وتوصيل أدوية': ['Pharmacy and medicine delivery', 'Pharmacie et livraison de médicaments'],
+      'اطلب أدويتك واصلك لباب بيتك': ['Order your medicines and have them delivered to your door', 'Commandez vos médicaments et faites-vous livrer à domicile'],
+      'حجز المواعيد': ['Appointment booking', 'Prise de rendez-vous'],
+      'احجز موعدك بضغطة زر': ['Book an appointment with one tap', 'Prenez rendez-vous en un clic'],
+      'تحاليل مخبرية': ['Laboratory tests', 'Analyses de laboratoire'],
+      'نتائج دقيقة وسريعة': ['Accurate results, quickly', 'Des résultats rapides et précis'],
+      'سجل صحي إلكتروني': ['Digital health record', 'Dossier médical numérique'],
+      'بياناتك الطبية في مكان آمن': ['Your medical information, securely stored', 'Vos informations médicales en toute sécurité'],
+      'مرحباً دكتور': ['Welcome, Doctor', 'Bienvenue, Docteur'],
+      'مرحباً صيدلي': ['Welcome, Pharmacist', 'Bienvenue, Pharmacien'],
+      'وثق حسابك لبناء ثقة العملاء في صيدليتك': ['Verify your account to build customers’ trust in your pharmacy', 'Vérifiez votre compte pour renforcer la confiance des clients envers votre pharmacie'],
+      'مرحباً مختبر': ['Welcome, Laboratory', 'Bienvenue, Laboratoire'],
+      'مرحباً بيطري': ['Welcome, Veterinarian', 'Bienvenue, Vétérinaire'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
