@@ -24,7 +24,7 @@ class DentalClinicDetailScreen extends StatelessWidget {
 
           final clinic = snapshot.data;
           if (clinic == null) {
-            return const Center(child: Text(_localizedUiText(context, 'العيادة غير متوفرة')));
+            return Center(child: Text(_localizedUiText(context, 'العيادة غير متوفرة')));
           }
 
           return ListView(
