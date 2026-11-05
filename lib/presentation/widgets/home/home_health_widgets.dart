@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/bloc/home/home_state.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HomeHealthWidgets extends StatelessWidget {
   final HomeState state;
@@ -16,6 +17,8 @@ class HomeHealthWidgets extends StatelessWidget {
       required this.state,
       required this.isDark,
       required this.onNavigate});
+
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +62,7 @@ class HomeHealthWidgets extends StatelessWidget {
     ];
     final score = state.healthScore.round().clamp(0, 100);
     return Column(children: [
-      _header('ملخصك الصحي'),
+      _header(context, 'ملخصك الصحي'),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Container(
@@ -88,8 +91,8 @@ class HomeHealthWidgets extends StatelessWidget {
             Expanded(
                 child: Text(
                     score == 0
-                        ? 'أضف قياساتك الصحية لاحتساب المؤشر.'
-                        : 'تابع نشاطك ونومك ومؤشراتك الحيوية باستمرار.',
+                        ? _t(context, 'أضف قياساتك الصحية لاحتساب المؤشر.')
+                        : _t(context, 'تابع نشاطك ونومك ومؤشراتك الحيوية باستمرار.'),
                     style: TextStyle(
                         fontSize: 11.5,
                         height: 1.4,
@@ -105,8 +108,8 @@ class HomeHealthWidgets extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemCount: stats.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, i) => _stat(stats[i]))),
-      _header('المؤشرات الحيوية'),
+              itemBuilder: (_, i) => _stat(context, stats[i]))),
+      _header(context, 'المؤشرات الحيوية'),
       FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         future: _healthMetricsFuture(),
         builder: (context, snapshot) {
@@ -123,25 +126,25 @@ class HomeHealthWidgets extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: unified.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (_, i) => _vital(unified[i], data),
+            itemBuilder: (_, i) => _vital(context, unified[i], data),
           ));
         },
       ),
     ]);
   }
 
-  Widget _header(String title) => Padding(
+  Widget _header(BuildContext context, String title) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
       child: Row(children: [
         Expanded(
-            child: Text(title,
+            child: Text(_t(context, title),
                 style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
                     color: isDark ? Colors.white : const Color(0xFF212121)))),
         TextButton(
             onPressed: () => onNavigate(AppRouter.dashboard),
-            child: const Text('عرض الكل',
+            child: Text(_t(context, 'عرض الكل'),
                 style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w700,
@@ -164,7 +167,7 @@ class HomeHealthWidgets extends StatelessWidget {
     }
   }
 
-  Widget _stat(Map<String, dynamic> item) {
+  Widget _stat(BuildContext context, Map<String, dynamic> item) {
     final color = item['color'] as Color;
     final value = (item['value'] as num).toDouble();
     return SizedBox(
@@ -190,7 +193,7 @@ class HomeHealthWidgets extends StatelessWidget {
               Text(value <= 0 ? '—' : _number(value),
                   style: TextStyle(
                       color: color, fontSize: 13, fontWeight: FontWeight.bold)),
-              Text(item['name'] as String,
+              Text(_t(context, item['name'] as String),
                   style: TextStyle(color: color.withOpacity(.8), fontSize: 9)),
             ],
           ),
@@ -236,7 +239,7 @@ class HomeHealthWidgets extends StatelessWidget {
     }
   }
 
-  Widget _vital(Map<String, dynamic> item, Map<String, dynamic> data) {
+  Widget _vital(BuildContext context, Map<String, dynamic> item, Map<String, dynamic> data) {
     final color = item['color'] as Color;
     final progress = _vitalProgress(item, data);
     return SizedBox(
@@ -256,7 +259,7 @@ class HomeHealthWidgets extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(item['label'] as String,
+                  Text(_t(context, item['label'] as String),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -264,7 +267,7 @@ class HomeHealthWidgets extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: isDark ? Colors.grey[300] : Colors.grey[700])),
                   const SizedBox(width: 6),
-                  Text(item['display'] as String,
+                  Text(_t(context, item['display'] as String),
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
