@@ -3977,6 +3977,10 @@ class AppStrings {
       'منشور من منصة صحتك — الرعاية الصحية الرقمية': ['A post from Sehatak — digital healthcare', 'Publication de Sehatak — soins de santé numériques'],
       'صحتك — منصة الرعاية الصحية': ['Sehatak — Healthcare Platform', 'Sehatak — Plateforme de santé'],
       'تعليقات': ['Comments', 'Commentaires'],
+      'وصفة دوائية جديدة': ['New medication prescription', 'Nouvelle ordonnance médicale'],
+      'تم شراء الدواء الموصوف': ['Prescribed medication purchased', 'Médicament prescrit acheté'],
+      'تم شراء دواء موصوف لأحد مرضاك': ['One of your patients purchased a prescribed medication', 'Un de vos patients a acheté un médicament prescrit'],
+      'أكمل توثيق حسابك المهني ورفع مستنداتك حتى تتمكن من استخدام ميزات المنصة الخاصة بدورك.': ['Complete your professional verification and upload your documents to use the features available for your role.', 'Terminez la vérification de votre profil professionnel et téléversez vos documents pour utiliser les fonctionnalités liées à votre rôle.'],
     };
     final entry = translations[value];
     if (entry == null) return value;
