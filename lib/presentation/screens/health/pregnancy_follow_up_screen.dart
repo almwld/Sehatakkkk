@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class PregnancyFollowUpScreen extends StatefulWidget {
   const PregnancyFollowUpScreen({super.key});
@@ -7,6 +8,7 @@ class PregnancyFollowUpScreen extends StatefulWidget {
 }
 
 class _PregnancyFollowUpScreenState extends State<PregnancyFollowUpScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   int _week = 12;
   static const _coral = Color(0xFFD46A7E);
   static const _plum = Color(0xFF8F5B8A);
@@ -53,7 +55,7 @@ class _PregnancyFollowUpScreenState extends State<PregnancyFollowUpScreen> {
       ),
       child: Scaffold(
         backgroundColor: bg,
-        appBar: AppBar(title: const Text('رعاية الحوامل', style: TextStyle(fontWeight: FontWeight.w800)), backgroundColor: _coral, foregroundColor: Colors.white, elevation: 0),
+        appBar: AppBar(title: Text(_t('رعاية الحوامل'), style: const TextStyle(fontWeight: FontWeight.w800)), backgroundColor: _coral, foregroundColor: Colors.white, elevation: 0),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
           children: [
@@ -90,15 +92,15 @@ class _PregnancyFollowUpScreenState extends State<PregnancyFollowUpScreen> {
             const CircleAvatar(radius: 30, backgroundColor: Colors.white24, child: Icon(Icons.pregnant_woman_rounded, color: Colors.white, size: 33)),
             const SizedBox(width: 13),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('متابعة الحمل من البداية حتى الولادة', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
+              const Text(_t('متابعة الحمل من البداية حتى الولادة'), style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
               const SizedBox(height: 5),
-              Text('الأسبوع $_week من 40', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              Text('${_t('الأسبوع')} $_week ${_t('من 40')}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
             ])),
           ]),
           const SizedBox(height: 16),
           ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: progress, minHeight: 8, backgroundColor: Colors.white24, valueColor: const AlwaysStoppedAnimation<Color>(Colors.white))),
           const SizedBox(height: 8),
-          Align(alignment: Alignment.centerRight, child: Text('موعد تقديري: ${due.day}/${due.month}/${due.year}', style: const TextStyle(color: Colors.white70, fontSize: 11))),
+          Align(alignment: Alignment.centerRight, child: Text('${_t('موعد تقديري: ')}${due.day}/${due.month}/${due.year}', style: const TextStyle(color: Colors.white70, fontSize: 11))),
         ]),
       );
 
@@ -107,7 +109,7 @@ class _PregnancyFollowUpScreenState extends State<PregnancyFollowUpScreen> {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(children: [
-            const Expanded(child: Text('حددي أسبوع الحمل للاطلاع على مراحل المتابعة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+            Expanded(child: Text(_t('حددي أسبوع الحمل للاطلاع على مراحل المتابعة'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
             IconButton(onPressed: _week > 1 ? () => setState(() => _week--) : null, icon: const Icon(Icons.remove_circle_outline_rounded)),
             Text('$_week', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             IconButton(onPressed: _week < 40 ? () => setState(() => _week++) : null, icon: const Icon(Icons.add_circle_outline_rounded)),
@@ -123,7 +125,7 @@ class _PregnancyFollowUpScreenState extends State<PregnancyFollowUpScreen> {
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(icon, color: _coral),
             const SizedBox(width: 10),
-            Expanded(child: Text(text, style: const TextStyle(fontSize: 12, height: 1.5))),
+            Expanded(child: Text(_t(text), style: const TextStyle(fontSize: 12, height: 1.5))),
           ]),
         ),
       );
@@ -131,18 +133,18 @@ class _PregnancyFollowUpScreenState extends State<PregnancyFollowUpScreen> {
   Widget _dangerSigns() => Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(color: _coral.withOpacity(.09), borderRadius: BorderRadius.circular(17), border: Border.all(color: _coral.withOpacity(.22))),
-        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('متى تطلبين رعاية عاجلة؟', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-          SizedBox(height: 7),
-          Text('نزيف مهبلي شديد، ألم شديد أو مستمر، ضيق تنفس شديد، فقدان الوعي، صداع شديد مع اضطراب الرؤية، أو نقص ملحوظ في حركة الجنين بعد أن أصبحت الحركة منتظمة: تواصلي مع الرعاية الطبية العاجلة أو الطوارئ وفق حالتك.', style: TextStyle(fontSize: 12, height: 1.55)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(_t('متى تطلبين رعاية عاجلة؟'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+          const SizedBox(height: 7),
+          Text(_t('نزيف مهبلي شديد، ألم شديد أو مستمر، ضيق تنفس شديد، فقدان الوعي، صداع شديد مع اضطراب الرؤية، أو نقص ملحوظ في حركة الجنين بعد أن أصبحت الحركة منتظمة: تواصلي مع الرعاية الطبية العاجلة أو الطوارئ وفق حالتك.'), style: const TextStyle(fontSize: 12, height: 1.55)),
         ]),
       );
 
   Widget _scopeNote() => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(color: _plum.withOpacity(.07), borderRadius: BorderRadius.circular(16)),
-        child: const Text('هذه الشاشة مخصصة للحمل والنساء والتوليد فقط، ولا تخلط بياناتها مع شاشة صحة الطفل أو شاشة صحة المرأة العامة. جدول الزيارات والفحوصات قد يتغير حسب حالة الأم والجنين وإرشادات البلد والطبيب.', style: TextStyle(fontSize: 11, height: 1.5, fontWeight: FontWeight.w600)),
+        child: Text(_t('هذه الشاشة مخصصة للحمل والنساء والتوليد فقط، ولا تخلط بياناتها مع شاشة صحة الطفل أو شاشة صحة المرأة العامة. جدول الزيارات والفحوصات قد يتغير حسب حالة الأم والجنين وإرشادات البلد والطبيب.'), style: const TextStyle(fontSize: 11, height: 1.5, fontWeight: FontWeight.w600)),
       );
 
-  Widget _title(String text) => Text(text, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800));
+  Widget _title(String text) => Text(_t(text), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800));
 }
