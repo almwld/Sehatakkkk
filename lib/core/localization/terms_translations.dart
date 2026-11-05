@@ -797,6 +797,453 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Fournir des recommandations de suivi.
 - Vérifier que le patient comprend les instructions.
 - Communiquer avec le patient si nécessaire.'''],
+      '8': [
+'''Sehatak is committed to protecting your privacy and collects the following data:
+
+**1. Types of data collected**
+
+**A. Personal data:**
+- Full name, date of birth, and gender.
+- Address, city, and area.
+- Telephone number and email address.
+- Profile photographs.
+- Social-media details, if you choose to link them.
+
+**B. Health data:**
+- Complete medical history, including past and current conditions.
+- Allergies and medicines that cause allergic reactions.
+- Current medicines and dosages.
+- Previous tests and results.
+- Previous surgical procedures and family health history.
+- Health habits, including smoking, drinking, and exercise.
+- Vital indicators, including weight, height, blood pressure, and blood glucose.
+
+**C. Usage data:**
+- How you use the application and the pages you visit.
+- Time spent using the application.
+- Features you use most.
+- Errors you encounter and your service ratings.
+
+**D. Device data:**
+- Device type (iOS / Android) and operating-system version.
+- Unique device identifier (UDID).
+- IP address.
+- Connection type (Wi-Fi / mobile data).
+
+**E. Location data:**
+- Geographic location, with your consent.
+- Cities and villages you visit.
+- Places near you.
+
+**F. Payment data:**
+- Preferred payment method.
+- Financial transaction details, kept confidential.
+- Purchase history and active subscriptions.
+
+**2. How data is used**
+
+**A. Providing services:**
+- Providing requested services, booking and managing appointments.
+- Reminding you about appointments and medicines.
+- Providing remote medical consultations.
+
+**B. Improving services:**
+- Analysing application usage.
+- Developing new features and fixing technical problems.
+- Improving the user experience.
+
+**C. Personalization:**
+- Personalizing content and recommendations based on your interests.
+- Showing relevant offers and discounts.
+- Adapting the interface to your needs.
+
+**D. Communication:**
+- Sending notifications, reminders, and service updates.
+- Responding to enquiries and complaints.
+- Contacting you in emergencies.
+
+**E. Security:**
+- Preventing fraud and unlawful activities.
+- Protecting your data and verifying your identity when necessary.
+- Complying with laws and regulations.
+
+**F. Research and development:**
+- Analysing data for research.
+- Developing technologies and improving service quality.
+- Contributing to health research.
+
+**3. Data sharing**
+
+**A. With service providers:**
+- We share data with providers you choose.
+- Only the minimum necessary data is shared.
+- Providers are required to keep data confidential.
+
+**B. With external entities:**
+- We may share data with trusted delivery, payment, and analytics providers.
+- We request your consent before sharing data for another purpose.
+
+**C. With legal authorities:**
+- We share data when legally requested.
+- We comply with applicable laws and protect users’ rights.
+
+**4. Data retention:**
+- We retain your data while your account is active.
+- Certain data may be retained for legal purposes after cancellation.
+- You may request deletion at any time.
+- Data is deleted within 30 days of the request.''',
+'''Sehatak s’engage à protéger votre vie privée et collecte les données suivantes :
+
+**1. Types de données collectées**
+
+**A. Données personnelles :**
+- Nom complet, date de naissance et sexe.
+- Adresse, ville et région.
+- Numéro de téléphone et adresse e-mail.
+- Photos de profil.
+- Données de réseaux sociaux, si vous choisissez de les associer.
+
+**B. Données de santé :**
+- Historique médical complet, y compris les maladies passées et actuelles.
+- Allergies et médicaments provoquant des réactions allergiques.
+- Médicaments actuels et dosages.
+- Examens antérieurs et résultats.
+- Interventions chirurgicales antérieures et antécédents médicaux familiaux.
+- Habitudes de santé, notamment tabac, alcool et activité physique.
+- Indicateurs vitaux : poids, taille, tension artérielle et glycémie.
+
+**C. Données d’utilisation :**
+- Votre utilisation de l’application et les pages consultées.
+- Temps passé sur l’application.
+- Fonctionnalités les plus utilisées.
+- Erreurs rencontrées et évaluations des services.
+
+**D. Données de l’appareil :**
+- Type d’appareil (iOS / Android) et version du système.
+- Identifiant unique de l’appareil (UDID).
+- Adresse IP.
+- Type de connexion (Wi-Fi / données mobiles).
+
+**E. Données de localisation :**
+- Position géographique, avec votre consentement.
+- Villes et villages que vous visitez.
+- Lieux situés à proximité.
+
+**F. Données de paiement :**
+- Moyen de paiement préféré.
+- Détails des transactions financières, conservés de manière confidentielle.
+- Historique des achats et abonnements actifs.
+
+**2. Utilisation des données**
+
+**A. Fourniture des services :**
+- Fournir les services demandés et gérer les rendez-vous.
+- Vous rappeler les rendez-vous et prises de médicaments.
+- Fournir des consultations médicales à distance.
+
+**B. Amélioration des services :**
+- Analyser l’utilisation de l’application.
+- Développer de nouvelles fonctionnalités et corriger les problèmes techniques.
+- Améliorer l’expérience utilisateur.
+
+**C. Personnalisation :**
+- Personnaliser le contenu et les recommandations selon vos centres d’intérêt.
+- Présenter des offres et réductions pertinentes.
+- Adapter l’interface à vos besoins.
+
+**D. Communication :**
+- Envoyer des notifications, rappels et mises à jour des services.
+- Répondre à vos demandes et réclamations.
+- Vous contacter en cas d’urgence.
+
+**E. Sécurité :**
+- Prévenir la fraude et les activités illégales.
+- Protéger vos données et vérifier votre identité si nécessaire.
+- Respecter les lois et règlements.
+
+**F. Recherche et développement :**
+- Analyser les données à des fins de recherche.
+- Développer des technologies et améliorer la qualité des services.
+- Contribuer à la recherche en santé.
+
+**3. Partage des données**
+
+**A. Avec les prestataires :**
+- Nous partageons les données avec les prestataires que vous choisissez.
+- Seules les données nécessaires sont partagées.
+- Les prestataires doivent préserver leur confidentialité.
+
+**B. Avec des entités externes :**
+- Nous pouvons partager des données avec des prestataires fiables de livraison, de paiement et d’analyse.
+- Nous demandons votre consentement avant tout autre partage.
+
+**C. Avec les autorités judiciaires :**
+- Nous partageons les données lorsqu’une demande légale l’exige.
+- Nous respectons les lois applicables et protégeons les droits des utilisateurs.
+
+**4. Conservation des données :**
+- Nous conservons vos données tant que votre compte est actif.
+- Certaines données peuvent être conservées à des fins légales après la clôture du compte.
+- Vous pouvez demander leur suppression à tout moment.
+- Les données sont supprimées dans les 30 jours suivant la demande.'''],
+      '9': [
+'''Sehatak gives data security the highest priority and applies the following measures:
+
+**1. Encryption:**
+- Data in transit is encrypted using TLS 1.3.
+- Stored data is encrypted using AES-256.
+- Passwords are stored using secure hashing algorithms (bcrypt).
+- Encryption keys are stored securely.
+
+**2. Access control:**
+- Access is restricted to authorized employees.
+- Employees receive regular security training.
+- Data access is monitored and logged.
+- The principle of least privilege is applied.
+
+**3. Authentication:**
+- Two-factor authentication (2FA) is supported.
+- Fingerprint and facial recognition may be used.
+- Sensitive operations require additional confirmation.
+- Sessions expire after inactivity.
+
+**4. Backups:**
+- Data is backed up regularly (daily).
+- Backups are stored securely and encrypted.
+- Recovery is provided for emergencies and tested periodically.
+
+**5. Intrusion monitoring:**
+- Suspicious activities are monitored continuously.
+- An intrusion detection system (IDS) is used.
+- Breaches trigger immediate notification.
+- An emergency incident-response team is available.
+
+**6. Vulnerability management:**
+- Systems receive regular security updates.
+- Periodic penetration tests identify vulnerabilities.
+- A dedicated security team monitors threats.
+- Vulnerabilities are corrected when discovered.
+
+**7. Reporting policy:**
+- Report vulnerabilities to support@sehatak.com.
+- Reports are investigated promptly.
+- Security contributors are acknowledged.
+- Vulnerabilities are disclosed after correction.
+
+**8. Employee training:**
+- Employees are trained in information security.
+- Training covers emerging threats and simulated phishing.
+- A culture of security is promoted.
+
+**9. Standards compliance:**
+- Compliance with international security standards (ISO 27001).
+- Security best practices and periodic reviews.
+- Recognized security certifications.
+
+**10. Privacy protection:**
+- Privacy is built into system design.
+- Data collection is limited to what is necessary.
+- Sensitive data is masked when displayed.
+- Users can control their data.''',
+'''Sehatak accorde la priorité absolue à la sécurité des données et applique les mesures suivantes :
+
+**1. Chiffrement :**
+- Les données en transit sont chiffrées avec TLS 1.3.
+- Les données stockées sont chiffrées avec AES-256.
+- Les mots de passe sont stockés au moyen d’algorithmes de hachage sécurisés (bcrypt).
+- Les clés de chiffrement sont conservées en lieu sûr.
+
+**2. Contrôle des accès :**
+- L’accès est réservé aux employés autorisés.
+- Les employés suivent régulièrement des formations à la sécurité.
+- Les accès aux données sont surveillés et enregistrés.
+- Le principe du moindre privilège est appliqué.
+
+**3. Authentification :**
+- L’authentification à deux facteurs (2FA) est prise en charge.
+- L’empreinte digitale et la reconnaissance faciale peuvent être utilisées.
+- Les opérations sensibles exigent une confirmation supplémentaire.
+- Les sessions expirent après une période d’inactivité.
+
+**4. Sauvegardes :**
+- Les données sont sauvegardées régulièrement (quotidiennement).
+- Les sauvegardes sont conservées en lieu sûr et chiffrées.
+- La récupération est prévue en cas d’urgence et testée périodiquement.
+
+**5. Surveillance des intrusions :**
+- Les activités suspectes font l’objet d’une surveillance continue.
+- Un système de détection d’intrusion (IDS) est utilisé.
+- Toute violation détectée entraîne une notification immédiate.
+- Une équipe d’intervention d’urgence est disponible.
+
+**6. Gestion des vulnérabilités :**
+- Les systèmes reçoivent des mises à jour de sécurité régulières.
+- Des tests d’intrusion périodiques détectent les vulnérabilités.
+- Une équipe spécialisée surveille les menaces.
+- Les vulnérabilités sont corrigées dès leur découverte.
+
+**7. Signalement :**
+- Les vulnérabilités peuvent être signalées à support@sehatak.com.
+- Les signalements sont rapidement examinés.
+- Les contributeurs à la sécurité sont reconnus.
+- Les vulnérabilités sont divulguées après correction.
+
+**8. Formation du personnel :**
+- Les employés sont formés à la sécurité de l’information.
+- La formation porte sur les nouvelles menaces et les simulations d’hameçonnage.
+- Une culture de sécurité est encouragée.
+
+**9. Conformité aux normes :**
+- Respect des normes internationales de sécurité (ISO 27001).
+- Application des bonnes pratiques et examens périodiques.
+- Certifications de sécurité reconnues.
+
+**10. Protection de la confidentialité :**
+- La confidentialité est intégrée dès la conception du système.
+- La collecte est limitée aux données nécessaires.
+- Les données sensibles sont masquées à l’affichage.
+- Les utilisateurs peuvent contrôler leurs données.'''],
+      '10': [
+'''Users of Sehatak have the following rights:
+
+**1. Right of access:**
+- Access your personal data at any time.
+- Correct inaccurate data.
+- Download a readable copy of your data.
+- Learn how your data is used.
+
+**2. Right to rectification:**
+- Request correction of inaccurate data.
+- Update personal information easily.
+- Correction requests are processed within 48 hours.
+- You are notified when corrections are completed.
+
+**3. Right to erasure:**
+- Request deletion of your account and data.
+- Data is deleted within 30 days.
+- Certain data may be retained for legal purposes.
+- You may restore your account within 30 days.
+
+**4. Right to object:**
+- Object to processing of your data.
+- Opt out of marketing messages.
+- Restrict certain types of processing.
+- Your request is considered within 30 days.
+
+**5. Right to data portability:**
+- Request transfer of your data to another platform.
+- Data is provided in a readable format (JSON or CSV).
+- Data is transferred securely within 30 days.
+- The platform is not responsible for your data after transfer.
+
+**6. Right to complain:**
+- Complain about how your data is processed.
+- Complaints are investigated and outcomes communicated.
+- You may refer the matter to legal authorities if necessary.
+
+**7. Right to privacy:**
+- Your health information is kept private.
+- Information is not shared without your consent.
+- You control who can see your information.
+- You may hide your information from others.
+
+**8. Right to fair treatment:**
+- All users are treated fairly without discrimination based on race, religion, gender, or age.
+- Laws are applied fairly.
+- All parties are heard in disputes.
+
+**9. Right to accountability:**
+- Hold the platform accountable for data violations.
+- Violations are investigated and appropriate action is taken.
+- You are informed of the investigation results.
+
+**10. Right to information:**
+- Know how your data is collected and used.
+- Know with whom your data is shared.
+- Know how long your data is retained.
+- Know which security measures are applied.
+
+**11. Right to education:**
+- Receive information about your rights.
+- Understand how to use the platform.
+- Receive support in using the platform.
+- Access educational resources.
+
+**12. Right to participate:**
+- Participate in platform development.
+- Submit suggestions and feedback.
+- Participate in studies and research.
+- Join the health community.''',
+'''Les utilisateurs de Sehatak disposent des droits suivants :
+
+**1. Droit d’accès :**
+- Accéder à vos données personnelles à tout moment.
+- Corriger les données inexactes.
+- Télécharger une copie lisible de vos données.
+- Savoir comment vos données sont utilisées.
+
+**2. Droit de rectification :**
+- Demander la correction de données inexactes.
+- Mettre facilement à jour vos informations personnelles.
+- Les demandes sont traitées dans les 48 heures.
+- Vous êtes informé lorsque les corrections sont effectuées.
+
+**3. Droit à l’effacement :**
+- Demander la suppression de votre compte et de vos données.
+- Les données sont supprimées dans les 30 jours.
+- Certaines données peuvent être conservées à des fins légales.
+- Vous pouvez restaurer votre compte dans les 30 jours.
+
+**4. Droit d’opposition :**
+- Vous opposer au traitement de vos données.
+- Vous désabonner des messages marketing.
+- Limiter certains types de traitement.
+- Votre demande est examinée dans les 30 jours.
+
+**5. Droit à la portabilité :**
+- Demander le transfert de vos données vers une autre plateforme.
+- Les données sont fournies dans un format lisible (JSON ou CSV).
+- Le transfert est effectué de manière sécurisée dans les 30 jours.
+- La plateforme n’est pas responsable de vos données après leur transfert.
+
+**6. Droit de réclamation :**
+- Déposer une réclamation concernant le traitement de vos données.
+- Les réclamations sont examinées et les résultats communiqués.
+- Vous pouvez saisir les autorités compétentes si nécessaire.
+
+**7. Droit à la confidentialité :**
+- Vos informations de santé restent confidentielles.
+- Les informations ne sont pas partagées sans votre consentement.
+- Vous contrôlez qui peut consulter vos informations.
+- Vous pouvez masquer vos informations aux autres.
+
+**8. Droit à un traitement équitable :**
+- Tous les utilisateurs sont traités équitablement, sans discrimination fondée sur la race, la religion, le sexe ou l’âge.
+- Les lois sont appliquées équitablement.
+- Toutes les parties sont entendues en cas de litige.
+
+**9. Droit à la responsabilité :**
+- Demander des comptes à la plateforme en cas de violation des données.
+- Les violations font l’objet d’une enquête et de mesures appropriées.
+- Vous êtes informé des résultats de l’enquête.
+
+**10. Droit à l’information :**
+- Savoir comment vos données sont collectées et utilisées.
+- Connaître les entités avec lesquelles vos données sont partagées.
+- Connaître la durée de conservation de vos données.
+- Connaître les mesures de sécurité appliquées.
+
+**11. Droit à l’éducation :**
+- Recevoir des informations sur vos droits.
+- Comprendre comment utiliser la plateforme.
+- Obtenir de l’aide pour utiliser la plateforme.
+- Accéder aux ressources éducatives.
+
+**12. Droit à la participation :**
+- Participer au développement de la plateforme.
+- Soumettre des suggestions et commentaires.
+- Participer à des études et recherches.
+- Rejoindre la communauté de santé.'''],
       '3': [
 '''These Terms and Conditions constitute a legally binding agreement between you and the Sehatak platform. By using the platform, you fully and unconditionally agree to comply with all provisions of this document.
 
