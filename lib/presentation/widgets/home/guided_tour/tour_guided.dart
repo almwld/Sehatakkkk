@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:flutter/material.dart';
 
@@ -349,7 +350,7 @@ class _TooltipBubble extends StatelessWidget {
                 TextButton(
                   onPressed: onSkip,
                   style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
-                  child: const Text('تخطي'),
+                  child: Text(_localizedUiText(context, 'تخطي')),
                 ),
                 const Spacer(),
                 Container(
@@ -375,7 +376,7 @@ class _TooltipBubble extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: onPrevious,
                     icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                    label: const Text('السابق'),
+                    label: Text(_localizedUiText(context, 'السابق')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: step.accentColor,
                       side: BorderSide(color: step.accentColor.withOpacity(.35)),
@@ -407,3 +408,7 @@ class _TooltipBubble extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
