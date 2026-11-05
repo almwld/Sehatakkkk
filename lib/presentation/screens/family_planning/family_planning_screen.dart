@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class FamilyPlanningScreen extends StatelessWidget {
   const FamilyPlanningScreen({super.key});
@@ -7,12 +8,12 @@ class FamilyPlanningScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تنظيم الأسرة'),
+        title: Text(AppStrings.of(context).translate('تنظيم الأسرة')),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
-      body: const Center(
-        child: Text('شاشة تنظيم الأسرة قيد التطوير'),
+      body: Center(
+        child: Text(AppStrings.of(context).translate('شاشة تنظيم الأسرة قيد التطوير')),
       ),
     );
   }
