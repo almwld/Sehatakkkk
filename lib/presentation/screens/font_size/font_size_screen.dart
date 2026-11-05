@@ -1,5 +1,6 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
@@ -12,6 +13,7 @@ class FontSizeScreen extends StatefulWidget {
 }
 
 class _FontSizeScreenState extends State<FontSizeScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   double _fontSize = 1.0;
   bool _saving = false;
 
@@ -31,7 +33,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
 
   void _resetFontSize() {
     _updateFontSize(1.0);
-    ToastService.showSuccess('✅ تم إعادة حجم الخط للافتراضي');
+    ToastService.showSuccess('✅ ${_t('تم إعادة حجم الخط للافتراضي')}');
   }
 
   @override
@@ -41,7 +43,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('حجم الخط'),
+        title: Text(_t('حجم الخط')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -91,8 +93,8 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'معاينة',
+              Text(
+                _t('معاينة'),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -108,7 +110,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              'هذا نص تجريبي لتغيير حجم الخط',
+              _t('هذا نص تجريبي لتغيير حجم الخط'),
               style: TextStyle(
                 fontSize: 16 * _fontSize,
                 color: isDark ? Colors.white : Colors.black87,
@@ -156,7 +158,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'صغير',
+                _t('صغير'),
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -178,7 +180,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
                 ),
               ),
               Text(
-                'كبير',
+                _t('كبير'),
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -196,8 +198,8 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
     setState(() => _saving = true);
     try {
       await context.read<FontSizeProvider>().setFontScale(_fontSize);
-      if (mounted) { ToastService.showSuccess('تم حفظ حجم الخط'); Navigator.pop(context, true); }
-    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ حجم الخط'); }
+      if (mounted) { ToastService.showSuccess(_t('تم حفظ حجم الخط')); Navigator.pop(context, true); }
+    } catch (_) { if (mounted) ToastService.showError(_t('تعذر حفظ حجم الخط')); }
     finally { if (mounted) setState(() => _saving = false); }
   }
 
@@ -212,8 +214,8 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      child: _saving ? const CircularProgressIndicator(color: Colors.white) : const Text(
-        'حفظ',
+      child: _saving ? const CircularProgressIndicator(color: Colors.white) : Text(
+        _t('حفظ'),
         style: TextStyle(fontSize: 16),
       ),
     );
@@ -228,7 +230,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      child: const Text('إعادة للافتراضي'),
+      child: Text(_t('إعادة للافتراضي')),
     );
   }
 }
