@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 
 class VisionTestScreen extends StatefulWidget {
@@ -26,14 +27,14 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('اختبار جودة النظر'), backgroundColor: const Color(0xFF3949AB), foregroundColor: Colors.white),
+    appBar: AppBar(title: Text(_localizedUiText(context, 'اختبار جودة النظر')), backgroundColor: const Color(0xFF3949AB), foregroundColor: Colors.white),
     body: Padding(padding: const EdgeInsets.all(16), child: _finished ? _result() : _test()),
   );
 
   Widget _test() {
     final size = 92.0 - (_round * 8.0);
     return ListView(children: [
-      const Card(child: Padding(padding: EdgeInsets.all(15), child: Text('اختبار تفاعلي أولي لتمييز اتجاه فتحة الحرف. اجلس بوضع مريح، حافظ على مسافة ثابتة من الشاشة، لا تكبّر العرض، واستخدم إضاءة جيدة. لا يغني الاختبار عن فحص حدة البصر بأدوات سريرية.', style: TextStyle(height: 1.5)))),
+      const Card(child: Padding(padding: EdgeInsets.all(15), child: Text(_localizedUiText(context, 'اختبار تفاعلي أولي لتمييز اتجاه فتحة الحرف. اجلس بوضع مريح، حافظ على مسافة ثابتة من الشاشة، لا تكبّر العرض، واستخدم إضاءة جيدة. لا يغني الاختبار عن فحص حدة البصر بأدوات سريرية.'), style: TextStyle(height: 1.5)))),
       const SizedBox(height: 14),
       Text('المحاولة ${_round + 1} من ${_patterns.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
@@ -51,7 +52,7 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
           ),
         ),
       ),
-      const Center(child: Text('إلى أي اتجاه تتجه فتحة الحرف؟', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+      const Center(child: Text(_localizedUiText(context, 'إلى أي اتجاه تتجه فتحة الحرف؟'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
       const SizedBox(height: 18),
       GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 2.5, children: _directions.map((d) => OutlinedButton(onPressed: () => _answer(d), child: Text(d))).toList()),
     ]);
@@ -64,15 +65,19 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
       const SizedBox(height: 28),
       const Icon(Icons.visibility_rounded, size: 72, color: Color(0xFF3949AB)),
       const SizedBox(height: 14),
-      const Text('تقييم جودة النظر', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+      Text(_localizedUiText(context, 'تقييم جودة النظر'), textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
       const SizedBox(height: 10),
       Text('$_score من ${_patterns.length}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
       const SizedBox(height: 18),
-      const Card(child: Padding(padding: EdgeInsets.all(15), child: Text('هذا تقييم أولي داخل التطبيق ولا يقيس حدة البصر بوحدة سريرية، ولا يحدد الحاجة إلى نظارة أو علاج. إذا كان لديك تشوش مستمر، ازدواجية، ألم، ومضات أو فقد مفاجئ للرؤية، اطلب تقييماً طبياً ولا تعتمد على الاختبار.', style: TextStyle(height: 1.5)))),
+      const Card(child: Padding(padding: EdgeInsets.all(15), child: Text(_localizedUiText(context, 'هذا تقييم أولي داخل التطبيق ولا يقيس حدة البصر بوحدة سريرية، ولا يحدد الحاجة إلى نظارة أو علاج. إذا كان لديك تشوش مستمر، ازدواجية، ألم، ومضات أو فقد مفاجئ للرؤية، اطلب تقييماً طبياً ولا تعتمد على الاختبار.'), style: TextStyle(height: 1.5)))),
       const SizedBox(height: 18),
-      ElevatedButton(onPressed: _reset, child: const Text('إعادة الاختبار')),
+      ElevatedButton(onPressed: _reset, child: Text(_localizedUiText(context, 'إعادة الاختبار'))),
     ]);
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
