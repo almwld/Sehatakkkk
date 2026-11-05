@@ -473,44 +473,44 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 16),
                   _buildActiveSubscriptionCard(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'المؤشرات الحيوية',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    AppStrings.of(context).translate('المؤشرات الحيوية'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   _buildVitalsGrid(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'وصول سريع',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    AppStrings.of(context).translate('وصول سريع'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   _buildQuickAccess(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'الخدمات الطبية',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    AppStrings.of(context).translate('الخدمات الطبية'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   _buildServicesList(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'الأمراض المزمنة',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    AppStrings.of(context).translate('الأمراض المزمنة'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   _buildChronicConditions(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'التطعيمات',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    AppStrings.of(context).translate('التطعيمات'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   _buildVaccinations(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'الحساسية',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    AppStrings.of(context).translate('الحساسية'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   _buildAllergies(isDark),
@@ -646,21 +646,21 @@ class _PatientDashboardState extends State<PatientDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'الباقة النشطة',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  Text(
+                    AppStrings.of(context).translate('الباقة النشطة'),
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
-                  const Text(
-                    'الباقة المجانية',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  Text(
+                    AppStrings.of(context).translate('الباقة المجانية'),
+                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Row(
                     children: [
                       const Icon(Icons.star, color: AppColors.amber, size: 14),
                       const SizedBox(width: 4),
-                      const Text(
-                        'مميزات حصرية',
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                      Text(
+                        AppStrings.of(context).translate('مميزات حصرية'),
+                        style: const TextStyle(color: Colors.white70, fontSize: 11),
                       ),
                       const SizedBox(width: 8),
                       Container(
@@ -669,9 +669,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          'مجانية',
-                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500),
+                        child: Text(
+                          AppStrings.of(context).translate('مجانية'),
+                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ],
@@ -735,7 +735,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
               _buildIcon(service['icon'] as String, size: 56, color: AppColors.primary),
               const SizedBox(height: 4),
               Text(
-                service['label'] as String,
+                AppStrings.of(context).translate(service['label'] as String),
                 style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w500),
               ),
             ],
@@ -778,7 +778,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   _buildIcon(service['icon'] as String, size: 36, color: service['color'] as Color),
                   const SizedBox(height: 6),
                   Text(
-                    service['label'] as String,
+                    AppStrings.of(context).translate(service['label'] as String),
                     style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w500),
                     textAlign: TextAlign.center,
                     maxLines: 2,
@@ -818,7 +818,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           Icon(icon, color: color, size: 20),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+            child: Text(AppStrings.of(context).translate(title), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
           ),
           Text(AppStrings.of(context).translate(value), style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ],
