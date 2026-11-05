@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class MessageReactions extends StatefulWidget {
   final Function(String) onReactionSelected;
@@ -26,6 +27,8 @@ class _MessageReactionsState extends State<MessageReactions> {
     {'emoji': '🔥', 'label': 'نار', 'color': Colors.deepOrange},
     {'emoji': '👏', 'label': 'تصفيق', 'color': Colors.amber},
   ];
+
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
   String? _selectedReaction;
 
@@ -69,7 +72,7 @@ class _MessageReactionsState extends State<MessageReactions> {
           ),
           const SizedBox(height: 16),
           Text(
-            'اختر رد فعل',
+            _t(context, 'اختر رد فعل'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -123,7 +126,7 @@ class _MessageReactionsState extends State<MessageReactions> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        label,
+                        _t(context, label),
                         style: TextStyle(
                           fontSize: 10,
                           color: isSelected ? color : (isDark ? Colors.grey[400] : Colors.grey[600]),
@@ -147,7 +150,7 @@ class _MessageReactionsState extends State<MessageReactions> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('إزالة التفاعل'),
+              child: Text(_t(context, 'إزالة التفاعل')),
             ),
           const SizedBox(height: 8),
         ],
