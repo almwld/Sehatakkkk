@@ -2040,6 +2040,389 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Récupération des données en cas d’urgence.
 - Tests réguliers de continuité.
 - Mesures garantissant la disponibilité du service.'''],
+      '17': [
+'''You may cancel your Sehatak account according to the following procedures:
+
+**1. Cancellation steps:**
+- Go to account settings.
+- Select “Cancel account”.
+- Confirm the cancellation.
+- Enter a cancellation reason (optional).
+- Confirm cancellation by email.
+
+**2. Cancellation period:**
+- The account is cancelled immediately after confirmation.
+- Data remains recoverable for 30 days.
+- After 30 days, data is permanently deleted.
+- The account may be restored within 30 days.
+
+**3. Right to restore:**
+- The account may be restored within 30 days of cancellation.
+- Data is restored and support may be contacted.
+- After 30 days, the account cannot be restored.
+- Restoration may require an additional fee.
+
+**4. Retained data:**
+- Certain data may be retained for legal purposes.
+- Invoices and financial transactions are retained.
+- Data required by local laws is retained.
+- Activity logs are retained for audit purposes.
+
+**5. Effects of cancellation:**
+- Future appointments are cancelled.
+- Active subscriptions are stopped.
+- Services are no longer accessible.
+- Rewards and loyalty points are forfeited.
+- Published content is deleted.
+
+**6. Forced cancellation:**
+- The platform may cancel accounts that violate the terms.
+- You will be notified before forced cancellation.
+- You may appeal the decision.
+- Appeals are investigated.
+
+**7. User rights after cancellation:**
+- Request a copy of your data.
+- Correct data before deletion.
+- Know the reason for cancellation.
+- Appeal the cancellation.
+
+**8. Reactivation:**
+- The account may be reactivated within 30 days.
+- Data is restored.
+- Active subscriptions are reactivated.
+- Booked appointments are restored.
+
+**9. Data deletion:**
+- Data is permanently deleted after 30 days.
+- Deleted data cannot be recovered.
+- Data is deleted from all systems.
+- You are notified when deletion is completed.
+
+**10. Contact after cancellation:**
+- We may contact you for legal purposes.
+- You may opt out of communications.
+- We respect your wish not to be contacted.
+- You may contact us again at any time.''',
+'''Vous pouvez clôturer votre compte Sehatak conformément aux procédures suivantes :
+
+**1. Étapes de clôture :**
+- Accéder aux paramètres du compte.
+- Sélectionner « Clôturer le compte ».
+- Confirmer la clôture.
+- Indiquer le motif de clôture (facultatif).
+- Confirmer la clôture par e-mail.
+
+**2. Délai de clôture :**
+- Le compte est clôturé immédiatement après confirmation.
+- Les données restent récupérables pendant 30 jours.
+- Après 30 jours, les données sont définitivement supprimées.
+- Le compte peut être restauré dans les 30 jours.
+
+**3. Droit à la restauration :**
+- Le compte peut être restauré dans les 30 jours suivant sa clôture.
+- Les données sont restaurées et vous pouvez contacter l’assistance.
+- Après 30 jours, le compte ne peut plus être restauré.
+- La restauration peut nécessiter des frais supplémentaires.
+
+**4. Données conservées :**
+- Certaines données peuvent être conservées à des fins légales.
+- Les factures et transactions financières sont conservées.
+- Les données exigées par les lois locales sont conservées.
+- Les journaux d’activité sont conservés à des fins d’audit.
+
+**5. Conséquences de la clôture :**
+- Les rendez-vous futurs sont annulés.
+- Les abonnements actifs sont interrompus.
+- Les services ne sont plus accessibles.
+- Les récompenses et points de fidélité sont perdus.
+- Les contenus publiés sont supprimés.
+
+**6. Clôture forcée :**
+- La plateforme peut clôturer les comptes qui enfreignent les conditions.
+- Vous serez informé avant toute clôture forcée.
+- Vous pouvez contester la décision.
+- Les contestations font l’objet d’une enquête.
+
+**7. Droits après la clôture :**
+- Demander une copie de vos données.
+- Corriger les données avant leur suppression.
+- Connaître le motif de la clôture.
+- Contester la clôture.
+
+**8. Réactivation :**
+- Le compte peut être réactivé dans les 30 jours.
+- Les données sont restaurées.
+- Les abonnements actifs sont réactivés.
+- Les rendez-vous réservés sont restaurés.
+
+**9. Suppression des données :**
+- Les données sont définitivement supprimées après 30 jours.
+- Les données supprimées ne peuvent pas être récupérées.
+- Les données sont supprimées de tous les systèmes.
+- Vous êtes informé lorsque la suppression est terminée.
+
+**10. Communication après la clôture :**
+- Nous pouvons vous contacter à des fins légales.
+- Vous pouvez vous désabonner des communications.
+- Nous respectons votre souhait de ne plus être contacté.
+- Vous pouvez reprendre contact à tout moment.'''],
+      '18': [
+'''These Terms and Conditions are governed by the laws and regulations in force in the Republic of Yemen.
+
+**1. Governing law:**
+- These terms are governed by the laws of the Republic of Yemen.
+- They are interpreted in accordance with Yemeni law.
+- Local laws apply in the event of a dispute.
+- International laws apply only where expressly specified.
+
+**2. Jurisdiction:**
+- Jurisdiction lies with the courts of Yemen.
+- Claims may be brought before the courts in Sana’a.
+- The platform may choose another court.
+- Jurisdiction is determined according to the nature of the dispute.
+
+**3. Dispute resolution:**
+- First, attempt to resolve the dispute amicably.
+- Second, refer the dispute to arbitration.
+- Third, refer the dispute to the courts.
+- The mechanism is determined by agreement between the parties.
+
+**4. Arbitration:**
+- Arbitration follows the rules of the Yemeni Arbitration Centre.
+- The language of arbitration is Arabic.
+- The award is binding on both parties.
+- An award may be challenged in specified cases.
+
+**5. Legal procedures:**
+- The other party must be notified before legal action.
+- The notice period is 30 days.
+- Notice may be waived in urgent cases.
+- Procedures depend on the nature of the dispute.
+
+**6. Waiver:**
+- Failure to enforce a right is not a waiver.
+- Any waiver must be in writing.
+- A partial waiver is not a complete waiver.
+- A waiver may be withdrawn in certain cases.
+
+**7. Severability:**
+- Any unlawful provision is excluded.
+- The remaining provisions remain in force.
+- The unlawful provision is amended to make it lawful.
+- The law applies in place of the unlawful provision.
+
+**8. Updates:**
+- These terms are updated periodically.
+- Users are responsible for reviewing updates.
+- Update notices are sent by email.
+- You may object to updates within 30 days.
+
+**9. Language:**
+- Arabic is the official language of these terms.
+- If a translation exists, the Arabic version prevails.
+- These terms are interpreted in Arabic.
+- Disputes are resolved in Arabic.
+
+**10. Effectiveness:**
+- These terms take effect when you use the platform.
+- They remain in effect until account cancellation.
+- Certain provisions survive cancellation.
+- The terms may end by agreement between the parties.''',
+'''Les présentes conditions générales sont régies par les lois et règlements en vigueur en République du Yémen.
+
+**1. Droit applicable :**
+- Les présentes conditions sont régies par les lois de la République du Yémen.
+- Elles sont interprétées conformément au droit yéménite.
+- Les lois locales s’appliquent en cas de litige.
+- Les lois internationales ne s’appliquent que lorsqu’elles sont expressément prévues.
+
+**2. Compétence juridictionnelle :**
+- Les tribunaux yéménites sont compétents.
+- Les actions peuvent être intentées devant les tribunaux de Sanaa.
+- La plateforme peut choisir un autre tribunal.
+- La compétence dépend de la nature du litige.
+
+**3. Règlement des différends :**
+- Premièrement, tenter de résoudre le différend à l’amiable.
+- Deuxièmement, recourir à l’arbitrage.
+- Troisièmement, saisir les tribunaux.
+- Le mécanisme est déterminé d’un commun accord entre les parties.
+
+**4. Arbitrage :**
+- L’arbitrage suit les règles du Centre yéménite d’arbitrage.
+- La langue de l’arbitrage est l’arabe.
+- La sentence lie les deux parties.
+- Une sentence peut être contestée dans certains cas déterminés.
+
+**5. Procédures judiciaires :**
+- L’autre partie doit être informée avant toute action en justice.
+- Le délai de préavis est de 30 jours.
+- Le préavis peut être écarté dans les situations urgentes.
+- Les procédures dépendent de la nature du litige.
+
+**6. Renonciation :**
+- Le fait de ne pas exercer un droit ne vaut pas renonciation.
+- Toute renonciation doit être écrite.
+- Une renonciation partielle ne vaut pas renonciation totale.
+- Une renonciation peut être retirée dans certains cas.
+
+**7. Divisibilité :**
+- Toute disposition illégale est écartée.
+- Les autres dispositions restent en vigueur.
+- La disposition illégale est modifiée afin de devenir conforme à la loi.
+- La loi s’applique à la place de la disposition illégale.
+
+**8. Mises à jour :**
+- Les présentes conditions sont mises à jour périodiquement.
+- L’utilisateur est responsable du suivi des mises à jour.
+- Les avis sont envoyés par e-mail.
+- Vous pouvez vous opposer aux mises à jour dans les 30 jours.
+
+**9. Langue :**
+- L’arabe est la langue officielle des présentes conditions.
+- En cas de traduction, la version arabe prévaut.
+- Les conditions sont interprétées en arabe.
+- Les litiges sont résolus en arabe.
+
+**10. Entrée en vigueur :**
+- Les présentes conditions prennent effet dès l’utilisation de la plateforme.
+- Elles restent en vigueur jusqu’à la clôture du compte.
+- Certaines dispositions survivent à la clôture.
+- Les conditions peuvent prendre fin d’un commun accord entre les parties.'''],
+      '19': [
+'''If you have any question, comment, or complaint, contact us through the following channels:
+
+**1. Email:**
+- General enquiries: info@sehatak.com
+- Technical support: support@sehatak.com
+- Complaints: complaints@sehatak.com
+- Privacy: privacy@sehatak.com
+- Partnerships: partners@sehatak.com
+
+**2. Telephone:**
+- Call centre: +967 123 456 789
+- Technical support: +967 987 654 321
+- Complaints: +967 777 888 999
+- Working hours: 8:00 a.m. – 10:00 p.m. (Yemen time)
+- Working days: Sunday to Thursday
+
+**3. Social media:**
+- Facebook: /SehatakPlatform
+- Twitter: @SehatakApp
+- Instagram: @SehatakPlatform
+- YouTube: SehatakPlatform
+- TikTok: @SehatakPlatform
+- LinkedIn: /Sehatak
+
+**4. Postal address:**
+- Sana’a, Republic of Yemen.
+- P.O. Box: 12345.
+- Al-Zubairi Street – Sehatak Building.
+- Third floor – Unit 301.
+- Postal code: 9671.
+
+**5. Contact form:**
+- Use the in-app contact form.
+- A response will be provided within 24 hours.
+- For urgent cases, call us.
+- You may attach files to the form.
+
+**6. Working hours:**
+- Sunday–Thursday: 8:00 a.m. – 10:00 p.m.
+- Friday and Saturday: 10:00 a.m. – 8:00 p.m.
+- Public holidays: 10:00 a.m. – 6:00 p.m.
+- Hours may change during Ramadan and holidays.
+
+**7. Complaints and suggestions:**
+- We welcome your feedback and suggestions.
+- Complaints are handled confidentially.
+- We seek to resolve issues as soon as possible.
+- You will be informed of the outcome.
+
+**8. Technical support:**
+- Technical support is available around the clock.
+- We promptly address problems and enquiries.
+- We help users operate the platform.
+- We follow up until cases are resolved.
+
+**9. Media and partnerships:**
+- Media: media@sehatak.com
+- Partnerships: partners@sehatak.com
+- Investment: invest@sehatak.com
+- Careers: careers@sehatak.com
+
+**10. Feedback:**
+- We value user feedback.
+- We use it to improve our services.
+- You may submit feedback at any time.
+- Feedback receives a response within 48 hours.''',
+'''Pour toute question, remarque ou réclamation, contactez-nous par les moyens suivants :
+
+**1. E-mail :**
+- Demandes générales : info@sehatak.com
+- Assistance technique : support@sehatak.com
+- Réclamations : complaints@sehatak.com
+- Confidentialité : privacy@sehatak.com
+- Partenariats : partners@sehatak.com
+
+**2. Téléphone :**
+- Centre d’appels : +967 123 456 789
+- Assistance technique : +967 987 654 321
+- Réclamations : +967 777 888 999
+- Heures d’ouverture : 8 h 00 – 22 h 00 (heure du Yémen)
+- Jours ouvrables : du dimanche au jeudi
+
+**3. Réseaux sociaux :**
+- Facebook : /SehatakPlatform
+- Twitter : @SehatakApp
+- Instagram : @SehatakPlatform
+- YouTube : SehatakPlatform
+- TikTok : @SehatakPlatform
+- LinkedIn : /Sehatak
+
+**4. Adresse postale :**
+- Sanaa, République du Yémen.
+- Boîte postale : 12345.
+- Rue Al-Zubairi – Bâtiment Sehatak.
+- Troisième étage – Unité 301.
+- Code postal : 9671.
+
+**5. Formulaire de contact :**
+- Utilisez le formulaire de contact intégré à l’application.
+- Une réponse sera fournie dans les 24 heures.
+- Pour les cas urgents, appelez-nous.
+- Vous pouvez joindre des fichiers au formulaire.
+
+**6. Heures d’ouverture :**
+- Dimanche–jeudi : 8 h 00 – 22 h 00.
+- Vendredi et samedi : 10 h 00 – 20 h 00.
+- Jours fériés : 10 h 00 – 18 h 00.
+- Les horaires peuvent changer pendant le Ramadan et les fêtes.
+
+**7. Réclamations et suggestions :**
+- Nous accueillons vos commentaires et suggestions.
+- Les réclamations sont traitées de manière confidentielle.
+- Nous nous efforçons de résoudre les problèmes rapidement.
+- Vous serez informé du résultat.
+
+**8. Assistance technique :**
+- L’assistance technique est disponible 24 heures sur 24.
+- Nous traitons rapidement les problèmes et demandes.
+- Nous aidons les utilisateurs à utiliser la plateforme.
+- Nous assurons le suivi jusqu’à la résolution des dossiers.
+
+**9. Médias et partenariats :**
+- Médias : media@sehatak.com
+- Partenariats : partners@sehatak.com
+- Investissement : invest@sehatak.com
+- Recrutement : careers@sehatak.com
+
+**10. Retours d’expérience :**
+- Nous accordons de l’importance aux retours des utilisateurs.
+- Nous les utilisons pour améliorer nos services.
+- Vous pouvez envoyer vos commentaires à tout moment.
+- Une réponse sera fournie dans les 48 heures.'''],
       '3': [
 '''These Terms and Conditions constitute a legally binding agreement between you and the Sehatak platform. By using the platform, you fully and unconditionally agree to comply with all provisions of this document.
 
