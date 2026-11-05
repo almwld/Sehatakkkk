@@ -1,9 +1,11 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class GeneticCounselingScreen extends StatelessWidget {
   const GeneticCounselingScreen({super.key});
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
   final List<Map<String, String>> _services = const [
     {'name': 'فحص ما قبل الزواج', 'desc': 'فحص شامل للأمراض الوراثية', 'price': '500', 'icon': '💑'},
@@ -16,15 +18,16 @@ class GeneticCounselingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('الاستشارات الوراثية', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_t(context, 'الاستشارات الوراثية'), style: const TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.indigo.shade400, Colors.indigo.shade700]), borderRadius: BorderRadius.circular(16)),
-            child: const Column(children: [Text('🧬', style: TextStyle(fontSize: 48)), SizedBox(height: 8), Text('الاستشارات الوراثية', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text('فحوصات متقدمة للكشف عن الأمراض الوراثية', style: TextStyle(color: Colors.white70, fontSize: 12))]),
+            child: Column(children: [const Text('🧬', style: TextStyle(fontSize: 48)), const SizedBox(height: 8), Text(_t(context, 'الاستشارات الوراثية'), style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text(_t(context, 'فحوصات متقدمة للكشف عن الأمراض الوراثية'), style: const TextStyle(color: Colors.white70, fontSize: 12))]),
           ),
           const SizedBox(height: 16),
           ..._services.map((s) => Container(
@@ -34,8 +37,8 @@ class GeneticCounselingScreen extends StatelessWidget {
             child: Row(children: [
               Text(s['icon']!, style: const TextStyle(fontSize: 36)),
               const SizedBox(width: 12),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(s['name']!, style: const TextStyle(fontWeight: FontWeight.bold)), Text(s['desc']!, style: const TextStyle(fontSize: 10, color: AppColors.grey))])),
-              Column(children: [Text('${s['price']} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)), const SizedBox(height: 6), ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.indigo, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5), minimumSize: Size.zero), child: const Text('احجز', style: TextStyle(fontSize: 10)))]),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(context, s['name']!), style: const TextStyle(fontWeight: FontWeight.bold)), Text(_t(context, s['desc']!), style: const TextStyle(fontSize: 10, color: AppColors.grey))])),
+              Column(children: [Text(strings.formatCurrency(num.tryParse(s['price']!) ?? 0), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)), const SizedBox(height: 6), ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.indigo, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5), minimumSize: Size.zero), child: Text(_t(context, 'احجز'), style: const TextStyle(fontSize: 10)))]),
             ]),
           )),
         ]),
