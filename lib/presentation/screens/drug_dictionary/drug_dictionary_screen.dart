@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
@@ -32,11 +33,11 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
     final filtered = _query.isEmpty ? _drugs : _drugs.where((d) => d['name']!.contains(_query) || d['cat']!.contains(_query)).toList();
 
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('قاموس الأدوية', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_localizedUiText(context, 'قاموس الأدوية'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.all(12),
-          child: UnifiedSearchBar(onChanged: (v) => setState(() => _query = v), hintText: 'ابحث عن دواء...'),
+          child: UnifiedSearchBar(onChanged: (v) => setState(() => _query = v), hintText: _localizedUiText(context, 'ابحث عن دواء...')),
         ),
         Expanded(
           child: ListView.builder(padding: const EdgeInsets.symmetric(horizontal: 12), itemCount: filtered.length, itemBuilder: (ctx, i) {
@@ -50,8 +51,8 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(d['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   Text(d['cat']!, style: TextStyle(fontSize: 10, color: AppColors.primary)),
-                  Text('الجرعة: ${d['dose']}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-                  Text('الحمل: ${d['preg']}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+                  Text('${_localizedUiText(context, 'الجرعة: ')}${_localizedUiText(context, d['dose']?.toString() ?? '')}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+                  Text('${_localizedUiText(context, 'الحمل: ')}${_localizedUiText(context, d['preg']?.toString() ?? '')}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
                 ])),
               ]),
             );
@@ -61,3 +62,7 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

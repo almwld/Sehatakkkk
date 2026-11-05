@@ -75,7 +75,7 @@ class MedicalDocumentService {
             pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children:[
               pw.Text(doctorName, style: pw.TextStyle(font:bold,fontSize:14)),
               pw.Text(specialty, style: pw.TextStyle(font:regular,fontSize:10)),
-              if (license.isNotEmpty) pw.Text('ترخيص: $license', style: pw.TextStyle(font:regular,fontSize:8)),
+              if (license.isNotEmpty) pw.Text('ترخيص / License / Licence: $license', style: pw.TextStyle(font:regular,fontSize:8)),
             ])),
             pw.Expanded(child: pw.Column(children:[
               pw.Text('صحتك', style: pw.TextStyle(font:bold,fontSize:25,color:PdfColors.teal)),
@@ -137,6 +137,6 @@ class MedicalDocumentService {
   Future<void> createServiceRequest({required String documentId,required String type,required String patientId,required String mode,String? facilityId,String? facilityName}) async {
     final ref=_db.collection('medical_requests').doc();await ref.set({'requestId':ref.id,'documentId':documentId,'type':type,'patientId':patientId,'doctorId':_auth.currentUser?.uid,'mode':mode,'facilityId':facilityId,'facilityName':facilityName,'status':'pending','createdAt':FieldValue.serverTimestamp()});
   }
-  Future<void> shareFile(File file) async => Share.shareXFiles([XFile(file.path)],text:'مستند طبي من منصة صحتك');
+  Future<void> shareFile(File file) async => Share.shareXFiles([XFile(file.path)],text:'مستند طبي من منصة صحتك | Medical document from Sehatak | Document médical de Sehatak');
   Future<void> printFile(File file) async => Printing.sharePdf(bytes:await file.readAsBytes(),filename:p.basename(file.path));
 }

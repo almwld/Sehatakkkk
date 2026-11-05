@@ -14,7 +14,7 @@ class DentalClinicDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.of(context).translate('تفاصيل عيادة الأسنان'))),
+      appBar: AppBar(title: Text(_localizedUiText(context, 'تفاصيل عيادة الأسنان'))),
       body: FutureBuilder<DentalClinic?>(
         future: DentalService().getClinic(clinicId),
         builder: (context, snapshot) {
@@ -24,7 +24,7 @@ class DentalClinicDetailScreen extends StatelessWidget {
 
           final clinic = snapshot.data;
           if (clinic == null) {
-            return Center(child: Text(AppStrings.of(context).translate('العيادة غير متوفرة')));
+            return Center(child: Text(_localizedUiText(context, 'العيادة غير متوفرة')));
           }
 
           return ListView(
@@ -38,9 +38,9 @@ class DentalClinicDetailScreen extends StatelessWidget {
                 ),
               ),
               Text(clinic.address),
-              Text('${AppStrings.of(context).translate('الهاتف:')} ${clinic.phone}'),
-              Text('${AppStrings.of(context).translate('التقييم:')} ${clinic.rating.toStringAsFixed(1)}'),
-              Text(AppStrings.of(context).translate(clinic.isOpen ? 'مفتوح الآن' : 'مغلق الآن')),
+              Text('${_localizedUiText(context, 'الهاتف: ')}${clinic.phone}'),
+              Text('${_localizedUiText(context, 'التقييم: ')}${clinic.rating.toStringAsFixed(1)}'),
+              Text(_localizedUiText(context, clinic.isOpen ? 'مفتوح الآن' : 'مغلق الآن')),
             ],
           );
         },
@@ -48,3 +48,7 @@ class DentalClinicDetailScreen extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

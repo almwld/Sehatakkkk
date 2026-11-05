@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -26,7 +27,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('النظام الغذائي', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_localizedUiText(context, 'النظام الغذائي'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
         actions: [
@@ -90,9 +91,9 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 14),
-            child: Text('وجبات اليوم', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            child: Text(_localizedUiText(context, 'وجبات اليوم'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 10),
           Expanded(
@@ -169,7 +170,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
                   color: color,
                 ),
               ),
-              const Text('سعرة', style: TextStyle(fontSize: 9, color: AppColors.grey)),
+              Text(_localizedUiText(context, 'سعرة'), style: TextStyle(fontSize: 9, color: AppColors.grey)),
             ],
           ),
         ],
@@ -177,3 +178,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class PatientMedicalHistory extends StatefulWidget {
@@ -43,7 +44,7 @@ class _PatientMedicalHistoryState extends State<PatientMedicalHistory> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('التحاليل والأشعة'),
+        title: Text(_localizedUiText(context, 'التحاليل والأشعة')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -140,3 +141,7 @@ class _PatientMedicalHistoryState extends State<PatientMedicalHistory> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

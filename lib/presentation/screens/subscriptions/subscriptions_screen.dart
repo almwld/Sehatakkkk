@@ -47,7 +47,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen>{
       body:ListView(padding:const EdgeInsets.fromLTRB(16,10,16,30),children:[
         Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:const LinearGradient(colors:[AppColors.primary,AppColors.primaryDark]),borderRadius:BorderRadius.circular(28)),child:Row(children:[
           Container(width:58,height:58,decoration:BoxDecoration(color:Colors.white.withOpacity(.14),shape:BoxShape.circle),child:Image.asset('assets/images/services/packages.webp',width:34,height:34,errorBuilder:(_,__,___)=>const Icon(Icons.workspace_premium_outlined,color:Colors.white,size:32))),
-          const SizedBox(width:14),const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('خطتك الصحية تبدأ من هنا',style:TextStyle(color:Colors.white,fontSize:20,fontWeight:FontWeight.w900)),SizedBox(height:5),Text('اختر الباقة، راجع التفاصيل، وادفع بأمان من محفظة صحتك.',style:TextStyle(color:Colors.white70,height:1.4))]))
+          const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(_t('خطتك الصحية تبدأ من هنا'),style:TextStyle(color:Colors.white,fontSize:20,fontWeight:FontWeight.w900)),SizedBox(height:5),Text(_t('اختر الباقة، راجع التفاصيل، وادفع بأمان من محفظة صحتك.'),style:TextStyle(color:Colors.white70,height:1.4))]))
         ])),
         const SizedBox(height:18),
         Container(padding:const EdgeInsets.all(5),decoration:BoxDecoration(color:dark?const Color(0xFF16252C):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(children:[
@@ -57,7 +57,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen>{
         const SizedBox(height:16),
         ...plans.map((p)=>_card(p,dark)),
         const SizedBox(height:10),
-        Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:dark?const Color(0xFF16252C):Colors.white,borderRadius:BorderRadius.circular(16)),child:const Row(children:[Icon(Icons.verified_user_outlined,color:AppColors.primary),SizedBox(width:10),Expanded(child:Text('الدفع يتم عبر الخادم الموثوق، ويُخصم من رصيد محفظتك فقط بعد التحقق من الرصيد وإنشاء المعاملة والفاتورة.'))]))
+        Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:dark?const Color(0xFF16252C):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(children:[Icon(Icons.verified_user_outlined,color:AppColors.primary),SizedBox(width:10),Expanded(child:Text(_t('الدفع يتم عبر الخادم الموثوق، ويُخصم من رصيد محفظتك فقط بعد التحقق من الرصيد وإنشاء المعاملة والفاتورة.')))]))
       ]));
   }
 
@@ -82,8 +82,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen>{
           if (featured) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: AppColors.primary.withOpacity(.1), borderRadius: BorderRadius.circular(10)), child: Text(_t('مميزة'), style: TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w800))),
         ]),
         const SizedBox(height: 14),
-        Text(price == 0 ? 'مجاناً' : '${_money(price)} ر.ي', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900, color: AppColors.primary)),
-        if (price > 0) Text(_annual ? 'للسنة كاملة' : 'لكل شهر', style: TextStyle(fontSize: 11, color: dark ? Colors.white54 : Colors.black45)),
+        Text(price == 0 ? _t('مجاناً') : '${_money(price)} ${_t('ر.ي')}', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900, color: AppColors.primary)),
+        if (price > 0) Text(_t(_annual ? 'للسنة كاملة' : 'لكل شهر'), style: TextStyle(fontSize: 11, color: dark ? Colors.white54 : Colors.black45)),
         const SizedBox(height: 10),
         ...p.$6.map((f) => Padding(padding: const EdgeInsets.only(bottom: 5), child: Row(children: [
           const Icon(Icons.check_circle_outline, color: AppColors.primary, size: 17), const SizedBox(width: 7), Expanded(child: Text(_t(f), style: const TextStyle(fontSize: 12))),

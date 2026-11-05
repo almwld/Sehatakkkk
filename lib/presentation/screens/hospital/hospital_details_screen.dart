@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
@@ -124,13 +125,13 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                       // حجز موعد
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('جاري حجز موعد...'),
+                          content: Text(_localizedUiText(context, 'جاري حجز موعد...')),
                           backgroundColor: AppColors.primary,
                         ),
                       );
                     },
                     icon: const Icon(Icons.calendar_today),
-                    label: const Text('حجز موعد'),
+                    label: Text(_localizedUiText(context, 'حجز موعد')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -152,7 +153,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                       }
                     },
                     icon: const Icon(Icons.phone),
-                    label: const Text('اتصال'),
+                    label: Text(_localizedUiText(context, 'اتصال')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -198,3 +199,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

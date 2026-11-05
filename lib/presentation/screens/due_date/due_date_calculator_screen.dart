@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -35,11 +36,11 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.pink.shade300, Colors.purple.shade400]), borderRadius: BorderRadius.circular(16)),
-            child: Column(children: [const Icon(Icons.cake, color: Colors.white, size: 40), const SizedBox(height: 8), const Text('حاسبة موعد الولادة', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), const Text('أدخلي تاريخ آخر دورة شهرية', style: TextStyle(color: Colors.white70, fontSize: 12))]),
+            child: Column(children: [const Icon(Icons.cake, color: Colors.white, size: 40), const SizedBox(height: 8), Text(_localizedUiText(context, 'حاسبة موعد الولادة'), style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text(_localizedUiText(context, 'أدخلي تاريخ آخر دورة شهرية'), style: TextStyle(color: Colors.white70, fontSize: 12))]),
           ),
           const SizedBox(height: 18),
           ListTile(
-            title: const Text('تاريخ آخر دورة'),
+            title: Text(_localizedUiText(context, 'تاريخ آخر دورة')),
             subtitle: Text(_lastPeriod != null ? '${_lastPeriod!.day}/${_lastPeriod!.month}/${_lastPeriod!.year}' : 'اضغطي للاختيار'),
             leading: const Icon(Icons.calendar_today, color: AppColors.primary),
             onTap: () async {
@@ -53,7 +54,7 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primary.withOpacity(0.2))),
               child: Column(children: [
-                const Text('🎉 الموعد المتوقع', style: TextStyle(color: AppColors.grey, fontSize: 14)),
+                Text(_localizedUiText(context, '🎉 الموعد المتوقع'), style: TextStyle(color: AppColors.grey, fontSize: 14)),
                 const SizedBox(height: 6),
                 Text('${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.primary)),
               ]),
@@ -78,3 +79,7 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

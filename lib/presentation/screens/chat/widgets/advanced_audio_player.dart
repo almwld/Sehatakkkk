@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
@@ -116,7 +117,7 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.error_outline_rounded, color: _foreground, size: 18),
           const SizedBox(width: 7),
-          Text('تعذر تشغيل التسجيل', style: TextStyle(color: _foreground, fontSize: 12)),
+          Text(_localizedUiText(context, 'تعذر تشغيل التسجيل'), style: TextStyle(color: _foreground, fontSize: 12)),
         ]),
       );
     }
@@ -297,3 +298,7 @@ class _VoiceWaveformPainter extends CustomPainter {
       oldDelegate.muted != muted ||
       oldDelegate.seed != seed;
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -174,7 +175,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('التقدم', style: TextStyle(fontSize: 12, color: AppColors.grey)),
+                      Text(_localizedUiText(context, 'التقدم'), style: TextStyle(fontSize: 12, color: AppColors.grey)),
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -219,7 +220,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                     ToastService.showSuccess(context, '✅ انضممت إلى تحدي ${challenge['title']}');
                   },
                   icon: const Icon(Icons.play_arrow_rounded),
-                  label: const Text('انضم إلى التحدي'),
+                  label: Text(_localizedUiText(context, 'انضم إلى التحدي')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -233,7 +234,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.emoji_events_rounded),
-                  label: const Text('تهانينا! 🎉'),
+                  label: Text(_localizedUiText(context, 'تهانينا! 🎉')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.success,
                     foregroundColor: Colors.white,
@@ -247,7 +248,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إغلاق'),
+                child: Text(_localizedUiText(context, 'إغلاق')),
               ),
             ),
           ],
@@ -302,7 +303,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: const Text('التحديات الصحية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_localizedUiText(context, 'التحديات الصحية'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -431,16 +432,14 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'لا توجد تحديات',
+          Text(_localizedUiText(context, 'لا توجد تحديات'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            'ترقب التحديات الجديدة قريباً',
+          Text(_localizedUiText(context, 'ترقب التحديات الجديدة قريباً'),
             style: TextStyle(
               fontSize: 14,
               color: AppColors.grey,
@@ -594,3 +593,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

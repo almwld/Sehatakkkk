@@ -1,4 +1,5 @@
 // ============================================================
+import 'package:sehatak/core/localization/app_strings.dart';
 // 📁 lib/presentation/widgets/educational/animated_tutorial_widget.dart
 // 🎨 ويدجت التعليم التفاعلي المتحرك
 // ============================================================
@@ -177,8 +178,7 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
                                   color: widget.primaryColor.withOpacity(0.5),
                                 ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  'رسوم متحركة',
+                                Text(_localizedUiText(context, 'رسوم متحركة'),
                                   style: TextStyle(
                                     color: widget.primaryColor,
                                     fontSize: 12,
@@ -303,7 +303,7 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
                         child: OutlinedButton.icon(
                           onPressed: _previousStep,
                           icon: const Icon(Icons.arrow_back, size: 18),
-                          label: const Text('السابق'),
+                          label: Text(_localizedUiText(context, 'السابق')),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: widget.primaryColor,
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -348,3 +348,7 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

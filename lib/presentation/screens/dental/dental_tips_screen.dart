@@ -7,7 +7,7 @@ class DentalTipsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.of(context).translate('نصائح صحة الأسنان'))),
+      appBar: AppBar(title: Text(_localizedUiText(context, 'نصائح صحة الأسنان'))),
       body: StreamBuilder(
         stream: DentalService().streamTips(limit: 30),
         builder: (context, snapshot) {
@@ -28,3 +28,7 @@ class DentalTipsScreen extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

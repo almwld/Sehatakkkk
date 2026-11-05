@@ -25,7 +25,7 @@ class DentalDoctorsScreen extends StatelessWidget {
                 child: ListTile(
                   onTap: () => context.push(AppRouter.dentalDoctorDetail.replaceFirst(':id', doctor.id)),
                   title: Text(doctor.name),
-                  subtitle: Text('${doctor.specialty} • ${doctor.experienceYears} ${AppStrings.of(context).translate('سنوات خبرة')}'),
+                  subtitle: Text('${AppStrings.of(context).translate(doctor.specialty)} • ${doctor.experienceYears} ${AppStrings.of(context).translate('سنوات خبرة')}'),
                   trailing: Text('★${doctor.rating.toStringAsFixed(1)}'),
                 ),
               );

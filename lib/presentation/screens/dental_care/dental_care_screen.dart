@@ -26,7 +26,7 @@ class DentalCareScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF4F6F7),
-      appBar: AppBar(title: Text(AppStrings.of(context).translate('صحة الأسنان')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
+      appBar: AppBar(title: Text(_localizedUiText(context, 'صحة الأسنان')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -41,9 +41,9 @@ class DentalCareScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(AppStrings.of(context).translate('رعاية الأسنان'), style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)),
+                      Text(_localizedUiText(context, 'رعاية الأسنان'), style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold)),
                       SizedBox(height: 5),
-                      Text(AppStrings.of(context).translate('اختر الخدمة للاطلاع على التفاصيل ثم الانتقال للحجز.'), style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4)),
+                      Text(_localizedUiText(context, 'اختر الخدمة للاطلاع على التفاصيل ثم الانتقال للحجز.'), style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4)),
                     ],
                   ),
                 ),
@@ -51,7 +51,7 @@ class DentalCareScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Text(AppStrings.of(context).translate('الخدمات'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(_localizedUiText(context, 'الخدمات'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           ..._services.map((service) {
             return Card(
@@ -75,9 +75,9 @@ class DentalCareScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(AppStrings.of(context).translate(service['name'] as String), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            Text(service['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                             const SizedBox(height: 4),
-                            Text(AppStrings.of(context).translate(service['description'] as String), style: TextStyle(fontSize: 11, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
+                            Text(service['description'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
                           ],
                         ),
                       ),
@@ -94,7 +94,7 @@ class DentalCareScreen extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorsListScreen())),
               icon: const Icon(Icons.person_search_rounded),
-              label: Text(AppStrings.of(context).translate('عرض أطباء الأسنان والحجز')),
+              label: Text(_localizedUiText(context, 'عرض أطباء الأسنان والحجز')),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
             ),
           ),
@@ -113,7 +113,7 @@ class DentalServiceDetailsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF4F6F7),
-      appBar: AppBar(title: Text(AppStrings.of(context).translate(service['name'] as String)), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(service['name'] as String), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -125,9 +125,9 @@ class DentalServiceDetailsScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(radius: 34, backgroundColor: AppColors.primary.withOpacity(.10), child: Icon(service['icon'] as IconData, color: AppColors.primary, size: 34)),
                   const SizedBox(height: 16),
-                  Text(AppStrings.of(context).translate(service['name'] as String), textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                  Text(service['name'] as String, textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
-                  Text(AppStrings.of(context).translate(service['description'] as String), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)),
+                  Text(service['description'] as String, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)),
                 ],
               ),
             ),
@@ -137,7 +137,7 @@ class DentalServiceDetailsScreen extends StatelessWidget {
             elevation: 0,
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(AppStrings.of(context).translate('الخدمة تحتاج إلى تقييم طبيب الأسنان لتحديد الإجراء والموعد المناسب. الأسعار والمواعيد تُحدد حسب الطبيب والعيادة المتاحة.'), style: TextStyle(fontSize: 13, height: 1.5)),
+              child: Text(_localizedUiText(context, 'الخدمة تحتاج إلى تقييم طبيب الأسنان لتحديد الإجراء والموعد المناسب. الأسعار والمواعيد تُحدد حسب الطبيب والعيادة المتاحة.'), style: TextStyle(fontSize: 13, height: 1.5)),
             ),
           ),
           const SizedBox(height: 14),
@@ -146,7 +146,7 @@ class DentalServiceDetailsScreen extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorsListScreen())),
               icon: const Icon(Icons.calendar_month_rounded),
-              label: Text(AppStrings.of(context).translate('اختيار طبيب وبدء الحجز')),
+              label: Text(_localizedUiText(context, 'اختيار طبيب وبدء الحجز')),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
             ),
           ),
@@ -155,3 +155,7 @@ class DentalServiceDetailsScreen extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);

@@ -281,22 +281,22 @@ class _TourBubble extends StatelessWidget {
               Row(children: [
                 Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: step.accentColor.withOpacity(.15), shape: BoxShape.circle), child: Text(step.emoji, style: const TextStyle(fontSize: 22))),
                 const SizedBox(width: 10),
-                Expanded(child: Text(step.title, style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900))),
+                Expanded(child: Text(_localizedUiText(context, step.title), style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900))),
               ]),
               const SizedBox(height: 12),
-              Text(step.description, textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6)),
+              Text(_localizedUiText(context, step.description), textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6)),
               if (step.actionHint != null) ...[
                 const SizedBox(height: 10),
-                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.09), borderRadius: BorderRadius.circular(10)), child: Text(step.actionHint!, textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.09), borderRadius: BorderRadius.circular(10)), child: Text(_localizedUiText(context, step.actionHint!), textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
               ],
               const Spacer(),
-              Row(children: [TextButton(onPressed: onSkip, child: const Text('تخطي')), const Spacer(), Text('${index + 1}/$total', style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.black54))]),
+              Row(children: [TextButton(onPressed: onSkip, child: Text(_localizedUiText(context, 'تخطي'))), const Spacer(), Text('${index + 1}/$total', style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.black54))]),
               Row(children: [
                 if (index > 0) ...[
-                  OutlinedButton(onPressed: onPrevious, child: const Text('السابق')),
+                  OutlinedButton(onPressed: onPrevious, child: Text(_localizedUiText(context, 'السابق'))),
                   const SizedBox(width: 8),
                 ],
-                Expanded(child: FilledButton(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor, foregroundColor: Colors.white), child: Text(index == total - 1 ? 'تم' : 'التالي'))),
+                Expanded(child: FilledButton(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor, foregroundColor: Colors.white), child: Text(_localizedUiText(context, index == total - 1 ? 'تم' : 'التالي')))),
               ]),
             ],
           ),
@@ -332,3 +332,7 @@ class _PulsePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _PulsePainter old) => old.value != value || old.color != color;
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
