@@ -334,7 +334,7 @@ class _TooltipBubble extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  step.actionHint!,
+                  _localizedUiText(context, step.actionHint!),
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     color: step.accentColor,
