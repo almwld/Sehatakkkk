@@ -207,6 +207,596 @@ Nous vous recommandons de lire attentivement ces conditions avant d’utiliser l
 « Antécédents médicaux » : dossier complet de l’état de santé du patient.
 « Dossier de santé » : dossier complet contenant toutes les informations de santé du patient.'''
       ],
+      '4': [
+'''Sehatak provides a comprehensive range of digital healthcare services designed to meet users’ needs at every stage of care:
+
+**Service 1: Medical appointment booking**
+- Book appointments with doctors across more than 30 medical specialties.
+- Choose a suitable doctor based on specialty, rating, location, and availability.
+- View each doctor’s available working hours.
+- Receive appointment reminders through app notifications and email.
+- Easily cancel or reschedule appointments.
+- View a complete history of past and upcoming appointments.
+- Rate doctors after each appointment.
+- Share appointments with family members.
+
+**Service 2: Remote medical consultations**
+- Medical consultations through high-quality video calls.
+- Voice and text consultations with doctors.
+- Share medical files and images with the doctor.
+- Receive electronic prescriptions.
+- Regularly follow up on your health condition.
+- Obtain immediate consultations for non-emergency cases.
+- Access specialist consultations across medical fields.
+- Request a second medical opinion.
+
+**Service 3: Ordering medicines from pharmacies**
+- Browse medicines available at nearby pharmacies.
+- Search by medicine name, active ingredient, or category.
+- Easily order medicines through the app.
+- Have medicines delivered to your home in less than two hours.
+- Receive reminders about medicine-taking times.
+- Manage your personal medicine list.
+- Check medicine availability before ordering.
+- View available alternatives when a medicine is unavailable.
+
+**Service 4: Personal health-record management**
+- Store the user’s complete medical history.
+- Track tests and laboratory results.
+- Manage current and previous medicines and treatments.
+- Easily share the health record with doctors.
+- Add daily health notes.
+- Track weight, blood pressure, blood glucose, and other indicators.
+- Receive periodic health reports.
+- Export the health record in multiple formats.
+
+**Service 5: Medical laboratories**
+- Book laboratory tests at accredited laboratories.
+- Receive test results through the app as soon as they are available.
+- Track test status in real time.
+- Compare results with previous tests.
+- Have results interpreted by specialist doctors.
+- Receive reminders for required routine tests.
+- Request home sample collection.
+
+**Service 6: Delivery services**
+- Deliver medicines and medical supplies to your home.
+- Transport laboratory samples to and from your home.
+- Track order status in real time.
+- Receive notifications when delivery starts and when it arrives.
+- Rate the delivery service.
+- Track the courier’s location on a map.
+
+**Service 7: Digital wallet**
+- Pay medical-service bills electronically.
+- Manage payments and subscriptions.
+- Track financial transactions.
+- Add multiple credit cards.
+- Access special discounts and offers.
+- Manage your healthcare budget.
+
+**Service 8: Health education**
+- Read reliable health articles from approved sources.
+- Receive daily health-care tips.
+- Watch educational videos by specialist doctors.
+- Get disease-prevention guidance.
+- Find information about medicines and treatments.
+- Explore regularly updated health topics.
+
+**Service 9: Health community**
+- Participate in forums for user discussions.
+- Exchange healthcare experiences.
+- Provide social support among patients.
+- Join support groups for chronic conditions.
+- Share health achievements.
+- Receive advice from health experts.
+
+**Service 10: Customer service**
+- Technical support around the clock.
+- Prompt resolution of problems and enquiries.
+- Help with using the platform.
+- Receive complaints and suggestions.
+- Follow up on cases until they are resolved.
+- Communicate through multiple channels.''',
+'''Sehatak propose une gamme complète de services de santé numériques conçus pour répondre aux besoins des utilisateurs à chaque étape des soins.
+
+**Service 1 : Prise de rendez-vous médicaux**
+- Prendre rendez-vous avec des médecins dans plus de 30 spécialités.
+- Choisir un médecin selon sa spécialité, son évaluation, sa localisation et ses disponibilités.
+- Consulter les horaires de travail disponibles de chaque médecin.
+- Recevoir des rappels par notifications de l’application et par e-mail.
+- Annuler ou modifier facilement les rendez-vous.
+- Consulter l’historique complet des rendez-vous passés et à venir.
+- Évaluer les médecins après chaque rendez-vous.
+- Partager les rendez-vous avec les membres de la famille.
+
+**Service 2 : Consultations médicales à distance**
+- Consultations médicales par appels vidéo de haute qualité.
+- Consultations vocales et textuelles avec les médecins.
+- Partager des dossiers et images médicaux avec le médecin.
+- Recevoir des prescriptions électroniques.
+- Assurer un suivi régulier de son état de santé.
+- Obtenir des consultations rapides pour les situations non urgentes.
+- Accéder à des consultations spécialisées dans tous les domaines.
+- Demander un deuxième avis médical.
+
+**Service 3 : Commande de médicaments auprès des pharmacies**
+- Parcourir les médicaments disponibles dans les pharmacies proches.
+- Rechercher par nom, principe actif ou catégorie.
+- Commander facilement des médicaments via l’application.
+- Faire livrer les médicaments à domicile en moins de deux heures.
+- Recevoir des rappels concernant les prises de médicaments.
+- Gérer sa liste personnelle de médicaments.
+- Vérifier la disponibilité avant de commander.
+- Consulter les alternatives disponibles lorsqu’un médicament est indisponible.
+
+**Service 4 : Gestion du dossier de santé personnel**
+- Enregistrer l’historique médical complet de l’utilisateur.
+- Suivre les examens et les résultats de laboratoire.
+- Gérer les médicaments et traitements actuels et antérieurs.
+- Partager facilement le dossier de santé avec les médecins.
+- Ajouter des notes de santé quotidiennes.
+- Suivre le poids, la tension artérielle, la glycémie et d’autres indicateurs.
+- Recevoir des rapports de santé périodiques.
+- Exporter le dossier de santé dans plusieurs formats.
+
+**Service 5 : Laboratoires médicaux**
+- Réserver des examens dans des laboratoires agréés.
+- Recevoir les résultats dans l’application dès leur disponibilité.
+- Suivre l’état des examens en temps réel.
+- Comparer les résultats avec les examens précédents.
+- Faire interpréter les résultats par des médecins spécialistes.
+- Recevoir des rappels pour les examens périodiques nécessaires.
+- Demander le prélèvement d’échantillons à domicile.
+
+**Service 6 : Services de livraison**
+- Faire livrer à domicile des médicaments et fournitures médicales.
+- Transporter les échantillons de laboratoire depuis et vers le domicile.
+- Suivre l’état de la commande en temps réel.
+- Recevoir des notifications au départ de la livraison et à son arrivée.
+- Évaluer le service de livraison.
+- Suivre la position du livreur sur une carte.
+
+**Service 7 : Portefeuille numérique**
+- Payer électroniquement les factures de services médicaux.
+- Gérer les paiements et les abonnements.
+- Suivre les transactions financières.
+- Ajouter plusieurs cartes de crédit.
+- Bénéficier de réductions et d’offres spéciales.
+- Gérer son budget de santé.
+
+**Service 8 : Éducation à la santé**
+- Lire des articles de santé fiables provenant de sources agréées.
+- Recevoir des conseils quotidiens pour prendre soin de sa santé.
+- Regarder des vidéos éducatives réalisées par des médecins spécialistes.
+- Consulter des conseils de prévention des maladies.
+- Trouver des informations sur les médicaments et les traitements.
+- Découvrir des sujets de santé régulièrement actualisés.
+
+**Service 9 : Communauté de santé**
+- Participer à des forums de discussion entre utilisateurs.
+- Échanger des expériences en matière de santé.
+- Bénéficier d’un soutien social entre patients.
+- Rejoindre des groupes de soutien pour les maladies chroniques.
+- Partager des réussites liées à la santé.
+- Obtenir des conseils d’experts de la santé.
+
+**Service 10 : Service clientèle**
+- Assistance technique 24 heures sur 24.
+- Résolution rapide des problèmes et demandes.
+- Aide à l’utilisation de la plateforme.
+- Réception des réclamations et suggestions.
+- Suivi des dossiers jusqu’à leur résolution.
+- Plusieurs canaux de communication.'''],
+      '5': [
+'''**Creating an account:**
+To use Sehatak’s services, you must create a personal account. By creating your account, you agree to the following:
+
+1. **Eligibility:**
+   - You must be at least 18 years old.
+   - If you are under 18, you must obtain parental or guardian consent.
+   - You must have the legal capacity to enter into contracts.
+
+2. **Information provided:**
+   - Provide accurate and complete information during registration.
+   - Update your information periodically to keep it accurate.
+   - Do not impersonate others or use false information.
+   - Provide a valid email address and telephone number.
+
+3. **Login credentials:**
+   - Choose a strong password of at least 8 characters.
+   - Do not share your password with anyone.
+   - Change your password periodically (preferably every 90 days).
+   - Use two-factor authentication (2FA) to protect your account.
+
+4. **Consent to communications:**
+   - Agree to receive email messages and notifications.
+   - Agree to receive marketing messages (you may opt out).
+   - Provide a valid telephone number to receive text messages.
+
+**Account management:**
+
+1. **Updating information:**
+   - You may update your personal information at any time.
+   - You must notify us of any change to your contact details.
+   - We reserve the right to request verification of the information provided.
+
+2. **Privacy:**
+   - You can control your privacy settings.
+   - You can choose who can see your personal information.
+   - You can hide your health information from other users.
+
+3. **Security:**
+   - You are responsible for all activity carried out through your account.
+   - You must notify us immediately of any unauthorized use.
+   - If account compromise is suspected, the account will be suspended immediately.
+
+4. **Multiple accounts:**
+   - One person may not create more than one account.
+   - Multiple accounts may result in the suspension of all accounts.
+   - Multiple accounts may be approved in special circumstances.
+
+**Account cancellation:**
+
+1. **Request:**
+   - You may cancel your account at any time.
+   - The account is cancelled immediately after confirmation.
+   - The account may be restored within 30 days.
+
+2. **Data after cancellation:**
+   - Your data will be deleted within 30 days.
+   - We may retain certain data for legal purposes.
+   - You may request a copy of your data before cancellation.
+
+3. **Consequences:**
+   - All future appointments will be cancelled.
+   - All active subscriptions will be terminated.
+   - All rewards and loyalty points will be forfeited.
+   - Services will no longer be accessible.
+
+**Account suspension:**
+
+1. **Reasons:**
+   - Violation of the terms and conditions.
+   - Suspicious or unlawful activity.
+   - Failure to pay for services provided.
+   - A request from a legal authority.
+
+2. **Procedure:**
+   - You will be notified before suspension, except in emergencies.
+   - You may appeal the suspension decision.
+   - The case will be investigated within 48 hours.
+
+3. **Restoration:**
+   - The account may be restored after the issue is resolved.
+   - Restoration may require an additional fee.
+   - All data will be restored where possible.''',
+'''**Création d’un compte :**
+Pour bénéficier des services de Sehatak, vous devez créer un compte personnel. En créant votre compte, vous acceptez ce qui suit :
+
+1. **Éligibilité :**
+   - Vous devez avoir au moins 18 ans.
+   - Si vous avez moins de 18 ans, vous devez obtenir l’autorisation d’un parent ou tuteur.
+   - Vous devez avoir la capacité juridique de conclure des contrats.
+
+2. **Informations fournies :**
+   - Fournir des informations exactes et complètes lors de l’inscription.
+   - Mettre régulièrement vos informations à jour afin d’en garantir l’exactitude.
+   - Ne pas usurper l’identité d’autrui ni utiliser de fausses informations.
+   - Fournir une adresse e-mail et un numéro de téléphone valides.
+
+3. **Identifiants de connexion :**
+   - Choisir un mot de passe robuste d’au moins 8 caractères.
+   - Ne communiquer votre mot de passe à personne.
+   - Modifier régulièrement votre mot de passe (de préférence tous les 90 jours).
+   - Utiliser l’authentification à deux facteurs (2FA) pour protéger votre compte.
+
+4. **Consentement aux communications :**
+   - Accepter de recevoir des e-mails et des notifications.
+   - Accepter de recevoir des messages marketing (vous pouvez vous désabonner).
+   - Fournir un numéro de téléphone valide pour recevoir des SMS.
+
+**Gestion du compte :**
+
+1. **Mise à jour des informations :**
+   - Vous pouvez mettre à jour vos informations personnelles à tout moment.
+   - Vous devez nous informer de tout changement de vos coordonnées.
+   - Nous nous réservons le droit de demander la vérification des informations fournies.
+
+2. **Confidentialité :**
+   - Vous pouvez contrôler vos paramètres de confidentialité.
+   - Vous pouvez choisir qui peut voir vos informations personnelles.
+   - Vous pouvez masquer vos informations de santé aux autres utilisateurs.
+
+3. **Sécurité :**
+   - Vous êtes responsable de toutes les activités effectuées depuis votre compte.
+   - Vous devez nous informer immédiatement de toute utilisation non autorisée.
+   - En cas de suspicion de compromission, le compte sera immédiatement suspendu.
+
+4. **Comptes multiples :**
+   - Une même personne ne peut pas créer plusieurs comptes.
+   - La création de plusieurs comptes peut entraîner leur suspension à tous.
+   - Plusieurs comptes peuvent être autorisés dans des circonstances particulières.
+
+**Clôture du compte :**
+
+1. **Demande :**
+   - Vous pouvez clôturer votre compte à tout moment.
+   - Le compte est clôturé immédiatement après confirmation.
+   - Le compte peut être restauré dans un délai de 30 jours.
+
+2. **Données après la clôture :**
+   - Vos données seront supprimées dans un délai de 30 jours.
+   - Nous pouvons conserver certaines données à des fins légales.
+   - Vous pouvez demander une copie de vos données avant la clôture.
+
+3. **Conséquences :**
+   - Tous les rendez-vous futurs seront annulés.
+   - Tous les abonnements actifs seront résiliés.
+   - Toutes les récompenses et tous les points de fidélité seront perdus.
+   - Les services ne seront plus accessibles.
+
+**Suspension du compte :**
+
+1. **Motifs :**
+   - Violation des conditions générales.
+   - Activités suspectes ou illégales.
+   - Non-paiement des services fournis.
+   - Demande d’une autorité judiciaire.
+
+2. **Procédure :**
+   - Vous serez informé avant la suspension, sauf en cas d’urgence.
+   - Vous pouvez contester la décision de suspension.
+   - Le dossier fera l’objet d’une enquête dans les 48 heures.
+
+3. **Rétablissement :**
+   - Le compte peut être rétabli après résolution du problème.
+   - Le rétablissement peut nécessiter des frais supplémentaires.
+   - Toutes les données seront restaurées dans la mesure du possible.'''],
+      '6': [
+'''**Important warning:** The information and services provided on Sehatak are for educational and informational purposes only and are not a substitute for consultation with a qualified doctor.
+
+**1. No replacement for in-person medical care:**
+- Remote consultations do not replace a direct clinical examination.
+- A definitive diagnosis requires a physical examination, laboratory tests, and imaging.
+- You must visit a doctor in emergencies and for serious illnesses.
+- Do not rely on the application in situations requiring immediate medical intervention.
+
+**2. Accuracy of information:**
+- The information provided is for awareness and educational purposes only.
+- It may not be suitable for your individual health condition.
+- Always consult your doctor before making any health decision.
+- Information may contain errors or may not be up to date.
+
+**3. Prescriptions:**
+- Electronic prescriptions are preliminary recommendations only.
+- Obtain an original prescription from your doctor before purchasing medicines.
+- Some medicines require a paper prescription bearing the doctor’s stamp.
+- We are not responsible for medicine side effects.
+
+**4. Emergencies:**
+- In an emergency, call the local emergency number (199).
+- Do not rely on the application in emergency situations.
+- Go to the nearest hospital in critical cases.
+- Use the application only for non-emergency cases.
+
+**5. Personal responsibility:**
+- You alone are responsible for your healthcare decisions.
+- The platform accepts no responsibility for damage resulting from use of the information.
+- Always consult a specialist before making a health decision.
+- You must follow up on your health condition with your treating doctor.
+
+**6. Special circumstances:**
+- Pregnant women, children, and older adults require special care.
+- Do not use the application for critical or complex conditions.
+- Chronic diseases require regular medical follow-up.
+- Psychiatric medicines require a special prescription.
+
+**7. Vaccinations:**
+- Vaccine information is provided for awareness purposes.
+- Consult your doctor about vaccines suitable for you.
+- Some vaccines have specific contraindications.
+- Follow Ministry of Health instructions regarding vaccines.
+
+**8. Alternative and complementary medicine:**
+- We do not recommend using alternative medicine instead of conventional medicine.
+- Consult your doctor before using any alternative treatment.
+- Some alternative treatments may interact with medicines.
+- Be cautious of unverified information.
+
+**9. Self-diagnosis:**
+- Do not diagnose yourself using the application.
+- Self-diagnosis may lead to serious errors.
+- Consult your doctor to diagnose your condition.
+- Some symptoms may indicate serious diseases.
+
+**10. Reliance on others:**
+- Do not rely on the application to diagnose or treat other people.
+- Every person has an individual health condition.
+- What is suitable for one person may not be suitable for another.
+- Consult a doctor for each individual case.''',
+'''**Avertissement très important :** Les informations et services proposés sur Sehatak sont exclusivement destinés à l’éducation et à l’information. Ils ne remplacent pas une consultation auprès d’un médecin qualifié.
+
+**1. Les consultations à distance ne remplacent pas les soins en personne :**
+- Les consultations à distance ne remplacent pas un examen clinique direct.
+- Un diagnostic définitif nécessite un examen physique, des analyses de laboratoire et de l’imagerie.
+- Vous devez consulter un médecin en cas d’urgence ou de maladie grave.
+- Ne vous fiez pas à l’application dans les situations nécessitant une intervention médicale immédiate.
+
+**2. Exactitude des informations :**
+- Les informations fournies sont uniquement destinées à la sensibilisation et à l’éducation.
+- Elles peuvent ne pas convenir à votre état de santé particulier.
+- Consultez toujours votre médecin avant toute décision concernant votre santé.
+- Les informations peuvent contenir des erreurs ou ne pas être à jour.
+
+**3. Prescriptions médicales :**
+- Les prescriptions électroniques ne sont que des recommandations préliminaires.
+- Obtenez une ordonnance originale de votre médecin avant d’acheter des médicaments.
+- Certains médicaments nécessitent une ordonnance papier portant le cachet du médecin.
+- Nous ne sommes pas responsables des effets secondaires des médicaments.
+
+**4. Urgences :**
+- En cas d’urgence, appelez le numéro d’urgence local (199).
+- Ne vous fiez pas à l’application en situation d’urgence.
+- Rendez-vous à l’hôpital le plus proche dans les cas critiques.
+- Utilisez l’application uniquement pour les situations non urgentes.
+
+**5. Responsabilité personnelle :**
+- Vous êtes seul responsable de vos décisions en matière de santé.
+- La plateforme décline toute responsabilité pour les dommages résultant de l’utilisation des informations.
+- Consultez toujours un spécialiste avant toute décision de santé.
+- Vous devez assurer le suivi de votre état de santé avec votre médecin traitant.
+
+**6. Situations particulières :**
+- Les femmes enceintes, les enfants et les personnes âgées nécessitent des soins particuliers.
+- N’utilisez pas l’application pour les situations critiques ou complexes.
+- Les maladies chroniques nécessitent un suivi médical régulier.
+- Les médicaments psychiatriques nécessitent une prescription spéciale.
+
+**7. Vaccinations :**
+- Les informations sur les vaccins sont fournies à des fins de sensibilisation.
+- Consultez votre médecin au sujet des vaccins qui vous conviennent.
+- Certains vaccins présentent des contre-indications particulières.
+- Suivez les instructions du ministère de la Santé concernant les vaccins.
+
+**8. Médecines alternatives et complémentaires :**
+- Nous ne recommandons pas de remplacer la médecine conventionnelle par la médecine alternative.
+- Consultez votre médecin avant tout traitement alternatif.
+- Certains traitements alternatifs peuvent interagir avec des médicaments.
+- Méfiez-vous des informations non vérifiées.
+
+**9. Autodiagnostic :**
+- Ne vous diagnostiquez pas à l’aide de l’application.
+- L’autodiagnostic peut entraîner de graves erreurs.
+- Consultez votre médecin pour faire diagnostiquer votre état.
+- Certains symptômes peuvent être le signe de maladies graves.
+
+**10. Conseils concernant autrui :**
+- Ne vous fiez pas à l’application pour diagnostiquer ou traiter d’autres personnes.
+- Chaque personne présente un état de santé qui lui est propre.
+- Ce qui convient à une personne peut ne pas convenir à une autre.
+- Consultez un médecin pour chaque cas individuellement.'''],
+      '7': [
+'''Doctors and service providers on Sehatak provide their services in good faith and with a high level of professionalism, subject to the following:
+
+**1. Professional responsibility:**
+- Doctors alone are responsible for their diagnoses and medical recommendations.
+- The application is not responsible for medical errors or misdiagnosis.
+- Each doctor bears full responsibility for their consultations.
+- The application acts only as an intermediary and does not assume medical responsibility.
+
+**2. Doctors’ obligations:**
+- Comply with medical professional ethics.
+- Provide patients with accurate and complete information.
+- Respect the confidentiality of medical information.
+- Continuously update their medical knowledge.
+
+**3. Service quality:**
+- Provide high-quality medical services.
+- Listen attentively to patients’ concerns.
+- Provide clear and understandable recommendations.
+- Follow up on the patient’s condition after the consultation.
+
+**4. Service-provider responsibility:**
+- Pharmacies are responsible for the correctness of the medicines supplied.
+- Laboratories are responsible for the accuracy of test results.
+- Hospitals are responsible for the quality of services provided.
+- Imaging centres are responsible for the accuracy of scans.
+
+**5. Medical insurance:**
+- Service providers are responsible for their professional insurance.
+- The platform is not responsible for insurance compensation.
+- Service providers must maintain valid professional insurance.
+- Insurance covers medical errors and malpractice.
+
+**6. Ratings and complaints:**
+- You may rate doctors and service providers.
+- You may submit a complaint if you are dissatisfied.
+- Complaints are investigated seriously and promptly.
+- You will be informed of the investigation outcome.
+
+**7. Sanctions:**
+- The platform may suspend any service provider who violates the standards.
+- Legal action may be taken against non-compliant providers.
+- Sanctions include financial penalties, suspension, or a ban.
+
+**8. Professional conflicts:**
+- Doctors must avoid professional conflicts.
+- They must disclose any conflict of interest.
+- They must preserve the independence of their medical opinions.
+- They must not accept gifts that influence their medical decisions.
+
+**9. Communication with patients:**
+- Communicate in language the patient can understand.
+- Explain the condition and treatment clearly.
+- Listen to the patient’s concerns.
+- Allow sufficient time for the consultation.
+
+**10. Medical follow-up:**
+- Follow up on the patient’s condition after treatment.
+- Provide follow-up recommendations.
+- Ensure that the patient understands the instructions.
+- Contact the patient when necessary.''',
+'''Les médecins et prestataires de services de Sehatak fournissent leurs services de bonne foi et avec un haut niveau de professionnalisme, sous réserve des éléments suivants :
+
+**1. Responsabilité professionnelle :**
+- Les médecins sont seuls responsables de leurs diagnostics et recommandations médicales.
+- L’application n’est pas responsable des erreurs médicales ni des diagnostics erronés.
+- Chaque médecin assume l’entière responsabilité de ses consultations.
+- L’application agit uniquement comme intermédiaire et n’assume aucune responsabilité médicale.
+
+**2. Obligations des médecins :**
+- Respecter la déontologie médicale.
+- Fournir aux patients des informations exactes et complètes.
+- Respecter la confidentialité des informations médicales.
+- Actualiser continuellement leurs connaissances médicales.
+
+**3. Qualité des services :**
+- Fournir des services médicaux de haute qualité.
+- Écouter attentivement les problèmes du patient.
+- Formuler des recommandations claires et compréhensibles.
+- Assurer le suivi de l’état du patient après la consultation.
+
+**4. Responsabilité des prestataires :**
+- Les pharmacies sont responsables de la conformité des médicaments fournis.
+- Les laboratoires sont responsables de l’exactitude des résultats.
+- Les hôpitaux sont responsables de la qualité des services fournis.
+- Les centres d’imagerie sont responsables de l’exactitude des examens.
+
+**5. Assurance médicale :**
+- Les prestataires sont responsables de leur assurance professionnelle.
+- La plateforme n’est pas responsable des indemnisations d’assurance.
+- Les prestataires doivent disposer d’une assurance professionnelle valide.
+- L’assurance couvre les erreurs médicales et les fautes professionnelles.
+
+**6. Évaluations et réclamations :**
+- Vous pouvez évaluer les médecins et les prestataires.
+- Vous pouvez déposer une réclamation si vous n’êtes pas satisfait.
+- Les réclamations font l’objet d’un examen sérieux et rapide.
+- Le résultat de l’enquête vous sera communiqué.
+
+**7. Sanctions :**
+- La plateforme peut suspendre le compte de tout prestataire qui enfreint les normes.
+- Des mesures judiciaires peuvent être prises contre les prestataires en infraction.
+- Les sanctions comprennent des amendes, une suspension ou une interdiction.
+
+**8. Conflits professionnels :**
+- Les médecins doivent éviter les conflits professionnels.
+- Ils doivent déclarer tout conflit d’intérêts.
+- Ils doivent préserver l’indépendance de leur avis médical.
+- Ils ne doivent pas accepter de cadeaux susceptibles d’influencer leurs décisions médicales.
+
+**9. Communication avec le patient :**
+- Communiquer dans une langue compréhensible pour le patient.
+- Expliquer clairement l’état de santé et le traitement.
+- Être à l’écoute des préoccupations du patient.
+- Accorder suffisamment de temps à la consultation.
+
+**10. Suivi médical :**
+- Assurer le suivi de l’état du patient après le traitement.
+- Fournir des recommandations de suivi.
+- Vérifier que le patient comprend les instructions.
+- Communiquer avec le patient si nécessaire.'''],
       '3': [
 '''These Terms and Conditions constitute a legally binding agreement between you and the Sehatak platform. By using the platform, you fully and unconditionally agree to comply with all provisions of this document.
 
