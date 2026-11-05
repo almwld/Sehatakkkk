@@ -86,12 +86,7 @@ class AppStrings {
   /// Translates a literal Arabic UI label without network access. Unknown and
   /// user-generated content is intentionally preserved.
   String translate(String value) {
-    final weeksMatch = RegExp(r'^(\\d+) أسبوع و (\\d+) يوم    if (value.startsWith(doctorWelcomePrefix)) {
-      final specialty = value.substring(doctorWelcomePrefix.length);
-      return _pick(value, 'Welcome, Dr. $specialty', 'Bienvenue, Dr $specialty');
-    }
-    const stepPrefix = 'نشاطك اليومي قريب من الهدف. تبقى ';
-    const stepSuffix = ' خطوة تقريباً.';
+    final weeksMatch = RegExp(r'^(\d+) أسبوع و (\d+) يوم    const stepSuffix = ' خطوة تقريباً.';
     if (value.startsWith(stepPrefix) && value.endsWith(stepSuffix)) {
       final remaining = value.substring(stepPrefix.length, value.length - stepSuffix.length);
       return _pick(value, 'Your daily activity is close to the goal. About $remaining steps remaining.', 'Votre activité quotidienne est proche de l’objectif. Il reste environ $remaining pas.');
@@ -4663,9 +4658,6 @@ class AppStrings {
       "تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى": ["Could not load call history right now.\nCheck your connection and try again.", "Impossible de charger l’historique des appels pour le moment.\nVérifiez votre connexion et réessayez."],
       "لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً": ["No calls yet\nYour calls will appear here automatically", "Aucun appel pour le moment\nVos appels apparaîtront ici automatiquement"],
 
-    };
-
-
       'استشارات طبية فورية': ['Instant medical consultations', 'Consultations médicales instantanées'],
       'تواصل مع أفضل الأطباء': ['Connect with leading doctors', 'Consultez les meilleurs médecins'],
       'صيدلية وتوصيل أدوية': ['Pharmacy and medicine delivery', 'Pharmacie et livraison de médicaments'],
@@ -4681,7 +4673,6 @@ class AppStrings {
       'وثق حسابك لبناء ثقة العملاء في صيدليتك': ['Verify your account to build customers’ trust in your pharmacy', 'Vérifiez votre compte pour renforcer la confiance des clients envers votre pharmacie'],
       'مرحباً مختبر': ['Welcome, Laboratory', 'Bienvenue, Laboratoire'],
       'مرحباً بيطري': ['Welcome, Veterinarian', 'Bienvenue, Vétérinaire'],
-
       'جرّب اسم طبيب أو تخصصاً طبياً.': ['Try a doctor\'s name or a medical specialty.', 'Essayez un nom de médecin ou une spécialité médicale.'],
       'هذه الجولة ستظهر مرة واحدة فقط على هذا الجهاز.': ['This tour will appear only once on this device.', 'Cette visite ne s’affichera qu’une seule fois sur cet appareil.'],
       'انتهت الجولة — التسوق جاهز عندما تحتاجه.': ['Tour complete — shopping is ready whenever you need it.', 'Visite terminée — la boutique est prête quand vous en avez besoin.'],
@@ -4738,7 +4729,6 @@ class AppStrings {
       'هنا تجد الأدوات والخدمات الإضافية من الخرائط والتأمين إلى الدعم والإعدادات.': ['Find additional tools and services here, from maps and insurance to support and settings.', 'Retrouvez ici des outils et services supplémentaires, des cartes et assurances à l’assistance et aux paramètres.'],
       'زر تسجيل الخروج موجود في نهاية الصفحة عندما تحتاج إلى إنهاء الجلسة.': ['The sign-out button is at the bottom of the page when you need to end your session.', 'Le bouton de déconnexion se trouve en bas de la page lorsque vous souhaitez terminer votre session.'],
       'انتهت جولة المزيد.': ['More section tour complete.', 'Visite de la section Plus terminée.'],
-
       'عرض خدماتك': ['Showcase your services', 'Présentez vos services'],
       'أضف خدماتك المخبرية وعرضها للعملاء': ['Add your laboratory services and make them available to customers', 'Ajoutez vos services de laboratoire et présentez-les aux clients'],
       'بحث صوتي 🎤': ['Voice search 🎤', 'Recherche vocale 🎤'],
@@ -4750,6 +4740,9 @@ class AppStrings {
       'عمر الحمل': ['Gestational age', 'Âge gestationnel'],
       'الثلث': ['Trimester', 'Trimestre'],
       'حجز مستشفى': ['Book a hospital', 'Réserver un hôpital'],
+    };
+
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
@@ -4800,12 +4793,7 @@ class AppStrings {
       final days = weeksMatch.group(2)!;
       return _pick(value, '$weeks weeks and $days days', '$weeks semaines et $days jours');
     }
-    final daysMatch = RegExp(r'^(\\d+) يوم    if (value.startsWith(doctorWelcomePrefix)) {
-      final specialty = value.substring(doctorWelcomePrefix.length);
-      return _pick(value, 'Welcome, Dr. $specialty', 'Bienvenue, Dr $specialty');
-    }
-    const stepPrefix = 'نشاطك اليومي قريب من الهدف. تبقى ';
-    const stepSuffix = ' خطوة تقريباً.';
+    final daysMatch = RegExp(r'^(\d+) يوم    const stepSuffix = ' خطوة تقريباً.';
     if (value.startsWith(stepPrefix) && value.endsWith(stepSuffix)) {
       final remaining = value.substring(stepPrefix.length, value.length - stepSuffix.length);
       return _pick(value, 'Your daily activity is close to the goal. About $remaining steps remaining.', 'Votre activité quotidienne est proche de l’objectif. Il reste environ $remaining pas.');
@@ -9377,9 +9365,6 @@ class AppStrings {
       "تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى": ["Could not load call history right now.\nCheck your connection and try again.", "Impossible de charger l’historique des appels pour le moment.\nVérifiez votre connexion et réessayez."],
       "لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً": ["No calls yet\nYour calls will appear here automatically", "Aucun appel pour le moment\nVos appels apparaîtront ici automatiquement"],
 
-    };
-
-
       'استشارات طبية فورية': ['Instant medical consultations', 'Consultations médicales instantanées'],
       'تواصل مع أفضل الأطباء': ['Connect with leading doctors', 'Consultez les meilleurs médecins'],
       'صيدلية وتوصيل أدوية': ['Pharmacy and medicine delivery', 'Pharmacie et livraison de médicaments'],
@@ -9395,7 +9380,6 @@ class AppStrings {
       'وثق حسابك لبناء ثقة العملاء في صيدليتك': ['Verify your account to build customers’ trust in your pharmacy', 'Vérifiez votre compte pour renforcer la confiance des clients envers votre pharmacie'],
       'مرحباً مختبر': ['Welcome, Laboratory', 'Bienvenue, Laboratoire'],
       'مرحباً بيطري': ['Welcome, Veterinarian', 'Bienvenue, Vétérinaire'],
-
       'جرّب اسم طبيب أو تخصصاً طبياً.': ['Try a doctor\'s name or a medical specialty.', 'Essayez un nom de médecin ou une spécialité médicale.'],
       'هذه الجولة ستظهر مرة واحدة فقط على هذا الجهاز.': ['This tour will appear only once on this device.', 'Cette visite ne s’affichera qu’une seule fois sur cet appareil.'],
       'انتهت الجولة — التسوق جاهز عندما تحتاجه.': ['Tour complete — shopping is ready whenever you need it.', 'Visite terminée — la boutique est prête quand vous en avez besoin.'],
@@ -9452,7 +9436,6 @@ class AppStrings {
       'هنا تجد الأدوات والخدمات الإضافية من الخرائط والتأمين إلى الدعم والإعدادات.': ['Find additional tools and services here, from maps and insurance to support and settings.', 'Retrouvez ici des outils et services supplémentaires, des cartes et assurances à l’assistance et aux paramètres.'],
       'زر تسجيل الخروج موجود في نهاية الصفحة عندما تحتاج إلى إنهاء الجلسة.': ['The sign-out button is at the bottom of the page when you need to end your session.', 'Le bouton de déconnexion se trouve en bas de la page lorsque vous souhaitez terminer votre session.'],
       'انتهت جولة المزيد.': ['More section tour complete.', 'Visite de la section Plus terminée.'],
-
       'عرض خدماتك': ['Showcase your services', 'Présentez vos services'],
       'أضف خدماتك المخبرية وعرضها للعملاء': ['Add your laboratory services and make them available to customers', 'Ajoutez vos services de laboratoire et présentez-les aux clients'],
       'بحث صوتي 🎤': ['Voice search 🎤', 'Recherche vocale 🎤'],
@@ -9464,6 +9447,9 @@ class AppStrings {
       'عمر الحمل': ['Gestational age', 'Âge gestationnel'],
       'الثلث': ['Trimester', 'Trimestre'],
       'حجز مستشفى': ['Book a hospital', 'Réserver un hôpital'],
+    };
+
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
@@ -14091,9 +14077,6 @@ class AppStrings {
       "تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى": ["Could not load call history right now.\nCheck your connection and try again.", "Impossible de charger l’historique des appels pour le moment.\nVérifiez votre connexion et réessayez."],
       "لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً": ["No calls yet\nYour calls will appear here automatically", "Aucun appel pour le moment\nVos appels apparaîtront ici automatiquement"],
 
-    };
-
-
       'استشارات طبية فورية': ['Instant medical consultations', 'Consultations médicales instantanées'],
       'تواصل مع أفضل الأطباء': ['Connect with leading doctors', 'Consultez les meilleurs médecins'],
       'صيدلية وتوصيل أدوية': ['Pharmacy and medicine delivery', 'Pharmacie et livraison de médicaments'],
@@ -14109,7 +14092,6 @@ class AppStrings {
       'وثق حسابك لبناء ثقة العملاء في صيدليتك': ['Verify your account to build customers’ trust in your pharmacy', 'Vérifiez votre compte pour renforcer la confiance des clients envers votre pharmacie'],
       'مرحباً مختبر': ['Welcome, Laboratory', 'Bienvenue, Laboratoire'],
       'مرحباً بيطري': ['Welcome, Veterinarian', 'Bienvenue, Vétérinaire'],
-
       'جرّب اسم طبيب أو تخصصاً طبياً.': ['Try a doctor\'s name or a medical specialty.', 'Essayez un nom de médecin ou une spécialité médicale.'],
       'هذه الجولة ستظهر مرة واحدة فقط على هذا الجهاز.': ['This tour will appear only once on this device.', 'Cette visite ne s’affichera qu’une seule fois sur cet appareil.'],
       'انتهت الجولة — التسوق جاهز عندما تحتاجه.': ['Tour complete — shopping is ready whenever you need it.', 'Visite terminée — la boutique est prête quand vous en avez besoin.'],
@@ -14166,7 +14148,6 @@ class AppStrings {
       'هنا تجد الأدوات والخدمات الإضافية من الخرائط والتأمين إلى الدعم والإعدادات.': ['Find additional tools and services here, from maps and insurance to support and settings.', 'Retrouvez ici des outils et services supplémentaires, des cartes et assurances à l’assistance et aux paramètres.'],
       'زر تسجيل الخروج موجود في نهاية الصفحة عندما تحتاج إلى إنهاء الجلسة.': ['The sign-out button is at the bottom of the page when you need to end your session.', 'Le bouton de déconnexion se trouve en bas de la page lorsque vous souhaitez terminer votre session.'],
       'انتهت جولة المزيد.': ['More section tour complete.', 'Visite de la section Plus terminée.'],
-
       'عرض خدماتك': ['Showcase your services', 'Présentez vos services'],
       'أضف خدماتك المخبرية وعرضها للعملاء': ['Add your laboratory services and make them available to customers', 'Ajoutez vos services de laboratoire et présentez-les aux clients'],
       'بحث صوتي 🎤': ['Voice search 🎤', 'Recherche vocale 🎤'],
@@ -14178,6 +14159,9 @@ class AppStrings {
       'عمر الحمل': ['Gestational age', 'Âge gestationnel'],
       'الثلث': ['Trimester', 'Trimestre'],
       'حجز مستشفى': ['Book a hospital', 'Réserver un hôpital'],
+    };
+
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
