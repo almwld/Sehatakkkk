@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class CameraTutorialOverlay extends StatefulWidget {
   final VoidCallback onDismiss;
@@ -19,6 +20,8 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
   late final AnimationController _pulseController;
   late final AnimationController _fadeController;
   bool _isVisible = true;
+
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
   @override
   void initState() {
@@ -104,8 +107,8 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                           const SizedBox(height: 24),
                           Text(
                             widget.isMeasuring
-                                ? '📸 حافظ على ثبات إصبعك'
-                                : '👆 ضع إصبعك على الكاميرا',
+                                ? _t(context, '📸 حافظ على ثبات إصبعك')
+                                : _t(context, '👆 ضع إصبعك على الكاميرا'),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -116,8 +119,8 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                           const SizedBox(height: 8),
                           Text(
                             widget.isMeasuring
-                                ? 'تأكد من تغطية الفلاش بالكامل\nوعدم تحريك إصبعك'
-                                : 'اضغط على زر البدء ثم ضع إصبعك\nعلى الكاميرا الخلفية والفلاش',
+                                ? _t(context, 'تأكد من تغطية الفلاش بالكامل\nوعدم تحريك إصبعك')
+                                : _t(context, 'اضغط على زر البدء ثم ضع إصبعك\nعلى الكاميرا الخلفية والفلاش'),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey.shade600,
@@ -188,7 +191,7 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: const Text('فهمت ✅'),
+                              child: Text(_t(context, 'فهمت ✅')),
                             ),
                           ),
                         ],
