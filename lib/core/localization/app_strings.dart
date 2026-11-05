@@ -4621,7 +4621,7 @@ class AppStrings {
       "أمارس الرياضة": ["I exercise", "Je fais de l’exercice"],
       "💡 نصائح": ["💡 Tips", "💡 Conseils"],
       "راحة، سوائل، فيتامين C": ["Rest, fluids, vitamin C", "Repos, liquides, vitamine C"],
-      "راحة تامة، سوائل، بار.ييتامول": ["Rest, fluids, paracetamol", "Repos, liquides, paracétamol"],
+      "راحة تامة، سوائل، باراسيتامول": ["Rest, fluids, paracetamol", "Repos, liquides, paracétamol"],
       "تنظيف يومي، تغيير ضماد": ["Daily cleaning and dressing changes", "Nettoyage quotidien et changement du pansement"],
       "تثبيت، علاج طبيعي": ["Immobilization and physical therapy", "Immobilisation et physiothérapie"],
       "راحة، كمادات، مسكن": ["Rest, compresses, pain relief", "Repos, compresses et antidouleur"],
