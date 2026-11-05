@@ -74,6 +74,7 @@ class _StatusCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppStrings.of(context).translate;
     final ringColors = isMine
         ? [Colors.green.shade600, Colors.green.shade400]
         : status.isViewed
