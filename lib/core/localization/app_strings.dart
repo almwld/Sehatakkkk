@@ -3947,6 +3947,9 @@ class AppStrings {
       'pharmacy': ['Pharmacy', 'Pharmacie'],
       'lab': ['Laboratory', 'Laboratoire'],
       'hospital': ['Hospital', 'Hôpital'],
+      'السكري': ['Diabetes', 'Diabète'],
+      'الكوليسترول': ['Cholesterol', 'Cholestérol'],
+      'الربو': ['Asthma', 'Asthme'],
       'general': ['General', 'Général'],
     };
     final entry = translations[value];
