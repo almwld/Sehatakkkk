@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/terms_translations.dart';
 
 class TermsScreen extends StatelessWidget {
   const TermsScreen({super.key});
@@ -1605,7 +1606,7 @@ class TermsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          AppStrings.of(context).translate(content),
+          TermsTranslations.body(title, content, Localizations.localeOf(context)),
           style: const TextStyle(
             fontSize: 14,
             height: 1.8,
