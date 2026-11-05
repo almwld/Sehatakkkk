@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/models/call_model.dart';
@@ -53,6 +54,7 @@ class IncomingCallScreen extends StatefulWidget {
 
 class _IncomingCallScreenState extends State<IncomingCallScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  String _t(String value) => AppStrings.of(context).translate(value);
   static const Color _bgDark = Color(0xFF0A0F1C);
   static const Color _bgMid = Color(0xFF10352F);
   static const Color _teal = Color(0xFF0A8F83);
@@ -157,7 +159,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
     _stopAlerting();
     if (call.status == CallStatus.busy) {
-      ToastService.showInfo('المستخدم مشغول بمكالمة أخرى');
+      ToastService.showInfo(_t('المستخدم مشغول بمكالمة أخرى'));
     }
     if (call.status != CallStatus.connected && mounted) {
       Navigator.of(context).pop();
@@ -188,7 +190,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           _swipeDirection = 0;
           _swipeLocked = false;
         });
-        ToastService.showError('تعذر رفض المكالمة: $e');
+        ToastService.showError('${_t('تعذر رفض المكالمة:')} $e');
       }
     }
   }
@@ -237,7 +239,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           _swipeDirection = 0;
           _swipeLocked = false;
         });
-        ToastService.showError('تعذر قبول المكالمة: $e');
+        ToastService.showError('${_t('تعذر قبول المكالمة:')} $e');
       }
     }
   }
@@ -442,7 +444,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                           icon: _isMuted
                               ? Icons.volume_up_rounded
                               : Icons.volume_off_rounded,
-                          label: _isMuted ? 'تشغيل الرنين' : 'كتم الرنين',
+                          label: _t(_isMuted ? 'تشغيل الرنين' : 'كتم الرنين'),
                           color: _cyan,
                           size: isCompact ? 58 : 65,
                           onTap: _isProcessing
@@ -451,7 +453,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                         ),
                         _buildCallButton(
                           icon: Icons.call_end_rounded,
-                          label: 'رفض',
+                          label: _t('رفض'),
                           color: _red,
                           size: isCompact ? 68 : 78,
                           isMain: true,
@@ -461,7 +463,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                           icon: widget.isVideo
                               ? Icons.videocam_rounded
                               : Icons.call_rounded,
-                          label: 'قبول',
+                          label: _t('قبول'),
                           color: _green,
                           size: isCompact ? 68 : 78,
                           isMain: true,
@@ -525,14 +527,14 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white.withOpacity(.08)),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             _PulseDot(),
             SizedBox(width: 8),
             Text(
-              'مكالمة واردة',
-              style: TextStyle(
+              _t('مكالمة واردة'),
+              style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -640,7 +642,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
             icon: widget.isVideo
                 ? Icons.videocam_rounded
                 : Icons.call_rounded,
-            text: widget.isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
+            text: _t(widget.isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة'),
           ),
         ],
       );
