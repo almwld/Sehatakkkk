@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/chat_model.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
@@ -17,6 +18,8 @@ class ConsultationScreen extends StatefulWidget {
 
 class _ConsultationScreenState extends State<ConsultationScreen>
     with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final ChatService _chat = ChatService();
   final CallService _calls = CallService();
   late final TabController _tabs;
@@ -39,12 +42,12 @@ class _ConsultationScreenState extends State<ConsultationScreen>
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
       appBar: AppBar(
-        title: const Text('الاستشارات الطبية'),
+        title: Text(_t('الاستشارات الطبية')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         bottom: TabBar(
             controller: _tabs,
-            tabs: const [Tab(text: 'المحادثات'), Tab(text: 'سجل المكالمات')]),
+            tabs: [Tab(text: _t('المحادثات')), Tab(text: _t('سجل المكالمات'))]),
       ),
       body: TabBarView(
           controller: _tabs,
@@ -55,7 +58,7 @@ class _ConsultationScreenState extends State<ConsultationScreen>
         onPressed: () => Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(builder: (_) => const DoctorsListScreen())),
         icon: const Icon(Icons.add_comment_outlined),
-        label: const Text('استشارة جديدة'),
+        label: Text(_t('استشارة جديدة')),
       ),
     );
   }
@@ -63,7 +66,7 @@ class _ConsultationScreenState extends State<ConsultationScreen>
   Widget _conversations(bool dark) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null)
-      return const Center(child: Text('سجّل الدخول لعرض الاستشارات'));
+      return Center(child: Text(_t('سجّل الدخول لعرض الاستشارات')));
     return StreamBuilder<List<ChatModel>>(
       stream: _chat.streamChats(limit: 100),
       builder: (context, snap) {
@@ -72,7 +75,7 @@ class _ConsultationScreenState extends State<ConsultationScreen>
         final chats = snap.data ?? const <ChatModel>[];
         if (chats.isEmpty)
           return _empty(
-              'لا توجد استشارات محفوظة بعد', Icons.chat_bubble_outline);
+              _t('لا توجد استشارات محفوظة بعد'), Icons.chat_bubble_outline);
         return ListView.separated(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: chats.length,
@@ -98,7 +101,7 @@ class _ConsultationScreenState extends State<ConsultationScreen>
                   subtitle: Text(
                       c.lastMessage?.isNotEmpty == true
                           ? c.lastMessage!
-                          : 'فتح المحادثة',
+                          : _t('فتح المحادثة'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                   trailing: const Icon(Icons.chevron_left),
@@ -126,7 +129,7 @@ class _ConsultationScreenState extends State<ConsultationScreen>
           return const Center(child: CircularProgressIndicator());
         final calls = (snap.data ?? const []).toList();
         if (calls.isEmpty)
-          return _empty('لا توجد مكالمات محفوظة بعد', Icons.call_outlined);
+          return _empty(_t('لا توجد مكالمات محفوظة بعد'), Icons.call_outlined);
         return ListView.separated(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: calls.length,
@@ -151,11 +154,11 @@ class _ConsultationScreenState extends State<ConsultationScreen>
                                   ? Icons.videocam_outlined
                                   : Icons.call_outlined),
                           color: missed ? Colors.red : AppColors.primary)),
-                  title: Text(isVideo ? 'استشارة فيديو' : 'استشارة صوتية',
+                  title: Text(_t(isVideo ? 'استشارة فيديو' : 'استشارة صوتية'),
                       style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text(
                       c.status.name == 'connected' || c.status.name == 'ended'
-                          ? 'مكالمة مكتملة'
+                          ? _t('مكالمة مكتملة')
                           : c.status.name),
                   trailing: Text(
                       c.durationSeconds == null ? '' : '${c.durationSeconds}s'),
@@ -172,6 +175,6 @@ class _ConsultationScreenState extends State<ConsultationScreen>
         const SizedBox(height: 12),
         Text(text, style: const TextStyle(fontWeight: FontWeight.w700)),
         const SizedBox(height: 6),
-        const Text('سيتم حفظ محادثاتك ومكالماتك هنا تلقائياً.')
+        Text(_t('سيتم حفظ محادثاتك ومكالماتك هنا تلقائياً.'))
       ]));
 }
