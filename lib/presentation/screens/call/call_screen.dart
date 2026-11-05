@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -461,7 +462,7 @@ class _CallScreenState extends State<CallScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('مستوى صوت المكالمة', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
+                Text(_localizedUiText(context, 'مستوى صوت المكالمة'), style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 Text('${(value * 100).round()}%', style: const TextStyle(color: Colors.white70)),
                 Slider(
@@ -553,11 +554,11 @@ class _CallScreenState extends State<CallScreen> {
                           children: [
                             const Icon(Icons.cloud_off_rounded, color: Colors.redAccent, size: 62),
                             const SizedBox(height: 16),
-                            const Text('تعذر الاتصال', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                            Text(_localizedUiText(context, 'تعذر الاتصال'), style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 10),
                             Text(error!, style: const TextStyle(color: Colors.white70, fontSize: 15, height: 1.5), textAlign: TextAlign.center),
                             const SizedBox(height: 10),
-                            const Text('تحقق من اتصال الإنترنت، ثم أعد المحاولة.', style: TextStyle(color: Colors.white54, fontSize: 13), textAlign: TextAlign.center),
+                            Text(_localizedUiText(context, 'تحقق من اتصال الإنترنت، ثم أعد المحاولة.'), style: TextStyle(color: Colors.white54, fontSize: 13), textAlign: TextAlign.center),
                             const SizedBox(height: 24),
                             SizedBox(
                               width: double.infinity,
@@ -576,7 +577,7 @@ class _CallScreenState extends State<CallScreen> {
                               child: OutlinedButton.icon(
                                 onPressed: ending ? null : end,
                                 icon: const Icon(Icons.call_end_rounded),
-                                label: const Text('إنهاء المكالمة والعودة'),
+                                label: Text(_localizedUiText(context, 'إنهاء المكالمة والعودة')),
                                 style: OutlinedButton.styleFrom(foregroundColor: Colors.white70, side: const BorderSide(color: Colors.white24), padding: const EdgeInsets.symmetric(vertical: 13)),
                               ),
                             ),
@@ -614,7 +615,7 @@ class _CallScreenState extends State<CallScreen> {
         const SizedBox(height: 12),
         Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
         const SizedBox(height: 6),
-        const Text('الكاميرا غير مفعلة', style: TextStyle(color: Colors.white60)),
+        Text(_localizedUiText(context, 'الكاميرا غير مفعلة'), style: TextStyle(color: Colors.white60)),
       ]),
     ),
   );
@@ -743,3 +744,7 @@ class _CallScreenState extends State<CallScreen> {
     return h > 0 ? '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}' : '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
