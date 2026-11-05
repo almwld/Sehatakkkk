@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -22,6 +23,11 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
   String? _selectedTime;
 
   final List<String> _consultTypes = ['فيديو', 'صوتي', 'نصي'];
+  String _displayTime(String time) {
+    if (AppStrings.of(context).locale.languageCode == 'ar') return time;
+    return time.replaceAll(' ص', ' AM').replaceAll(' م', ' PM');
+  }
+
   final List<String> _availableTimes = [
     '9:00 ص', '10:00 ص', '11:00 ص', '12:00 م',
     '2:00 م', '3:00 م', '4:00 م', '5:00 م',
@@ -32,14 +38,14 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
     final user = _auth.currentUser;
     if (user == null) {
       return Scaffold(
-        appBar: CustomAppBar(title: 'الاستشارات', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        body: const Center(child: Text('يرجى تسجيل الدخول')),
+        appBar: CustomAppBar(title: AppStrings.of(context).translate('الاستشارات'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        body: Center(child: Text(AppStrings.of(context).translate('يرجى تسجيل الدخول'))),
       );
     }
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الاستشارات الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.of(context).translate('الاستشارات الطبية'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -48,10 +54,10 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('طلب استشارة', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('طلب استشارة'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             // ✅ اختيار الطبيب
-            const Text('اختر الطبيب', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('اختر الطبيب'), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('doctors').where('available', isEqualTo: true).snapshots(),
@@ -66,12 +72,12 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     prefixIcon: const Icon(Icons.person, color: AppColors.primary),
                   ),
-                  hint: const Text('اختر طبيباً'),
+                  hint: Text(AppStrings.of(context).translate('اختر طبيباً')),
                   items: doctors.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
                     return DropdownMenuItem(
                       value: doc.id,
-                      child: Text(data['name'] ?? 'طبيب'),
+                      child: Text(data['name'] ?? AppStrings.of(context).translate('طبيب')),
                     );
                   }).toList(),
                   onChanged: (value) => setState(() => _selectedDoctor = value!),
@@ -80,7 +86,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
             ),
             const SizedBox(height: 12),
             // ✅ نوع الاستشارة
-            const Text('نوع الاستشارة', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('نوع الاستشارة'), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -95,7 +101,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      type == 'فيديو' ? '📹 فيديو' : type == 'صوتي' ? '🎤 صوتي' : '💬 نصي',
+                      type == 'فيديو' ? '📹 ${AppStrings.of(context).translate('فيديو')}' : type == 'صوتي' ? '🎤 ${AppStrings.of(context).translate('صوتي')}' : '💬 ${AppStrings.of(context).translate('نصي')}',
                       style: TextStyle(color: selected ? Colors.white : Colors.grey.shade700),
                     ),
                   ),
@@ -104,7 +110,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
             ),
             const SizedBox(height: 12),
             // ✅ التاريخ
-            const Text('التاريخ', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('التاريخ'), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () async {
@@ -113,7 +119,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   initialDate: _selectedDate,
                   firstDate: DateTime.now(),
                   lastDate: DateTime.now().add(const Duration(days: 30)),
-                  locale: const Locale('ar', 'YE'),
+                  locale: AppStrings.of(context).locale,
                 );
                 if (date != null) setState(() => _selectedDate = date);
               },
@@ -127,7 +133,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   children: [
                     const Icon(Icons.calendar_today, color: AppColors.primary),
                     const SizedBox(width: 8),
-                    Text(DateFormat('EEEE، dd MMMM yyyy', 'ar').format(_selectedDate)),
+                    Text(DateFormat(AppStrings.of(context).locale.languageCode == 'ar' ? 'EEEE، dd MMMM yyyy' : 'EEEE, dd MMMM yyyy', AppStrings.of(context).locale.languageCode).format(_selectedDate)),
                     const Spacer(),
                     const Icon(Icons.arrow_drop_down),
                   ],
@@ -136,7 +142,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
             ),
             const SizedBox(height: 12),
             // ✅ الوقت
-            const Text('الوقت', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('الوقت'), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -171,12 +177,12 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('طلب استشارة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(AppStrings.of(context).translate('طلب استشارة'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 20),
             // ✅ الاستشارات السابقة
-            const Text('الاستشارات السابقة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(AppStrings.of(context).translate('الاستشارات السابقة'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             StreamBuilder<QuerySnapshot>(
               stream: _firestore
@@ -191,10 +197,10 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                 }
                 final consults = snapshot.data?.docs ?? [];
                 if (consults.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Padding(
                       padding: EdgeInsets.all(16),
-                      child: Text('لا توجد استشارات سابقة', style: TextStyle(color: Colors.grey)),
+                      child: Text(AppStrings.of(context).translate('لا توجد استشارات سابقة'), style: TextStyle(color: Colors.grey)),
                     ),
                   );
                 }
@@ -233,8 +239,8 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(data['doctorName'] ?? 'طبيب', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                Text(data['type'] ?? 'استشارة', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                Text(data['doctorName'] ?? AppStrings.of(context).translate('طبيب'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                Text(AppStrings.of(context).translate(data['type'] ?? 'استشارة'), style: TextStyle(fontSize: 10, color: Colors.grey)),
                                 Text(DateFormat('dd/MM/yyyy').format(date), style: TextStyle(fontSize: 9, color: Colors.grey)),
                               ],
                             ),
@@ -246,7 +252,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              data['status'] == 'completed' ? 'منتهية' : 'قيد الانتظار',
+                              AppStrings.of(context).translate(data['status'] == 'completed' ? 'منتهية' : 'قيد الانتظار'),
                               style: TextStyle(
                                 fontSize: 9,
                                 color: data['status'] == 'completed' ? AppColors.success : AppColors.warning,
@@ -288,13 +294,13 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
         'doctorName': 'طبيب', // يمكن جلب اسم الطبيب من Firestore
       });
 
-      ToastService.showSuccess(context, '✅ تم طلب الاستشارة بنجاح');
+      ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? '✅ تم طلب الاستشارة بنجاح' : AppStrings.of(context).locale.languageCode == 'fr' ? '✅ Consultation demandée avec succès' : '✅ Consultation requested successfully');
       setState(() {
         _selectedDoctor = '';
         _selectedTime = null;
       });
     } catch (e) {
-      ToastService.showError(context, '❌ فشل الطلب: $e');
+      ToastService.showError(context, AppStrings.of(context).locale.languageCode == 'ar' ? '❌ فشل الطلب: $e' : AppStrings.of(context).locale.languageCode == 'fr' ? '❌ Échec de la demande : $e' : '❌ Request failed: $e');
     }
   }
 }
