@@ -460,7 +460,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                   ),
                   const SizedBox(height: 12),
                   if (_weekData.isEmpty)
-                    const Center(
+                    Center(
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 20),
                         child: Text(_localizedUiText(context, 'لا توجد بيانات كافية')),
