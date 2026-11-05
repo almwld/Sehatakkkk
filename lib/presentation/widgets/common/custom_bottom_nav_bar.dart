@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -38,6 +39,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
@@ -62,7 +64,19 @@ class CustomBottomNavigationBar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: _navItems.map((item) => item.isSpecial ? _buildSpecialChatButton(item, isDark) : _buildNavItem(item, isDark)).toList(),
+              children: _navItems.map((item) {
+                final localizedItem = NavItem(
+                  index: item.index,
+                  icon: item.icon,
+                  iconPath: item.iconPath,
+                  label: _localizedLabel(strings, item.index),
+                  isProtected: item.isProtected,
+                  isSpecial: item.isSpecial,
+                );
+                return localizedItem.isSpecial
+                    ? _buildSpecialChatButton(localizedItem, isDark)
+                    : _buildNavItem(localizedItem, isDark);
+              }).toList(),
             ),
           ),
         ),
@@ -163,6 +177,19 @@ class CustomBottomNavigationBar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _localizedLabel(AppStrings strings, int index) {
+    switch (index) {
+      case 0: return strings.home;
+      case 1: return strings.doctors;
+      case 2: return strings.pharmacy;
+      case 3: return strings.chat;
+      case 4: return strings.laboratories;
+      case 5: return strings.myHealth;
+      case 6: return strings.more;
+      default: return '';
+    }
   }
 
   void _handleTap(NavItem item) {
