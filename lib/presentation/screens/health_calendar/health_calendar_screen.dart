@@ -148,8 +148,8 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
             // ✅ عنوان الحدث
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(
-                labelText: 'عنوان الحدث',
+              decoration: InputDecoration(
+                labelText: _localizedUiText(context, 'عنوان الحدث'),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -164,14 +164,14 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                     children: [
                       Icon(type['icon'] as IconData, color: type['color'] as Color, size: 16),
                       const SizedBox(width: 8),
-                      Text(type['label'] as String),
+                      Text(_localizedUiText(context, type['label'] as String)),
                     ],
                   ),
                 );
               }).toList(),
               onChanged: (value) => selectedType = value!,
-              decoration: const InputDecoration(
-                labelText: 'نوع الحدث',
+              decoration: InputDecoration(
+                labelText: _localizedUiText(context, 'نوع الحدث'),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -179,8 +179,8 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
             // ✅ الوقت
             TextField(
               controller: TextEditingController(text: selectedTime),
-              decoration: const InputDecoration(
-                labelText: 'الوقت',
+              decoration: InputDecoration(
+                labelText: _localizedUiText(context, 'الوقت'),
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.access_time_rounded),
               ),
@@ -206,7 +206,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                           'notes': '',
                         });
                         Navigator.pop(context);
-                        ToastService.showSuccess(context, '✅ تم إضافة الحدث');
+                        ToastService.showSuccess(context, '✅ ${_localizedUiText(context, 'تم إضافة الحدث')}');
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -305,7 +305,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
             Row(
               children: [
                 Text(
-                  'أحداث ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
+                  '${_localizedUiText(context, 'أحداث')} ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -314,7 +314,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                 const Spacer(),
                 if (events.isNotEmpty)
                   Text(
-                    '${events.length} حدث',
+                    '${events.length} ${_localizedUiText(context, 'حدث')}',
                     style: TextStyle(color: AppColors.grey, fontSize: 12),
                   ),
               ],
@@ -386,7 +386,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '${event['time']} • ${event['type']}',
+                                  '${event['time']} • ${_localizedUiText(context, event['type']?.toString() ?? '')}',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.grey,
