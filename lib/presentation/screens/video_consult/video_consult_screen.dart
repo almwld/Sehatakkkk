@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class VideoConsultScreen extends StatefulWidget {
   const VideoConsultScreen({super.key});
@@ -9,6 +10,8 @@ class VideoConsultScreen extends StatefulWidget {
 }
 
 class _VideoConsultScreenState extends State<VideoConsultScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   bool _isMuted = false;
   bool _isVideoOff = false;
   bool _isSpeakerOn = true;
@@ -53,7 +56,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
               ),
               const SizedBox(height: 20),
               const Text('د. حسن رضا', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-              const Text('طبيب عام • متصل', style: TextStyle(color: Colors.white60, fontSize: 13)),
+              Text(_t(context, 'طبيب عام • متصل'), style: const TextStyle(color: Colors.white60, fontSize: 13)),
               const SizedBox(height: 6),
               Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.2), borderRadius: BorderRadius.circular(12)), child: Text(_formattedTime, style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 14))),
             ]),
@@ -71,9 +74,9 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
           Positioned(
             bottom: 40, left: 20, right: 20,
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-              _controlButton(Icons.mic, _isMuted ? 'كتم' : 'مايك', _isMuted ? AppColors.error : Colors.white, () => setState(() => _isMuted = !_isMuted)),
-              _controlButton(Icons.videocam, _isVideoOff ? 'كاميرا' : 'فيديو', _isVideoOff ? AppColors.error : Colors.white, () => setState(() => _isVideoOff = !_isVideoOff)),
-              _controlButton(Icons.volume_up, _isSpeakerOn ? 'سماعة' : 'صامت', _isSpeakerOn ? Colors.white : AppColors.warning, () => setState(() => _isSpeakerOn = !_isSpeakerOn)),
+              _controlButton(Icons.mic, _t(context, _isMuted ? 'كتم' : 'مايك'), _isMuted ? AppColors.error : Colors.white, () => setState(() => _isMuted = !_isMuted)),
+              _controlButton(Icons.videocam, _t(context, _isVideoOff ? 'كاميرا' : 'فيديو'), _isVideoOff ? AppColors.error : Colors.white, () => setState(() => _isVideoOff = !_isVideoOff)),
+              _controlButton(Icons.volume_up, _t(context, _isSpeakerOn ? 'سماعة' : 'صامت'), _isSpeakerOn ? Colors.white : AppColors.warning, () => setState(() => _isSpeakerOn = !_isSpeakerOn)),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(width: 60, height: 60, decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle), child: const Icon(Icons.call_end, color: Colors.white, size: 28)),
