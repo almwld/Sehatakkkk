@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -166,8 +167,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
             _detailRow(Icons.note_rounded, 'ملاحظات', visit['notes']),
             if (visit['prescription'].isNotEmpty) ...[
               const SizedBox(height: 8),
-              const Text(
-                'الوصفات الطبية',
+              Text(_localizedUiText(context, 'الوصفات الطبية'),
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
@@ -193,7 +193,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                         // الانتقال إلى الدردشة
                       },
                       icon: const Icon(Icons.chat_rounded),
-                      label: const Text('محادثة'),
+                      label: Text(_localizedUiText(context, 'محادثة')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.info,
                         foregroundColor: Colors.white,
@@ -209,7 +209,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                         // إعادة حجز الموعد
                       },
                       icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('إعادة حجز'),
+                      label: Text(_localizedUiText(context, 'إعادة حجز')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -224,7 +224,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إغلاق'),
+                child: Text(_localizedUiText(context, 'إغلاق')),
               ),
             ),
           ],
@@ -269,7 +269,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: const Text('سجل الزيارات', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_localizedUiText(context, 'سجل الزيارات'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -359,16 +359,14 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'لا توجد زيارات',
+          Text(_localizedUiText(context, 'لا توجد زيارات'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            'ستظهر هنا سجل زياراتك للأطباء',
+          Text(_localizedUiText(context, 'ستظهر هنا سجل زياراتك للأطباء'),
             style: TextStyle(
               fontSize: 14,
               color: AppColors.grey,
@@ -380,7 +378,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
               // الانتقال إلى حجز موعد
             },
             icon: const Icon(Icons.add_rounded),
-            label: const Text('حجز موعد جديد'),
+            label: Text(_localizedUiText(context, 'حجز موعد جديد')),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -507,8 +505,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                     color: AppColors.primary.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    'تفاصيل',
+                  child: Text(_localizedUiText(context, 'تفاصيل'),
                     style: TextStyle(fontSize: 9, color: AppColors.primary),
                   ),
                 ),
@@ -520,3 +517,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
