@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,6 +18,8 @@ class _OTPScreenState extends State<OTPScreen> {
   final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
   String _generatedOTP = '';
+
+  String _t(String value) => AppStrings.of(context).translate(value);
   bool _isLoading = false;
   int _timer = 60;
 
@@ -32,7 +35,7 @@ class _OTPScreenState extends State<OTPScreen> {
     debugPrint('🔑 OTP for ${widget.phone}: $_generatedOTP');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ToastService.showError(context, 'رمز التحقق: $_generatedOTP');
+        ToastService.showError(context, _t('رمز التحقق: ') + _generatedOTP);
       }
     });
   }
@@ -49,7 +52,7 @@ class _OTPScreenState extends State<OTPScreen> {
   void _verifyOTP() {
     final entered = _controllers.map((c) => c.text).join();
     if (entered.length != 6) {
-      ToastService.showSuccess(context, 'أدخل الرمز كاملاً');
+      ToastService.showSuccess(context, _t('أدخل الرمز كاملاً'));
       return;
     }
     setState(() => _isLoading = true);
@@ -62,21 +65,21 @@ class _OTPScreenState extends State<OTPScreen> {
           builder: (_) => AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             icon: const Icon(Icons.check_circle, color: AppColors.success, size: 60),
-            title: const Text('تم التحقق بنجاح'),
-            content: Text(widget.isRegister ? 'تم إنشاء حسابك بنجاح' : 'مرحباً بعودتك'),
+            title: Text(_t('تم التحقق بنجاح')),
+            content: Text(widget.isRegister ? _t('تم إنشاء حسابك بنجاح') : _t('مرحباً بعودتك')),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   context.go('/');
                 },
-                child: const Text('دخول'),
+                child: Text(_t('دخول')),
               ),
             ],
           ),
         );
       } else {
-        ToastService.showError(context, 'الرمز غير صحيح');
+        ToastService.showError(context, _t('الرمز غير صحيح'));
       }
     });
   }
@@ -85,17 +88,17 @@ class _OTPScreenState extends State<OTPScreen> {
     _generateOTP();
     setState(() => _timer = 60);
     _startTimer();
-    ToastService.showError(context, 'تم إرسال رمز جديد');
+    ToastService.showError(context, _t('تم إرسال رمز جديد'));
   }
 
   void _openWhatsApp() {
-    ToastService.showSuccess(context, 'سيتم فتح واتساب للتحقق');
+    ToastService.showSuccess(context, _t('سيتم فتح واتساب للتحقق'));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('التحقق من الرقم')),
+      appBar: AppBar(title: Text(_t('التحقق من الرقم'))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -108,9 +111,9 @@ class _OTPScreenState extends State<OTPScreen> {
               child: const Icon(Icons.phone_android, color: AppColors.success, size: 40),
             ),
             const SizedBox(height: 20),
-            const Text('تأكيد رقم الهاتف', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(_t('تأكيد رقم الهاتف'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('أدخل الرمز المرسل إلى ${widget.phone}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+            Text(_t('أدخل الرمز المرسل إلى') + widget.phone, style: const TextStyle(color: Colors.grey, fontSize: 14)),
             const SizedBox(height: 6),
             GestureDetector(
               onTap: _openWhatsApp,
@@ -158,8 +161,8 @@ class _OTPScreenState extends State<OTPScreen> {
             ),
             const SizedBox(height: 30),
             _timer > 0
-                ? Text('إعادة الإرسال بعد ${_timer.toString().padLeft(2, '0')} ثانية', style: const TextStyle(color: Colors.grey))
-                : TextButton(onPressed: _resendOTP, child: const Text('إعادة إرسال الرمز', style: TextStyle(fontWeight: FontWeight.bold))),
+                ? Text(_t('إعادة الإرسال بعد') + _timer.toString().padLeft(2, '0') + ' ' + _t('ثانية'), style: const TextStyle(color: Colors.grey))
+                : TextButton(onPressed: _resendOTP, child: Text(_t('إعادة إرسال الرمز'), style: TextStyle(fontWeight: FontWeight.bold))),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -167,7 +170,7 @@ class _OTPScreenState extends State<OTPScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _verifyOTP,
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('تأكيد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(_t('تأكيد'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
