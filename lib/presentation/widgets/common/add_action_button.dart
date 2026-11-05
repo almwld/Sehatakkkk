@@ -49,7 +49,7 @@ class AddActionButton extends StatelessWidget {
         return ElevatedButton.icon(
           onPressed: onPressed,
           icon: const Icon(Icons.add_rounded, size: 18),
-          label: Text(label ?? 'إضافة'),
+          label: Text(buttonLabel),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
@@ -61,7 +61,7 @@ class AddActionButton extends StatelessWidget {
         return OutlinedButton.icon(
           onPressed: onPressed,
           icon: const Icon(Icons.add_rounded, size: 18),
-          label: Text(label ?? 'إضافة'),
+          label: Text(buttonLabel),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
