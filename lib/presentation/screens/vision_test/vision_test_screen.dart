@@ -69,7 +69,7 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
       const SizedBox(height: 10),
       Text('$_score من ${_patterns.length}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
-      Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
+      Text(_localizedUiText(context, label), textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
       const SizedBox(height: 18),
       Card(child: Padding(padding: EdgeInsets.all(15), child: Text(_localizedUiText(context, 'هذا تقييم أولي داخل التطبيق ولا يقيس حدة البصر بوحدة سريرية، ولا يحدد الحاجة إلى نظارة أو علاج. إذا كان لديك تشوش مستمر، ازدواجية، ألم، ومضات أو فقد مفاجئ للرؤية، اطلب تقييماً طبياً ولا تعتمد على الاختبار.'), style: TextStyle(height: 1.5)))),
       const SizedBox(height: 18),
