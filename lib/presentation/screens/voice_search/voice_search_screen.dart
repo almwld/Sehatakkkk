@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -36,7 +37,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> with SingleTicker
           const SizedBox(height: 20),
           Container(padding: const EdgeInsets.all(16), margin: const EdgeInsets.symmetric(horizontal: 30), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.06), borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.success.withOpacity(0.2))), child: Row(children: [const Icon(Icons.check_circle, color: AppColors.success), const SizedBox(width: 8), Expanded(child: Text(_result, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.success)))])),
           const SizedBox(height: 20),
-          ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.search), label: const Text('عرض النتائج'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14))),
+          ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.search), label: Text(_localizedUiText(context, 'عرض النتائج')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14))),
         ],
         const SizedBox(height: 40),
         GestureDetector(onTap: _toggle, child: Container(width: 70, height: 70, decoration: BoxDecoration(color: _listening ? AppColors.error : AppColors.primary, shape: BoxShape.circle, boxShadow: [BoxShadow(color: (_listening ? AppColors.error : AppColors.primary).withOpacity(0.4), blurRadius: 16)]), child: Icon(_listening ? Icons.stop : Icons.mic, color: Colors.white, size: 32))),
@@ -44,3 +45,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> with SingleTicker
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
