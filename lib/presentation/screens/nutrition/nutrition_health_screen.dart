@@ -302,7 +302,7 @@ class _NutritionHealthScreenState extends State<NutritionHealthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: dark ? Colors.white70 : Colors.black54, fontSize: 11)),
+                Text(_t(title), style: TextStyle(color: dark ? Colors.white70 : Colors.black54, fontSize: 11)),
                 Text(value, style: TextStyle(color: color, fontSize: 17, fontWeight: FontWeight.w900)),
               ],
             ),
