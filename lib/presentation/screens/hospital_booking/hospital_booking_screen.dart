@@ -61,7 +61,7 @@ class HospitalBookingScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        hospital['name']?.toString() ?? 'مستشفى',
+                        hospital['name']?.toString() ?? _localizedUiText(context, 'مستشفى'),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -84,7 +84,7 @@ class HospitalBookingScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          hospital['specialty']?.toString() ?? hospital['type']?.toString() ?? 'خدمات طبية',
+                          hospital['specialty']?.toString() ?? hospital['type']?.toString() ?? _localizedUiText(context, 'خدمات طبية'),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.primary,
