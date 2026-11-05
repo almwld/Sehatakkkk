@@ -372,7 +372,7 @@ class AppRouter {
     switch (name) {
       case splash:
         return MaterialPageRoute(
-            builder: (_) => const SplashScreen(), settings: routeSettings);
+            builder: (_) => const AuthScreen(showIntroSplash: true), settings: routeSettings);
       case home:
         return MaterialPageRoute(
             builder: (_) => const HomeScreen(), settings: routeSettings);
