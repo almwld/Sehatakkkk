@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/status_model.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class StatusRow extends StatelessWidget {
   const StatusRow({
@@ -19,6 +20,7 @@ class StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppStrings.of(context).translate;
     final mine = currentUserId == null
         ? null
         : statuses.cast<UserStatusModel?>().firstWhere(
@@ -84,14 +86,14 @@ class _StatusCircle extends StatelessWidget {
 
     Widget content;
     if (story.type == 'image' && story.url.isNotEmpty) {
-      content = Image.network(story.url, fit: BoxFit.cover, width: double.infinity, height: double.infinity, errorBuilder: (_, __, ___) => _fallback(story));
+      content = Image.network(story.url, fit: BoxFit.cover, width: double.infinity, height: double.infinity, errorBuilder: (_, __, ___) => _fallback(story, context));
     } else {
-      content = _fallback(story);
+      content = _fallback(story, context);
     }
 
     return Semantics(
       button: true,
-      label: 'حالة ' + status.userName,
+      label: t('حالة') + ' ' + status.userName,
       child: GestureDetector(
         onTap: onTap,
         child: SizedBox(
@@ -139,7 +141,7 @@ class _StatusCircle extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 5),
-              Text(isMine ? 'حالتك' : status.userName, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              Text(isMine ? t('حالتك') : status.userName, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -147,16 +149,17 @@ class _StatusCircle extends StatelessWidget {
     );
   }
 
-  Widget _fallback(StoryItem story) {
+  Widget _fallback(StoryItem story, BuildContext context) {
     if (story.type == 'video') {
       return Container(color: Colors.black87, alignment: Alignment.center, child: const Icon(Icons.play_circle_fill, color: Colors.white, size: 30));
     }
     final text = story.text?.trim();
+    final ownStatus = AppStrings.of(context).translate('حالتك');
     return Container(
       color: AppColors.primary.withOpacity(.14),
       alignment: Alignment.center,
       padding: const EdgeInsets.all(6),
-      child: Text(text != null && text.isNotEmpty ? text : 'حالتك', maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 10)),
+      child: Text(text != null && text.isNotEmpty ? text : ownStatus, maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 10)),
     );
   }
 }
@@ -169,7 +172,7 @@ class _AddStatusButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'إضافة حالة',
+      label: AppStrings.of(context).translate('إضافة حالة'),
       child: GestureDetector(
         onTap: onTap,
         child: SizedBox(
@@ -202,7 +205,7 @@ class _AddStatusButton extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 5),
-              const Text('إضافة حالة', maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              Text(AppStrings.of(context).translate('إضافة حالة'), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
