@@ -52,7 +52,7 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
           ),
         ),
       ),
-      const Center(child: Text(_localizedUiText(context, 'إلى أي اتجاه تتجه فتحة الحرف؟'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+      Center(child: Text(_localizedUiText(context, 'إلى أي اتجاه تتجه فتحة الحرف؟'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
       const SizedBox(height: 18),
       GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 2.5, children: _directions.map((d) => OutlinedButton(onPressed: () => _answer(d), child: Text(d))).toList()),
     ]);
