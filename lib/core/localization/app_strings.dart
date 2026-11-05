@@ -4437,7 +4437,6 @@ class AppStrings {
       "توثيق مقدمي الخدمة": ["Provider verification", "Vérification des prestataires"],
       "عرض النتائج": ["View results", "Voir les résultats"],
     };
-      'شاشة الإشعارات قيد التطوير': ['The notifications screen is under development', 'L’écran des notifications est en cours de développement'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
