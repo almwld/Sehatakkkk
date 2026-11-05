@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/messages/messages_bloc.dart';
 import '../../../core/constants/app_colors.dart';
@@ -27,6 +28,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   bool _isLoadingMore = false;
   bool _markingSeen = false;
   bool _keepAtBottom = true;
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override void initState() {
     super.initState();
@@ -79,7 +81,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final title = widget.userName?.trim().isNotEmpty == true ? widget.userName!.trim() : 'الدردشة';
+    final title = widget.userName?.trim().isNotEmpty == true ? widget.userName!.trim() : _t('الدردشة');
     final headerColor = isDark ? const Color(0xFF102B2A) : AppColors.primary;
     final inputSurface = isDark ? const Color(0xFF121A29) : Colors.white;
     return Scaffold(
@@ -106,9 +108,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           },
           builder: (context, state) {
             if (state is MessagesLoading) return const Center(child: CircularProgressIndicator());
-            if (state is MessagesError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(state.message, textAlign: TextAlign.center)));
+            if (state is MessagesError) return Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(_t(state.message), textAlign: TextAlign.center)));
             if (state is MessagesLoaded) {
-              if (state.messages.isEmpty) return const Center(child: Text('لا توجد رسائل'));
+              if (state.messages.isEmpty) return Center(child: Text(_t('لا توجد رسائل')));
               unawaited(_markConversationSeen());
               final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
               final messages = List.of(state.messages)..sort((a, b) => (b.timestamp ?? Timestamp(0, 0)).compareTo(a.timestamp ?? Timestamp(0, 0)));
