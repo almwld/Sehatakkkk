@@ -160,7 +160,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${_localizedUiText(context, 'OK تم إيقاف التتبع - الجودة: ')}${result['quality'].toStringAsFixed(1)}/10'),
+        content: Text('${_localizedUiText(context, 'تم إيقاف التتبع - الجودة: ')}${result['quality'].toStringAsFixed(1)}/10'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 3),
       ),
@@ -191,7 +191,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
               padding: const EdgeInsets.only(left: 8, top: 2),
               child: Row(
                 children: [
-                  const Text('Tip ', style: TextStyle(fontSize: 12)),
+                  Text(_localizedUiText(context, 'نصيحة:'), style: const TextStyle(fontSize: 12)),
                   Expanded(
                     child: Text(
                       tip,
@@ -455,7 +455,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_localizedUiText(context, 'Stats تقدم النوم الأسبوعي'),
+                  Text(_localizedUiText(context, 'تقدم النوم الأسبوعي'),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 12),
@@ -530,7 +530,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Row(
                       children: [
-                        const Text('Tip ', style: TextStyle(fontSize: 12)),
+                        Text(_localizedUiText(context, 'نصيحة:'), style: const TextStyle(fontSize: 12)),
                         Expanded(
                           child: Text(
                             tip,
@@ -587,7 +587,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_localizedUiText(context, 'Stats الإحصائيات')),
+        title: Text(_localizedUiText(context, 'الإحصائيات')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -643,7 +643,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
               await _loadData();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(_localizedUiText(context, 'OK تم حذف جميع البيانات')),
+                  content: Text(_localizedUiText(context, 'تم حذف جميع البيانات')),
                   backgroundColor: Colors.green,
                 ),
               );
