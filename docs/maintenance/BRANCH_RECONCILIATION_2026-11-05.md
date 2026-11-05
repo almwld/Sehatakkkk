@@ -74,6 +74,40 @@
 4. Decide separately whether dental/eye modules are still product scope.
 5. Keep backup refs until each unique change group is either recovered or explicitly rejected. Do not delete backups as part of this audit.
 
+
+## Revalidation after reconciliation PRs (2026-11-05)
+
+Current master advanced after the original inventory. The initial ahead/behind table above is a historical snapshot at the stated SHA, not current counts.
+
+### Confirmed merged work
+- PR #20 merged the branch reconciliation inventory (documentation only).
+- PR #21 merged the focused localization recovery for location, pregnancy, medicine, pharmacy and shared UI. It deliberately preserved the existing patient dashboard rather than replacing it with the stale branch version.
+- PR #19 remains closed without merge; its selected safe changes were reapplied through PR #21.
+
+### Localization source-branch audit
+- Compared the translation dictionary in current master against `feat/complete-english-localization`, `i18n/rebased-master-2026-11-05`, and `i18n/post-merge-localization-2026-11-05`.
+- Parsed dictionary entries by Arabic source key and English/French pair. Current master contains every key found in each of those three branches (no missing source keys).
+- The rebased branch has five differing translations for keys already present in master. The current master wording is retained because it is more precise in the reviewed cases (notably `اليوم` → “Today”, rather than “Day”, and the fuller paramedic wording).
+- Sampled PR #13 screen patches (assistant, about, appointments, authentication, home, payment, pharmacy marketplace and chat room). Current master already contains the localization import/helper and translated call sites in those sampled files; applying the old patch fails at its first hunk because the changes are already present in a different import order/current file shape.
+- PR #13 is therefore not safe to merge wholesale: its 223-file diff includes runtime/backend/workflow changes and old screen versions. Its dictionary does not add missing keys to current master. Remaining screen-by-screen coverage still requires a complete scan; this audit does not claim 100% UI coverage.
+
+### Voice recording branch audit
+- Current master `chat_input_bar.dart` already contains the core reliability changes represented by PR #15: permission check, mounted checks, 44.1 kHz / 128 kbps recording config, cleanup after failed start, stopped-file existence validation, retry-preserving outbox enqueue behavior and cleanup after successful enqueue.
+- The old PR #15 patch does not apply cleanly because current master already contains a newer implementation. No duplicate voice patch was added.
+- PR #15 also changes `.github/workflows/main.yml` (PR triggers, plugin namespace normalization and artifact upload toggles). These workflow changes were intentionally not imported.
+
+### Pharmacy fallback branch audit
+- PR #12's primary featured-product query is already present in master.
+- Its fallback differs: the branch filters fallback products by both `isFeatured == true` and `isActive == true`, while current master falls back to the first ten medicine IDs after `getAllProducts()`. This is a real remaining behavior difference, but it is not applied blindly because older product documents may omit these flags.
+- The branch also adds ImageKit background-removal transformations to a subset of medicine images. This visual change is not imported without asset verification.
+- The labs fallback similarly tightens visibility from `isActive != false` to requiring both featured and active flags; this could hide legacy labs and needs data-contract confirmation.
+
+### Current safe next steps
+1. Complete a screen-level localization coverage scan on current master, identifying visible Arabic literals not passed through `AppStrings`; dictionary-key completeness alone is insufficient.
+2. Review pharmacy document flags/data compatibility before adopting PR #12 fallback filters.
+3. Review FCM/call changes against current backend and Firestore contracts; no stale branch is merged as a unit.
+4. Keep Android/build workflow branches isolated from the approved Flutter 3.16.0 release baseline.
+
 ## Explicit exclusions
 - No branch deletion.
 - No force push.
