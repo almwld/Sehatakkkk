@@ -4451,6 +4451,11 @@ class AppStrings {
       "اسم المستشفى": ["Hospital name", "Nom de l’hôpital"],
       "الموقع غير معروف": ["Location unknown", "Emplacement inconnu"],
       "عدد الأسرة": ["Number of beds", "Nombre de lits"],
+      "حسابك محمي بدرجة عالية": ["Your account is highly protected", "Votre compte est hautement protégé"],
+      "فعل المصادقة لحماية حسابك": ["Enable authentication to protect your account", "Activez l’authentification pour protéger votre compte"],
+      "لماذا المصادقة الثنائية؟": ["Why two-factor authentication?", "Pourquoi l’authentification à deux facteurs ?"],
+      "تضيف طبقة حماية إضافية لحسابك. حتى لو عرف أحدهم كلمة مرورك، لن يستطيع الدخول بدون رمز التحقق.": ["It adds an extra layer of protection to your account. Even if someone knows your password, they cannot sign in without the verification code.", "Elle ajoute une couche de protection supplémentaire à votre compte. Même si quelqu’un connaît votre mot de passe, il ne pourra pas se connecter sans le code de vérification."],
+      "المفتاح السري:": ["Secret key:", "Clé secrète :"],
       "عرض النتائج": ["View results", "Voir les résultats"],
     };
     final entry = translations[value];
