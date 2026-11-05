@@ -3986,6 +3986,9 @@ class AppStrings {
       "تجنبي التدخين والكحول والمواد الضارة، وراجعي الأدوية الحالية مع الطبيب أو الصيدلي.": ["Avoid smoking, alcohol, and harmful substances. Review current medicines with your doctor or pharmacist.", "Évitez le tabac, l’alcool et les substances nocives. Vérifiez vos traitements actuels avec votre médecin ou votre pharmacien."],
       "جهزي خطة للولادة والنقل والطوارئ ومكان الرعاية قبل نهاية الحمل.": ["Prepare a birth, transport, emergency, and care-location plan before the end of pregnancy.", "Préparez avant la fin de la grossesse un plan pour l’accouchement, le transport, les urgences et le lieu de prise en charge."],
       "بعد الولادة تستمر الرعاية للأم والطفل وتشمل الرضاعة والصحة النفسية والمتابعة الطبية.": ["Care continues for both mother and baby after birth and includes breastfeeding, mental health, and medical follow-up.", "Après la naissance, les soins se poursuivent pour la mère et le bébé et comprennent l’allaitement, la santé mentale et le suivi médical."],
+      "تعذر تحميل الأدوية حالياً": ["Could not load medicines right now", "Impossible de charger les médicaments pour le moment"],
+      "ابحث عن دواء...": ["Search for a medicine...", "Rechercher un médicament..."],
+      "لا توجد أدوية متاحة حالياً": ["No medicines are currently available", "Aucun médicament n’est disponible pour le moment"],
       'general': ['General', 'Général'],
       'وصفة': ['Prescription required', 'Ordonnance requise'],
     };
