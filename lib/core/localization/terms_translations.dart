@@ -820,14 +820,16 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Vital indicators, including weight, height, blood pressure, and blood glucose.
 
 **C. Usage data:**
-- How you use the application and the pages you visit.
+- How you use the application.
+- The pages you visit.
 - Time spent using the application.
 - Features you use most.
 - Errors you encounter.
 - Your ratings of the services.
 
 **D. Device data:**
-- Device type (iOS / Android) and operating-system version.
+- Device type (iOS / Android).
+- Operating system and version.
 - Unique device identifier (UDID).
 - IP address.
 - Connection type (Wi-Fi / mobile data).
@@ -925,14 +927,16 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Indicateurs vitaux : poids, taille, tension artérielle et glycémie.
 
 **C. Données d’utilisation :**
-- Votre utilisation de l’application et les pages consultées.
+- Votre utilisation de l’application.
+- Les pages que vous consultez.
 - Temps passé sur l’application.
 - Fonctionnalités les plus utilisées.
 - Erreurs rencontrées.
 - Évaluations que vous attribuez aux services.
 
 **D. Données de l’appareil :**
-- Type d’appareil (iOS / Android) et version du système.
+- Type d’appareil (iOS / Android).
+- Système d’exploitation et version.
 - Identifiant unique de l’appareil (UDID).
 - Adresse IP.
 - Type de connexion (Wi-Fi / données mobiles).
@@ -1055,7 +1059,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 
 **8. Employee training:**
 - Employees are trained in information security.
-- Training covers emerging threats and simulated phishing.
+- Regular updates on emerging threats.
+- Simulated phishing exercises.
 - A culture of security is promoted.
 
 **9. Standards compliance:**
@@ -1115,7 +1120,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 
 **8. Formation du personnel :**
 - Les employés sont formés à la sécurité de l’information.
-- La formation porte sur les nouvelles menaces et les simulations d’hameçonnage.
+- Mises à jour régulières sur les nouvelles menaces.
+- Exercices de simulation d’hameçonnage.
 - Une culture de sécurité est encouragée.
 
 **9. Conformité aux normes :**
@@ -1282,7 +1288,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **1. Accurate information:**
 - Provide correct and complete information when registering.
 - Update your information regularly.
-- Do not impersonate others or use false or misleading information.
+- Do not impersonate others.
+- Do not use false or misleading information.
 
 **2. Responsible use:**
 - Use the platform only for lawful purposes.
@@ -1315,13 +1322,15 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 
 **7. Social responsibility:**
 - Help build a positive health community.
-- Share useful information and avoid misleading content.
+- Share useful information.
+- Avoid publishing misleading information.
 - Support other users and encourage constructive interaction.
 
 **8. Reporting problems:**
 - Report technical errors and problems.
 - Report content that violates the rules.
-- Cooperate with support and provide complete details.
+- Cooperate with the support team to resolve problems.
+- Provide complete information about the problem.
 - Provide complete information about the problem.
 
 **9. Application updates:**
@@ -1333,10 +1342,12 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **10. Protecting reputation:**
 - Do not damage the platform’s reputation.
 - Do not publish false information about the platform.
+- Defend the platform in the event of attacks.
 - Report any misleading information.
 
 **11. Respect:**
-- Respect others’ privacy, opinions, and beliefs.
+- Respect other people’s privacy.
+- Respect their opinions and beliefs.
 - Do not share another person’s information without consent.
 - Treat all users kindly and respectfully.
 
@@ -1350,7 +1361,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **1. Exactitude des informations :**
 - Fournir des informations exactes et complètes lors de l’inscription.
 - Mettre régulièrement vos informations à jour.
-- Ne pas usurper l’identité d’autrui ni utiliser d’informations fausses ou trompeuses.
+- Ne pas usurper l’identité d’autrui.
+- Ne pas utiliser d’informations fausses ou trompeuses.
 
 **2. Utilisation responsable :**
 - Utiliser la plateforme uniquement à des fins licites.
@@ -1383,13 +1395,15 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 
 **7. Responsabilité sociale :**
 - Contribuer à bâtir une communauté de santé positive.
-- Partager des informations utiles et éviter les contenus trompeurs.
+- Partager des informations utiles.
+- Éviter de publier des contenus trompeurs.
 - Soutenir les autres utilisateurs et encourager les échanges constructifs.
 
 **8. Signalement des problèmes :**
 - Signaler les erreurs et problèmes techniques.
 - Signaler les contenus non conformes.
-- Coopérer avec l’assistance et fournir des détails complets sur le problème.
+- Coopérer avec l’équipe d’assistance pour résoudre les problèmes.
+- Fournir des informations complètes sur le problème.
 
 **9. Mises à jour de l’application :**
 - Installer régulièrement les mises à jour.
@@ -1400,10 +1414,12 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **10. Préservation de la réputation :**
 - Ne pas nuire à la réputation de la plateforme.
 - Ne pas publier de fausses informations sur la plateforme.
+- Défendre la plateforme en cas d’attaques.
 - Signaler toute information trompeuse.
 
 **11. Respect :**
-- Respecter la vie privée, les opinions et les convictions d’autrui.
+- Respecter la vie privée d’autrui.
+- Respecter les opinions et convictions des autres.
 - Ne pas partager les informations d’une autre personne sans son consentement.
 - Traiter tous les utilisateurs avec gentillesse et respect.
 
@@ -1958,7 +1974,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Advanced intrusion-detection systems.
 
 **3. Application security:**
-- Regular security updates and penetration tests.
+- Regular security updates.
+- Periodic penetration tests.
 - Protection against social-engineering attacks.
 - Strict employee security policies.
 - Continuous security code reviews.
@@ -1986,8 +2003,10 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 
 **7. Security compliance:**
 - Compliance with international security standards (ISO 27001).
-- Security best practices and periodic reviews.
-- Recognized certifications and external audits.
+- Security best practices.
+- Periodic security reviews.
+- Recognized security certifications.
+- External security audits.
 
 **8. Vulnerability management:**
 - A vulnerability-management program.
@@ -2026,7 +2045,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Systèmes avancés de détection d’intrusion.
 
 **3. Sécurité de l’application :**
-- Mises à jour de sécurité et tests d’intrusion réguliers.
+- Mises à jour de sécurité régulières.
+- Tests d’intrusion périodiques.
 - Protection contre l’ingénierie sociale.
 - Règles de sécurité strictes pour le personnel.
 - Révision continue du code à des fins de sécurité.
@@ -2054,8 +2074,10 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 
 **7. Conformité en matière de sécurité :**
 - Respect des normes internationales (ISO 27001).
-- Bonnes pratiques et examens périodiques.
-- Certifications reconnues et audits externes.
+- Application des bonnes pratiques de sécurité.
+- Examens périodiques de la sécurité.
+- Certifications de sécurité reconnues.
+- Audits de sécurité externes.
 
 **8. Gestion des vulnérabilités :**
 - Programme de gestion des vulnérabilités.
