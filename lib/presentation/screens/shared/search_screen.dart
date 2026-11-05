@@ -66,7 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
       if(_recentSearches.isNotEmpty)...[
         Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[Text(AppStrings.of(context).translate('البحث الأخير'),style:TextStyle(fontWeight:FontWeight.bold,fontSize:16)),TextButton(onPressed:(){},child:Text(AppStrings.of(context).translate('مسح الكل'),style:TextStyle(fontSize:12)))]),
         const SizedBox(height:8),
-        ..._recentSearches.map((s)=>GestureDetector(onTap:(){_searchController.text=s['query'];_performSearch(s['query']);},child:Container(padding:const EdgeInsets.symmetric(vertical:10),decoration:BoxDecoration(border:Border(bottom:BorderSide(color:isDark?const Color(0xFF2D3A54):Colors.grey.shade100))),child:Row(children:[const Icon(Icons.history_rounded,size:16,color:AppColors.primary),const SizedBox(width:12),Expanded(child:Text(s['query'])),Text(s['time'],style:const TextStyle(fontSize:11,color:AppColors.grey))])))),
+        ..._recentSearches.map((s)=>GestureDetector(onTap:(){_searchController.text=s['query'];_performSearch(s['query']);},child:Container(padding:const EdgeInsets.symmetric(vertical:10),decoration:BoxDecoration(border:Border(bottom:BorderSide(color:isDark?const Color(0xFF2D3A54):Colors.grey.shade100))),child:Row(children:[const Icon(Icons.history_rounded,size:16,color:AppColors.primary),const SizedBox(width:12),Expanded(child:Text(AppStrings.of(context).translate(s['query']))),Text(AppStrings.of(context).translate(s['time']),style:const TextStyle(fontSize:11,color:AppColors.grey))])))),
         const SizedBox(height:24),
       ],
       Text(AppStrings.of(context).translate('الأكثر بحثاً'),style:TextStyle(fontWeight:FontWeight.bold,fontSize:16)),const SizedBox(height:12),
