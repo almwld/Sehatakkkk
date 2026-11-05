@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/vitals_service.dart';
 
 class LiveVitalsGrid extends StatelessWidget {
@@ -55,7 +56,7 @@ class LiveVitalsGrid extends StatelessWidget {
             final key = keys[index];
             return _LiveVitalCard(
               keyName: key,
-              label: _labels[key] ?? key,
+              label: AppStrings.of(context).translate(_labels[key] ?? key),
               unit: _units[key] ?? '',
               value: _display(key, current[key]),
               icon: _icons[key],
@@ -105,7 +106,10 @@ class _LiveVitalCard extends StatelessWidget {
               Text(value == '--' ? '--' : '$value${unit.isEmpty ? '' : ' $unit'}', style: TextStyle(fontSize: compact ? 16 : 19, fontWeight: FontWeight.w900, color: color)),
               if (!compact) ...[
                 const SizedBox(height: 4),
-                Text(points.length < 2 ? 'لا يوجد سجل كافٍ بعد' : 'آخر ${points.length} قراءة', style: TextStyle(fontSize: 9, color: dark ? Colors.white54 : Colors.black45)),
+                Text(points.length < 2
+                    ? AppStrings.of(context).translate('لا يوجد سجل كافٍ بعد')
+                    : '${AppStrings.of(context).translate('آخر')} ${points.length} ${AppStrings.of(context).translate('قراءات')}',
+                    style: TextStyle(fontSize: 9, color: dark ? Colors.white54 : Colors.black45)),
                 const SizedBox(height: 4),
                 SizedBox(height: 30, child: CustomPaint(painter: _MiniChartPainter(points, color), size: const Size(double.infinity, 30))),
               ],
