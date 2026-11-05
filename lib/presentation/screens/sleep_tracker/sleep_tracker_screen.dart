@@ -1,4 +1,5 @@
 /*
+import 'package:sehatak/core/localization/app_strings.dart';
 // ============================================================
 // 📁 lib/presentation/screens/sleep_tracker/sleep_tracker_screen.dart
 // Sleep شاشة تتبع النوم الرئيسية
@@ -139,7 +140,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('🌙 بدأ تتبع النوم...'),
+        content: Text(_localizedUiText(context, '🌙 بدأ تتبع النوم...')),
         backgroundColor: Colors.blue,
         duration: Duration(seconds: 2),
       ),
@@ -175,7 +176,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: const Text('🌙 تقرير النوم'),
+        title: Text(_localizedUiText(context, '🌙 تقرير النوم')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,14 +206,14 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('حسناً'),
+            child: Text(_localizedUiText(context, 'حسناً')),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await _loadData();
             },
-            child: const Text('🔄 تحديث'),
+            child: Text(_localizedUiText(context, '🔄 تحديث')),
           ),
         ],
       ),
@@ -252,7 +253,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('🌙 تتبع النوم'),
+        title: Text(_localizedUiText(context, '🌙 تتبع النوم')),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -312,8 +313,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'نوم الليلة الماضية',
+                  Text(_localizedUiText(context, 'نوم الليلة الماضية'),
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   Row(
@@ -327,8 +327,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Text(
-                        ' ساعة',
+                      Text(_localizedUiText(context, ' ساعة'),
                         style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ],
@@ -401,7 +400,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => const Icon(Icons.analytics),
                     ),
-                    label: const Text('الإحصائيات'),
+                    label: Text(_localizedUiText(context, 'الإحصائيات')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple,
                       foregroundColor: Colors.white,
@@ -456,8 +455,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Stats تقدم النوم الأسبوعي',
+                  Text(_localizedUiText(context, 'Stats تقدم النوم الأسبوعي'),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 12),
@@ -465,7 +463,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                     const Center(
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Text('لا توجد بيانات كافية'),
+                        child: Text(_localizedUiText(context, 'لا توجد بيانات كافية')),
                       ),
                     )
                   else
@@ -524,8 +522,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '💤 نصائح لنوم أفضل',
+                  Text(_localizedUiText(context, '💤 نصائح لنوم أفضل'),
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -590,7 +587,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Stats الإحصائيات'),
+        title: Text(_localizedUiText(context, 'Stats الإحصائيات')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -608,7 +605,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+            child: Text(_localizedUiText(context, 'إغلاق')),
           ),
         ],
       ),
@@ -632,12 +629,12 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('🗑️ حذف البيانات'),
-        content: const Text('هل أنت متأكد من حذف جميع بيانات النوم؟'),
+        title: Text(_localizedUiText(context, '🗑️ حذف البيانات')),
+        content: Text(_localizedUiText(context, 'هل أنت متأكد من حذف جميع بيانات النوم؟')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(_localizedUiText(context, 'إلغاء')),
           ),
           TextButton(
             onPressed: () async {
@@ -646,13 +643,13 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
               await _loadData();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('OK تم حذف جميع البيانات'),
+                  content: Text(_localizedUiText(context, 'OK تم حذف جميع البيانات')),
                   backgroundColor: Colors.green,
                 ),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('حذف'),
+            child: Text(_localizedUiText(context, 'حذف')),
           ),
         ],
       ),
@@ -660,3 +657,6 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
   }
 }
 */
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
