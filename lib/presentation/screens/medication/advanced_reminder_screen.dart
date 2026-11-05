@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -19,7 +20,7 @@ class _AdvancedReminderScreenState extends State<AdvancedReminderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('التذكير المتقدم', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_localizedUiText(context, 'التذكير المتقدم'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: ListView.builder(
         padding: const EdgeInsets.all(14),
         itemCount: _medications.length,
@@ -55,9 +56,9 @@ class _AdvancedReminderScreenState extends State<AdvancedReminderScreen> {
                 ),
               const SizedBox(height: 8),
               Row(children: [
-                Expanded(child: OutlinedButton(onPressed: () {}, child: const Text('تأجيل', style: TextStyle(fontSize: 10)))),
+                Expanded(child: OutlinedButton(onPressed: () {}, child: Text(_localizedUiText(context, 'تأجيل'), style: TextStyle(fontSize: 10)))),
                 const SizedBox(width: 6),
-                Expanded(child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary), child: const Text('إعادة تعبئة', style: TextStyle(fontSize: 10)))),
+                Expanded(child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary), child: Text(_localizedUiText(context, 'إعادة تعبئة'), style: TextStyle(fontSize: 10)))),
               ]),
             ]),
           );
@@ -66,3 +67,7 @@ class _AdvancedReminderScreenState extends State<AdvancedReminderScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
