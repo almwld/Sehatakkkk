@@ -11,7 +11,7 @@ class MedicationHistoryScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        title: 'سجل الأدوية',
+        title: _localizedUiText(context, 'سجل الأدوية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
