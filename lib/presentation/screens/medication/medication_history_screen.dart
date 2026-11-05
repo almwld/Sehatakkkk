@@ -15,13 +15,12 @@ class MedicationHistoryScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
-      body: const Center(
+      body: Center(
         child: Text(_localizedUiText(context, 'سجل الأدوية قيد التطوير')),
       ),
     );
   }
 }
-
 
 String _localizedUiText(BuildContext context, String value) =>
     AppStrings.of(context).translate(value);

@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:quick_actions/quick_actions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../app_router.dart';
 
 /// Registers the four most useful health trackers in the Android app icon
-/// long-press menu. Native icons intentionally fall back to ic_launcher until
-/// the requested custom transparent PNGs are added.
+/// long-press menu. Titles follow the user's persisted app language.
 class ShortcutsService {
   ShortcutsService._();
 
@@ -14,27 +14,19 @@ class ShortcutsService {
 
   Future<void> init() async {
     _quickActions.initialize(_handleShortcut);
-    await _quickActions.setShortcutItems(const <ShortcutItem>[
-      ShortcutItem(
-        type: 'blood_pressure',
-        localizedTitle: 'ضغط الدم',
-        icon: 'ic_launcher',
-      ),
-      ShortcutItem(
-        type: 'blood_sugar',
-        localizedTitle: 'سكر الدم',
-        icon: 'ic_launcher',
-      ),
-      ShortcutItem(
-        type: 'sleep',
-        localizedTitle: 'النوم',
-        icon: 'ic_launcher',
-      ),
-      ShortcutItem(
-        type: 'steps',
-        localizedTitle: 'الخطوات',
-        icon: 'ic_launcher',
-      ),
+    final prefs = await SharedPreferences.getInstance();
+    final language = prefs.getString('app_locale_code') ?? 'ar';
+    final titles = switch (language) {
+      'en' => const ['Blood pressure', 'Blood glucose', 'Sleep', 'Steps'],
+      'fr' => const ['Tension artérielle', 'Glycémie', 'Sommeil', 'Pas'],
+      _ => const ['ضغط الدم', 'سكر الدم', 'النوم', 'الخطوات'],
+    };
+
+    await _quickActions.setShortcutItems(<ShortcutItem>[
+      ShortcutItem(type: 'blood_pressure', localizedTitle: titles[0], icon: 'ic_launcher'),
+      ShortcutItem(type: 'blood_sugar', localizedTitle: titles[1], icon: 'ic_launcher'),
+      ShortcutItem(type: 'sleep', localizedTitle: titles[2], icon: 'ic_launcher'),
+      ShortcutItem(type: 'steps', localizedTitle: titles[3], icon: 'ic_launcher'),
     ]);
   }
 

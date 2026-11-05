@@ -4865,6 +4865,10 @@ class AppStrings {
       'اشتراكك الصحي': ['Your health subscription', 'Votre abonnement santé'],
       'د. أحمد': ['Dr. Ahmed', 'Dr Ahmed'],
       'صيدلية اليمن': ['Yemen Pharmacy', 'Pharmacie du Yémen'],
+      'لا يوجد سجل كافٍ بعد': ['Not enough history yet', 'Historique insuffisant pour le moment'],
+      'آخر': ['Last', 'Dernières'],
+      'قراءات': ['readings', 'mesures'],
+      'ملخصك الصحي': ['Your health summary', 'Votre résumé de santé'],
       'تخطي →': ['Skip →', 'Passer →'],
     };
 
