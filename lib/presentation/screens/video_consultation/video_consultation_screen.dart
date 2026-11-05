@@ -131,7 +131,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: _filteredDoctors.isEmpty
-                        ? Center(child: Text(_localizedUiText(context, 'لا يوجد أطباء متاحون حالياً'))
+                        ? Center(child: Text(_localizedUiText(context, 'لا يوجد أطباء متاحون حالياً')))
                         : ListView.builder(
                             itemCount: _filteredDoctors.length,
                             itemBuilder: (_, i) => _doctorCard(_filteredDoctors[i], dark),
