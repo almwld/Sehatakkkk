@@ -30,7 +30,7 @@ class CallForegroundService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
-        val callerName = intent.getStringExtra(EXTRA_CALLER_NAME)?.trim().orEmpty().ifEmpty { "مكالمة واردة" }
+        val callerName = intent.getStringExtra(EXTRA_CALLER_NAME)?.trim().orEmpty().ifEmpty { localizedText("مكالمة واردة", "Incoming call", "Appel entrant") }
         val callId = intent.getStringExtra(EXTRA_CALL_ID)?.trim().orEmpty()
         if (callId.isEmpty()) {
             stopSelf()
@@ -40,7 +40,7 @@ class CallForegroundService : Service() {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(com.sehatak.app.R.drawable.ic_notification)
             .setContentTitle(callerName)
-            .setContentText("المكالمة جارية")
+            .setContentText(localizedText("المكالمة جارية", "Call in progress", "Appel en cours"))
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOngoing(true)
@@ -64,6 +64,21 @@ class CallForegroundService : Service() {
     override fun onDestroy() {
         releaseWakeLock()
         super.onDestroy()
+    }
+
+
+    private fun localizedText(ar: String, en: String, fr: String): String {
+        val language = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            resources.configuration.locales[0]?.language
+        } else {
+            @Suppress("DEPRECATION")
+            resources.configuration.locale?.language
+        }
+        return when (language) {
+            "en" -> en
+            "fr" -> fr
+            else -> ar
+        }
     }
 
     private fun acquireBoundedWakeLock() {
@@ -90,7 +105,7 @@ class CallForegroundService : Service() {
         manager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
-                "صحتك - خدمة المكالمات",
+                localizedText("صحتك - خدمة المكالمات", "Sehatak - Call service", "Sehatak - Service d’appel"),
                 NotificationManager.IMPORTANCE_LOW
             )
         )
