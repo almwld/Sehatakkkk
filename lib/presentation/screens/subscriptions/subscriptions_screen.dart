@@ -82,8 +82,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen>{
           if (featured) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: AppColors.primary.withOpacity(.1), borderRadius: BorderRadius.circular(10)), child: Text(_t('مميزة'), style: TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w800))),
         ]),
         const SizedBox(height: 14),
-        Text(price == 0 ? 'مجاناً' : '${_money(price)} ر.ي', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900, color: AppColors.primary)),
-        if (price > 0) Text(_annual ? 'للسنة كاملة' : 'لكل شهر', style: TextStyle(fontSize: 11, color: dark ? Colors.white54 : Colors.black45)),
+        Text(price == 0 ? _t('مجاناً') : '${_money(price)} ${_t('ر.ي')}', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900, color: AppColors.primary)),
+        if (price > 0) Text(_t(_annual ? 'للسنة كاملة' : 'لكل شهر'), style: TextStyle(fontSize: 11, color: dark ? Colors.white54 : Colors.black45)),
         const SizedBox(height: 10),
         ...p.$6.map((f) => Padding(padding: const EdgeInsets.only(bottom: 5), child: Row(children: [
           const Icon(Icons.check_circle_outline, color: AppColors.primary, size: 17), const SizedBox(width: 7), Expanded(child: Text(_t(f), style: const TextStyle(fontSize: 12))),
