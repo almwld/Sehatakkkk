@@ -3910,6 +3910,20 @@ class AppStrings {
       'التغطية: ': ['Coverage: ', 'Couverture : '],
       'المرافق: ': ['Facilities: ', 'Établissements : '],
       'القسط: ': ['Premium: ', 'Prime : '],
+      'طبي': ['Medical', 'Médical'],
+      'صيدلية': ['Pharmacy', 'Pharmacie'],
+      'مختبر': ['Laboratory', 'Laboratoire'],
+      'مستشفى': ['Hospital', 'Hôpital'],
+      'إعلان': ['Advertisement', 'Publicité'],
+      'pending': ['Pending review', 'En attente'],
+      'active': ['Active', 'Actif'],
+      'rejected': ['Rejected', 'Rejeté'],
+      'expired': ['Expired', 'Expiré'],
+      'doctor': ['Doctor', 'Médecin'],
+      'pharmacy': ['Pharmacy', 'Pharmacie'],
+      'lab': ['Laboratory', 'Laboratoire'],
+      'hospital': ['Hospital', 'Hôpital'],
+      'general': ['General', 'Général'],
     };
     final entry = translations[value];
     if (entry == null) return value;
