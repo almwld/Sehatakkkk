@@ -2,6 +2,7 @@ import 'package:sehatak/presentation/widgets/health/health_medical_visualization
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/sleep/sleep_model.dart';
 import 'package:sehatak/core/services/sleep/sleep_service.dart';
@@ -16,6 +17,7 @@ class SleepTrackerScreen extends StatefulWidget {
 }
 
 class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final SleepService _sleepService = SleepService.instance;
   bool _isTracking = false, _isLoading = true;
   SleepRecord? _todayRecord;
@@ -69,14 +71,14 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
   Future<void> _startTracking() async {
     await _sleepService.startSleepTracking();
     if (!mounted) return;
-    ToastService.showSuccess(context, 'بدأ تتبع النوم وسيستمر حتى مغادرة هذه الشاشة');
+    ToastService.showSuccess(context, _t('بدأ تتبع النوم وسيستمر حتى مغادرة هذه الشاشة'));
   }
 
   Future<void> _stopTracking() async {
     final record = await _sleepService.stopSleepTracking();
     if (!mounted) return;
     if (record != null) {
-      ToastService.showSuccess(context, 'تم حفظ سجل النوم بنجاح');
+      ToastService.showSuccess(context, _t('تم حفظ سجل النوم بنجاح'));
       await _loadData();
     }
   }
@@ -93,7 +95,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(title: 'تتبع النوم', backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [
+      appBar: CustomAppBar(title: _t('تتبع النوم'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [
         IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
       ]),
       body: _isLoading ? const Center(child: CircularProgressIndicator()) : SingleChildScrollView(
@@ -126,14 +128,14 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
           width: double.infinity, padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(color: isDark ? const Color(0xFF172033) : Colors.white, borderRadius: BorderRadius.circular(20)),
           child: Column(children: [
-            Text('وقت النوم', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+            Text(_t('وقت النوم'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
             const SizedBox(height: 16),
             Text(_formatDuration(_elapsedSeconds), style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: AppColors.primary)),
             const SizedBox(height: 20),
             SizedBox(width: double.infinity, child: ElevatedButton.icon(
               onPressed: _isTracking ? _stopTracking : _startTracking,
               icon: Icon(_isTracking ? Icons.stop : Icons.play_arrow),
-              label: Text(_isTracking ? 'إيقاف التتبع' : 'بدء التتبع'),
+              label: Text(_t(_isTracking ? 'إيقاف التتبع' : 'بدء التتبع')),
               style: ElevatedButton.styleFrom(backgroundColor: _isTracking ? Colors.redAccent : AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
             )),
           ]),
@@ -146,7 +148,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
     final record = _todayRecord;
     return _buildCard(isDark, 'سجل اليوم', record == null
         ? 'لا يوجد سجل نوم اليوم'
-        : 'مدة النوم: ' + (record.durationMinutes ~/ 60).toString() + ' ساعة و' + record.durationMinutes.remainder(60).toString() + ' دقيقة');
+        : _t('مدة النوم: ') + (record.durationMinutes ~/ 60).toString() + _t(' ساعة و') + record.durationMinutes.remainder(60).toString() + _t(' دقيقة'));
   }
 
   Widget _buildWeeklyStats(bool isDark) {
@@ -154,13 +156,13 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
       width: double.infinity, padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(color: isDark ? const Color(0xFF172033) : Colors.white, borderRadius: BorderRadius.circular(18)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('إحصائيات الأسبوع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+        Text(_t('إحصائيات الأسبوع'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
         const SizedBox(height: 16),
         Row(children: [
-          Expanded(child: _buildStatItem('المتوسط', _formatStat(_stats['avgDuration']), isDark)),
-          Expanded(child: _buildStatItem('الكفاءة', (_stats['avgEfficiency'] ?? 0).toStringAsFixed(0) + '%', isDark)),
-          Expanded(child: _buildStatItem('الإجمالي', _formatStat(_stats['totalHours']), isDark)),
-          Expanded(child: _buildStatItem('الأفضل', _formatStat(_stats['bestDay']), isDark)),
+          Expanded(child: _buildStatItem(_t('المتوسط'), _formatStat(_stats['avgDuration']), isDark)),
+          Expanded(child: _buildStatItem(_t('الكفاءة'), (_stats['avgEfficiency'] ?? 0).toStringAsFixed(0) + '%', isDark)),
+          Expanded(child: _buildStatItem(_t('الإجمالي'), _formatStat(_stats['totalHours']), isDark)),
+          Expanded(child: _buildStatItem(_t('الأفضل'), _formatStat(_stats['bestDay']), isDark)),
         ]),
       ]),
     );
@@ -191,14 +193,14 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
     width: double.infinity, padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(color: isDark ? const Color(0xFF172033) : Colors.white, borderRadius: BorderRadius.circular(18)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [Icon(Icons.analytics_outlined, size: 20, color: AppColors.primary), const SizedBox(width: 8), Expanded(child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)))]),
+      Row(children: [Icon(Icons.analytics_outlined, size: 20, color: AppColors.primary), const SizedBox(width: 8), Expanded(child: Text(_t(title), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)))]),
       const SizedBox(height: 4),
-      Text(subtitle, style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black45)),
+      Text(_t(subtitle), style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black45)),
       const SizedBox(height: 12), child,
     ]),
   );
 
-  Widget _emptyChart() => const SizedBox(height: 150, child: Center(child: Text('لا توجد بيانات كافية بعد')));
+  Widget _emptyChart() => SizedBox(height: 150, child: Center(child: Text(_t('لا توجد بيانات كافية بعد'))));
 
   Widget _buildDurationChart(bool isDark) {
     if (_weeklyRecords.isEmpty) return _emptyChart();
@@ -210,8 +212,8 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
       titlesData: FlTitlesData(
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 30, interval: 120, getTitlesWidget: (v, m) => Text((v / 60).round().toString() + 'س', style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.black45)))),
-        bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 25, getTitlesWidget: (v, m) { final i = v.toInt(); if (i < 0 || i >= _weeklyRecords.length) return const SizedBox.shrink(); return Text(_dayLabel(_weeklyRecords[i].date), style: TextStyle(fontSize: 10, color: isDark ? Colors.white60 : Colors.black54)); })),
+        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 30, interval: 120, getTitlesWidget: (v, m) => Text((v / 60).round().toString() + ' ' + _t('ساعة'), style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.black45)))),
+        bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 25, getTitlesWidget: (v, m) { final i = v.toInt(); if (i < 0 || i >= _weeklyRecords.length) return const SizedBox.shrink(); return Text(_t(_dayLabel(_weeklyRecords[i].date)), style: TextStyle(fontSize: 10, color: isDark ? Colors.white60 : Colors.black54)); })),
       ),
       barGroups: _weeklyRecords.asMap().entries.map((e) => BarChartGroupData(x: e.key, barRods: [BarChartRodData(toY: e.value.durationMinutes.toDouble(), width: 20, borderRadius: const BorderRadius.vertical(top: Radius.circular(7)), color: AppColors.primary.withOpacity(.72))])).toList(),
     )));
@@ -222,7 +224,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
     final total = math.max(1, data.fold<int>(0, (s, x) => s + (x[1] as int)));
     return Column(children: [
       SizedBox(height: 200, child: PieChart(PieChartData(centerSpaceRadius: 50, sectionsSpace: 3, sections: data.map((x) { final minutes = x[1] as int; final pct = minutes / total * 100; return PieChartSectionData(value: minutes.toDouble(), title: pct < 8 ? '' : pct.toStringAsFixed(0) + '%', color: x[2] as Color, radius: 66, titleStyle: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)); }).toList()))),
-      Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 8, children: data.map((x) { final minutes = x[1] as int; final pct = minutes / total * 100; return Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 9, height: 9, decoration: BoxDecoration(color: x[2] as Color, shape: BoxShape.circle)), const SizedBox(width: 5), Text(x[0].toString() + ': ' + minutes.toString() + ' د • ' + pct.toStringAsFixed(0) + '%', style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black54))]); }).toList()),
+      Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 8, children: data.map((x) { final minutes = x[1] as int; final pct = minutes / total * 100; return Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 9, height: 9, decoration: BoxDecoration(color: x[2] as Color, shape: BoxShape.circle)), const SizedBox(width: 5), Text(_t(x[0].toString()) + ': ' + minutes.toString() + ' ' + _t('دقيقة نوم') + ' • ' + pct.toStringAsFixed(0) + '%', style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black54))]); }).toList()),
     ]);
   }
 
@@ -234,33 +236,37 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
       const SizedBox(height: 10),
       ClipRRect(borderRadius: BorderRadius.circular(12), child: SizedBox(height: 48, child: Row(children: data.map((x) { final minutes = x[1] as int; final flex = math.max(1, (minutes / total * 1000 * _animation.value).round()); return Expanded(flex: flex, child: Container(color: x[2] as Color, alignment: Alignment.center, child: minutes >= 30 ? Text(x[0].toString(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)) : null)); }).toList()))),
       const SizedBox(height: 10),
-      Align(alignment: AlignmentDirectional.centerStart, child: Text('المدة: ' + r.durationFormatted + ' • الكفاءة: ' + r.sleepEfficiency.toStringAsFixed(0) + '%', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54))),
+      Align(alignment: AlignmentDirectional.centerStart, child: Text(_t('المدة: ') + r.durationFormatted + ' • الكفاءة: ' + r.sleepEfficiency.toStringAsFixed(0) + '%', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54))),
     ]));
   }
 
   Widget _buildSleepAnalysisCard(SleepRecord? r, double avg, double efficiency, bool isDark) {
     final message = r == null ? 'سجّل ليلة كاملة أولاً للحصول على تحليل مبني على بيانات نومك.' : r.durationMinutes < 420 ? 'مدة النوم المسجلة أقل من 7 ساعات. راقب هذا الاتجاه عبر عدة ليالٍ وحافظ على روتين نوم منتظم.' : r.sleepEfficiency >= 85 ? 'الكفاءة المسجلة جيدة. استمر على روتين ثابت وراقب توزيع المراحل مع مرور الأيام.' : 'هناك مساحة لتحسين انتظام النوم. راقب وقت الاستغراق والاستيقاظ وتكرار فترات اليقظة.';
-    return Container(width: double.infinity, padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: isDark ? AppColors.primary.withOpacity(.12) : AppColors.primary.withOpacity(.07), borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.primary.withOpacity(.15))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.auto_awesome, color: AppColors.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('تحليل النوم', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), const SizedBox(height: 6), Text(message, style: TextStyle(height: 1.55, color: isDark ? Colors.white70 : Colors.black54)), if (avg > 0 || efficiency > 0) ...[const SizedBox(height: 8), Text('المتوسط الأسبوعي: ' + _formatStat(avg) + ' • الكفاءة: ' + efficiency.toStringAsFixed(0) + '%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary))]]))]));
+    return Container(width: double.infinity, padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: isDark ? AppColors.primary.withOpacity(.12) : AppColors.primary.withOpacity(.07), borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.primary.withOpacity(.15))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.auto_awesome, color: AppColors.primary), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t('تحليل النوم'), style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), const SizedBox(height: 6), Text(_t(message), style: TextStyle(height: 1.55, color: isDark ? Colors.white70 : Colors.black54)), if (avg > 0 || efficiency > 0) ...[const SizedBox(height: 8), Text(_t('المتوسط الأسبوعي: ') + _formatStat(avg) + ' • الكفاءة: ' + efficiency.toStringAsFixed(0) + '%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary))]]))]));
   }
 
   String _dayLabel(DateTime date) {
-    const days = ['أح', 'إث', 'ث', 'أر', 'خ', 'ج', 'س'];
+    final language = AppStrings.of(context).locale.languageCode;
+    const arabicDays = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
+    const englishDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const frenchDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    final days = language == 'en' ? englishDays : language == 'fr' ? frenchDays : arabicDays;
     return days[date.weekday % 7];
   }
 
   String _formatTime(DateTime date) {
     final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
     final minute = date.minute.toString().padLeft(2, '0');
-    return hour.toString() + ':' + minute + ' ' + (date.hour >= 12 ? 'م' : 'ص');
+    return hour.toString() + ':' + minute + ' ' + (date.hour >= 12 ? _t('م') : _t('ص'));
   }
 
   Widget _buildCard(bool isDark, String title, String content) => Container(
     width: double.infinity, padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(color: isDark ? const Color(0xFF172033) : Colors.white, borderRadius: BorderRadius.circular(18)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+      Text(_t(title), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 10),
-      Text(content, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+      Text(_t(content), style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
     ]),
   );
 
