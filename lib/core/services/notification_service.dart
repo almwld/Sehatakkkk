@@ -356,6 +356,33 @@ class NotificationService {
 
   String _translate(String languageCode, String value) =>
       AppStrings(Locale(languageCode)).translate(value);
+
+  String _localizedRole(String languageCode, String role) {
+    const roles = <String, List<String>>{
+      'doctor': ['doctor', 'médecin'],
+      'nurse': ['nurse', 'infirmier/ière'],
+      'midwife': ['midwife', 'sage-femme'],
+      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
+      'pharmacist': ['pharmacist', 'pharmacien'],
+      'pharmacy': ['pharmacy', 'pharmacie'],
+      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
+      'lab': ['laboratory', 'laboratoire'],
+      'hospital': ['hospital', 'hôpital'],
+      'clinic': ['clinic', 'clinique'],
+      'medical_center': ['medical center', 'centre médical'],
+      'dentist': ['dentist', 'dentiste'],
+      'dental': ['dental clinic', 'clinique dentaire'],
+      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
+      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
+      'optometrist': ['optometrist', 'optométriste'],
+      'delivery': ['delivery provider', 'livreur'],
+      'service': ['service provider', 'prestataire de services'],
+    };
+    final translated = roles[role];
+    if (translated == null) return role;
+    return translated[languageCode == 'fr' ? 1 : 0];
+  }
+
   String _translateNotificationBody(String languageCode, String type, String body) {
     if (languageCode == 'ar') return body;
     if (type == 'medication_prescription') {
@@ -380,6 +407,19 @@ class NotificationService {
               ? '$doctor a ajouté une nouvelle ordonnance$suffixText. Elle a été ajoutée aux rappels de médicaments.'
               : '$doctor added a new prescription$suffixText. It has been added to medication reminders.';
         }
+      }
+    }
+
+    if (type == 'verification_request') {
+      const prefix = 'طلب توثيق جديد لدور ';
+      const suffix = ' يحتاج إلى المراجعة.';
+      final value = body.trim();
+      if (value.startsWith(prefix) && value.endsWith(suffix)) {
+        final rawRole = value.substring(prefix.length, value.length - suffix.length).trim();
+        final role = _localizedRole(languageCode, rawRole);
+        return languageCode == 'fr'
+            ? 'Une nouvelle demande de vérification pour le rôle $role doit être examinée.'
+            : 'A new verification request for the $role role needs review.';
       }
     }
     return _translate(languageCode, body);
