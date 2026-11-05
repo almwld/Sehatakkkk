@@ -4251,6 +4251,8 @@ class AppStrings {
       'حذف البيانات': ['Delete data', 'Supprimer les données'],
       'هل أنت متأكد من حذف جميع بيانات النوم؟': ['Are you sure you want to delete all sleep data?', 'Voulez-vous vraiment supprimer toutes les données de sommeil ?'],
       'تم حذف جميع البيانات': ['All data has been deleted', 'Toutes les données ont été supprimées'],
+      'جاري التتبع...': ['Tracking in progress...', 'Suivi en cours...'],
+      'مرة': ['time(s)', 'fois'],
     };
     final entry = translations[value];
     if (entry == null) return value;
