@@ -1627,6 +1627,419 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Les dons sont volontaires et non remboursables.
 - Ils servent au développement de la plateforme.
 - Les donateurs peuvent être remerciés s’ils le souhaitent.'''],
+      '14': [
+'''Sehatak is committed to protecting your privacy and personal data in accordance with applicable laws.
+
+**1. Core principles:**
+- Transparency in data collection and use.
+- Limiting collection to the minimum necessary.
+- Protecting data using high security standards.
+- Respecting users’ control over their data.
+- Complying with applicable laws and regulations.
+
+**2. Data collection:**
+- We collect information you voluntarily provide during registration.
+- We collect usage data to improve the service.
+- We collect location data, with your consent, to provide nearby services.
+- We collect device data to ensure compatibility.
+- We collect payment data for financial transactions.
+
+**3. Use of data:**
+- Providing the services you request.
+- Communicating with you about services.
+- Improving your experience and personalizing content.
+- Using data for lawful purposes.
+
+**4. Data sharing:**
+- We share data with service providers you choose.
+- We do not sell your data to third parties.
+- We may share data with regulators when legally required.
+- We request consent before sharing data for other purposes.
+
+**5. Cookies:**
+- We use cookies to improve your experience.
+- You can manage cookie preferences.
+- Cookies may be used for analytics and advertising.
+- Some functions require cookies.
+
+**6. Privacy rights:**
+- Right to access your personal data.
+- Right to correct inaccurate data.
+- Right to request deletion of your data.
+- Right to object to data processing.
+
+**7. Privacy in the application:**
+- You can control privacy settings.
+- You can hide health information from others.
+- You can choose who sees your personal information.
+- You can disable location sharing.
+
+**8. Children’s privacy:**
+- We do not target children under 13.
+- We do not collect children’s data without parental consent.
+- Parents should monitor children’s use of the application.
+- Parents may request deletion of their children’s data.
+
+**9. Changes to the privacy policy:**
+- The policy may be updated from time to time.
+- You will be notified of material changes.
+- Continued use means acceptance of the changes.
+- You may review the policy at any time.
+
+**10. Privacy officer:**
+- We have an appointed privacy officer.
+- Contact: privacy@sehatak.com.
+- Privacy enquiries are answered within 48 hours.
+- You may submit a privacy complaint at any time.
+
+**11. Cross-border data protection:**
+- Data may be transferred outside the country.
+- We ensure protection at all locations.
+- We comply with international data-protection standards.
+- Data is transferred securely.
+
+**12. Activity logs:**
+- We log user activity to improve the service.
+- Logs may be retained for legal purposes.
+- You may request your activity log.
+- Logs are deleted after 3 years.''',
+'''Sehatak s’engage à protéger votre vie privée et vos données personnelles conformément aux lois applicables.
+
+**1. Principes fondamentaux :**
+- Transparence dans la collecte et l’utilisation des données.
+- Limitation de la collecte au minimum nécessaire.
+- Protection des données selon des normes de sécurité élevées.
+- Respect du droit des utilisateurs à contrôler leurs données.
+- Respect des lois et règlements applicables.
+
+**2. Collecte des données :**
+- Nous collectons les informations que vous fournissez volontairement lors de l’inscription.
+- Nous collectons des données d’utilisation afin d’améliorer le service.
+- Nous collectons les données de localisation, avec votre consentement, pour proposer des services à proximité.
+- Nous collectons les données de l’appareil pour assurer la compatibilité.
+- Nous collectons les données de paiement pour les transactions financières.
+
+**3. Utilisation des données :**
+- Fournir les services demandés.
+- Communiquer avec vous au sujet des services.
+- Améliorer votre expérience et personnaliser le contenu.
+- Utiliser les données à des fins légales.
+
+**4. Partage des données :**
+- Nous partageons les données avec les prestataires que vous choisissez.
+- Nous ne vendons pas vos données à des tiers.
+- Nous pouvons partager des données avec les autorités de réglementation lorsqu’une demande légale l’exige.
+- Nous demandons votre consentement avant tout autre partage.
+
+**5. Cookies :**
+- Nous utilisons des cookies pour améliorer votre expérience.
+- Vous pouvez gérer vos préférences en matière de cookies.
+- Les cookies peuvent être utilisés à des fins d’analyse et de publicité.
+- Certaines fonctions nécessitent des cookies.
+
+**6. Droits relatifs à la confidentialité :**
+- Droit d’accéder à vos données personnelles.
+- Droit de rectifier les données inexactes.
+- Droit de demander la suppression de vos données.
+- Droit de vous opposer au traitement des données.
+
+**7. Confidentialité dans l’application :**
+- Vous pouvez contrôler vos paramètres de confidentialité.
+- Vous pouvez masquer vos informations de santé aux autres.
+- Vous pouvez choisir qui voit vos informations personnelles.
+- Vous pouvez désactiver le partage de localisation.
+
+**8. Confidentialité des enfants :**
+- Nous ne ciblons pas les enfants de moins de 13 ans.
+- Nous ne collectons pas leurs données sans autorisation parentale.
+- Les parents doivent surveiller l’utilisation de l’application par leurs enfants.
+- Les parents peuvent demander la suppression des données de leurs enfants.
+
+**9. Modifications de la politique de confidentialité :**
+- La politique peut être mise à jour périodiquement.
+- Vous serez informé des modifications importantes.
+- La poursuite de l’utilisation vaut acceptation des modifications.
+- Vous pouvez consulter la politique à tout moment.
+
+**10. Responsable de la confidentialité :**
+- Un responsable de la confidentialité a été désigné.
+- Contact : privacy@sehatak.com.
+- Les demandes relatives à la confidentialité reçoivent une réponse sous 48 heures.
+- Vous pouvez déposer une réclamation à tout moment.
+
+**11. Protection transfrontalière des données :**
+- Les données peuvent être transférées hors du pays.
+- Nous assurons leur protection dans tous les lieux.
+- Nous respectons les normes internationales de protection des données.
+- Les données sont transférées de manière sécurisée.
+
+**12. Journaux d’activité :**
+- Nous enregistrons les activités des utilisateurs afin d’améliorer le service.
+- Les journaux peuvent être conservés à des fins légales.
+- Vous pouvez demander votre journal d’activité.
+- Les journaux sont supprimés après 3 ans.'''],
+      '15': [
+'''Communication between Sehatak and users takes place through these channels:
+
+**1. Communication methods:**
+- Email: support@sehatak.com.
+- Telephone: +967 123 456 789.
+- In-app technical support (Live Chat).
+- Official social-media channels.
+- In-app contact form.
+
+**2. Notifications:**
+- In-app appointment and reminder notifications.
+- Email messages for important updates.
+- SMS messages for urgent alerts.
+- Push notifications.
+- Home-screen notifications.
+
+**3. Notification management:**
+- Control notifications in application settings.
+- You may unsubscribe at any time.
+- Important notifications cannot be disabled.
+- You can customize notification preferences.
+
+**4. Response times:**
+- Enquiries are answered within 24 hours.
+- Complaints are answered within 48 hours.
+- Urgent cases are handled immediately.
+- Working days: Sunday to Thursday.
+
+**5. Language:**
+- The official communication language is Arabic.
+- Other languages may be available as needed.
+- Support is provided in Arabic and English.
+- You may request support in another language.
+
+**6. Unwanted content:**
+- Spam messages are prohibited.
+- Violators may be blocked.
+- You may report unwanted messages.
+- We protect users from abusive content.
+
+**7. Secure communication:**
+- Communications are encrypted.
+- Do not share sensitive information through insecure channels.
+- Use official communication channels.
+- Verify the identity of anyone contacting you.
+
+**8. Complaints and suggestions:**
+- We welcome complaints and suggestions.
+- Complaints are handled seriously.
+- You will be informed of the outcome.
+- Your suggestions help us improve.
+
+**9. Communication with providers:**
+- You can contact doctors through the application.
+- Secure communication channels are provided.
+- Communication records are retained.
+- You may request contact at any time.
+
+**10. Advertising:**
+- We may send advertisements about new services.
+- You may opt out of advertising.
+- Advertisements are relevant to your interests.
+- We comply with ethical advertising standards.''',
+'''La communication entre Sehatak et les utilisateurs s’effectue par les canaux suivants :
+
+**1. Moyens de communication :**
+- E-mail : support@sehatak.com.
+- Téléphone : +967 123 456 789.
+- Assistance technique dans l’application (Live Chat).
+- Réseaux sociaux officiels.
+- Formulaire de contact intégré à l’application.
+
+**2. Notifications :**
+- Notifications dans l’application pour les rendez-vous et rappels.
+- E-mails pour les mises à jour importantes.
+- SMS pour les alertes urgentes.
+- Notifications push.
+- Notifications sur l’écran d’accueil.
+
+**3. Gestion des notifications :**
+- Gérez les notifications dans les paramètres de l’application.
+- Vous pouvez vous désabonner à tout moment.
+- Les notifications importantes ne peuvent pas être désactivées.
+- Vous pouvez personnaliser vos préférences.
+
+**4. Délais de réponse :**
+- Les demandes reçoivent une réponse dans les 24 heures.
+- Les réclamations reçoivent une réponse dans les 48 heures.
+- Les cas urgents sont traités immédiatement.
+- Jours ouvrables : du dimanche au jeudi.
+
+**5. Langue :**
+- La langue officielle de communication est l’arabe.
+- D’autres langues peuvent être disponibles selon les besoins.
+- Une assistance est proposée en arabe et en anglais.
+- Vous pouvez demander une assistance dans une autre langue.
+
+**6. Contenus indésirables :**
+- Les messages non sollicités (spam) sont interdits.
+- Les contrevenants peuvent être bloqués.
+- Vous pouvez signaler les messages indésirables.
+- Nous protégeons les utilisateurs contre les contenus abusifs.
+
+**7. Communication sécurisée :**
+- Les communications sont chiffrées.
+- Ne partagez pas d’informations sensibles par des canaux non sécurisés.
+- Utilisez les canaux officiels.
+- Vérifiez l’identité de votre interlocuteur.
+
+**8. Réclamations et suggestions :**
+- Nous accueillons les réclamations et suggestions.
+- Les réclamations sont traitées avec sérieux.
+- Vous serez informé du résultat.
+- Vos suggestions nous aident à progresser.
+
+**9. Communication avec les prestataires :**
+- Vous pouvez contacter les médecins par l’application.
+- Des canaux sécurisés sont proposés.
+- L’historique des communications est conservé.
+- Vous pouvez demander à être contacté à tout moment.
+
+**10. Publicité :**
+- Nous pouvons envoyer des annonces sur de nouveaux services.
+- Vous pouvez vous désabonner des publicités.
+- Les annonces sont adaptées à vos centres d’intérêt.
+- Nous respectons les normes de publicité éthique.'''],
+      '16': [
+'''Sehatak applies advanced security measures to protect your data:
+
+**1. Account security:**
+- Two-factor authentication (2FA).
+- Strong passwords of at least 8 characters.
+- Additional confirmation for sensitive operations.
+- Immediate alerts for sign-ins from new devices.
+- Sessions expire after inactivity.
+
+**2. Data security:**
+- Data in transit is encrypted using TLS 1.3.
+- Stored data is encrypted using AES-256.
+- Updated security protocols are used.
+- Regular data backups.
+- Advanced intrusion-detection systems.
+
+**3. Application security:**
+- Regular security updates and penetration tests.
+- Protection against social-engineering attacks.
+- Strict employee security policies.
+- Continuous security code reviews.
+
+**4. Incident response:**
+- Emergency incident-response team.
+- Immediate notification of affected users.
+- Comprehensive incident investigations.
+- Prompt corrective action.
+- Notification of regulators when necessary.
+
+**5. User measures:**
+- Update your password regularly (every 90 days).
+- Do not share login credentials.
+- Report suspicious activity.
+- Use secure connections (VPN when necessary).
+- Keep your operating system updated.
+
+**6. Security awareness:**
+- Employee security training.
+- User education about security risks.
+- Regular security tips.
+- Cooperation with security experts.
+- Monitoring new security threats.
+
+**7. Security compliance:**
+- Compliance with international security standards (ISO 27001).
+- Security best practices and periodic reviews.
+- Recognized certifications and external audits.
+
+**8. Vulnerability management:**
+- A vulnerability-management program.
+- Prompt correction of discovered vulnerabilities.
+- Regular security tests.
+- Cooperation with security researchers.
+- Rewards for vulnerability discoveries.
+
+**9. Malware protection:**
+- Antivirus software.
+- Scanning uploaded files.
+- Protection against phishing.
+- Prevention of unauthorized access.
+- Updated security databases.
+
+**10. Business continuity:**
+- Business-continuity plans and backup systems.
+- Emergency data recovery.
+- Regular continuity tests.
+- Measures to ensure service availability.''',
+'''Sehatak applique des mesures de sécurité avancées pour protéger vos données :
+
+**1. Sécurité du compte :**
+- Authentification à deux facteurs (2FA).
+- Mots de passe robustes d’au moins 8 caractères.
+- Confirmation supplémentaire pour les opérations sensibles.
+- Alertes immédiates lors d’une connexion depuis un nouvel appareil.
+- Expiration des sessions après une période d’inactivité.
+
+**2. Sécurité des données :**
+- Chiffrement des données en transit avec TLS 1.3.
+- Chiffrement des données stockées avec AES-256.
+- Utilisation de protocoles de sécurité actualisés.
+- Sauvegardes régulières des données.
+- Systèmes avancés de détection d’intrusion.
+
+**3. Sécurité de l’application :**
+- Mises à jour de sécurité et tests d’intrusion réguliers.
+- Protection contre l’ingénierie sociale.
+- Règles de sécurité strictes pour le personnel.
+- Révision continue du code à des fins de sécurité.
+
+**4. Réponse aux incidents :**
+- Équipe d’intervention d’urgence.
+- Notification immédiate des utilisateurs concernés.
+- Enquête approfondie sur les incidents.
+- Mesures correctives rapides.
+- Information des autorités de réglementation si nécessaire.
+
+**5. Mesures à prendre par l’utilisateur :**
+- Modifier régulièrement votre mot de passe (tous les 90 jours).
+- Ne pas partager vos identifiants.
+- Signaler toute activité suspecte.
+- Utiliser des connexions sécurisées (VPN si nécessaire).
+- Maintenir votre système d’exploitation à jour.
+
+**6. Sensibilisation à la sécurité :**
+- Formation des employés à la sécurité.
+- Sensibilisation des utilisateurs aux risques.
+- Conseils de sécurité réguliers.
+- Coopération avec des experts en sécurité.
+- Suivi des nouvelles menaces.
+
+**7. Conformité en matière de sécurité :**
+- Respect des normes internationales (ISO 27001).
+- Bonnes pratiques et examens périodiques.
+- Certifications reconnues et audits externes.
+
+**8. Gestion des vulnérabilités :**
+- Programme de gestion des vulnérabilités.
+- Correction rapide des vulnérabilités découvertes.
+- Tests de sécurité réguliers.
+- Coopération avec les chercheurs en sécurité.
+- Récompenses pour la découverte de vulnérabilités.
+
+**9. Protection contre les logiciels malveillants :**
+- Logiciels antivirus.
+- Analyse des fichiers téléversés.
+- Protection contre l’hameçonnage.
+- Prévention des accès non autorisés.
+- Bases de données de sécurité actualisées.
+
+**10. Continuité des activités :**
+- Plans de continuité et systèmes de secours.
+- Récupération des données en cas d’urgence.
+- Tests réguliers de continuité.
+- Mesures garantissant la disponibilité du service.'''],
       '3': [
 '''These Terms and Conditions constitute a legally binding agreement between you and the Sehatak platform. By using the platform, you fully and unconditionally agree to comply with all provisions of this document.
 
