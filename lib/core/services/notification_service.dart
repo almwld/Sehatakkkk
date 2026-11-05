@@ -356,76 +356,6 @@ class NotificationService {
 
   String _translate(String languageCode, String value) =>
       AppStrings(Locale(languageCode)).translate(value);
-
-  String _localizedRole(String languageCode, String role) {
-    const roles = <String, List<String>>{
-      'doctor': ['doctor', 'médecin'],
-      'nurse': ['nurse', 'infirmier/ière'],
-      'midwife': ['midwife', 'sage-femme'],
-      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
-      'pharmacist': ['pharmacist', 'pharmacien'],
-      'pharmacy': ['pharmacy', 'pharmacie'],
-      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
-      'lab': ['laboratory', 'laboratoire'],
-      'hospital': ['hospital', 'hôpital'],
-      'clinic': ['clinic', 'clinique'],
-      'medical_center': ['medical center', 'centre médical'],
-      'dentist': ['dentist', 'dentiste'],
-      'dental': ['dental clinic', 'clinique dentaire'],
-      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
-      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
-      'optometrist': ['optometrist', 'optométriste'],
-      'delivery': ['delivery provider', 'livreur'],
-      'service': ['service provider', 'prestataire de services'],
-    };
-    final translated = roles[role];
-    if (translated == null) return role;
-    return translated[languageCode == 'fr' ? 1 : 0];
-  }
-
-  String _translateNotificationBody(String languageCode, String type, String body) {
-    if (languageCode == 'ar') return body;
-    if (type == 'medication_prescription') {
-      const prefix = 'أضاف ';
-      const marker = ' وصفة دوائية';
-      const suffix = '. تم نقلها إلى تذكير الأدوية.';
-      final value = body.trim();
-      if (value.startsWith(prefix) && value.endsWith(suffix)) {
-        final middle = value.substring(prefix.length, value.length - suffix.length);
-        final markerIndex = middle.indexOf(marker);
-        if (markerIndex >= 0) {
-          final rawDoctor = middle.substring(0, markerIndex).trim();
-          final doctor = rawDoctor == 'الطبيب'
-              ? _localized(languageCode, 'الطبيب', 'the doctor', 'le médecin')
-              : rawDoctor;
-          final remainder = middle.substring(markerIndex + marker.length).trim();
-          final medications = remainder.startsWith(':')
-              ? remainder.substring(1).trim()
-              : '';
-          final suffixText = medications.isEmpty ? '' : ': $medications';
-          return languageCode == 'fr'
-              ? '$doctor a ajouté une nouvelle ordonnance$suffixText. Elle a été ajoutée aux rappels de médicaments.'
-              : '$doctor added a new prescription$suffixText. It has been added to medication reminders.';
-        }
-      }
-    }
-
-    if (type == 'verification_request') {
-      const prefix = 'طلب توثيق جديد لدور ';
-      const suffix = ' يحتاج إلى المراجعة.';
-      final value = body.trim();
-      if (value.startsWith(prefix) && value.endsWith(suffix)) {
-        final rawRole = value.substring(prefix.length, value.length - suffix.length).trim();
-        final role = _localizedRole(languageCode, rawRole);
-        return languageCode == 'fr'
-            ? 'Une nouvelle demande de vérification pour le rôle $role doit être examinée.'
-            : 'A new verification request for the $role role needs review.';
-      }
-    }
-    return _translate(languageCode, body);
-  }
-
-
   List<AndroidNotificationChannel> _channelsFor(String languageCode) => [
     AndroidNotificationChannel(messageChannelId, _localized(languageCode, 'صحتك - الرسائل', 'Sehatak - Messages', 'Sehatak - Messages'), description: _localized(languageCode, 'إشعارات الرسائل الجديدة في الدردشة', 'New chat message notifications', 'Notifications de nouveaux messages du chat'), importance: Importance.high, playSound: true, sound: const RawResourceAndroidNotificationSound('notification')),
     AndroidNotificationChannel(appointmentChannelId, _localized(languageCode, 'صحتك - المواعيد', 'Sehatak - Appointments', 'Sehatak - Rendez-vous'), description: _localized(languageCode, 'تأكيدات وتذكيرات المواعيد', 'Appointment confirmations and reminders', 'Confirmations et rappels de rendez-vous'), importance: Importance.high),
@@ -597,7 +527,7 @@ class NotificationService {
             : title)
         : _translate(languageCode, title);
     final safeBody = body.trim().isNotEmpty
-        ? (isChatMessage ? body : _translateNotificationBody(languageCode, type, body))
+        ? (isChatMessage ? body : _translate(languageCode, body))
         : (isChatMessage
             ? _localized(languageCode, 'لديك رسالة جديدة في الدردشة', 'You have a new chat message', 'Vous avez un nouveau message')
             : _localized(languageCode, 'لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'));
