@@ -309,7 +309,7 @@ class _TooltipBubble extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    step.title,
+                    _localizedUiText(context, step.title),
                     style: TextStyle(
                       color: titleColor,
                       fontSize: 18,
@@ -321,7 +321,7 @@ class _TooltipBubble extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              step.description,
+              _localizedUiText(context, step.description),
               textAlign: TextAlign.right,
               style: TextStyle(color: bodyColor, fontSize: 14, height: 1.6),
             ),
