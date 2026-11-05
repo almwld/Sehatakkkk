@@ -1,6 +1,7 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class PrivacyScreen extends StatelessWidget {
   const PrivacyScreen({super.key});
@@ -8,11 +9,13 @@ class PrivacyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final strings = AppStrings.of(context);
+    String t(String value) => strings.translate(value);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'الخصوصية والأمان',
+        title: t('الخصوصية والأمان'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -22,19 +25,19 @@ class PrivacyScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSection('معلومات التطبيق', isDark),
-            _buildItem('نوع التطبيق', 'صحي شامل', isDark),
-            _buildItem('النسخة الحالية', '1.1.0', isDark),
+            _buildSection(t('معلومات التطبيق'), isDark),
+            _buildItem(t('نوع التطبيق'), t('صحي شامل'), isDark),
+            _buildItem(t('النسخة الحالية'), '1.1.0', isDark),
             const SizedBox(height: 24),
-            _buildSection('الخصوصية', isDark),
-            _buildItem('جمع البيانات', 'نعم - بيانات صحية أساسية', isDark),
-            _buildItem('مشاركة البيانات', 'لا - خاصة بالكامل', isDark),
-            _buildItem('التشفير', 'نعم - تشفير كامل', isDark),
+            _buildSection(t('الخصوصية'), isDark),
+            _buildItem(t('جمع البيانات'), t('نعم - بيانات صحية أساسية'), isDark),
+            _buildItem(t('مشاركة البيانات'), t('لا - خاصة بالكامل'), isDark),
+            _buildItem(t('التشفير'), t('نعم - تشفير كامل'), isDark),
             const SizedBox(height: 24),
-            _buildSection('الأمان', isDark),
-            _buildItem('المصادقة', 'بريد إلكتروني + كلمة مرور', isDark),
-            _buildItem('المصادقة الثنائية', 'قريباً', isDark),
-            _buildItem('البصمة', 'مدعومة', isDark),
+            _buildSection(t('الأمان'), isDark),
+            _buildItem(t('المصادقة'), t('بريد إلكتروني + كلمة مرور'), isDark),
+            _buildItem(t('المصادقة الثنائية'), t('قريباً'), isDark),
+            _buildItem(t('البصمة'), t('مدعومة'), isDark),
           ],
         ),
       ),
@@ -73,17 +76,15 @@ class PrivacyScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.black87,
+          Text(label, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600])),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
             ),
           ),
         ],
