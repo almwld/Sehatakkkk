@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -442,17 +443,17 @@ class _AuthScreenState extends State<AuthScreen>
 
   String _getGreetingTitle() {
     // في أول تثبيت لا نستخدم عبارة «مرحباً بعودتك».
-    if (_isFirstTimeUser) return 'مرحباً بك في صحتك';
+    if (_isFirstTimeUser) return AppStrings.of(context).translate('مرحباً بك في صحتك');
 
     final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return 'صباح الخير، مرحباً بعودتك';
-    if (hour >= 12 && hour < 18) return 'مساء الخير، مرحباً بعودتك';
-    if (hour >= 18 && hour < 24) return 'مساء الخير، مرحباً بعودتك';
-    return 'ليلة هادئة، مرحباً بعودتك';
+    if (hour >= 5 && hour < 12) return AppStrings.of(context).translate('صباح الخير، مرحباً بعودتك');
+    if (hour >= 12 && hour < 18) return AppStrings.of(context).translate('مساء الخير، مرحباً بعودتك');
+    if (hour >= 18 && hour < 24) return AppStrings.of(context).translate('مساء الخير، مرحباً بعودتك');
+    return AppStrings.of(context).translate('ليلة هادئة، مرحباً بعودتك');
   }
 
   String _getGreetingSubtitle() {
-    return 'سجّل دخولك مجدداً إلى منصة صحتك';
+    return AppStrings.of(context).translate('سجّل دخولك مجدداً إلى منصة صحتك');
   }
 
   void _showLoading() {
@@ -692,9 +693,9 @@ class _AuthScreenState extends State<AuthScreen>
       if (mounted) setState(() => _isLoading = false);
       debugPrint('[GoogleAuth] TIMEOUT: $e');
       if (!firebaseAuthenticated) {
-        ToastService.showError(
+        ToastService.showError(AppStrings.of(context).translate(
           'انتهت مهلة تسجيل الدخول عبر Google. تحقق من الإنترنت وإعدادات Google ثم حاول مرة أخرى.',
-        );
+        ));
       }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
@@ -710,14 +711,14 @@ class _AuthScreenState extends State<AuthScreen>
         } else if (e.code == 'network-request-failed') {
           message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
         }
-        ToastService.showError(message);
+        ToastService.showError(AppStrings.of(context).translate(message));
       }
     } catch (e) {
       _hideLoading();
       if (mounted) setState(() => _isLoading = false);
       debugPrint('[GoogleAuth] error: $e');
       if (!firebaseAuthenticated) {
-        ToastService.showError('تعذر إكمال عملية Google: $e');
+        ToastService.showError(AppStrings.of(context).translate('تعذر إكمال عملية Google') + ': $e');
       }
     }
   }
@@ -787,7 +788,7 @@ class _AuthScreenState extends State<AuthScreen>
       _showMessage(message, true);
     } catch (e) {
       _hideLoading();
-      _showMessage('حدث خطأ غير متوقع', true);
+      _showMessage(AppStrings.of(context).translate('حدث خطأ غير متوقع'), true);
     }
   }
 
@@ -795,17 +796,17 @@ class _AuthScreenState extends State<AuthScreen>
     if (_nameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      _showMessage('يرجى ملء جميع الحقول المطلوبة', true);
+      _showMessage(AppStrings.of(context).translate('يرجى ملء جميع الحقول المطلوبة'), true);
       return;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      _showMessage('كلمتا المرور غير متطابقتين', true);
+      _showMessage(AppStrings.of(context).translate('كلمتا المرور غير متطابقتين'), true);
       return;
     }
 
     if (!_agreeTerms) {
-      _showMessage('يرجى الموافقة على الشروط والأحكام', true);
+      _showMessage(AppStrings.of(context).translate('يرجى الموافقة على الشروط والأحكام'), true);
       return;
     }
 
@@ -818,7 +819,7 @@ class _AuthScreenState extends State<AuthScreen>
     }
 
     if (_roleSpecialties.isNotEmpty && _selectedSpecialty == null) {
-      _showMessage('يرجى اختيار التخصص', true);
+      _showMessage(AppStrings.of(context).translate('يرجى اختيار التخصص'), true);
       return;
     }
 
@@ -977,8 +978,8 @@ class _AuthScreenState extends State<AuthScreen>
         try {
           await NotificationService().showTypedNotification(
             type: 'verification_required',
-            title: 'يجب توثيق حسابك',
-            body: 'أكمل توثيق حسابك ورفع المستندات المطلوبة ثم أرسل الطلب للمشرف.',
+            title: AppStrings.of(context).translate('يجب توثيق حسابك'),
+            body: AppStrings.of(context).translate('أكمل توثيق حسابك ورفع المستندات المطلوبة ثم أرسل الطلب للمشرف.'),
             data: <String, dynamic>{
               'type': 'verification_required',
               'userId': user.uid,
@@ -1040,7 +1041,7 @@ class _AuthScreenState extends State<AuthScreen>
     } catch (e) {
       _hideLoading();
       print('❌ Registration error: $e');
-      _showMessage('حدث خطأ غير متوقع', true);
+      _showMessage(AppStrings.of(context).translate('حدث خطأ غير متوقع'), true);
     }
   }
 
@@ -1087,7 +1088,7 @@ class _AuthScreenState extends State<AuthScreen>
 
         // AppRouter observes the authenticated session and opens HomeScreen.
       } else {
-        ToastService.showError('لا توجد جلسة حساب محفوظة. سجّل الدخول مرة واحدة ثم استخدم البصمة.');
+        ToastService.showError(AppStrings.of(context).translate('لا توجد جلسة حساب محفوظة. سجّل الدخول مرة واحدة ثم استخدم البصمة.'));
       }
     } else {
       _showMessage(
@@ -1102,7 +1103,7 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _showMessage(String message, bool isError) {
-    ToastService.showError(message);
+    ToastService.showError(AppStrings.of(context).translate(message));
   }
 
   Widget _buildHospitalFields(bool isDark, Color primaryColor) {
@@ -1123,7 +1124,7 @@ class _AuthScreenState extends State<AuthScreen>
         textDirection: TextDirection.rtl,
         style: TextStyle(color: isDark ? Colors.white : Colors.black87),
         decoration: InputDecoration(
-          labelText: label,
+          labelText: AppStrings.of(context).translate(label),
           prefixIcon: Icon(icon, color: primaryColor),
           filled: true,
           fillColor: fillColor,
@@ -1159,26 +1160,26 @@ class _AuthScreenState extends State<AuthScreen>
         const SizedBox(height: 12),
         field(
           controller: _facilityNameController,
-          label: 'اسم المشفى',
+          label: AppStrings.of(context).translate('اسم المشفى'),
           icon: Icons.local_hospital_outlined,
         ),
         const SizedBox(height: 12),
         field(
           controller: _facilityAddressController,
-          label: 'عنوان المشفى',
+          label: AppStrings.of(context).translate('عنوان المشفى'),
           icon: Icons.location_on_outlined,
         ),
         const SizedBox(height: 12),
         field(
           controller: _facilityPhoneController,
-          label: 'هاتف المشفى',
+          label: AppStrings.of(context).translate('هاتف المشفى'),
           icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 12),
         field(
           controller: _facilityDescriptionController,
-          label: 'وصف وخدمات المشفى',
+          label: AppStrings.of(context).translate('وصف وخدمات المشفى'),
           icon: Icons.description_outlined,
           maxLines: 4,
         ),
@@ -1201,7 +1202,7 @@ class _AuthScreenState extends State<AuthScreen>
       fields.add(
         _buildTextField(
           controller: _licenseController,
-          label: 'رقم الترخيص الطبي',
+          label: AppStrings.of(context).translate('رقم الترخيص الطبي'),
           icon: Icons.badge_outlined,
           isDark: isDark,
         ),
@@ -1214,7 +1215,7 @@ class _AuthScreenState extends State<AuthScreen>
       fields.add(
         _buildTextField(
           controller: _experienceController,
-          label: 'سنوات الخبرة',
+          label: AppStrings.of(context).translate('سنوات الخبرة'),
           icon: Icons.work_outline,
           isDark: isDark,
           keyboardType: TextInputType.number,
@@ -1233,7 +1234,7 @@ class _AuthScreenState extends State<AuthScreen>
       orElse: () => {'name': ''},
     );
 
-    return role['name'] as String;
+    return AppStrings.of(context).translate(role['name'] as String);
   }
 
   Widget _buildLoginRoleTabs(
@@ -1319,7 +1320,7 @@ class _AuthScreenState extends State<AuthScreen>
             padding:
                 const EdgeInsets.only(left: 8.0),
             child: ChoiceChip(
-              label: Text(role['name']),
+              label: Text(AppStrings.of(context).translate(role['name'] as String)),
               selected: isSelected,
               onSelected: (selected) {
                 if (selected) {
@@ -1368,7 +1369,7 @@ class _AuthScreenState extends State<AuthScreen>
     return DropdownButtonFormField<String>(
       value: _selectedSpecialty,
       decoration: InputDecoration(
-        labelText: 'اختر التخصص',
+        labelText: AppStrings.of(context).translate('اختر التخصص'),
         labelStyle: TextStyle(
           color: isDark
               ? Colors.white70
@@ -1453,7 +1454,7 @@ class _AuthScreenState extends State<AuthScreen>
               title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
               subtitle: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: IconButton(
-                tooltip: 'حذف الحساب المحفوظ',
+                tooltip: AppStrings.of(context).translate('حذف الحساب المحفوظ'),
                 icon: const Icon(Icons.close, size: 19),
                 onPressed: () => _removeSavedAccount(uid),
               ),
@@ -1546,7 +1547,7 @@ class _AuthScreenState extends State<AuthScreen>
             : const Color(0xFF1E293B),
       ),
       decoration: InputDecoration(
-        labelText: 'كلمة المرور',
+        labelText: AppStrings.of(context).translate('كلمة المرور'),
         labelStyle: TextStyle(
           color: isDark
               ? Colors.white70
@@ -1654,7 +1655,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(width: 8),
             Text(
-              _passwordStrength,
+              AppStrings.of(context).translate(_passwordStrength),
               style: TextStyle(
                 color: _passwordStrengthColor,
                 fontSize: 12,
@@ -1666,7 +1667,7 @@ class _AuthScreenState extends State<AuthScreen>
         ),
         const SizedBox(height: 4),
         Text(
-          'كلمة المرور يجب أن تحتوي على حروف وأرقام وأحرف خاصة',
+          AppStrings.of(context).translate('كلمة المرور يجب أن تحتوي على حروف وأرقام وأحرف خاصة'),
           style: TextStyle(
             fontSize: 10,
             color: isDark
@@ -1697,7 +1698,7 @@ class _AuthScreenState extends State<AuthScreen>
             : const Color(0xFF1E293B),
       ),
       decoration: InputDecoration(
-        labelText: 'تأكيد كلمة المرور',
+        labelText: AppStrings.of(context).translate('تأكيد كلمة المرور'),
         labelStyle: TextStyle(
           color: isDark
               ? Colors.white70
@@ -1857,7 +1858,7 @@ class _AuthScreenState extends State<AuthScreen>
 
                 Text(
                   isSignUp
-                      ? 'إنشاء حساب جديد'
+                      ? AppStrings.of(context).translate('إنشاء حساب جديد')
                       : _getGreetingTitle(),
                   style: TextStyle(
                     fontSize: 26,
@@ -1874,8 +1875,8 @@ class _AuthScreenState extends State<AuthScreen>
 
                 Text(
                   isSignUp
-                      ? 'اختر نوع حسابك وأدخل بياناتك للانضمام'
-                      : 'قم بتسجيل الدخول للمتابعة',
+                      ? AppStrings.of(context).translate('اختر نوع حسابك وأدخل بياناتك للانضمام')
+                      : AppStrings.of(context).translate('قم بتسجيل الدخول للمتابعة'),
                   style: TextStyle(
                     fontSize: 15,
                     color: isDark
@@ -1921,7 +1922,7 @@ class _AuthScreenState extends State<AuthScreen>
                 if (isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
-                    label: 'الاسم الكامل',
+                    label: AppStrings.of(context).translate('الاسم الكامل'),
                     icon: Icons.person_outline,
                     isDark: isDark,
                   ),
@@ -1936,8 +1937,8 @@ class _AuthScreenState extends State<AuthScreen>
                 _buildTextField(
                   controller: _emailController,
                   label: isSignUp
-                      ? 'البريد الإلكتروني'
-                      : 'رقم الموبايل أو البريد الإلكتروني',
+                      ? AppStrings.of(context).translate('البريد الإلكتروني')
+                      : AppStrings.of(context).translate('رقم الموبايل أو البريد الإلكتروني'),
                   icon: Icons.alternate_email_outlined,
                   isDark: isDark,
                   keyboardType:
@@ -1949,7 +1950,7 @@ class _AuthScreenState extends State<AuthScreen>
                 if (isSignUp) ...[
                   _buildTextField(
                     controller: _phoneController,
-                    label: 'رقم الهاتف',
+                    label: AppStrings.of(context).translate('رقم الهاتف'),
                     icon: Icons.phone_android,
                     isDark: isDark,
                     keyboardType:
@@ -2006,7 +2007,7 @@ class _AuthScreenState extends State<AuthScreen>
                                 VisualDensity.compact,
                           ),
                           Text(
-                            'تذكرني',
+                            AppStrings.of(context).translate('تذكرني'),
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark
@@ -2029,7 +2030,7 @@ class _AuthScreenState extends State<AuthScreen>
                           );
                         },
                         child: Text(
-                          'نسيت كلمة المرور؟',
+                          AppStrings.of(context).translate('نسيت كلمة المرور؟'),
                           style: TextStyle(
                             fontSize: 13,
                             color: primaryColor,
@@ -2059,7 +2060,7 @@ class _AuthScreenState extends State<AuthScreen>
                             VisualDensity.compact,
                       ),
                       Text(
-                        'أوافق على ',
+                        AppStrings.of(context).translate('أوافق على '),
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark
@@ -2080,7 +2081,7 @@ class _AuthScreenState extends State<AuthScreen>
                           );
                         },
                         child: Text(
-                          'الشروط والأحكام',
+                          AppStrings.of(context).translate('الشروط والأحكام'),
                           style: TextStyle(
                             color: primaryColor,
                             fontSize: 13,
@@ -2121,8 +2122,8 @@ class _AuthScreenState extends State<AuthScreen>
                     ),
                     child: Text(
                       isSignUp
-                          ? 'إنشاء حساب ${_getRoleDisplayName(_selectedRole)}'
-                          : 'تسجيل الدخول',
+                          ? '${AppStrings.of(context).translate('إنشاء حساب')} ${_getRoleDisplayName(_selectedRole)}'
+                          : AppStrings.of(context).translate('تسجيل الدخول'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight:
@@ -2157,8 +2158,8 @@ class _AuthScreenState extends State<AuthScreen>
                             ? Colors.white
                             : Colors.black87,
                       ),
-                      child: const Text(
-                        'تصفح كضيف',
+                      child: Text(
+                        AppStrings.of(context).translate('تصفح كضيف'),
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily:
@@ -2170,8 +2171,8 @@ class _AuthScreenState extends State<AuthScreen>
                   const SizedBox(height: 24),
                 ],
 
-                const Text(
-                  'أو سجل الدخول عبر',
+                Text(
+                  AppStrings.of(context).translate('أو سجل الدخول عبر'),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
@@ -2207,8 +2208,8 @@ class _AuthScreenState extends State<AuthScreen>
 
                 const SizedBox(height: 28),
 
-                const Text(
-                  'منصة شاملة تجمع كل ما يهم صحتك في آن واحد',
+                Text(
+                  AppStrings.of(context).translate('منصة شاملة تجمع كل ما يهم صحتك في آن واحد'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -2221,8 +2222,8 @@ class _AuthScreenState extends State<AuthScreen>
 
                 const SizedBox(height: 4),
 
-                const Text(
-                  'ندعم جميع خدمات الرعاية الصحية المتكاملة',
+                Text(
+                  AppStrings.of(context).translate('ندعم جميع خدمات الرعاية الصحية المتكاملة'),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
@@ -2288,8 +2289,8 @@ class _AuthScreenState extends State<AuthScreen>
                   children: [
                     Text(
                       isSignUp
-                          ? 'لديك حساب بالفعل؟'
-                          : 'ليس لديك حساب؟',
+                          ? AppStrings.of(context).translate('لديك حساب بالفعل؟')
+                          : AppStrings.of(context).translate('ليس لديك حساب؟'),
                       style: TextStyle(
                         fontSize: 14,
                         color: isDark
@@ -2313,8 +2314,8 @@ class _AuthScreenState extends State<AuthScreen>
                       },
                       child: Text(
                         isSignUp
-                            ? 'تسجيل الدخول'
-                            : 'أنشئ حسابك الآن',
+                            ? AppStrings.of(context).translate('تسجيل الدخول')
+                            : AppStrings.of(context).translate('أنشئ حسابك الآن'),
                         style: TextStyle(
                           fontWeight:
                               FontWeight.bold,
