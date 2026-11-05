@@ -20,7 +20,7 @@ class HospitalBookingScreen extends StatelessWidget {
         return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'حجز مستشفى',
+        title: _localizedUiText(context, 'حجز مستشفى'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
