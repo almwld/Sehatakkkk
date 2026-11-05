@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
@@ -32,7 +33,7 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
     final filtered = _query.isEmpty ? _drugs : _drugs.where((d) => d['name']!.contains(_query) || d['cat']!.contains(_query)).toList();
 
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('قاموس الأدوية', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_localizedUiText(context, 'قاموس الأدوية'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.all(12),
@@ -61,3 +62,7 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
