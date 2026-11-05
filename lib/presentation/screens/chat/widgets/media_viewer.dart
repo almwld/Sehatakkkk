@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class MediaViewer extends StatefulWidget {
   final String mediaUrl;
@@ -49,8 +50,8 @@ class _MediaViewerState extends State<MediaViewer> {
         foregroundColor: Colors.white,
         elevation: 0,
         title: widget.mediaType == 'image'
-            ? const Text('صورة', style: TextStyle(color: Colors.white))
-            : const Text('وسائط', style: TextStyle(color: Colors.white)),
+            ? Text(AppStrings.of(context).translate('صورة'), style: const TextStyle(color: Colors.white))
+            : Text(AppStrings.of(context).translate('وسائط'), style: const TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.download, color: Colors.white),
