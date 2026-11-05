@@ -241,7 +241,7 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
                   ),
                 ),
                 child: Text(
-                  _currentPage < _pages.length - 1 ? 'التالي' : 'ابدأ الآن',
+                  _localizedUiText(context, _currentPage < _pages.length - 1 ? 'التالي' : 'ابدأ الآن'),
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -274,7 +274,7 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
           ),
           const SizedBox(height: 48),
           Text(
-            page.title,
+            _localizedUiText(context, page.title),
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -284,7 +284,7 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            page.description,
+            _localizedUiText(context, page.description),
             style: TextStyle(
               fontSize: 16,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
