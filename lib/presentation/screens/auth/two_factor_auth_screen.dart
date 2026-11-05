@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import '../../../core/constants/app_colors.dart';
 
 class TwoFactorAuthScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المصادقة الثنائية')),
+      appBar: AppBar(title: Text(_localizedUiText(context, 'المصادقة الثنائية'))),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -22,11 +23,15 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
           const SizedBox(height: 24),
           Text(_enabled ? 'المصادقة الثنائية مفعلة' : 'المصادقة الثنائية غير مفعلة', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text('حماية إضافية لحسابك', style: TextStyle(color: Colors.grey, fontSize: 14)),
+          Text(_localizedUiText(context, 'حماية إضافية لحسابك'), style: TextStyle(color: Colors.grey, fontSize: 14)),
           const SizedBox(height: 40),
-          SwitchListTile(title: const Text('تفعيل المصادقة الثنائية'), subtitle: const Text('رمز تحقق إضافي عند تسجيل الدخول'), value: _enabled, activeColor: AppColors.primary, onChanged: (v) => setState(() => _enabled = v)),
+          SwitchListTile(title: Text(_localizedUiText(context, 'تفعيل المصادقة الثنائية')), subtitle: Text(_localizedUiText(context, 'رمز تحقق إضافي عند تسجيل الدخول')), value: _enabled, activeColor: AppColors.primary, onChanged: (v) => setState(() => _enabled = v)),
         ]),
       ),
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
