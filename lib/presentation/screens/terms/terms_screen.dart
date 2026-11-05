@@ -1605,7 +1605,7 @@ class TermsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          content,
+          AppStrings.of(context).translate(content),
           style: const TextStyle(
             fontSize: 14,
             height: 1.8,
