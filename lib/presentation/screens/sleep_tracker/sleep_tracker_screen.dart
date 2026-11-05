@@ -160,7 +160,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('OK تم إيقاف التتبع - الجودة: ${result['quality'].toStringAsFixed(1)}/10'),
+        content: Text('${_localizedUiText(context, 'OK تم إيقاف التتبع - الجودة: ')}${result['quality'].toStringAsFixed(1)}/10'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 3),
       ),
@@ -226,7 +226,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
+          Text(_localizedUiText(context, label), style: const TextStyle(fontSize: 14)),
           Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
         ],
       ),
@@ -378,7 +378,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                   child: ElevatedButton.icon(
                     onPressed: _isTracking ? _stopTracking : _startTracking,
                     icon: Icon(_isTracking ? Icons.stop : Icons.play_arrow),
-                    label: Text(_isTracking ? 'إيقاف' : 'بدء التتبع'),
+                    label: Text(_localizedUiText(context, _isTracking ? 'إيقاف' : 'بدء التتبع')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _isTracking ? Colors.red : Colors.green,
                       foregroundColor: Colors.white,
@@ -618,7 +618,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 13)),
+          Text(_localizedUiText(context, label), style: const TextStyle(fontSize: 13)),
           Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
         ],
       ),
