@@ -4010,6 +4010,21 @@ class AppStrings {
       "وزن الطفل": ["Child’s weight", "Poids de l’enfant"],
       "مفتوح الآن": ["Open now", "Ouvert maintenant"],
       "مغلق الآن": ["Closed now", "Fermé maintenant"],
+      "رعاية الأسنان": ["Dental care", "Soins dentaires"],
+      "اختر الخدمة للاطلاع على التفاصيل ثم الانتقال للحجز.": ["Choose a service to view its details and proceed to booking.", "Choisissez un service pour consulter ses détails et passer à la réservation."],
+      "عرض أطباء الأسنان والحجز": ["View dentists and book an appointment", "Voir les dentistes et prendre rendez-vous"],
+      "الخدمة تحتاج إلى تقييم طبيب الأسنان لتحديد الإجراء والموعد المناسب. الأسعار والمواعيد تُحدد حسب الطبيب والعيادة المتاحة.": ["A dentist must assess the service to determine the appropriate procedure and appointment. Prices and availability depend on the dentist and clinic.", "Un dentiste doit évaluer le service afin de déterminer la procédure et le rendez-vous appropriés. Les tarifs et disponibilités dépendent du dentiste et de la clinique."],
+      "اختيار طبيب وبدء الحجز": ["Choose a dentist and start booking", "Choisir un dentiste et commencer la réservation"],
+      "وجبات اليوم": ["Today’s meals", "Repas du jour"],
+      "التحاليل والأشعة": ["Tests and imaging", "Analyses et imagerie"],
+      "التذكير المتقدم": ["Advanced reminder", "Rappel avancé"],
+      "تأجيل": ["Snooze", "Reporter"],
+      "إعادة تعبئة": ["Refill", "Renouveler"],
+      "مستوى صوت المكالمة": ["Call volume", "Volume de l’appel"],
+      "تعذر الاتصال": ["Connection failed", "Échec de la connexion"],
+      "تحقق من اتصال الإنترنت، ثم أعد المحاولة.": ["Check your internet connection, then try again.", "Vérifiez votre connexion Internet, puis réessayez."],
+      "إنهاء المكالمة والعودة": ["End call and return", "Terminer l’appel et revenir"],
+      "الكاميرا غير مفعلة": ["Camera is off", "La caméra est désactivée"],
     };
     final entry = translations[value];
     if (entry == null) return value;
