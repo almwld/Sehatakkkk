@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/chat/chat_bloc.dart';
 import '../../../core/constants/app_colors.dart';
@@ -73,7 +74,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('بحث'),
+        title: Text(AppStrings.of(context).translate('بحث')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -81,7 +82,7 @@ class _SearchScreenState extends State<SearchScreen> {
           preferredSize: const Size.fromHeight(64),
           child: UnifiedSearchBar(
             controller: _controller,
-            hint: 'ابحث عن محادثة...',
+            hint: AppStrings.of(context).translate('ابحث عن محادثة...'),
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             backgroundColor: Colors.white,
             borderColor: Colors.transparent,
@@ -110,7 +111,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         return ListTile(
                           leading: CircleAvatar(
                             backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
-                            child: photo.isEmpty ? Text(name.isEmpty ? 'م' : name[0]) : null,
+                            child: photo.isEmpty ? Text(name.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'م' : 'U') : name[0]) : null,
                           ),
                           title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text(lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -126,9 +127,9 @@ class _SearchScreenState extends State<SearchScreen> {
     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Icon(Icons.search, size: 64, color: Colors.grey[300]),
       const SizedBox(height: 16),
-      Text('ابحث عن محادثات', style: TextStyle(fontSize: 18, color: Colors.grey[600])),
+      Text(AppStrings.of(context).translate('ابحث عن محادثات'), style: TextStyle(fontSize: 18, color: Colors.grey[600])),
       const SizedBox(height: 8),
-      Text('ابحث عن الأشخاص أو الرسائل', style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+      Text(AppStrings.of(context).translate('ابحث عن الأشخاص أو الرسائل'), style: TextStyle(fontSize: 14, color: Colors.grey[400])),
     ]),
   );
 
@@ -136,9 +137,9 @@ class _SearchScreenState extends State<SearchScreen> {
     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
       const SizedBox(height: 16),
-      Text('لا توجد نتائج', style: TextStyle(fontSize: 18, color: Colors.grey[600])),
+      Text(AppStrings.of(context).translate('لا توجد نتائج'), style: TextStyle(fontSize: 18, color: Colors.grey[600])),
       const SizedBox(height: 8),
-      Text('حاول البحث بكلمات مختلفة', style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+      Text(AppStrings.of(context).translate('حاول البحث بكلمات مختلفة'), style: TextStyle(fontSize: 14, color: Colors.grey[400])),
     ]),
   );
 }
