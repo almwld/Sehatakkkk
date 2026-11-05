@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_details_screen.dart';
@@ -31,7 +32,7 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(children: [
           Expanded(child: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 17, fontWeight: FontWeight.w900))),
-          TextButton(onPressed: () => _seeAll(context), child: const Text('عرض الكل', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700))),
+          TextButton(onPressed: () => _seeAll(context), child: Text(AppStrings.of(context).translate('عرض الكل'), style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700))),
         ])),
         const SizedBox(height: 8),
         if (items.isEmpty)
@@ -48,7 +49,7 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
               child: Row(children: [
                 Container(width: 46, height: 46, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.10), shape: BoxShape.circle), child: Icon(isHospital ? Icons.local_hospital_outlined : Icons.biotech_outlined, color: AppColors.primary, size: 25)),
                 const SizedBox(width: 12),
-                Expanded(child: Text('لا توجد بيانات متاحة حالياً', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12, fontWeight: FontWeight.w600))),
+                Expanded(child: Text(AppStrings.of(context).translate('لا توجد بيانات متاحة حالياً'), style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12, fontWeight: FontWeight.w600))),
               ]),
             ),
           )
@@ -82,7 +83,7 @@ class _FacilityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final id = _string('id');
     final image = _string('imageUrl', _string('image', _string('photoUrl')));
-    final name = _string('name', isHospital ? 'مستشفى' : 'مختبر');
+    final name = _string('name', AppStrings.of(context).translate(isHospital ? 'مستشفى' : 'مختبر'));
     final location = _string('location', _string('city', _string('address')));
     final rating = _rating();
     final hasOpenField = item.containsKey('open') || item.containsKey('isOpen');
@@ -97,14 +98,14 @@ class _FacilityCard extends StatelessWidget {
         SizedBox(height: 110, width: double.infinity, child: Stack(children: [
           Positioned.fill(child: image.isEmpty ? Container(color: AppColors.primary.withOpacity(.08), alignment: Alignment.center, child: Icon(isHospital ? Icons.local_hospital_outlined : Icons.biotech_outlined, color: AppColors.primary, size: 38)) : Hero(tag: '${isHospital ? 'hospital' : 'lab'}_$id', child: AppImage(imageUrl: image, width: double.infinity, height: 110, fit: BoxFit.cover))),
           if (rating != null) Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), decoration: BoxDecoration(color: Colors.black.withOpacity(.7), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star, color: Colors.amber, size: 10), const SizedBox(width: 2), Text(rating.toStringAsFixed(1), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))]))),
-          if (isHospital && hasOpenField) Positioned(bottom: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), decoration: BoxDecoration(color: isOpen ? Colors.green.withOpacity(.9) : Colors.red.withOpacity(.9), borderRadius: BorderRadius.circular(8)), child: Text(isOpen ? 'مفتوح' : 'مغلق', style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700)))),
-          if (!isHospital && homeService) Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), decoration: BoxDecoration(color: Colors.black.withOpacity(.65), borderRadius: BorderRadius.circular(8)), child: const Text('خدمة منزلية', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700)))),
+          if (isHospital && hasOpenField) Positioned(bottom: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), decoration: BoxDecoration(color: isOpen ? Colors.green.withOpacity(.9) : Colors.red.withOpacity(.9), borderRadius: BorderRadius.circular(8)), child: Text(AppStrings.of(context).translate(isOpen ? 'مفتوح' : 'مغلق'), style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700)))),
+          if (!isHospital && homeService) Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), decoration: BoxDecoration(color: Colors.black.withOpacity(.65), borderRadius: BorderRadius.circular(8)), child: Text(AppStrings.of(context).translate('خدمة منزلية'), style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700)))),
         ])),
         Expanded(child: Padding(padding: const EdgeInsets.fromLTRB(9, 8, 9, 7), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 12.5, fontWeight: FontWeight.w900)),
           if (location.isNotEmpty) ...[const SizedBox(height: 3), Row(children: [Icon(Icons.location_on_outlined, size: 11, color: isDark ? Colors.grey[400] : Colors.grey[600]), const SizedBox(width: 2), Expanded(child: Text(location, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 9.5)))])],
           const Spacer(),
-          SizedBox(width: double.infinity, height: 28, child: FilledButton(onPressed: id.isEmpty ? null : () => _open(context), style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: EdgeInsets.zero, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: Text(isHospital ? 'تفاصيل' : 'حجز', style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800)))),
+          SizedBox(width: double.infinity, height: 28, child: FilledButton(onPressed: id.isEmpty ? null : () => _open(context), style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: EdgeInsets.zero, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: Text(AppStrings.of(context).translate(isHospital ? 'تفاصيل' : 'حجز'), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800)))),
         ]))),
       ])),
     );
