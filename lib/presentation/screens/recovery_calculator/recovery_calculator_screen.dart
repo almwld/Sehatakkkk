@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class RecoveryCalculatorScreen extends StatefulWidget {
   const RecoveryCalculatorScreen({super.key});
@@ -9,6 +10,8 @@ class RecoveryCalculatorScreen extends StatefulWidget {
 }
 
 class _RecoveryCalculatorScreenState extends State<RecoveryCalculatorScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   String _condition = 'نزلة برد';
   int _age = 30;
   bool _smoker = false;
@@ -36,11 +39,11 @@ class _RecoveryCalculatorScreenState extends State<RecoveryCalculatorScreen> {
   Widget build(BuildContext context) {
     final c = _conditions[_condition]!;
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('حاسبة التعافي', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_t(context, 'حاسبة التعافي'), style: const TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Wrap(spacing: 6, children: _conditions.keys.map((k) => ChoiceChip(label: Text('${_conditions[k]!['icon']} $k', style: const TextStyle(fontSize: 11)), selected: _condition == k, selectedColor: c['color'], labelStyle: TextStyle(color: _condition == k ? Colors.white : AppColors.darkGrey), onSelected: (_) => setState(() => _condition = k))).toList()),
+          Wrap(spacing: 6, children: _conditions.keys.map((k) => ChoiceChip(label: Text('${_conditions[k]!['icon']} ${_t(context, k)}', style: const TextStyle(fontSize: 11)), selected: _condition == k, selectedColor: c['color'], labelStyle: TextStyle(color: _condition == k ? Colors.white : AppColors.darkGrey), onSelected: (_) => setState(() => _condition = k))).toList()),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(20),
@@ -48,23 +51,23 @@ class _RecoveryCalculatorScreenState extends State<RecoveryCalculatorScreen> {
             child: Column(children: [
               Text(c['icon'], style: const TextStyle(fontSize: 48)),
               const SizedBox(height: 8),
-              const Text('مدة التعافي المتوقعة', style: TextStyle(color: Colors.white70, fontSize: 14)),
-              Text('$_days ${c['unit']}', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
-              Text('من ${c['min']} إلى ${c['max']} ${c['unit']}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              Text(_t(context, 'مدة التعافي المتوقعة'), style: const TextStyle(color: Colors.white70, fontSize: 14)),
+              Text('$_days ${_t(context, c['unit'] as String)}', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+              Text('${_t(context, 'من')} ${c['min']} ${_t(context, 'إلى')} ${c['max']} ${_t(context, c['unit'] as String)}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
             ]),
           ),
           const SizedBox(height: 16),
-          _slide('العمر', _age.toDouble(), 1, 100, (v) => setState(() => _age = v.toInt())),
-          SwitchListTile(title: const Text('مدخن'), value: _smoker, activeColor: AppColors.primary, onChanged: (v) => setState(() => _smoker = v)),
-          SwitchListTile(title: const Text('أمارس الرياضة'), value: _exercise, activeColor: AppColors.primary, onChanged: (v) => setState(() => _exercise = v)),
+          _slide(context, 'العمر', _age.toDouble(), 1, 100, (v) => setState(() => _age = v.toInt())),
+          SwitchListTile(title: Text(_t(context, 'مدخن')), value: _smoker, activeColor: AppColors.primary, onChanged: (v) => setState(() => _smoker = v)),
+          SwitchListTile(title: Text(_t(context, 'أمارس الرياضة')), value: _exercise, activeColor: AppColors.primary, onChanged: (v) => setState(() => _exercise = v)),
           const SizedBox(height: 12),
           Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.05), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('💡 نصائح', style: const TextStyle(fontWeight: FontWeight.bold)), Text('• ${c['advice']}', style: const TextStyle(fontSize: 12)),
+            Text(_t(context, '💡 نصائح'), style: const TextStyle(fontWeight: FontWeight.bold)), Text('• ${_t(context, c['advice'] as String)}', style: const TextStyle(fontSize: 12)),
           ])),
         ]),
       ),
     );
   }
 
-  Widget _slide(String label, double val, double min, double max, Function(double) cb) => Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), child: Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label), Text('${val.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))]), Slider(value: val, min: min, max: max, activeColor: AppColors.primary, onChanged: cb)]));
+  Widget _slide(BuildContext context, String label, double val, double min, double max, Function(double) cb) => Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), child: Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_t(context, label)), Text('${val.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))]), Slider(value: val, min: min, max: max, activeColor: AppColors.primary, onChanged: cb)]));
 }
