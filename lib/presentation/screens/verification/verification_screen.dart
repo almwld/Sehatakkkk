@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -14,12 +15,13 @@ class VerificationScreen extends StatefulWidget {
   @override State<VerificationScreen> createState()=>_VerificationScreenState();
 }
 class _VerificationScreenState extends State<VerificationScreen>{
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _name=TextEditingController(),_age=TextEditingController(),_license=TextEditingController(),_experience=TextEditingController(),_specialty=TextEditingController(),_academic=TextEditingController();
   final Map<String,List<Map<String,dynamic>>> _docs={};
   bool _loading=true,_submitting=false,_verified=false;
   String _status='notSubmitted',_role='user'; String? _error;
   static const _labels=<String,String>{'doctor':'طبيب','nurse':'ممرض','midwife':'قابلة وتوليد','physiotherapist':'أخصائي علاج طبيعي','pharmacist':'صيدلي','lab':'مختبر','paramedic':'مسعف','hospital':'مستشفى','clinic':'عيادة','medical_center':'مركز طبي','dentist':'طبيب أسنان','dental':'عيادة أسنان','ophthalmology':'طبيب عيون','eye_clinic':'مركز عيون','optometrist':'أخصائي بصريات','veterinarian':'طبيب بيطري','delivery':'موصل طلبات','service':'خدمي'};
-  String get _roleLabel=>_labels[_role]??'الحساب المهني';
+  String get _roleLabel => _t(_labels[_role] ?? 'الحساب المهني');
   List<String> get _specialRequirements{switch(_role){case 'lab':return ['ترخيص المختبر','نطاق الفحوصات والخدمات','المسؤول الفني'];case 'hospital':return ['ترخيص المنشأة','الأقسام والخدمات','بيانات المسؤول'];case 'dental':case 'dentist':return ['ترخيص طب الأسنان','التخصص والخدمات السنية'];case 'ophthalmology':case 'eye_clinic':case 'optometrist':return ['ترخيص العيون/البصريات','الخدمات والأجهزة'];default:return ['رقم الترخيص أو المزاولة','التخصص والخدمات'];}}
   @override void initState(){super.initState();_load();}
 
@@ -40,7 +42,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
   }
 
   Future<bool> _handleExit() async {
-    if (_submitting) { ToastService.showError('انتظر حتى تكتمل العملية الحالية'); return false; }
+    if (_submitting) { ToastService.showError(_t('انتظر حتى تكتمل العملية الحالية')); return false; }
     await _saveDraft();
     return true;
   }
@@ -65,8 +67,8 @@ class _VerificationScreenState extends State<VerificationScreen>{
         if (mounted) setState(() => _docs[category] = [...(_docs[category] ?? <Map<String,dynamic>>[]), {'name':x.name,'size':size,'url':upload.url!,'uploadedAt':DateTime.now().toIso8601String()}]);
         count++; await _saveDraft();
       }
-      if (count > 0) ToastService.showSuccess('تم رفع '+count.toString()+' ملف وحفظه كمسودة');
-      else ToastService.showError('الملفات المحددة مرفوعة مسبقاً أو لم يتم اختيار ملف صالح');
+      if (count > 0) ToastService.showSuccess(_t('تم رفع ') + count.toString() + _t(' ملف وحفظه كمسودة'));
+      else ToastService.showError(_t('الملفات المحددة مرفوعة مسبقاً أو لم يتم اختيار ملف صالح'));
     } catch(e) { ToastService.showError(e.toString().replaceFirst('Exception: ','')); await _saveDraft(); }
     finally { if (mounted) setState(() => _submitting = false); }
   }
@@ -75,15 +77,15 @@ class _VerificationScreenState extends State<VerificationScreen>{
     if (_submitting || _verified || _status == 'pending') return;
     final u = FirebaseAuth.instance.currentUser;
     if (u == null) {
-      ToastService.showError('يجب تسجيل الدخول أولاً');
+      ToastService.showError(_t('يجب تسجيل الدخول أولاً'));
       return;
     }
     if (_name.text.trim().isEmpty || _license.text.trim().isEmpty || _specialty.text.trim().isEmpty) {
-      ToastService.showError('أكمل الاسم والتخصص ورقم الترخيص قبل الإرسال');
+      ToastService.showError(_t('أكمل الاسم والتخصص ورقم الترخيص قبل الإرسال'));
       return;
     }
     if ((_docs['identity'] ?? []).isEmpty) {
-      ToastService.showError('ارفع الهوية والمستندات الرسمية أولاً');
+      ToastService.showError(_t('ارفع الهوية والمستندات الرسمية أولاً'));
       return;
     }
     setState(() => _submitting = true);
@@ -115,16 +117,16 @@ class _VerificationScreenState extends State<VerificationScreen>{
         'academicSummary': _academic.text.trim(),
       });
       if (mounted) setState(() => _status = 'pending');
-      ToastService.showSuccess('تم إرسال طلب التوثيق للمراجعة');
+      ToastService.showSuccess(_t('تم إرسال طلب التوثيق للمراجعة'));
     } catch (e) {
-      ToastService.showError('تعذر إرسال طلب التوثيق');
+      ToastService.showError(_t('تعذر إرسال طلب التوثيق'));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
   }
 
-  Widget _field(TextEditingController c,String label,{TextInputType? type})=>Padding(padding:const EdgeInsets.only(bottom:10),child:TextField(controller:c,keyboardType:type,decoration:InputDecoration(labelText:label,border:const OutlineInputBorder())));
-  Widget _upload(String key,String title)=>Card(child:ListTile(leading:const Icon(Icons.upload_file,color:AppColors.primary),title:Text(title),subtitle:Text((_docs[key]??[]).length.toString()+' ملف مرفوع'),trailing:IconButton(onPressed:_submitting?null:()=>_pick(key),icon:const Icon(Icons.add_circle_outline))));
+  Widget _field(TextEditingController c,String label,{TextInputType? type})=>Padding(padding:const EdgeInsets.only(bottom:10),child:TextField(controller:c,keyboardType:type,decoration:InputDecoration(labelText:_t(label),border:const OutlineInputBorder())));
+  Widget _upload(String key,String title)=>Card(child:ListTile(leading:const Icon(Icons.upload_file,color:AppColors.primary),title:Text(_t(title)),subtitle:Text('${(_docs[key]??[]).length} ${_t('ملف مرفوع')}'),trailing:IconButton(onPressed:_submitting?null:()=>_pick(key),icon:const Icon(Icons.add_circle_outline))));
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -145,7 +147,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
         backgroundColor:
             dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
         appBar: CustomAppBar(
-          title: 'توثيق حساب $_roleLabel',
+          title: '${_t('توثيق حساب')} ${_t(_roleLabel)}',
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -167,10 +169,10 @@ class _VerificationScreenState extends State<VerificationScreen>{
                 ),
                 label: Text(
                   _status == 'pending'
-                      ? 'طلب التوثيق قيد المراجعة'
+                      ? _t('طلب التوثيق قيد المراجعة')
                       : _submitting
-                          ? 'جاري إرسال طلب التوثيق...'
-                          : 'إرسال طلب التوثيق والتحقق من المستندات',
+                          ? _t('جاري إرسال طلب التوثيق...')
+                          : _t('إرسال طلب التوثيق والتحقق من المستندات'),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -193,10 +195,10 @@ class _VerificationScreenState extends State<VerificationScreen>{
                     children: [
                       Text(
                         _verified
-                            ? 'الحساب موثق'
+                            ? _t('الحساب موثق')
                             : _status == 'pending'
-                                ? 'الطلب قيد المراجعة'
-                                : 'يجب توثيق حسابك',
+                                ? _t('الطلب قيد المراجعة')
+                                : _t('يجب توثيق حسابك'),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -205,10 +207,10 @@ class _VerificationScreenState extends State<VerificationScreen>{
                       const SizedBox(height: 8),
                       Text(
                         _verified
-                            ? 'تم اعتماد حسابك ويمكنك استخدام ميزات دورك.'
+                            ? _t('تم اعتماد حسابك ويمكنك استخدام ميزات دورك.')
                             : _status == 'pending'
-                                ? 'تم إرسال ملفك إلى المشرف وستصلك النتيجة عبر الإشعارات.'
-                                : 'لاستخدام ميزات $_roleLabel يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.',
+                                ? _t('تم إرسال ملفك إلى المشرف وستصلك النتيجة عبر الإشعارات.')
+                                : '${_t('لاستخدام ميزات')} ${_t(_roleLabel)} ${_t('يجب استكمال التوثيق وإرفاق المؤهلات والمستندات المطلوبة.')}',
                       ),
                     ],
                   ),
@@ -227,7 +229,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
                   alignment: AlignmentDirectional.centerStart,
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 6),
-                    child: Text('• $x'),
+                    child: Text('• ${_t(x)}'),
                   ),
                 ),
               ),
@@ -237,8 +239,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
               _upload('healthRecord', 'السجل الصحي/اللياقة المهنية'),
               _upload('identity', 'الهوية والمستندات الرسمية'),
               const SizedBox(height: 10),
-              const Text(
-                'الملفات المدعومة: PDF و JPG و PNG — الحد الأقصى 12MB للملف.',
+              Text(_t('الملفات المدعومة: PDF و JPG و PNG — الحد الأقصى 12MB للملف.'),
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
               const SizedBox(height: 80),
