@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/core/models/pharmacy/product_model.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HomeProductsRow extends StatelessWidget {
   final List<ProductModel> products;
@@ -30,7 +31,7 @@ class HomeProductsRow extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'منتجات صيدلية',
+                AppStrings.of(context).translate('منتجات صيدلية'),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -39,7 +40,7 @@ class HomeProductsRow extends StatelessWidget {
               ),
               TextButton(
                 onPressed: onViewAll,
-                child: const Text('عرض الكل'),
+                child: Text(AppStrings.of(context).translate('عرض الكل')),
               ),
             ],
           ),
