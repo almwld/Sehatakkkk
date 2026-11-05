@@ -1505,7 +1505,7 @@ class TermsScreen extends StatelessWidget {
             const SizedBox(height: 30),
             
             // ✅ موافقة نهائية
-            _buildConsentBox(isDark),
+            _buildConsentBox(context, isDark),
             const SizedBox(height: 40),
           ],
         ),
@@ -1669,7 +1669,7 @@ class TermsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildConsentBox(bool isDark) {
+  Widget _buildConsentBox(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
