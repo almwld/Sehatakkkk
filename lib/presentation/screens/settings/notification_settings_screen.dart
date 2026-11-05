@@ -92,8 +92,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           // ✅ جميع الإشعارات
           _buildSwitchTile(
             icon: Icons.notifications_rounded,
-            title: 'جميع الإشعارات',
-            subtitle: 'تفعيل أو تعطيل جميع الإشعارات',
+            title: strings.translate('جميع الإشعارات'),
+            subtitle: strings.translate('تفعيل أو تعطيل جميع الإشعارات'),
             value: _allNotifications,
             onChanged: (value) {
               setState(() {
@@ -113,13 +113,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
           // ✅ أنواع الإشعارات
           if (_allNotifications) ...[
-            _buildSectionTitle('أنواع الإشعارات', isDark),
+            _buildSectionTitle(strings.translate('أنواع الإشعارات'), isDark),
             const SizedBox(height: 8),
 
             _buildSwitchTile(
               icon: Icons.calendar_month_rounded,
-              title: 'المواعيد',
-              subtitle: 'إشعارات المواعيد والتذكيرات',
+              title: strings.translate('المواعيد'),
+              subtitle: strings.translate('إشعارات المواعيد والتذكيرات'),
               value: _appointments,
               onChanged: (value) => setState(() => _appointments = value),
               isDark: isDark,
@@ -127,8 +127,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
             _buildSwitchTile(
               icon: Icons.chat_rounded,
-              title: 'الرسائل',
-              subtitle: 'إشعارات الرسائل الجديدة',
+              title: strings.translate('الرسائل'),
+              subtitle: strings.translate('إشعارات الرسائل الجديدة'),
               value: _messages,
               onChanged: (value) => setState(() => _messages = value),
               isDark: isDark,
@@ -136,8 +136,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
             _buildSwitchTile(
               icon: Icons.medication_rounded,
-              title: 'تذكير الأدوية',
-              subtitle: 'تذكيرات مواعيد تناول الأدوية',
+              title: strings.translate('تذكير الأدوية'),
+              subtitle: strings.translate('تذكيرات مواعيد تناول الأدوية'),
               value: _medicationReminders,
               onChanged: (value) => setState(() => _medicationReminders = value),
               isDark: isDark,
@@ -145,8 +145,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
             _buildSwitchTile(
               icon: Icons.local_offer_rounded,
-              title: 'العروض والخصومات',
-              subtitle: 'إشعارات العروض والخصومات',
+              title: strings.translate('العروض والخصومات'),
+              subtitle: strings.translate('إشعارات العروض والخصومات'),
               value: _promotions,
               onChanged: (value) => setState(() => _promotions = value),
               isDark: isDark,
@@ -156,13 +156,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           const SizedBox(height: 16),
 
           // ✅ طريقة العرض
-          _buildSectionTitle('طريقة العرض', isDark),
+          _buildSectionTitle(strings.translate('طريقة العرض'), isDark),
           const SizedBox(height: 8),
 
           _buildSwitchTile(
             icon: Icons.volume_up_rounded,
-            title: 'الصوت',
-            subtitle: 'تشغيل صوت الإشعارات',
+            title: strings.translate('الصوت'),
+            subtitle: strings.translate('تشغيل صوت الإشعارات'),
             value: _sound,
             onChanged: (value) => setState(() => _sound = value),
             isDark: isDark,
@@ -170,8 +170,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
           _buildSwitchTile(
             icon: Icons.vibration_rounded,
-            title: 'الاهتزاز',
-            subtitle: 'اهتزاز الجهاز عند الإشعارات',
+            title: strings.translate('الاهتزاز'),
+            subtitle: strings.translate('اهتزاز الجهاز عند الإشعارات'),
             value: _vibration,
             onChanged: (value) => setState(() => _vibration = value),
             isDark: isDark,
@@ -180,8 +180,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           // ✅ استخدام أيقونة SVG بدلاً من Icons
           _buildSwitchTileSVG(
             icon: 'assets/icons/core/notifications_active.svg',
-            title: 'نوافذ منبثقة',
-            subtitle: 'عرض الإشعارات كنوافذ منبثقة',
+            title: strings.translate('نوافذ منبثقة'),
+            subtitle: strings.translate('عرض الإشعارات كنوافذ منبثقة'),
             value: _popup,
             onChanged: (value) => setState(() => _popup = value),
             isDark: isDark,
