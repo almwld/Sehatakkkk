@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const _lastShownKey = 'sehatak_splash_last_shown_ms';
   static const _interval = Duration(hours: 12);
-  static const _duration = Duration(milliseconds: 3500);
+  static const _duration = Duration(seconds: 3);
 
   late final AnimationController _controller;
   late final Animation<double> _fade;
@@ -56,11 +56,6 @@ class _SplashScreenState extends State<SplashScreen>
     } catch (_) {}
 
     await Future<void>.delayed(_duration);
-    await _goNext(prefs);
-  }
-
-  Future<void> _skip() async {
-    final prefs = await SharedPreferences.getInstance();
     await _goNext(prefs);
   }
 
@@ -164,27 +159,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ],
                 ),
               ),
-              PositionedDirectional(
-                bottom: 28,
-                start: 24,
-                end: 24,
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: OutlinedButton(
-                    onPressed: _skip,
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.white70),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 22, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text('تخطي'),
-                  ),
-                ),
-              ),
+,
             ],
           ),
         ),
