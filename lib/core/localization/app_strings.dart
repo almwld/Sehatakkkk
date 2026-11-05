@@ -4077,6 +4077,10 @@ class AppStrings {
       "الدواء غير موجود": ["Medicine not found", "Médicament introuvable"],
       "يتطلب وصفة طبية": ["Prescription required", "Ordonnance obligatoire"],
       "نسخ المعلومات": ["Copy information", "Copier les informations"],
+      "صحة العين": ["Eye health", "Santé des yeux"],
+      "تعطيل": ["Disable", "Désactiver"],
+      "تحقق وتفعيل": ["Verify and enable", "Vérifier et activer"],
+      "إعادة تعيين": ["Reset", "Réinitialiser"],
     };
     final entry = translations[value];
     if (entry == null) return value;
