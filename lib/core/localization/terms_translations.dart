@@ -814,7 +814,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Allergies and medicines that cause allergic reactions.
 - Current medicines and dosages.
 - Previous tests and results.
-- Previous surgical procedures and family health history.
+- Previous surgical procedures.
+- Family medical history.
 - Health habits, including smoking, drinking, and exercise.
 - Vital indicators, including weight, height, blood pressure, and blood glucose.
 
@@ -822,7 +823,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - How you use the application and the pages you visit.
 - Time spent using the application.
 - Features you use most.
-- Errors you encounter and your service ratings.
+- Errors you encounter.
+- Your ratings of the services.
 
 **D. Device data:**
 - Device type (iOS / Android) and operating-system version.
@@ -838,38 +840,45 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **F. Payment data:**
 - Preferred payment method.
 - Financial transaction details, kept confidential.
-- Purchase history and active subscriptions.
+- Purchase history.
+- Active subscriptions.
 
 **2. How data is used**
 
 **A. Providing services:**
-- Providing requested services, booking and managing appointments.
+- Providing the services you request.
+- Booking and managing appointments.
 - Reminding you about appointments and medicines.
 - Providing remote medical consultations.
 
 **B. Improving services:**
 - Analysing application usage.
-- Developing new features and fixing technical problems.
+- Developing new features.
+- Fixing errors and technical problems.
 - Improving the user experience.
 
 **C. Personalization:**
-- Personalizing content and recommendations based on your interests.
+- Personalizing content based on your interests.
+- Providing personalized recommendations.
 - Showing relevant offers and discounts.
 - Adapting the interface to your needs.
 
 **D. Communication:**
-- Sending notifications, reminders, and service updates.
+- Sending notifications and reminders.
+- Sending service updates.
 - Responding to enquiries and complaints.
 - Contacting you in emergencies.
 
 **E. Security:**
 - Preventing fraud and unlawful activities.
-- Protecting your data and verifying your identity when necessary.
+- Protecting your data from unauthorized access.
+- Verifying your identity when necessary.
 - Complying with laws and regulations.
 
 **F. Research and development:**
 - Analysing data for research.
-- Developing technologies and improving service quality.
+- Developing new technologies.
+- Improving service quality.
 - Contributing to health research.
 
 **3. Data sharing**
@@ -880,12 +889,14 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Providers are required to keep data confidential.
 
 **B. With external entities:**
-- We may share data with trusted delivery, payment, and analytics providers.
+- We may share data with trusted external service providers.
+- These may include delivery, payment, and analytics services.
 - We request your consent before sharing data for another purpose.
 
 **C. With legal authorities:**
 - We share data when legally requested.
-- We comply with applicable laws and protect users’ rights.
+- We comply with applicable laws and regulations.
+- We protect users’ rights in all cases.
 
 **4. Data retention:**
 - We retain your data while your account is active.
@@ -908,7 +919,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Allergies et médicaments provoquant des réactions allergiques.
 - Médicaments actuels et dosages.
 - Examens antérieurs et résultats.
-- Interventions chirurgicales antérieures et antécédents médicaux familiaux.
+- Interventions chirurgicales antérieures.
+- Antécédents médicaux familiaux.
 - Habitudes de santé, notamment tabac, alcool et activité physique.
 - Indicateurs vitaux : poids, taille, tension artérielle et glycémie.
 
@@ -916,7 +928,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Votre utilisation de l’application et les pages consultées.
 - Temps passé sur l’application.
 - Fonctionnalités les plus utilisées.
-- Erreurs rencontrées et évaluations des services.
+- Erreurs rencontrées.
+- Évaluations que vous attribuez aux services.
 
 **D. Données de l’appareil :**
 - Type d’appareil (iOS / Android) et version du système.
@@ -932,38 +945,45 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **F. Données de paiement :**
 - Moyen de paiement préféré.
 - Détails des transactions financières, conservés de manière confidentielle.
-- Historique des achats et abonnements actifs.
+- Historique des achats.
+- Abonnements actifs.
 
 **2. Utilisation des données**
 
 **A. Fourniture des services :**
-- Fournir les services demandés et gérer les rendez-vous.
+- Fournir les services demandés.
+- Réserver et gérer les rendez-vous.
 - Vous rappeler les rendez-vous et prises de médicaments.
 - Fournir des consultations médicales à distance.
 
 **B. Amélioration des services :**
 - Analyser l’utilisation de l’application.
-- Développer de nouvelles fonctionnalités et corriger les problèmes techniques.
+- Développer de nouvelles fonctionnalités.
+- Corriger les erreurs et problèmes techniques.
 - Améliorer l’expérience utilisateur.
 
 **C. Personnalisation :**
-- Personnaliser le contenu et les recommandations selon vos centres d’intérêt.
+- Personnaliser le contenu selon vos centres d’intérêt.
+- Fournir des recommandations personnalisées.
 - Présenter des offres et réductions pertinentes.
 - Adapter l’interface à vos besoins.
 
 **D. Communication :**
-- Envoyer des notifications, rappels et mises à jour des services.
+- Envoyer des notifications et des rappels.
+- Envoyer des mises à jour concernant les services.
 - Répondre à vos demandes et réclamations.
 - Vous contacter en cas d’urgence.
 
 **E. Sécurité :**
 - Prévenir la fraude et les activités illégales.
-- Protéger vos données et vérifier votre identité si nécessaire.
+- Protéger vos données contre les accès non autorisés.
+- Vérifier votre identité si nécessaire.
 - Respecter les lois et règlements.
 
 **F. Recherche et développement :**
 - Analyser les données à des fins de recherche.
-- Développer des technologies et améliorer la qualité des services.
+- Développer de nouvelles technologies.
+- Améliorer la qualité des services.
 - Contribuer à la recherche en santé.
 
 **3. Partage des données**
@@ -974,12 +994,14 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Les prestataires doivent préserver leur confidentialité.
 
 **B. Avec des entités externes :**
-- Nous pouvons partager des données avec des prestataires fiables de livraison, de paiement et d’analyse.
+- Nous pouvons partager des données avec des prestataires externes de confiance.
+- Il peut s’agir de services de livraison, de paiement et d’analyse.
 - Nous demandons votre consentement avant tout autre partage.
 
 **C. Avec les autorités judiciaires :**
 - Nous partageons les données lorsqu’une demande légale l’exige.
-- Nous respectons les lois applicables et protégeons les droits des utilisateurs.
+- Nous respectons les lois et règlements applicables.
+- Nous protégeons les droits des utilisateurs en toutes circonstances.
 
 **4. Conservation des données :**
 - Nous conservons vos données tant que votre compte est actif.
@@ -1010,7 +1032,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **4. Backups:**
 - Data is backed up regularly (daily).
 - Backups are stored securely and encrypted.
-- Recovery is provided for emergencies and tested periodically.
+- Recovery is provided for emergencies.
+- Data restoration is tested periodically.
 
 **5. Intrusion monitoring:**
 - Suspicious activities are monitored continuously.
@@ -1039,6 +1062,7 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Compliance with international security standards (ISO 27001).
 - Security best practices and periodic reviews.
 - Recognized security certifications.
+- Security certifications are maintained and reviewed.
 
 **10. Privacy protection:**
 - Privacy is built into system design.
@@ -1068,7 +1092,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **4. Sauvegardes :**
 - Les données sont sauvegardées régulièrement (quotidiennement).
 - Les sauvegardes sont conservées en lieu sûr et chiffrées.
-- La récupération est prévue en cas d’urgence et testée périodiquement.
+- La récupération des données est prévue en cas d’urgence.
+- La restauration des données est testée périodiquement.
 
 **5. Surveillance des intrusions :**
 - Les activités suspectes font l’objet d’une surveillance continue.
@@ -1097,6 +1122,7 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Respect des normes internationales de sécurité (ISO 27001).
 - Application des bonnes pratiques et examens périodiques.
 - Certifications de sécurité reconnues.
+- Les certifications de sécurité sont maintenues et réexaminées.
 
 **10. Protection de la confidentialité :**
 - La confidentialité est intégrée dès la conception du système.
@@ -1139,6 +1165,7 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **6. Right to complain:**
 - Complain about how your data is processed.
 - Complaints are investigated and outcomes communicated.
+- You may refer the matter to the competent legal authorities if necessary.
 - You may refer the matter to legal authorities if necessary.
 
 **7. Right to privacy:**
@@ -1151,10 +1178,12 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - All users are treated fairly without discrimination based on race, religion, gender, or age.
 - Laws are applied fairly.
 - All parties are heard in disputes.
+- Disputes are handled through fair procedures.
 
 **9. Right to accountability:**
 - Hold the platform accountable for data violations.
 - Violations are investigated and appropriate action is taken.
+- You are informed of the investigation results.
 - You are informed of the investigation results.
 
 **10. Right to information:**
@@ -1208,7 +1237,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 
 **6. Droit de réclamation :**
 - Déposer une réclamation concernant le traitement de vos données.
-- Les réclamations sont examinées et les résultats communiqués.
+- Les réclamations font l’objet d’une enquête et leurs résultats sont communiqués.
+- Vous pouvez saisir les autorités judiciaires compétentes si nécessaire.
 - Vous pouvez saisir les autorités compétentes si nécessaire.
 
 **7. Droit à la confidentialité :**
@@ -1221,10 +1251,12 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Tous les utilisateurs sont traités équitablement, sans discrimination fondée sur la race, la religion, le sexe ou l’âge.
 - Les lois sont appliquées équitablement.
 - Toutes les parties sont entendues en cas de litige.
+- Les litiges sont traités selon des procédures équitables.
 
 **9. Droit à la responsabilité :**
 - Demander des comptes à la plateforme en cas de violation des données.
 - Les violations font l’objet d’une enquête et de mesures appropriées.
+- Vous êtes informé des résultats de l’enquête.
 - Vous êtes informé des résultats de l’enquête.
 
 **10. Droit à l’information :**
@@ -1267,7 +1299,7 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **4. Legal compliance:**
 - Comply with applicable laws and regulations.
 - Do not use the platform for unlawful activities.
-- Respect intellectual-property rights and the rights of others.
+- Do not infringe the rights of others.
 
 **5. Communication:**
 - Communicate politely and respectfully.
@@ -1284,12 +1316,13 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **7. Social responsibility:**
 - Help build a positive health community.
 - Share useful information and avoid misleading content.
-- Support other users.
+- Support other users and encourage constructive interaction.
 
 **8. Reporting problems:**
 - Report technical errors and problems.
 - Report content that violates the rules.
 - Cooperate with support and provide complete details.
+- Provide complete information about the problem.
 
 **9. Application updates:**
 - Install updates regularly.
@@ -1300,12 +1333,12 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **10. Protecting reputation:**
 - Do not damage the platform’s reputation.
 - Do not publish false information about the platform.
-- Report misleading information.
+- Report any misleading information.
 
 **11. Respect:**
 - Respect others’ privacy, opinions, and beliefs.
 - Do not share another person’s information without consent.
-- Treat all users kindly.
+- Treat all users kindly and respectfully.
 
 **12. Integrity:**
 - Be honest in all dealings.
@@ -1334,7 +1367,7 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **4. Respect de la loi :**
 - Respecter les lois et règlements applicables.
 - Ne pas utiliser la plateforme pour des activités illégales.
-- Respecter les droits de propriété intellectuelle et les droits d’autrui.
+- Ne pas porter atteinte aux droits d’autrui.
 
 **5. Communication :**
 - Communiquer poliment et avec respect.
@@ -1351,12 +1384,12 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **7. Responsabilité sociale :**
 - Contribuer à bâtir une communauté de santé positive.
 - Partager des informations utiles et éviter les contenus trompeurs.
-- Soutenir les autres utilisateurs.
+- Soutenir les autres utilisateurs et encourager les échanges constructifs.
 
 **8. Signalement des problèmes :**
 - Signaler les erreurs et problèmes techniques.
 - Signaler les contenus non conformes.
-- Coopérer avec l’assistance et fournir des détails complets.
+- Coopérer avec l’assistance et fournir des détails complets sur le problème.
 
 **9. Mises à jour de l’application :**
 - Installer régulièrement les mises à jour.
@@ -1367,12 +1400,12 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **10. Préservation de la réputation :**
 - Ne pas nuire à la réputation de la plateforme.
 - Ne pas publier de fausses informations sur la plateforme.
-- Signaler les informations trompeuses.
+- Signaler toute information trompeuse.
 
 **11. Respect :**
 - Respecter la vie privée, les opinions et les convictions d’autrui.
 - Ne pas partager les informations d’une autre personne sans son consentement.
-- Traiter tous les utilisateurs avec bienveillance.
+- Traiter tous les utilisateurs avec gentillesse et respect.
 
 **12. Intégrité :**
 - Faire preuve d’honnêteté dans toutes les transactions.
@@ -1647,7 +1680,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **3. Use of data:**
 - Providing the services you request.
 - Communicating with you about services.
-- Improving your experience and personalizing content.
+- Improving your experience.
+- Personalizing content.
 - Using data for lawful purposes.
 
 **4. Data sharing:**
@@ -1722,7 +1756,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **3. Utilisation des données :**
 - Fournir les services demandés.
 - Communiquer avec vous au sujet des services.
-- Améliorer votre expérience et personnaliser le contenu.
+- Améliorer votre expérience.
+- Personnaliser le contenu.
 - Utiliser les données à des fins légales.
 
 **4. Partage des données :**
@@ -1969,7 +2004,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Updated security databases.
 
 **10. Business continuity:**
-- Business-continuity plans and backup systems.
+- Business-continuity plans.
+- Backup systems.
 - Emergency data recovery.
 - Regular continuity tests.
 - Measures to ensure service availability.''',
@@ -2036,7 +2072,8 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Bases de données de sécurité actualisées.
 
 **10. Continuité des activités :**
-- Plans de continuité et systèmes de secours.
+- Plans de continuité des activités.
+- Systèmes de secours.
 - Récupération des données en cas d’urgence.
 - Tests réguliers de continuité.
 - Mesures garantissant la disponibilité du service.'''],
