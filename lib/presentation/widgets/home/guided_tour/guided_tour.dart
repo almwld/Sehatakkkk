@@ -266,7 +266,7 @@ class _TooltipBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              '${step.emoji}  ${step.title}',
+              '${step.emoji}  ${_localizedUiText(context, step.title)}',
               style: const TextStyle(
                 color: Colors.black87,
                 fontSize: 20,
@@ -275,7 +275,7 @@ class _TooltipBubble extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              step.description,
+              _localizedUiText(context, step.description),
               textAlign: TextAlign.right,
               style: TextStyle(
                 color: Colors.grey[700],
