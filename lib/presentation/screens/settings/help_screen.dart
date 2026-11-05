@@ -180,7 +180,7 @@ class _FaqTile extends StatelessWidget {
             alignment: AlignmentDirectional.centerEnd,
             child: Text(
               AppStrings.of(context).translate(faq.answer),
-              textDirection: TextDirection.rtl,
+              textDirection: AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
               style: TextStyle(color: dark ? Colors.white70 : const Color(0xFF647474), fontSize: 13, height: 1.7),
             ),
           ),
