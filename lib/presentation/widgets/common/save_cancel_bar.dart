@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class SaveCancelBar extends StatelessWidget {
   final VoidCallback? onSave;
@@ -19,9 +20,12 @@ class SaveCancelBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final localizedSave = saveLabel == 'حفظ' ? strings.save : strings.translate(saveLabel);
+    final localizedCancel = cancelLabel == 'إلغاء' ? strings.cancel : strings.translate(cancelLabel);
     return Row(
       children: [
-        Expanded(child: TextButton(onPressed: isLoading ? null : onCancel, child: Text(cancelLabel))),
+        Expanded(child: TextButton(onPressed: isLoading ? null : onCancel, child: Text(localizedCancel))),
         const SizedBox(width: 10),
         Expanded(
           child: ElevatedButton(
@@ -29,7 +33,7 @@ class SaveCancelBar extends StatelessWidget {
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
             child: isLoading
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text(saveLabel),
+                : Text(localizedSave),
           ),
         ),
       ],
