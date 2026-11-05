@@ -4123,7 +4123,7 @@ class AppStrings {
       'سجّل عاداتك اليومية وادمجها مع أهدافك الصحية.': ['Track your daily habits and align them with your health goals.', 'Suivez vos habitudes quotidiennes et associez-les à vos objectifs de santé.'],
       'هدفك الحالي': ['Your current goal', 'Votre objectif actuel'],
       'متابعتك اليوم': ['Your progress today', 'Votre suivi aujourd’hui'],
-      'كوب': ['cup(s)', 'verre(s)'],
+      'كوب': ['cups', 'verres'],
       'الوجبات': ['Meals', 'Repas'],
       'مسجلة': ['logged', 'enregistrés'],
       'أدوات التغذية': ['Nutrition tools', 'Outils nutritionnels'],
