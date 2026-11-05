@@ -21,7 +21,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
           const SizedBox(height: 40),
           Icon(_enabled ? Icons.shield : Icons.shield_outlined, size: 80, color: _enabled ? AppColors.success : Colors.grey),
           const SizedBox(height: 24),
-          Text(_enabled ? 'المصادقة الثنائية مفعلة' : 'المصادقة الثنائية غير مفعلة', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(_localizedUiText(context, _enabled ? 'المصادقة الثنائية مفعلة' : 'المصادقة الثنائية غير مفعلة'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(_localizedUiText(context, 'حماية إضافية لحسابك'), style: TextStyle(color: Colors.grey, fontSize: 14)),
           const SizedBox(height: 40),
