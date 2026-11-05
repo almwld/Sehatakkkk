@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'tour_manager.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 /// خطوة جولة تعتمد على نص ظاهر فعلياً في الشاشة.
 class ScreenTourStep {
@@ -69,17 +70,20 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
   Future<void> _start() async {
     if (_disposed || !mounted || widget.steps.isEmpty) return;
     if (await TourManager.hasSeen(widget.tourKey)) return;
-    await _prepare();
-    if (_disposed || !mounted) return;
+    final targetFound = await _prepare();
+    if (_disposed || !mounted || !targetFound) return;
     _insert();
   }
 
   Element? _findTarget(String text) {
     Element? result;
+    final translatedText = AppStrings.of(context).translate(text);
     void visit(Element element) {
       if (result != null) return;
       final widget = element.widget;
-      if (widget is Text && widget.data != null && widget.data!.contains(text)) {
+      if (widget is Text && widget.data != null &&
+          (widget.data!.contains(text) ||
+              (translatedText != text && widget.data!.contains(translatedText)))) {
         result = element;
         return;
       }
@@ -89,7 +93,7 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
     return result;
   }
 
-  Future<void> _prepare() async {
+  Future<bool> _prepare() async {
     for (var attempt = 0; attempt < 24; attempt++) {
       if (_disposed || !mounted) return;
       final element = _findTarget(widget.steps[_index].targetText);
@@ -103,10 +107,11 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
           );
         } catch (_) {}
         await Future<void>.delayed(const Duration(milliseconds: 90));
-        return;
+        return _targetRect() != null;
       }
       await Future<void>.delayed(const Duration(milliseconds: 120));
     }
+    return false;
   }
 
   Rect? _targetRect() {
@@ -132,8 +137,17 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
     }
     _busy = true;
     _index = next;
-    await _prepare();
-    if (!_disposed) _overlay?.markNeedsBuild();
+    final targetFound = await _prepare();
+    if (!_disposed) {
+      if (targetFound) {
+        _overlay?.markNeedsBuild();
+      } else {
+        // Never leave a full-screen spotlight blocking a page when a target
+        // is absent (for example, a role/locale-specific label).
+        _overlay?.remove();
+        _overlay = null;
+      }
+    }
     _busy = false;
   }
 
@@ -160,7 +174,8 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
     final size = MediaQuery.sizeOf(context);
     final step = widget.steps[_index];
     final raw = _targetRect();
-    final target = (raw ?? Rect.fromCenter(center: size.center(Offset.zero), width: 2, height: 2)).inflate(12);
+    if (raw == null) return const SizedBox.shrink();
+    final target = raw.inflate(12);
     final bubble = _bubble(step.position, target, size);
     return Directionality(
       textDirection: TextDirection.rtl,
