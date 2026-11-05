@@ -29,7 +29,7 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'حاسبة موعد الولادة'),
+      appBar: CustomAppBar(title: _localizedUiText(context, 'حاسبة موعد الولادة')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -41,7 +41,7 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
           const SizedBox(height: 18),
           ListTile(
             title: Text(_localizedUiText(context, 'تاريخ آخر دورة')),
-            subtitle: Text(_lastPeriod != null ? '${_lastPeriod!.day}/${_lastPeriod!.month}/${_lastPeriod!.year}' : 'اضغطي للاختيار'),
+            subtitle: Text(_lastPeriod != null ? '${_lastPeriod!.day}/${_lastPeriod!.month}/${_lastPeriod!.year}' : _localizedUiText(context, 'اضغطي للاختيار')),
             leading: const Icon(Icons.calendar_today, color: AppColors.primary),
             onTap: () async {
               final picked = await showDatePicker(context: context, initialDate: DateTime.now().subtract(const Duration(days: 30)), firstDate: DateTime(2025), lastDate: DateTime.now());
@@ -61,11 +61,11 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
             ),
             const SizedBox(height: 14),
             Row(children: [
-              _infoCard('عمر الحمل', '$_weeks أسبوع و $_days يوم', Icons.pregnant_woman, Colors.pink),
+              _infoCard(context, 'عمر الحمل', '$_weeks أسبوع و $_days يوم', Icons.pregnant_woman, Colors.pink),
               const SizedBox(width: 8),
-              _infoCard('الثلث', _trimester, Icons.baby_changing_station, AppColors.purple),
+              _infoCard(context, 'الثلث', _trimester, Icons.baby_changing_station, AppColors.purple),
               const SizedBox(width: 8),
-              _infoCard('متبقي', '${_dueDate!.difference(DateTime.now()).inDays} يوم', Icons.hourglass_bottom, AppColors.info),
+              _infoCard(context, 'متبقي', '${_dueDate!.difference(DateTime.now()).inDays} يوم', Icons.hourglass_bottom, AppColors.info),
             ]),
           ],
         ]),
@@ -73,9 +73,9 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
     );
   }
 
-  Widget _infoCard(String label, String value, IconData icon, Color color) {
+  Widget _infoCard(BuildContext context, String label, String value, IconData icon, Color color) {
     return Expanded(
-      child: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color.withOpacity(0.06), borderRadius: BorderRadius.circular(12)), child: Column(children: [Icon(icon, color: color, size: 22), const SizedBox(height: 4), Text(value, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: color)), Text(label, style: const TextStyle(fontSize: 9, color: AppColors.grey))])),
+      child: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color.withOpacity(0.06), borderRadius: BorderRadius.circular(12)), child: Column(children: [Icon(icon, color: color, size: 22), const SizedBox(height: 4), Text(_localizedUiText(context, value), textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: color)), Text(_localizedUiText(context, label), style: const TextStyle(fontSize: 9, color: AppColors.grey))])),
     );
   }
 }
