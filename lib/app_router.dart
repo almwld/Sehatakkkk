@@ -186,11 +186,11 @@ class AppRouter {
         GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
     redirect: (_, state) {
       final loggedIn = FirebaseAuth.instance.currentUser != null;
-      if (state.matchedLocation == auth && loggedIn) return home;
+      if ((state.matchedLocation == auth || state.matchedLocation == splash) && loggedIn) return home;
       return null;
     },
     routes: [
-      GoRoute(path: splash, builder: (_, __) => const SplashScreen()),
+      GoRoute(path: splash, builder: (_, __) => const AuthScreen(showIntroSplash: true)),
       GoRoute(
           path: home,
           onExit: _handleBack,
