@@ -4614,10 +4614,9 @@ class AppStrings {
       'باستخدامك لتطبيق "صحتك"، فإنك توافق على جميع الشروط والأحكام بما فيها إخلاء المسؤولية الطبية وسياسة الخصوصية.': ['By using the Sehatak app, you agree to all terms and conditions, including the medical disclaimer and privacy policy.', 'En utilisant l’application Sehatak, vous acceptez l’ensemble des conditions, y compris l’avertissement médical et la politique de confidentialité.'],
       '📑 جدول المحتويات': ['📑 Table of contents', '📑 Table des matières'],
       'نصيحة:': ['Tip:', 'Conseil :'],
-      'تقدم النوم الأسبوعي': ['Weekly sleep progress', 'Progression hebdomadaire du sommeil'],
       'تم إيقاف التتبع - الجودة: ': ['Tracking stopped - quality: ', 'Suivi arrêté - qualité : '],
-      'تم حذف جميع البيانات': ['All data has been deleted', 'Toutes les données ont été supprimées'],
     };
+
 
     final entry = translations[value];
     if (entry == null) return value;
