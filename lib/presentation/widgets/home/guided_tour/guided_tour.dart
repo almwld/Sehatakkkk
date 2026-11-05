@@ -307,7 +307,7 @@ class _TooltipBubble extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: onNext,
                     icon: Icon(index == total - 1 ? Icons.check_rounded : Icons.arrow_back_rounded, size: 18),
-                    label: Text(index == total - 1 ? 'تم' : 'التالي'),
+                    label: Text(_localizedUiText(context, index == total - 1 ? 'تم' : 'التالي')),
                   ),
                 ),
               ],
