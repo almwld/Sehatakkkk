@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -135,8 +136,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'إضافة حدث جديد',
+            Text(_localizedUiText(context, 'إضافة حدث جديد'),
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -191,7 +191,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('إلغاء'),
+                    child: Text(_localizedUiText(context, 'إلغاء')),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -213,7 +213,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text('إضافة'),
+                    child: Text(_localizedUiText(context, 'إضافة')),
                   ),
                 ),
               ],
@@ -231,7 +231,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: CustomAppBar(
-        title: const Text('التقويم الصحي', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_localizedUiText(context, 'التقويم الصحي'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -328,13 +328,11 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                     children: [
                       Icon(Icons.event_busy_rounded, size: 40, color: AppColors.grey),
                       SizedBox(height: 8),
-                      Text(
-                        'لا توجد أحداث في هذا اليوم',
+                      Text(_localizedUiText(context, 'لا توجد أحداث في هذا اليوم'),
                         style: TextStyle(color: AppColors.grey, fontSize: 13),
                       ),
                       SizedBox(height: 8),
-                      Text(
-                        'اضغط على + لإضافة حدث',
+                      Text(_localizedUiText(context, 'اضغط على + لإضافة حدث'),
                         style: TextStyle(color: AppColors.grey, fontSize: 11),
                       ),
                     ],
@@ -415,3 +413,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
