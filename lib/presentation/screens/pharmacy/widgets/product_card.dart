@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/pharmacy/product_model.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
@@ -20,18 +21,18 @@ class ProductCard extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Stack(children: [
             ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(16)), child: AppImage(imageUrl: product.resolvedImageUrl, height: 140, width: double.infinity, fit: BoxFit.cover)),
-                        if (product.prescriptionRequired) Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)), child: const Text('وصفة', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
+                        if (product.prescriptionRequired) Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)), child: Text(AppStrings.of(context).translate('وصفة'), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
             if (product.isDiscounted) Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.orange, Colors.red]), borderRadius: BorderRadius.circular(12)), child: Text('-${product.discount!.toInt()}%', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)))),
-            if (!product.inStock) Positioned(bottom: 8, left: 0, right: 0, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), color: Colors.black.withOpacity(0.7), child: const Center(child: Text('غير متوفر', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))))),
+            if (!product.inStock) Positioned(bottom: 8, left: 0, right: 0, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), color: Colors.black.withOpacity(0.7), child: Center(child: Text(AppStrings.of(context).translate('غير متوفر'), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))))),
           ]),
           Padding(padding: const EdgeInsets.all(10), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(product.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: product.categoryColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(product.categoryText, style: TextStyle(fontSize: 10, color: product.categoryColor, fontWeight: FontWeight.w500))),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: product.categoryColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(AppStrings.of(context).translate(product.categoryText), style: TextStyle(fontSize: 10, color: product.categoryColor, fontWeight: FontWeight.w500))),
             const SizedBox(height: 4),
             Row(children: [const Icon(Icons.star, size: 12, color: Colors.amber), const SizedBox(width: 2), Text(product.rating.toStringAsFixed(1), style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w500)), Text(' ($reviews)', style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[500] : Colors.grey[400]))]),
             const SizedBox(height: 6),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Column(crossAxisAlignment: CrossAxisAlignment.start, children: [if (product.isDiscounted) Text('${product.price.toStringAsFixed(0)} ريال', style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[500] : Colors.grey[400], decoration: TextDecoration.lineThrough)), Text('${product.priceWithDiscount.toStringAsFixed(0)} ريال', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary))]), if (product.inStock) GestureDetector(onTap: onAddToCart, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)), child: const Icon(Icons.add_shopping_cart, color: Colors.white, size: 18)))])
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Column(crossAxisAlignment: CrossAxisAlignment.start, children: [if (product.isDiscounted) Text(AppStrings.of(context).formatCurrency(product.price), style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[500] : Colors.grey[400], decoration: TextDecoration.lineThrough)), Text(AppStrings.of(context).formatCurrency(product.priceWithDiscount), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary))]), if (product.inStock) GestureDetector(onTap: onAddToCart, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)), child: const Icon(Icons.add_shopping_cart, color: Colors.white, size: 18)))])
           ])),
         ]),
       ),
