@@ -185,7 +185,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
             _buildReportRow('⭐ الجودة', '${result['quality'].toStringAsFixed(1)}/10'),
             _buildReportRow('🎤 الشخير', '${result['snore']} مرة'),
             const Divider(),
-            _buildReportRow('Stats التقييم', '$_sleepQualityText $_sleepEmoji'),
+            _buildReportRow('التقييم', '$_sleepQualityText $_sleepEmoji'),
             const SizedBox(height: 8),
             ..._getTips(result['quality']).map((tip) => Padding(
               padding: const EdgeInsets.only(left: 8, top: 2),
@@ -594,7 +594,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
           children: [
             _buildStatRow('📈 عدد الجلسات', '${stats['total_sessions']}'),
             _buildStatRow('⭐ أفضل جودة', '${(stats['best_quality'] ?? 0).toStringAsFixed(1)}/10'),
-            _buildStatRow('Stats متوسط الجودة', '${(stats['avg_quality'] ?? 0).toStringAsFixed(1)}/10'),
+            _buildStatRow('متوسط الجودة', '${(stats['avg_quality'] ?? 0).toStringAsFixed(1)}/10'),
             _buildStatRow('⏰ متوسط المدة', '${(stats['avg_duration'] ?? 0).toStringAsFixed(1)} ساعة'),
             _buildStatRow('🎤 آخر شخير', '${stats['last_snore'] ?? 0} مرة'),
             const Divider(),
