@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -18,20 +19,21 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _topicCtrl = TextEditingController();
   final TextEditingController _descCtrl = TextEditingController();
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
     if (user == null) {
       return Scaffold(
-        appBar: CustomAppBar(title: 'الاستشارات الجماعية', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        body: const Center(child: Text('يرجى تسجيل الدخول')),
+        appBar: CustomAppBar(title: _t('الاستشارات الجماعية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        body: Center(child: Text(_t('يرجى تسجيل الدخول'))),
       );
     }
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الاستشارات الجماعية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('الاستشارات الجماعية'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -51,18 +53,18 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+            return Center(child: Text('${_t('حدث خطأ')}: ${snapshot.error}'));
           }
 
           final consultations = snapshot.data?.docs ?? [];
           if (consultations.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.group_work, size: 60, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('لا توجد استشارات جماعية', style: TextStyle(color: Colors.grey)),
+                  Text(AppStrings.of(context).translate('لا توجد استشارات جماعية'), style: TextStyle(color: Colors.grey)),
                 ],
               ),
             );
@@ -124,7 +126,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(data['topic'] ?? 'استشارة جماعية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(data['topic'] ?? _t('استشارة جماعية'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text(data['description'] ?? '', style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 8),
@@ -132,11 +134,11 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
             children: [
               const Icon(Icons.people, size: 14, color: Colors.grey),
               const SizedBox(width: 4),
-              Text('${participants.length} مشارك', style: TextStyle(fontSize: 10, color: Colors.grey)),
+              Text('${participants.length} ${_t('مشارك')}', style: TextStyle(fontSize: 10, color: Colors.grey)),
               const Spacer(),
               ElevatedButton(
                 onPressed: () {
-                  ToastService.showSuccess(context, 'جاري الانضمام...');
+                  ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? 'جاري الانضمام...' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Connexion en cours…' : 'Joining...');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: status == 'مفتوحة' ? AppColors.primary : Colors.grey,
@@ -145,7 +147,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   textStyle: TextStyle(fontSize: 10),
                 ),
-                child: Text(status == 'مفتوحة' ? 'انضم' : 'مغلقة'),
+                child: Text(_t(status == 'مفتوحة' ? 'انضم' : 'مغلقة')),
               ),
             ],
           ),
@@ -159,7 +161,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('استشارة جماعية جديدة', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('استشارة جماعية جديدة'), style: TextStyle(fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -168,7 +170,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                 controller: _topicCtrl,
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
-                  labelText: 'عنوان الاستشارة',
+                  labelText: _t('عنوان الاستشارة'),
                   prefixIcon: const Icon(Icons.title, color: AppColors.primary),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -179,7 +181,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                 textAlign: TextAlign.right,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  labelText: 'الوصف',
+                  labelText: _t('الوصف'),
                   prefixIcon: const Icon(Icons.note, color: AppColors.primary),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -188,11 +190,11 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(_t('إلغاء'))),
           ElevatedButton(
             onPressed: () async {
               if (_topicCtrl.text.isEmpty) {
-                ToastService.showError(context, 'يرجى إدخال العنوان');
+                ToastService.showError(context, AppStrings.of(context).translate('يرجى إدخال العنوان'));
                 return;
               }
               final user = _auth.currentUser;
@@ -210,10 +212,10 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               _topicCtrl.clear();
               _descCtrl.clear();
               Navigator.pop(context);
-              ToastService.showSuccess(context, '✅ تم إنشاء الاستشارة');
+              ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? '✅ تم إنشاء الاستشارة' : AppStrings.of(context).locale.languageCode == 'fr' ? '✅ Consultation créée' : '✅ Consultation created');
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('إنشاء'),
+            child: Text(_t('إنشاء')),
           ),
         ],
       ),
