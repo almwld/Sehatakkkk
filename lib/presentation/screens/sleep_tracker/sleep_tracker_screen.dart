@@ -139,7 +139,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
     await _service.startTracking();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(_localizedUiText(context, '🌙 بدأ تتبع النوم...')),
         backgroundColor: Colors.blue,
         duration: Duration(seconds: 2),
