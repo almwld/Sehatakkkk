@@ -2,6 +2,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class StressMeterScreen extends StatefulWidget {
   const StressMeterScreen({super.key});
@@ -10,6 +11,7 @@ class StressMeterScreen extends StatefulWidget {
 }
 
 class _StressMeterScreenState extends State<StressMeterScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   int _currentStep = 0; // 0=info, 1=test, 2=result
   int _score = 0;
   
@@ -101,7 +103,7 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
   void _submitTest() {
     bool allAnswered = _answers.every((a) => a >= 0);
     if (!allAnswered) {
-      ToastService.showError(context, 'يرجى الإجابة على جميع الأسئلة');
+      ToastService.showError(context, _t('يرجى الإجابة على جميع الأسئلة'));
       return;
     }
     setState(() { _score = _totalScore; _currentStep = 2; });
@@ -110,7 +112,7 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('مقياس التوتر', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_t('مقياس التوتر'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: _currentStep == 0
           ? _buildInfoScreen()
           : _currentStep == 1
@@ -133,28 +135,28 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Center(child: Text('مقياس التوتر والضغط النفسي', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+        Center(child: Text(_t('مقياس التوتر والضغط النفسي'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
         const SizedBox(height: 6),
-        const Center(child: Text('DASS-21 المعدل', style: TextStyle(fontSize: 12, color: AppColors.grey))),
+        Center(child: Text(_t('DASS-21 المعدل'), style: TextStyle(fontSize: 12, color: AppColors.grey))),
         const SizedBox(height: 24),
 
         // معلومات عن الاختبار
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(color: AppColors.info.withOpacity(0.05), borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.info.withOpacity(0.2))),
-          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('عن الاختبار', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            SizedBox(height: 8),
-            Text('• 15 سؤالاً لقياس مستوى التوتر', style: TextStyle(fontSize: 13)),
-            Text('• مدة الاختبار: 3-5 دقائق', style: TextStyle(fontSize: 13)),
-            Text('• يعتمد على مقياس DASS-21 العلمي', style: TextStyle(fontSize: 13)),
-            Text('• هذا اختبار مساعد فقط وليس تشخيصاً طبياً', style: TextStyle(fontSize: 13)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_t('عن الاختبار'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 8),
+            Text(_t('• 15 سؤالاً لقياس مستوى التوتر'), style: const TextStyle(fontSize: 13)),
+            Text(_t('• مدة الاختبار: 3-5 دقائق'), style: const TextStyle(fontSize: 13)),
+            Text(_t('• يعتمد على مقياس DASS-21 العلمي'), style: const TextStyle(fontSize: 13)),
+            Text(_t('• هذا اختبار مساعد فقط وليس تشخيصاً طبياً'), style: const TextStyle(fontSize: 13)),
           ]),
         ),
         const SizedBox(height: 16),
 
         // مستويات التوتر
-        Text('مستويات النتائج', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(_t('مستويات النتائج'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         _levelInfo('منخفض (0-20)', '😊', 'حالتك النفسية جيدة. استمر في عاداتك الصحية.', AppColors.success),
         _levelInfo('متوسط (21-50)', '😐', 'لديك بعض التوتر. جرب تقنيات الاسترخاء.', AppColors.warning),
@@ -165,7 +167,7 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
         SizedBox(width: double.infinity, child: ElevatedButton.icon(
           onPressed: _startTest,
           icon: const Icon(Icons.play_arrow),
-          label: const Text('ابدأ الاختبار'),
+          label: Text(_t('ابدأ الاختبار')),
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 16), textStyle: const TextStyle(fontSize: 18)),
         )),
       ]),
@@ -190,7 +192,7 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Container(width: 28, height: 28, decoration: BoxDecoration(color: _answers[idx] >= 0 ? AppColors.primary : AppColors.grey.withOpacity(0.2), shape: BoxShape.circle), child: Center(child: Text('${idx + 1}', style: TextStyle(fontSize: 11, color: _answers[idx] >= 0 ? Colors.white : AppColors.grey)))),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(q['q'], style: const TextStyle(fontSize: 14, height: 1.4))),
+                  Expanded(child: Text(_t(q['q']), style: const TextStyle(fontSize: 14, height: 1.4))),
                 ]),
                 const SizedBox(height: 10),
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -208,9 +210,9 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
         padding: const EdgeInsets.all(14),
         color: Colors.white,
         child: Row(children: [
-          Text('${_answers.where((a) => a >= 0).length}/${_questions.length} تمت الإجابة', style: const TextStyle(color: AppColors.grey, fontSize: 12)),
+          Text('${_answers.where((a) => a >= 0).length}/${_questions.length} ${_t('تمت الإجابة')}', style: const TextStyle(color: AppColors.grey, fontSize: 12)),
           const Spacer(),
-          ElevatedButton.icon(onPressed: _submitTest, icon: const Icon(Icons.check), label: const Text('عرض النتيجة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary)),
+          ElevatedButton.icon(onPressed: _submitTest, icon: const Icon(Icons.check), label: Text(_t('عرض النتيجة')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary)),
         ]),
       ),
     ]);
@@ -229,10 +231,10 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
           child: Column(children: [
             Text(_stressEmoji, style: const TextStyle(fontSize: 64)),
             const SizedBox(height: 10),
-            const Text('مستوى التوتر', style: TextStyle(color: Colors.white70, fontSize: 16)),
-            Text(_stressLevel, style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+            Text(_t('مستوى التوتر'), style: TextStyle(color: Colors.white70, fontSize: 16)),
+            Text(_t(_stressLevel), style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('$_totalScore نقطة', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+            Text('$_totalScore ' + _t('نقطة'), style: const TextStyle(color: Colors.white70, fontSize: 14)),
           ]),
         ),
         const SizedBox(height: 16),
@@ -243,9 +245,9 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
           child: Column(children: [
             Row(children: [
-              const Text('منخفض', style: TextStyle(fontSize: 10, color: AppColors.success)),
+              Text(_t('منخفض'), style: TextStyle(fontSize: 10, color: AppColors.success)),
               Expanded(child: SliderTheme(data: SliderTheme.of(context).copyWith(trackHeight: 10, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0)), child: Slider(value: _totalScore.toDouble(), min: 0, max: 132, activeColor: _stressColor, inactiveColor: AppColors.surfaceContainerLow, onChanged: null))),
-              const Text('شديد', style: TextStyle(fontSize: 10, color: Color(0xFFB71C1C))),
+              Text(_t('شديد'), style: TextStyle(fontSize: 10, color: Color(0xFFB71C1C))),
             ]),
           ]),
         ),
@@ -255,25 +257,25 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: _stressColor.withOpacity(0.05), borderRadius: BorderRadius.circular(14), border: Border.all(color: _stressColor.withOpacity(0.2))),
-          child: Row(children: [Icon(Icons.info, color: _stressColor), const SizedBox(width: 8), Expanded(child: Text(_getResultDescription(), style: const TextStyle(fontSize: 13, height: 1.5, color: AppColors.darkGrey)))]),
+          child: Row(children: [Icon(Icons.info, color: _stressColor), const SizedBox(width: 8), Expanded(child: Text(_t(_getResultDescription()), style: const TextStyle(fontSize: 13, height: 1.5, color: AppColors.darkGrey)))]),
         ),
         const SizedBox(height: 16),
 
         // توصيات
-        Text('توصيات لك', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(_t('توصيات لك'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _recommendations.map((r) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Text(r, style: const TextStyle(fontSize: 13, height: 1.4)))).toList()),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _recommendations.map((r) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Text(_t(r), style: const TextStyle(fontSize: 13, height: 1.4)))).toList()),
         ),
         const SizedBox(height: 20),
 
         // أزرار
         Row(children: [
-          Expanded(child: OutlinedButton(onPressed: _startTest, style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)), child: const Text('إعادة الاختبار'))),
+          Expanded(child: OutlinedButton(onPressed: _startTest, style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)), child: Text(_t('إعادة الاختبار')))),
           const SizedBox(width: 10),
-          Expanded(child: ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.psychology), label: const Text('استشر مختص'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)))),
+          Expanded(child: ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.psychology), label: Text(_t('استشر مختص')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)))),
         ]),
         const SizedBox(height: 20),
       ]),
@@ -294,7 +296,7 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
         ),
         child: Column(children: [
           Text(number, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: selected ? Colors.white : AppColors.darkGrey)),
-          Text(label, style: TextStyle(fontSize: 9, color: selected ? Colors.white70 : AppColors.grey)),
+          Text(_t(label), style: TextStyle(fontSize: 9, color: selected ? Colors.white70 : AppColors.grey)),
         ]),
       ),
     );
@@ -308,7 +310,7 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
       child: Row(children: [
         Text(emoji, style: const TextStyle(fontSize: 24)),
         const SizedBox(width: 10),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color)), Text(desc, style: const TextStyle(fontSize: 10, color: AppColors.grey))])),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(title), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color)), Text(_t(desc), style: const TextStyle(fontSize: 10, color: AppColors.grey))])),
       ]),
     );
   }
