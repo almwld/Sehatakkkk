@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/models/dental/dental_models.dart';
@@ -10,7 +11,7 @@ class DentalClinicsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('عيادات الأسنان')),
+      appBar: AppBar(title: Text(AppStrings.of(context).translate('عيادات الأسنان'))),
       body: StreamBuilder<List<DentalClinic>>(
         stream: DentalService().streamClinics(),
         builder: (context, snapshot) {
@@ -19,7 +20,7 @@ class DentalClinicsScreen extends StatelessWidget {
           }
           final data = snapshot.data!;
           if (data.isEmpty) {
-            return const Center(child: Text('لا توجد عيادات أسنان'));
+            return Center(child: Text(AppStrings.of(context).translate('لا توجد عيادات أسنان')));
           }
           return ListView(
             padding: const EdgeInsets.all(12),
@@ -31,7 +32,7 @@ class DentalClinicsScreen extends StatelessWidget {
                   ),
                   title: Text(clinic.name),
                   subtitle: Text(clinic.address),
-                  trailing: Text(clinic.isOpen ? 'مفتوح' : 'مغلق'),
+                  trailing: Text(AppStrings.of(context).translate(clinic.isOpen ? 'مفتوح' : 'مغلق')),
                 ),
               );
             }).toList(),
