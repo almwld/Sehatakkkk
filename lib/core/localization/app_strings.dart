@@ -4860,6 +4860,11 @@ class AppStrings {
       'قسم مخصص لمتابعة المعلومات المتعلقة بالحالات المزمنة داخل ملفك الصحي.': ['A dedicated section for tracking information about chronic conditions in your health profile.', 'Une section dédiée au suivi des informations sur les maladies chroniques dans votre dossier de santé.'],
       'تابع معلومات التطعيمات والسجلات المرتبطة بها ضمن ملفك.': ['Track vaccination information and related records in your profile.', 'Suivez les informations de vaccination et les dossiers associés dans votre profil.'],
       'راجع معلومات الحساسية المسجلة لديك لتبقى بياناتك الصحية واضحة ومنظمة.': ['Review your recorded allergies to keep your health information clear and organized.', 'Consultez vos allergies enregistrées afin de garder vos informations de santé claires et organisées.'],
+      'مؤشراتك الحيوية': ['Your vital signs', 'Vos signes vitaux'],
+      'ملفك الصحي': ['Your health profile', 'Votre dossier de santé'],
+      'اشتراكك الصحي': ['Your health subscription', 'Votre abonnement santé'],
+      'د. أحمد': ['Dr. Ahmed', 'Dr Ahmed'],
+      'صيدلية اليمن': ['Yemen Pharmacy', 'Pharmacie du Yémen'],
     };
 
 
