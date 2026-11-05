@@ -356,6 +356,35 @@ class NotificationService {
 
   String _translate(String languageCode, String value) =>
       AppStrings(Locale(languageCode)).translate(value);
+  String _translateNotificationBody(String languageCode, String type, String body) {
+    if (languageCode == 'ar') return body;
+    if (type == 'medication_prescription') {
+      const prefix = 'أضاف ';
+      const marker = ' وصفة دوائية';
+      const suffix = '. تم نقلها إلى تذكير الأدوية.';
+      final value = body.trim();
+      if (value.startsWith(prefix) && value.endsWith(suffix)) {
+        final middle = value.substring(prefix.length, value.length - suffix.length);
+        final markerIndex = middle.indexOf(marker);
+        if (markerIndex >= 0) {
+          final rawDoctor = middle.substring(0, markerIndex).trim();
+          final doctor = rawDoctor == 'الطبيب'
+              ? _localized(languageCode, 'الطبيب', 'the doctor', 'le médecin')
+              : rawDoctor;
+          final remainder = middle.substring(markerIndex + marker.length).trim();
+          final medications = remainder.startsWith(':')
+              ? remainder.substring(1).trim()
+              : '';
+          final suffixText = medications.isEmpty ? '' : ': $medications';
+          return languageCode == 'fr'
+              ? '$doctor a ajouté une nouvelle ordonnance$suffixText. Elle a été ajoutée aux rappels de médicaments.'
+              : '$doctor added a new prescription$suffixText. It has been added to medication reminders.';
+        }
+      }
+    }
+    return _translate(languageCode, body);
+  }
+
 
   List<AndroidNotificationChannel> _channelsFor(String languageCode) => [
     AndroidNotificationChannel(messageChannelId, _localized(languageCode, 'صحتك - الرسائل', 'Sehatak - Messages', 'Sehatak - Messages'), description: _localized(languageCode, 'إشعارات الرسائل الجديدة في الدردشة', 'New chat message notifications', 'Notifications de nouveaux messages du chat'), importance: Importance.high, playSound: true, sound: const RawResourceAndroidNotificationSound('notification')),
@@ -528,7 +557,7 @@ class NotificationService {
             : title)
         : _translate(languageCode, title);
     final safeBody = body.trim().isNotEmpty
-        ? (isChatMessage ? body : _translate(languageCode, body))
+        ? (isChatMessage ? body : _translateNotificationBody(languageCode, type, body))
         : (isChatMessage
             ? _localized(languageCode, 'لديك رسالة جديدة في الدردشة', 'You have a new chat message', 'Vous avez un nouveau message')
             : _localized(languageCode, 'لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'));
