@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/dental_service.dart';
 
 class DentalTipsScreen extends StatelessWidget {
@@ -6,7 +7,7 @@ class DentalTipsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('نصائح صحة الأسنان')),
+      appBar: AppBar(title: Text(_localizedUiText(context, 'نصائح صحة الأسنان'))),
       body: StreamBuilder(
         stream: DentalService().streamTips(limit: 30),
         builder: (context, snapshot) {
@@ -27,3 +28,7 @@ class DentalTipsScreen extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
