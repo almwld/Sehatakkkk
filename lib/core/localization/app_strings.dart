@@ -100,6 +100,35 @@ class AppStrings {
       final detail = value.substring('تعذر فتح المحادثة: '.length);
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
+
+    const prescriptionPrefix = 'أضاف ';
+    const prescriptionMarker = ' وصفة دوائية';
+    const prescriptionSuffix = '. تم نقلها إلى تذكير الأدوية.';
+    if (value.startsWith(prescriptionPrefix) && value.endsWith(prescriptionSuffix)) {
+      final middle = value.substring(prescriptionPrefix.length, value.length - prescriptionSuffix.length);
+      final markerIndex = middle.indexOf(prescriptionMarker);
+      if (markerIndex >= 0) {
+        final rawDoctor = middle.substring(0, markerIndex).trim();
+        final doctor = rawDoctor == 'الطبيب'
+            ? _pick('الطبيب', 'the doctor', 'le médecin')
+            : rawDoctor;
+        final remainder = middle.substring(markerIndex + prescriptionMarker.length).trim();
+        final medications = remainder.startsWith(':') ? remainder.substring(1).trim() : '';
+        final suffix = medications.isEmpty ? '' : ': $medications';
+        return locale.languageCode == 'fr'
+            ? '$doctor a ajouté une nouvelle ordonnance$suffix. Elle a été ajoutée aux rappels de médicaments.'
+            : '$doctor added a new prescription$suffix. It has been added to medication reminders.';
+      }
+    }
+    const verificationPrefix = 'طلب توثيق جديد لدور ';
+    const verificationSuffix = ' يحتاج إلى المراجعة.';
+    if (value.startsWith(verificationPrefix) && value.endsWith(verificationSuffix)) {
+      final rawRole = value.substring(verificationPrefix.length, value.length - verificationSuffix.length).trim();
+      final role = _translateRole(rawRole);
+      return locale.languageCode == 'fr'
+          ? 'Une nouvelle demande de vérification pour le rôle $role doit être examinée.'
+          : 'A new verification request for the $role role needs review.';
+    }
     final translations = <String, List<String>>{
       'عيادات قريبة': ['Nearby clinics', 'Cliniques à proximité'],
       'مجمع الرازي الطبي': ['Al-Razi Medical Complex', 'Complexe médical Al-Razi'],
@@ -3981,6 +4010,46 @@ class AppStrings {
       'تم شراء الدواء الموصوف': ['Prescribed medication purchased', 'Médicament prescrit acheté'],
       'تم شراء دواء موصوف لأحد مرضاك': ['One of your patients purchased a prescribed medication', 'Un de vos patients a acheté un médicament prescrit'],
       'أكمل توثيق حسابك المهني ورفع مستنداتك حتى تتمكن من استخدام ميزات المنصة الخاصة بدورك.': ['Complete your professional verification and upload your documents to use the features available for your role.', 'Terminez la vérification de votre profil professionnel et téléversez vos documents pour utiliser les fonctionnalités liées à votre rôle.'],
+      'لديك إشعار جديد': ['You have a new notification', 'Vous avez une nouvelle notification'],
+      'لديك رسالة جديدة في الدردشة': ['You have a new chat message', 'Vous avez un nouveau message'],
+      'تم تأكيد طلبك': ['Your order has been confirmed', 'Votre commande a été confirmée'],
+      'تم تأكيد طلبك وسيبدأ تجهيزه.': ['Your order is confirmed and preparation will begin.', 'Votre commande est confirmée et sa préparation va commencer.'],
+      'تم تسليم طلبك': ['Your order has been delivered', 'Votre commande a été livrée'],
+      'تم تسليم طلبك بنجاح.': ['Your order was delivered successfully.', 'Votre commande a été livrée avec succès.'],
+      'تم إلغاء الطلب': ['Order cancelled', 'Commande annulée'],
+      'تم إلغاء طلبك.': ['Your order has been cancelled.', 'Votre commande a été annulée.'],
+      'تم تأكيد موعدك': ['Your appointment is confirmed', 'Votre rendez-vous est confirmé'],
+      'تم تأكيد حجز موعدك مع الطبيب.': ['Your appointment with the doctor is confirmed.', 'Votre rendez-vous avec le médecin est confirmé.'],
+      'تم إلغاء الموعد': ['Appointment cancelled', 'Rendez-vous annulé'],
+      'تم إلغاء موعدك.': ['Your appointment has been cancelled.', 'Votre rendez-vous a été annulé.'],
+      'تم تعديل الموعد': ['Appointment rescheduled', 'Rendez-vous modifié'],
+      'تم تعديل موعدك، يرجى مراجعة تفاصيل الحجز.': ['Your appointment has changed; please review the booking details.', 'Votre rendez-vous a été modifié ; veuillez vérifier les détails de la réservation.'],
+      'تم استلام طلب الموعد': ['Appointment request received', 'Demande de rendez-vous reçue'],
+      'تم استلام طلب حجز موعدك وسيتم تحديثك عند التأكيد.': ['Your appointment request was received. We’ll notify you when it’s confirmed.', 'Votre demande de rendez-vous a été reçue. Nous vous informerons de sa confirmation.'],
+      'تم تأكيد طلب الفحص': ['Test request confirmed', 'Demande d’examen confirmée'],
+      'تم تأكيد حجز الفحص في المختبر.': ['Your lab test booking has been confirmed.', 'Votre réservation d’analyse est confirmée.'],
+      'تم إلغاء طلب الفحص': ['Test request cancelled', 'Demande d’examen annulée'],
+      'تم إلغاء طلب الفحص.': ['The test request has been cancelled.', 'La demande d’examen a été annulée.'],
+      'تم استلام طلب الفحص': ['Test request received', 'Demande d’examen reçue'],
+      'تم استلام طلب الفحص وسنقوم بتحديثك عند تأكيده.': ['Your test request was received. We’ll update you when it’s confirmed.', 'Votre demande d’examen a été reçue. Nous vous informerons de sa confirmation.'],
+      'تم إتمام الدفع': ['Payment completed', 'Paiement effectué'],
+      'تم إتمام عملية الدفع بنجاح.': ['Your payment was completed successfully.', 'Votre paiement a été effectué avec succès.'],
+      'تم استرداد المبلغ': ['Refund processed', 'Remboursement effectué'],
+      'تمت معالجة استرداد المبلغ.': ['Your refund has been processed.', 'Votre remboursement a été traité.'],
+      'تم إنشاء فاتورة جديدة في حسابك.': ['A new invoice has been created in your account.', 'Une nouvelle facture a été créée sur votre compte.'],
+      'تم سداد الفاتورة': ['Invoice paid', 'Facture payée'],
+      'تم سداد الفاتورة بنجاح.': ['The invoice has been paid successfully.', 'La facture a été payée avec succès.'],
+      'فاتورة مستحقة': ['Invoice due', 'Facture à régler'],
+      'لديك فاتورة مستحقة تحتاج إلى السداد.': ['You have an outstanding invoice that needs to be paid.', 'Vous avez une facture impayée à régler.'],
+      'تم إلغاء الفاتورة.': ['Invoice cancelled.', 'Facture annulée.'],
+      'تم استلام طلبك': ['Request received', 'Demande reçue'],
+      'تم استلام طلبك بنجاح وسيتم تحديثك بحالته.': ['Your request was received successfully. We’ll keep you updated on its status.', 'Votre demande a été reçue. Nous vous tiendrons informé de son état.'],
+      'طلب توثيق حساب جديد': ['New account verification request', 'Nouvelle demande de vérification de compte'],
+      'تم توثيق حسابك': ['Your account has been verified', 'Votre compte a été vérifié'],
+      'تم رفض طلب التوثيق': ['Verification request rejected', 'Demande de vérification refusée'],
+      'وافق مشرف المنصة على توثيق حسابك ويمكنك الآن استخدام ميزات دورك المهني.': ['A platform administrator verified your account. You can now use the features for your professional role.', 'Un administrateur a vérifié votre compte. Vous pouvez maintenant utiliser les fonctionnalités de votre rôle professionnel.'],
+      'راجع متطلبات التوثيق وحدث بياناتك ثم أعد إرسال الطلب.': ['Review the verification requirements, update your details, and submit the request again.', 'Consultez les exigences de vérification, mettez à jour vos informations, puis soumettez à nouveau la demande.'],
+      'تم إلغاء الفاتورة': ['Invoice cancelled', 'Facture annulée'],
     };
     final entry = translations[value];
     if (entry == null) return value;
@@ -3989,6 +4058,33 @@ class AppStrings {
       case 'fr': return entry[1];
       default: return value;
     }
+  }
+
+
+  String _translateRole(String role) {
+    const roles = <String, List<String>>{
+      'doctor': ['doctor', 'médecin'],
+      'nurse': ['nurse', 'infirmier/ière'],
+      'midwife': ['midwife', 'sage-femme'],
+      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
+      'pharmacist': ['pharmacist', 'pharmacien'],
+      'pharmacy': ['pharmacy', 'pharmacie'],
+      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
+      'lab': ['laboratory', 'laboratoire'],
+      'hospital': ['hospital', 'hôpital'],
+      'clinic': ['clinic', 'clinique'],
+      'medical_center': ['medical center', 'centre médical'],
+      'dentist': ['dentist', 'dentiste'],
+      'dental': ['dental clinic', 'clinique dentaire'],
+      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
+      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
+      'optometrist': ['optometrist', 'optométriste'],
+      'delivery': ['delivery provider', 'livreur'],
+      'service': ['service provider', 'prestataire de services'],
+    };
+    final translated = roles[role];
+    if (translated == null) return role;
+    return locale.languageCode == 'fr' ? translated[1] : translated[0];
   }
 
   String _pick(String ar, String en, String fr) {
