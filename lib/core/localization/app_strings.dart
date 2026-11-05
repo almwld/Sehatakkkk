@@ -4184,6 +4184,10 @@ class AppStrings {
       "كوب": ["cup", "tasse"],
       "مسجلة": ["logged", "enregistrés"],
       "الوجبات": ["Meals", "Repas"],
+      "المصادقة الثنائية مفعلة": ["Two-factor authentication is enabled", "L’authentification à deux facteurs est activée"],
+      "المصادقة الثنائية غير مفعلة": ["Two-factor authentication is disabled", "L’authentification à deux facteurs est désactivée"],
+      "المحاولة ": ["Attempt ", "Tentative "],
+      " من ": [" of ", " sur "],
     };
     final entry = translations[value];
     if (entry == null) return value;
