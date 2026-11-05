@@ -3905,6 +3905,11 @@ class AppStrings {
       'منذ \$count دقيقة': ['\$count minute(s) ago', 'Il y a \$count minute(s)'],
       'منذ \$count ساعة': ['\$count hour(s) ago', 'Il y a \$count heure(s)'],
       'منذ \$count يوم': ['\$count day(s) ago', 'Il y a \$count jour(s)'],
+      'التأمينات الصحية': ['Health insurance', 'Assurance santé'],
+      'نوع الخطة: ': ['Plan type: ', 'Type de formule : '],
+      'التغطية: ': ['Coverage: ', 'Couverture : '],
+      'المرافق: ': ['Facilities: ', 'Établissements : '],
+      'القسط: ': ['Premium: ', 'Prime : '],
     };
     final entry = translations[value];
     if (entry == null) return value;
