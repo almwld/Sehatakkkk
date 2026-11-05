@@ -221,6 +221,7 @@ class _SehatakAppState extends State<SehatakApp>
   bool _routingNotificationPayload = false;
   bool _authStatePrimed = false;
   bool _fcmStarted = false;
+  bool _fcmReady = false;
   bool _notificationsStarted = false;
   final MethodChannel _platformNavigationChannel =
       const MethodChannel('com.sehatak.app/navigation');
@@ -255,10 +256,9 @@ class _SehatakAppState extends State<SehatakApp>
         FirebaseAuth.instance.authStateChanges().listen((user) {
       if (!_authStatePrimed) {
         _authStatePrimed = true;
-        if (user != null) unawaited(_fcmTokenService.syncCurrentToken());
         return;
       }
-      if (user != null) {
+      if (user != null && _fcmReady) {
         // Firebase Auth remains the source of truth for authentication.
         // AppRouter observes authStateChanges() and owns Auth → Home routing.
         unawaited(_fcmTokenService.syncCurrentToken());
@@ -349,7 +349,12 @@ class _SehatakAppState extends State<SehatakApp>
     } catch (e) {
       debugPrint('❌ FCM permission error: $e');
     }
-    await _fcmTokenService.start();
+    try {
+      await _fcmTokenService.start();
+      _fcmReady = true;
+    } catch (e) {
+      debugPrint('⚠️ FCM token service unavailable; UI remains active: $e');
+    }
   }
 
   Future<void> _loadLaunchPayload() async {
