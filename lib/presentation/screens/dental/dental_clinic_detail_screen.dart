@@ -38,9 +38,9 @@ class DentalClinicDetailScreen extends StatelessWidget {
                 ),
               ),
               Text(clinic.address),
-              Text('الهاتف: ${clinic.phone}'),
-              Text('التقييم: ${clinic.rating.toStringAsFixed(1)}'),
-              Text(clinic.isOpen ? 'مفتوح الآن' : 'مغلق الآن'),
+              Text('${_localizedUiText(context, 'الهاتف: ')}${clinic.phone}'),
+              Text('${_localizedUiText(context, 'التقييم: ')}${clinic.rating.toStringAsFixed(1)}'),
+              Text(_localizedUiText(context, clinic.isOpen ? 'مفتوح الآن' : 'مغلق الآن')),
             ],
           );
         },
