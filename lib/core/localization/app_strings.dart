@@ -4049,6 +4049,7 @@ class AppStrings {
       'تم رفض طلب التوثيق': ['Verification request rejected', 'Demande de vérification refusée'],
       'وافق مشرف المنصة على توثيق حسابك ويمكنك الآن استخدام ميزات دورك المهني.': ['A platform administrator verified your account. You can now use the features for your professional role.', 'Un administrateur a vérifié votre compte. Vous pouvez maintenant utiliser les fonctionnalités de votre rôle professionnel.'],
       'راجع متطلبات التوثيق وحدث بياناتك ثم أعد إرسال الطلب.': ['Review the verification requirements, update your details, and submit the request again.', 'Consultez les exigences de vérification, mettez à jour vos informations, puis soumettez à nouveau la demande.'],
+      'تم إلغاء الفاتورة': ['Invoice cancelled', 'Facture annulée'],
     };
     final entry = translations[value];
     if (entry == null) return value;
