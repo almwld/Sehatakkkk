@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class TermsScreen extends StatelessWidget {
   const TermsScreen({super.key});
@@ -11,8 +12,8 @@ class TermsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          'الشروط والأحكام وسياسة الخصوصية',
+        title: Text(
+          AppStrings.of(context).translate('الشروط والأحكام وسياسة الخصوصية'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.primary,
@@ -25,7 +26,7 @@ class TermsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ✅ التاريخ
-            _buildDateBadge(),
+            _buildDateBadge(context),
             const SizedBox(height: 24),
             
             // ✅ جدول المحتويات
@@ -34,6 +35,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 1: مقدمة شاملة
             _buildSection(
+              context,
               title: '1. مقدمة شاملة',
               content: '''
 مرحباً بك في منصة "صحتك" (Sehatak) - المنصة الرقمية الرائدة للرعاية الصحية في الجمهورية اليمنية.
@@ -415,6 +417,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 6: إخلاء المسؤولية الطبية
             _buildWarningSection(
+              context,
               title: '⚠️ 6. إخلاء المسؤولية الطبية',
               content: '''
 تحذير هام للغاية: المعلومات والخدمات المقدمة في منصة "صحتك" هي لأغراض تعليمية ومعلوماتية فقط، ولا تغني عن استشارة الطبيب المختص.
@@ -1492,7 +1495,7 @@ class TermsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDateBadge() {
+  Widget _buildDateBadge(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -1509,7 +1512,7 @@ class TermsScreen extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            'آخر تحديث: 2 يوليو 2026',
+            AppStrings.of(context).translate('آخر تحديث: 2 يوليو 2026'),
             style: TextStyle(
               fontSize: 12,
               color: AppColors.primary,
@@ -1572,7 +1575,8 @@ class TermsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection({
+  Widget _buildSection(
+    BuildContext context, {
     required String title,
     required String content,
   }) {
@@ -1580,7 +1584,7 @@ class TermsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
+          AppStrings.of(context).translate(title),
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -1598,7 +1602,8 @@ class TermsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWarningSection({
+  Widget _buildWarningSection(
+    BuildContext context, {
     required String title,
     required String content,
   }) {
@@ -1624,7 +1629,7 @@ class TermsScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  title.replaceFirst('⚠️ ', ''),
+                  AppStrings.of(context).translate(title.replaceFirst('⚠️ ', '')),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -1666,7 +1671,7 @@ class TermsScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'باستخدامك لتطبيق "صحتك"، فإنك توافق على جميع الشروط والأحكام بما فيها إخلاء المسؤولية الطبية وسياسة الخصوصية.',
+              AppStrings.of(context).translate('باستخدامك لتطبيق "صحتك"، فإنك توافق على جميع الشروط والأحكام بما فيها إخلاء المسؤولية الطبية وسياسة الخصوصية.'),
               style: TextStyle(
                 fontSize: 13,
                 color: isDark ? Colors.white70 : Colors.black87,
