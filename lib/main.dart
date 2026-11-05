@@ -167,7 +167,6 @@ Future<void> main() async {
     debugPrint(' ❌ FCM background handler registration error: $e');
   }
   await CacheService.init();
-  await ChatMediaTransferService.instance.initialize();
 
   runApp(MultiProvider(
     providers: [
@@ -250,7 +249,6 @@ class _SehatakAppState extends State<SehatakApp>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(_initializeServicesAfterRunApp());
-      if (!_launchPayloadHandled) unawaited(_loadLaunchPayload());
       unawaited(_loadPendingNativeCallIntent());
     });
     _authNavigationSubscription =
@@ -302,13 +300,30 @@ class _SehatakAppState extends State<SehatakApp>
   Future<void> _initializeServicesAfterRunApp() async {
     if (_notificationsStarted) return;
     _notificationsStarted = true;
+
+    // Keep the first interactive frame independent from media, WorkManager,
+    // local-notification and FCM startup. These services are initialized once
+    // the user-facing shell has had time to settle.
+    await Future<void>.delayed(const Duration(seconds: 10));
+    if (!mounted) return;
+
+    try {
+      await ChatMediaTransferService.instance.initialize();
+    } catch (e) {
+      debugPrint('⚠️ Chat media outbox initialization deferred/failed: $e');
+    }
+
     try {
       await _notificationService.initialize();
       await flushPendingNotificationReplies();
     } catch (e) {
       debugPrint('❌ Notification initialization error: $e');
     }
+
     await _initializeFcmAfterRunApp();
+    if (!_launchPayloadHandled && mounted) {
+      await _loadLaunchPayload();
+    }
   }
 
   Future<void> _initializeFcmAfterRunApp() async {
