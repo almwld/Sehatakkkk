@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'auth_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -17,6 +18,8 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageCtrl = PageController();
   int _page = 0;
+
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   final List<Map<String, dynamic>> _pages = [
     {
@@ -140,7 +143,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         child: const Text(
-                          'تخطي',
+                          _t('تخطي'),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 13,
@@ -208,7 +211,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               child: Opacity(
                                 opacity: 1 - (v / 20),
                                 child: Text(
-                                  p['title'] as String,
+                                  _t(p['title'] as String),
                                   style: TextStyle(
                                     fontSize: 34,
                                     fontWeight: FontWeight.bold,
@@ -233,7 +236,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               child: Opacity(
                                 opacity: 1 - (v / 30),
                                 child: Text(
-                                  p['desc'] as String,
+                                  _t(p['desc'] as String),
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.white.withOpacity(0.8),
@@ -273,7 +276,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              _page == _pages.length - 1 ? 'ابدأ الآن' : 'التالي',
+                              _t(_page == _pages.length - 1 ? 'ابدأ الآن' : 'التالي'),
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
