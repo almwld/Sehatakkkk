@@ -29,7 +29,7 @@ class MedicineDetailScreen extends StatelessWidget {
     if (medicine == null) {
       return Scaffold(
         appBar: CustomAppBar(
-          title: 'الدواء',
+          title: _localizedUiText(context, 'الدواء'),
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
         ),
@@ -51,7 +51,7 @@ class MedicineDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: Text(medicine['name'] ?? 'الدواء'),
+        title: Text(medicine['name'] ?? _localizedUiText(context, 'الدواء')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -59,13 +59,13 @@ class MedicineDetailScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.favorite_border),
             onPressed: () {
-              ToastService.showSuccess(context, 'تمت إضافة الدواء إلى المفضلة');
+              ToastService.showSuccess(context, _localizedUiText(context, 'تمت إضافة الدواء إلى المفضلة'));
             },
           ),
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
-              ToastService.showSuccess(context, 'جاري مشاركة الدواء...');
+              ToastService.showSuccess(context, _localizedUiText(context, 'جاري مشاركة الدواء...'));
             },
           ),
         ],
@@ -254,12 +254,12 @@ class MedicineDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildInfoRow('التصنيف', category, isDark),
-                  _buildInfoRow('التصنيف الفرعي', subcategory, isDark),
-                  _buildInfoRow('السعر', '$price ريال', isDark),
-                  _buildInfoRow('التقييم', '$rating من 5', isDark),
-                  _buildInfoRow('الوصفة الطبية', requiresPrescription ? 'مطلوبة' : 'غير مطلوبة', isDark),
-                  _buildInfoRow('التوفر', inStock ? 'متوفر' : 'غير متوفر', isDark),
+                  _buildInfoRow(context, 'التصنيف', category, isDark),
+                  _buildInfoRow(context, 'التصنيف الفرعي', subcategory, isDark),
+                  _buildInfoRow(context, 'السعر', '$price ريال', isDark),
+                  _buildInfoRow(context, 'التقييم', '$rating من 5', isDark),
+                  _buildInfoRow(context, 'الوصفة الطبية', requiresPrescription ? 'مطلوبة' : 'غير مطلوبة', isDark),
+                  _buildInfoRow(context, 'التوفر', inStock ? 'متوفر' : 'غير متوفر', isDark),
                   const SizedBox(height: 32),
 
                   // ✅ أزرار الإجراءات
@@ -269,7 +269,7 @@ class MedicineDetailScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: inStock
                               ? () {
-                                  ToastService.showSuccess(context, '✅ تمت إضافة الدواء إلى السلة');
+                                  ToastService.showSuccess(context, _localizedUiText(context, '✅ تمت إضافة الدواء إلى السلة'));
                                 }
                               : null,
                           icon: const Icon(Icons.shopping_cart),
@@ -288,7 +288,7 @@ class MedicineDetailScreen extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            ToastService.showSuccess(context, '📋 تم نسخ معلومات الدواء');
+                            ToastService.showSuccess(context, _localizedUiText(context, '📋 تم نسخ معلومات الدواء'));
                           },
                           icon: const Icon(Icons.copy),
                           label: Text(_localizedUiText(context, 'نسخ المعلومات')),
@@ -312,21 +312,21 @@ class MedicineDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, bool isDark) {
+  Widget _buildInfoRow(BuildContext context, String label, String value, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            label,
+            _localizedUiText(context, label),
             style: TextStyle(
               color: isDark ? Colors.grey[400] : Colors.grey[600],
               fontSize: 14,
             ),
           ),
           Text(
-            value.isNotEmpty ? value : 'غير محدد',
+            value.isNotEmpty ? _localizedUiText(context, value) : _localizedUiText(context, 'غير محدد'),
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black87,
               fontSize: 14,
