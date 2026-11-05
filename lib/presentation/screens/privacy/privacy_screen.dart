@@ -59,21 +59,25 @@ class PrivacyScreen extends StatelessWidget {
                     isDark,
                   ),
                   _buildPrivacyItem(
+                    context,
                     _localizedUiText(context, 'استخدام البيانات'),
                     _localizedUiText(context, 'نستخدم بياناتك لتقديم خدمات صحية مخصصة وتحسين تجربتك في التطبيق.'),
                     isDark,
                   ),
                   _buildPrivacyItem(
+                    context,
                     _localizedUiText(context, 'مشاركة البيانات'),
                     _localizedUiText(context, 'لا نشارك بياناتك مع أطراف ثالثة إلا بموافقتك الصريحة أو عند الضرورة القانونية.'),
                     isDark,
                   ),
                   _buildPrivacyItem(
+                    context,
                     _localizedUiText(context, 'أمن البيانات'),
                     _localizedUiText(context, 'نتخذ إجراءات أمنية متقدمة لحماية بياناتك من الوصول غير المصرح به.'),
                     isDark,
                   ),
                   _buildPrivacyItem(
+                    context,
                     _localizedUiText(context, 'حذف البيانات'),
                     _localizedUiText(context, 'يمكنك طلب حذف بياناتك في أي وقت من خلال التواصل مع فريق الدعم.'),
                     isDark,
