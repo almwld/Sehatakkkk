@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -40,9 +41,8 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         icon: const Icon(Icons.check_circle, color: AppColors.success, size: 56),
-        title: const Text('تم التفعيل بنجاح'),
-        content: const Text(
-          'تم تفعيل المصادقة الثنائية. احفظ رموز الاسترداد في مكان آمن.',
+        title: Text(_localizedUiText(context, 'تم التفعيل بنجاح')),
+        content: Text(_localizedUiText(context, 'تم تفعيل المصادقة الثنائية. احفظ رموز الاسترداد في مكان آمن.'),
         ),
         actions: [
           TextButton(
@@ -53,7 +53,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                 _verificationStep = 3;
               });
             },
-            child: const Text('حسناً'),
+            child: Text(_localizedUiText(context, 'حسناً')),
           ),
         ],
       ),
@@ -65,14 +65,13 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('تعطيل المصادقة الثنائية'),
-        content: const Text(
-          'هل أنت متأكد من تعطيل المصادقة الثنائية؟ سيصبح حسابك أقل أماناً.',
+        title: Text(_localizedUiText(context, 'تعطيل المصادقة الثنائية')),
+        content: Text(_localizedUiText(context, 'هل أنت متأكد من تعطيل المصادقة الثنائية؟ سيصبح حسابك أقل أماناً.'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
+            child: Text(_localizedUiText(context, 'إلغاء')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -83,7 +82,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
               });
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('تعطيل'),
+            child: Text(_localizedUiText(context, 'تعطيل')),
           ),
         ],
       ),
@@ -93,7 +92,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'المصادقة الثنائية'),
+      appBar: CustomAppBar(title: _localizedUiText(context, 'المصادقة الثنائية')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -152,7 +151,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _startSetup,
                   icon: const Icon(Icons.shield),
-                  label: const Text('تفعيل المصادقة الثنائية'),
+                  label: Text(_localizedUiText(context, 'تفعيل المصادقة الثنائية')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -170,13 +169,11 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '1. امسح رمز QR أو أدخل المفتاح',
+                    Text(_localizedUiText(context, '1. امسح رمز QR أو أدخل المفتاح'),
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'افتح منصة المصادقة (Google Authenticator) وامسح الرمز:',
+                    Text(_localizedUiText(context, 'افتح منصة المصادقة (Google Authenticator) وامسح الرمز:'),
                       style: TextStyle(fontSize: 12, color: AppColors.darkGrey),
                     ),
                     const SizedBox(height: 12),
@@ -203,8 +200,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                     const SizedBox(height: 12),
                     _codeBox('المفتاح السري:', _secretKey),
                     const SizedBox(height: 16),
-                    const Text(
-                      '2. أدخل رمز التحقق',
+                    Text(_localizedUiText(context, '2. أدخل رمز التحقق'),
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     const SizedBox(height: 8),
@@ -246,7 +242,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                         ),
-                        child: const Text('تحقق وتفعيل'),
+                        child: Text(_localizedUiText(context, 'تحقق وتفعيل')),
                       ),
                     ),
                   ],
@@ -276,8 +272,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                         children: [
                           const Icon(Icons.key, color: AppColors.warning),
                           const SizedBox(width: 8),
-                          const Text(
-                            'رموز الاسترداد',
+                          Text(_localizedUiText(context, 'رموز الاسترداد'),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
@@ -293,8 +288,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                       ),
                       if (_showBackupCodes) ...[
                         const SizedBox(height: 8),
-                        const Text(
-                          'احفظ هذه الرموز في مكان آمن. تستخدم لمرة واحدة فقط.',
+                        Text(_localizedUiText(context, 'احفظ هذه الرموز في مكان آمن. تستخدم لمرة واحدة فقط.'),
                           style: TextStyle(fontSize: 10, color: AppColors.grey),
                         ),
                         const SizedBox(height: 8),
@@ -341,29 +335,27 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'خيارات',
+                    Text(_localizedUiText(context, 'خيارات'),
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     ListTile(
                       leading: const Icon(Icons.refresh, color: AppColors.info),
-                      title: const Text('إعادة تعيين'),
-                      subtitle: const Text('توليد رموز استرداد جديدة'),
+                      title: Text(_localizedUiText(context, 'إعادة تعيين')),
+                      subtitle: Text(_localizedUiText(context, 'توليد رموز استرداد جديدة')),
                       onTap: () {},
                     ),
                     ListTile(
                       leading: const Icon(Icons.phone_android, color: AppColors.primary),
-                      title: const Text('تغيير الجهاز'),
-                      subtitle: const Text('إعداد على جهاز جديد'),
+                      title: Text(_localizedUiText(context, 'تغيير الجهاز')),
+                      subtitle: Text(_localizedUiText(context, 'إعداد على جهاز جديد')),
                       onTap: () {},
                     ),
                     ListTile(
                       leading: const Icon(Icons.close, color: AppColors.error),
-                      title: const Text(
-                        'تعطيل',
+                      title: Text(_localizedUiText(context, 'تعطيل'),
                         style: TextStyle(color: AppColors.error),
                       ),
-                      subtitle: const Text('إلغاء المصادقة الثنائية'),
+                      subtitle: Text(_localizedUiText(context, 'إلغاء المصادقة الثنائية')),
                       onTap: _disable2FA,
                     ),
                   ],
@@ -422,14 +414,13 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'طريقة المصادقة',
+          Text(_localizedUiText(context, 'طريقة المصادقة'),
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
           RadioListTile<String>(
             value: 'منصة المصادقة',
             groupValue: _selectedMethod,
-            title: const Text('منصة المصادقة'),
+            title: Text(_localizedUiText(context, 'منصة المصادقة')),
             subtitle: const Text('Google Authenticator'),
             onChanged: (value) {
               if (value != null) setState(() => _selectedMethod = value);
@@ -438,8 +429,8 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
           RadioListTile<String>(
             value: 'رسالة نصية',
             groupValue: _selectedMethod,
-            title: const Text('رسالة نصية SMS'),
-            subtitle: const Text('رمز عبر رسالة نصية'),
+            title: Text(_localizedUiText(context, 'رسالة نصية SMS')),
+            subtitle: Text(_localizedUiText(context, 'رمز عبر رسالة نصية')),
             onChanged: (value) {
               if (value != null) setState(() => _selectedMethod = value);
             },
@@ -447,8 +438,8 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
           RadioListTile<String>(
             value: 'بريد إلكتروني',
             groupValue: _selectedMethod,
-            title: const Text('البريد الإلكتروني'),
-            subtitle: const Text('رمز عبر البريد'),
+            title: Text(_localizedUiText(context, 'البريد الإلكتروني')),
+            subtitle: Text(_localizedUiText(context, 'رمز عبر البريد')),
             onChanged: (value) {
               if (value != null) setState(() => _selectedMethod = value);
             },
@@ -494,3 +485,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
     super.dispose();
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
