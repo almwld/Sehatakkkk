@@ -86,6 +86,11 @@ class AppStrings {
   /// Translates a literal Arabic UI label without network access. Unknown and
   /// user-generated content is intentionally preserved.
   String translate(String value) {
+    const doctorWelcomePrefix = 'مرحباً دكتور ';
+    if (value.startsWith(doctorWelcomePrefix)) {
+      final specialty = value.substring(doctorWelcomePrefix.length);
+      return _pick(value, 'Welcome, Dr. $specialty', 'Bienvenue, Dr $specialty');
+    }
     const stepPrefix = 'نشاطك اليومي قريب من الهدف. تبقى ';
     const stepSuffix = ' خطوة تقريباً.';
     if (value.startsWith(stepPrefix) && value.endsWith(stepSuffix)) {
