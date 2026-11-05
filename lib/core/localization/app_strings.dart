@@ -4865,6 +4865,7 @@ class AppStrings {
       'اشتراكك الصحي': ['Your health subscription', 'Votre abonnement santé'],
       'د. أحمد': ['Dr. Ahmed', 'Dr Ahmed'],
       'صيدلية اليمن': ['Yemen Pharmacy', 'Pharmacie du Yémen'],
+      'تخطي →': ['Skip →', 'Passer →'],
     };
 
 
