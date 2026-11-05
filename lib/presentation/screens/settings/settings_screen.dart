@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
@@ -12,6 +13,7 @@ import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/profile/profile_screen.dart';
+import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/settings/notification_settings_screen.dart';
 import 'package:sehatak/presentation/screens/settings/change_password_screen.dart';
 import 'package:sehatak/presentation/screens/settings/language_screen.dart';
@@ -38,6 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isSystemMode = false;
   String? _deliveryArea;
   String? _deliveryAddress;
+  late final Future<String> _accountRoleFuture;
 
   static const String _logoutIcon = 'assets/images/ui/logout.webp';
   static const String _languageIcon = 'assets/icons/settings/app_language.webp';
@@ -50,10 +53,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _accountRoleFuture = _loadAccountRole();
     _checkBiometricSupport();
     _loadBiometricPrefs();
     _loadThemeMode();
     _loadDeliveryArea();
+  }
+
+  Future<String> _loadAccountRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 'user';
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      return snapshot.data()?['role']?.toString().trim() ?? 'user';
+    } catch (_) {
+      return 'user';
+    }
   }
 
   Future<void> _checkBiometricSupport() async {
@@ -238,6 +256,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _listTileAsset(_changePasswordIcon, strings.changePassword, strings.updatePassword, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())), tint: false),
             _divider(isDark),
             _listTileAsset(AppImages.notificationsIcon, strings.notifications, strings.notifications, isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()))),
+            FutureBuilder<String>(
+              future: _accountRoleFuture,
+              builder: (context, snapshot) {
+                final role = snapshot.data;
+                if (role == null || role == 'user' || role == 'patient' || role == 'مريض') {
+                  return const SizedBox.shrink();
+                }
+                return Column(children: [
+                  _divider(isDark),
+                  _listTileAsset(
+                    AppImages.uiUserProfile,
+                    AppStrings.of(context).translate('إدارة حسابي'),
+                    AppStrings.of(context).translate('إدارة لوحة الحساب حسب صلاحياتك'),
+                    isDark,
+                    () => Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => const RoleBasedDashboardScreen(),
+                    )),
+                  ),
+                ]);
+              },
+            ),
           ])),
           const SizedBox(height: 16),
           _section(strings.appSection, isDark),
