@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,7 +24,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
     if(!mounted)return; setState((){_doctors=snap.docs.map((d){final x=d.data();return {...x,'id':d.id,'name':x['name']??x['displayName']??'طبيب','specialty':x['specialty']??x['specialization']??'عام','rating':(x['rating'] as num?)?.toDouble()??0.0,'reviews':(x['reviews'] as num?)?.toInt()??0,'price':'${x['consultationPrice']??x['price']??0}','available':x['available']==true,'online':x['online']==true,'image':_firstImageUrl(x),'nextAvailable':x['nextAvailable']??'غير محدد'};}).toList();_isLoading=false;});
   } catch(_){if(mounted)setState((){_doctors=[];_isLoading=false;});}}
   List<Map<String,dynamic>> get _filteredDoctors {final l=List<Map<String,dynamic>>.from(_doctors);switch(_selectedFilter){case'متاح الآن':l.retainWhere((d)=>d['online']==true);break;case'الأعلى تقييماً':l.sort((a,b)=>(b['rating'] as double).compareTo(a['rating'] as double));break;case'الأقل سعراً':l.sort((a,b)=>(double.tryParse(a['price'].toString())??double.maxFinite).compareTo(double.tryParse(b['price'].toString())??double.maxFinite));}return l;}
-  void _startConsultation(Map<String,dynamic> doctor){showDialog(context:context,builder:(c)=>AlertDialog(title:Text('استشارة مع ${doctor['name']}'),content:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text('التخصص: ${doctor['specialty']}'),const SizedBox(height:8),Text('التقييم: ${doctor['rating']} (${doctor['reviews']} تقييم)'),const SizedBox(height:8),Text('السعر: ${doctor['price']} ر.ي')]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:const Text('إلغاء')),ElevatedButton.icon(onPressed:(){Navigator.pop(c);_chooseCallType(doctor);},icon:const Icon(Icons.call),label:const Text('الاتصال'),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white))]));}
+  void _startConsultation(Map<String,dynamic> doctor){showDialog(context:context,builder:(c)=>AlertDialog(title:Text('استشارة مع ${doctor['name']}'),content:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text('التخصص: ${doctor['specialty']}'),const SizedBox(height:8),Text('التقييم: ${doctor['rating']} (${doctor['reviews']} تقييم)'),const SizedBox(height:8),Text('السعر: ${doctor['price']} ر.ي')]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(_localizedUiText(context, 'إلغاء'))),ElevatedButton.icon(onPressed:(){Navigator.pop(c);_chooseCallType(doctor);},icon:const Icon(Icons.call),label:Text(_localizedUiText(context, 'الاتصال')),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white))]));}
   void _chooseCallType(Map<String, dynamic> doctor) {
     showModalBottomSheet<void>(
       context: context,
@@ -47,7 +48,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
                     _startRealCall(doctor, true);
                   },
                   icon: const Icon(Icons.videocam),
-                  label: const Text('مكالمة فيديو'),
+                  label: Text(_localizedUiText(context, 'مكالمة فيديو')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -63,7 +64,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
                     _startRealCall(doctor, false);
                   },
                   icon: const Icon(Icons.phone),
-                  label: const Text('مكالمة صوتية'),
+                  label: Text(_localizedUiText(context, 'مكالمة صوتية')),
                 ),
               ),
             ],
@@ -80,7 +81,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('استشارة فيديو'),
+        title: Text(_localizedUiText(context, 'استشارة فيديو')),
         backgroundColor: dark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: dark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -130,7 +131,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: _filteredDoctors.isEmpty
-                        ? const Center(child: Text('لا يوجد أطباء متاحون حالياً'))
+                        ? const Center(child: Text(_localizedUiText(context, 'لا يوجد أطباء متاحون حالياً')))
                         : ListView.builder(
                             itemCount: _filteredDoctors.length,
                             itemBuilder: (_, i) => _doctorCard(_filteredDoctors[i], dark),
@@ -142,5 +143,8 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
     );
   }
 
-  Widget _doctorCard(Map<String,dynamic> d,bool dark){final image=d['image']?.toString()??'';final name=d['name']?.toString()??'طبيب';return Container(margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Row(children:[CircleAvatar(radius:28,backgroundImage:image.isNotEmpty?NetworkImage(image):null,child:image.isEmpty?Text(name.isNotEmpty?name[0]:'ط'):null),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)),Text(d['specialty']?.toString()??'عام',style:TextStyle(fontSize:12,color:dark?Colors.grey.shade400:Colors.grey.shade600)),const SizedBox(height:4),Text('${d['price']} ر.ي',style:TextStyle(fontSize:11,color:dark?Colors.white:Colors.black87))])),ElevatedButton(onPressed:d['available']==true?()=>_startConsultation(d):null,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:const Text('ابدأ'))]));}
+  Widget _doctorCard(Map<String,dynamic> d,bool dark){final image=d['image']?.toString()??'';final name=d['name']?.toString()??'طبيب';return Container(margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Row(children:[CircleAvatar(radius:28,backgroundImage:image.isNotEmpty?NetworkImage(image):null,child:image.isEmpty?Text(name.isNotEmpty?name[0]:'ط'):null),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)),Text(d['specialty']?.toString()??'عام',style:TextStyle(fontSize:12,color:dark?Colors.grey.shade400:Colors.grey.shade600)),const SizedBox(height:4),Text('${d['price']} ر.ي',style:TextStyle(fontSize:11,color:dark?Colors.white:Colors.black87))])),ElevatedButton(onPressed:d['available']==true?()=>_startConsultation(d):null,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:Text(_localizedUiText(context, 'ابدأ')))]));}
 }
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
