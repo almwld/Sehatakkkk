@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class NextcloudSettingsScreen extends StatefulWidget {
   const NextcloudSettingsScreen({super.key});
@@ -11,6 +12,7 @@ class NextcloudSettingsScreen extends StatefulWidget {
 }
 
 class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _formKey = GlobalKey<FormState>();
   final _baseUrlController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -60,12 +62,12 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
       await _checkConnection();
       
       if (_isConnected) {
-        ToastService.showSuccess('✅ تم حفظ الإعدادات والاتصال بالخادم');
+        ToastService.showSuccess(_t('تم حفظ الإعدادات والاتصال بالخادم'));
       } else {
-        ToastService.showWarning('⚠️ تم حفظ الإعدادات ولكن لا يمكن الاتصال بالخادم');
+        ToastService.showWarning(_t('تم حفظ الإعدادات ولكن لا يمكن الاتصال بالخادم'));
       }
     } catch (e) {
-      ToastService.showError('❌ فشل حفظ الإعدادات: $e');
+      ToastService.showError('${_t('فشل حفظ الإعدادات:')} $e');
     }
 
     setState(() => _isLoading = false);
@@ -78,7 +80,7 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('إعدادات Nextcloud'),
+        title: Text(_t('إعدادات Nextcloud')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -104,8 +106,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                       children: [
                         Icon(Icons.cloud_rounded, color: AppColors.primary),
                         const SizedBox(width: 8),
-                        const Text(
-                          '☁️ Nextcloud مفتوح المصدر',
+                        Text(
+                          _t('☁️ Nextcloud مفتوح المصدر'),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -115,11 +117,7 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Nextcloud هو خادم مفتوح المصدر بالكامل، يمكنك تثبيته على خادمك الخاص.\n\n'
-                      '✅ مجاني 100%\n'
-                      '✅ لا يحتاج مفاتيح API\n'
-                      '✅ بياناتك ملكك أنت فقط\n'
-                      '✅ يمكن تثبيته على أي خادم',
+                      _t('Nextcloud هو خادم مفتوح المصدر بالكامل، يمكنك تثبيته على خادمك الخاص.\n\n✅ مجاني 100%\n✅ لا يحتاج مفاتيح API\n✅ بياناتك ملكك أنت فقط\n✅ يمكن تثبيته على أي خادم'),
                       style: TextStyle(
                         fontSize: 13,
                         color: isDark ? Colors.grey[300] : Colors.grey[700],
@@ -156,8 +154,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                     Expanded(
                       child: Text(
                         _isConnected
-                            ? '✅ متصل بخادم Nextcloud'
-                            : '❌ غير متصل بخادم Nextcloud',
+                            ? _t('متصل بخادم Nextcloud')
+                            : _t('غير متصل بخادم Nextcloud'),
                         style: TextStyle(
                           color: _isConnected ? Colors.green : Colors.red,
                           fontWeight: FontWeight.w500,
@@ -167,7 +165,7 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                     if (!_isConnected)
                       TextButton(
                         onPressed: _checkConnection,
-                        child: const Text('إعادة المحاولة'),
+                        child: Text(_t('إعادة المحاولة')),
                       ),
                   ],
                 ),
@@ -177,16 +175,16 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
               // ✅ عنوان الخادم
               TextFormField(
                 controller: _baseUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'عنوان خادم Nextcloud',
+                decoration: InputDecoration(
+                  labelText: _t('عنوان خادم Nextcloud'),
                   hintText: 'https://nextcloud.example.com',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.cloud_rounded),
-                  helperText: 'أدخل عنوان IP أو دومين الخادم الخاص بك',
+                  helperText: _t('أدخل عنوان IP أو دومين الخادم الخاص بك'),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال عنوان الخادم';
+                    return _t('يرجى إدخال عنوان الخادم');
                   }
                   return null;
                 },
@@ -196,16 +194,16 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
               // ✅ اسم المستخدم
               TextFormField(
                 controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم المستخدم',
+                decoration: InputDecoration(
+                  labelText: _t('اسم المستخدم'),
                   hintText: 'admin',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person_rounded),
-                  helperText: 'اسم المستخدم الذي أنشأته في Nextcloud',
+                  helperText: _t('اسم المستخدم الذي أنشأته في Nextcloud'),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال اسم المستخدم';
+                    return _t('يرجى إدخال اسم المستخدم');
                   }
                   return null;
                 },
@@ -216,16 +214,16 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'كلمة المرور',
+                decoration: InputDecoration(
+                  labelText: _t('كلمة المرور'),
                   hintText: '••••••••',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock_rounded),
-                  helperText: 'كلمة مرور مستخدم Nextcloud',
+                  helperText: _t('كلمة مرور مستخدم Nextcloud'),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال كلمة المرور';
+                    return _t('يرجى إدخال كلمة المرور');
                   }
                   return null;
                 },
@@ -247,8 +245,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'حفظ الإعدادات',
+                      : Text(
+                          _t('حفظ الإعدادات'),
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                 ),

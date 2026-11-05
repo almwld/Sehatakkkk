@@ -2,6 +2,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/medical_ai_local.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class SmartClinicScreen extends StatefulWidget {
   const SmartClinicScreen({super.key});
@@ -10,6 +11,7 @@ class SmartClinicScreen extends StatefulWidget {
 }
 
 class _SmartClinicScreenState extends State<SmartClinicScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _ai = LocalMedicalAI();
   final _controller = TextEditingController();
   final List<Map<String, String>> _chat = [];
@@ -40,15 +42,15 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'المساعد الذكي 🤖', backgroundColor: AppColors.primary),
+      appBar: CustomAppBar(title: _t('المساعد الذكي 🤖'), backgroundColor: AppColors.primary),
       body: Column(children: [
         Container(
           padding: const EdgeInsets.all(8),
           color: AppColors.warning.withOpacity(0.08),
-          child: const Row(children: [
-            Icon(Icons.info, size: 14, color: AppColors.warning),
-            SizedBox(width: 4),
-            Expanded(child: Text('يعمل محلياً بدون إنترنت', style: TextStyle(fontSize: 10))),
+          child: Row(children: [
+            const Icon(Icons.info, size: 14, color: AppColors.warning),
+            const SizedBox(width: 4),
+            Expanded(child: Text(_t('يعمل محلياً بدون إنترنت'), style: const TextStyle(fontSize: 10))),
           ]),
         ),
         Expanded(
@@ -57,11 +59,11 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
             itemCount: _chat.length + (_isTyping ? 1 : 0),
             itemBuilder: (context, i) {
               if (_isTyping && i == _chat.length) {
-                return const Align(
+                return Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Text('...يكتب', style: TextStyle(color: AppColors.grey)),
+                    padding: const EdgeInsets.all(8),
+                    child: Text(_t('...يكتب'), style: const TextStyle(color: AppColors.grey)),
                   ),
                 );
               }
@@ -77,7 +79,7 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
                     color: isUser ? AppColors.primary : Theme.of(context).colorScheme.surfaceVariant,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Text(msg['text']!, style: TextStyle(color: isUser ? Colors.white : null, fontSize: 13)),
+                  child: Text(isUser ? msg['text']! : _t(msg['text']!), style: TextStyle(color: isUser ? Colors.white : null, fontSize: 13)),
                 ),
               );
             },
@@ -87,7 +89,7 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
           height: 42,
           child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 8), children: [
             _quickChip('🤒 أعراض', 'عندي صداع وحرارة'),
-            _quickChip('💊 بار.ييتامول', 'بار.ييتامول'),
+            _quickChip('💊 باراسيتامول', 'باراسيتامول'),
             _quickChip('💎 الباقات', 'كم سعر الباقة'),
             _quickChip('📅 حجز', 'كيف احجز موعد'),
             _quickChip('💡 نصيحة', 'نصيحة'),
@@ -101,7 +103,7 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
               controller: _controller,
               textAlign: TextAlign.right,
               decoration: InputDecoration(
-                hintText: 'اسألني...',
+                hintText: _t('اسألني...'),
                 filled: true,
                 fillColor: AppColors.surfaceContainerLow,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
@@ -125,7 +127,7 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
   Widget _quickChip(String label, String query) {
     return Padding(
       padding: const EdgeInsets.only(right: 6),
-      child: ActionChip(label: Text(label, style: const TextStyle(fontSize: 11)), onPressed: () => _send(query)),
+      child: ActionChip(label: Text(_t(label), style: const TextStyle(fontSize: 11)), onPressed: () => _send(query)),
     );
   }
 }

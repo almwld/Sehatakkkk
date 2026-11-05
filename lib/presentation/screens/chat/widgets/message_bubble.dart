@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/services.dart';
@@ -39,15 +40,17 @@ class MessageBubble extends StatefulWidget {
 }
 
 class _MessageBubbleState extends State<MessageBubble> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   bool _isLocal(String path) => widget.message['isLocal'] == true || widget.message['isUploading'] == true || path.startsWith('file://') || (path.isNotEmpty && !path.startsWith('http') && File(path).existsSync());
 
   String _formatMessageTime(dynamic value) {
-    if (value == null) return 'غير متوفر';
+    if (value == null) return _t('غير متوفر');
     DateTime? date;
     if (value is Timestamp) date = value.toDate();
     if (value is DateTime) date = value;
     if (value is String) date = DateTime.tryParse(value);
-    if (date == null) return 'غير متوفر';
+    if (date == null) return _t('غير متوفر');
     final local = date.toLocal();
     final hh = local.hour.toString().padLeft(2, '0');
     final mm = local.minute.toString().padLeft(2, '0');
@@ -69,9 +72,9 @@ class _MessageBubbleState extends State<MessageBubble> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('معلومات الرسالة', textAlign: TextAlign.right, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(AppStrings.of(context).translate('معلومات الرسالة'), textAlign: TextAlign.start, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
-              if (m['isEdited'] == true) _infoRow(Icons.edit_outlined, 'الحالة', 'تم تعديل الرسالة'),
+              if (m['isEdited'] == true) _infoRow(Icons.edit_outlined, _t('الحالة'), _t('تم تعديل الرسالة')),
             ],
           ),
         ),
@@ -102,7 +105,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           child: Stack(clipBehavior: Clip.none, children: [
             _buildContent(type, dark),
             if (progress != null && progress >= 0 && progress < 1) Positioned(left: 8, right: 8, bottom: 3, child: LinearProgressIndicator(value: progress, minHeight: 2)),
-            if (widget.message['hasError'] == true) PositionedDirectional(start: -38, bottom: 5, child: IconButton(tooltip: 'إعادة المحاولة', onPressed: () => widget.message['onRetry']?.call(), icon: const Icon(Icons.refresh, color: Colors.red, size: 22))),
+            if (widget.message['hasError'] == true) PositionedDirectional(start: -38, bottom: 5, child: IconButton(tooltip: AppStrings.of(context).translate('إعادة المحاولة'), onPressed: () => widget.message['onRetry']?.call(), icon: const Icon(Icons.refresh, color: Colors.red, size: 22))),
           ]),
         ),
       ),
@@ -261,7 +264,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _editedMarker(bool dark) => Padding(
     padding: const EdgeInsets.only(bottom: 3),
-    child: Text('معدلة', style: TextStyle(fontSize: 9, color: widget.isMe ? Colors.white60 : (dark ? Colors.white54 : Colors.grey))),
+    child: Text(AppStrings.of(context).translate('معدلة'), style: TextStyle(fontSize: 9, color: widget.isMe ? Colors.white60 : (dark ? Colors.white54 : Colors.grey))),
   );
 
   Widget _pinnedMarker(bool dark) => Padding(
@@ -271,14 +274,14 @@ class _MessageBubbleState extends State<MessageBubble> {
       children: [
         Icon(Icons.push_pin_rounded, size: 13, color: widget.isMe ? Colors.white70 : AppColors.primary),
         const SizedBox(width: 4),
-        Text('مثبتة', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))),
+        Text(AppStrings.of(context).translate('مثبتة'), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.isMe ? Colors.white70 : (dark ? Colors.white70 : const Color(0xFF49615E)))),
       ],
     ),
   );
 
 
   Widget _replyPreview(Map preview, bool dark) {
-    final sender = preview['senderName']?.toString().trim() ?? 'مستخدم';
+    final sender = preview['senderName']?.toString().trim().isNotEmpty == true ? preview['senderName'].toString().trim() : _t('مستخدم');
     final rawText =
         preview['text'] ?? preview['content'] ?? preview['message'] ?? preview['body'];
     final text = rawText?.toString().trim().isNotEmpty == true
@@ -330,13 +333,13 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   String _replyAttachmentPreview(Map preview) {
     switch (preview['type']?.toString()) {
-      case 'image': return '📷 صورة';
-      case 'video': return '🎬 فيديو';
-      case 'audio': return '🎤 رسالة صوتية';
-      case 'file': return '📎 ملف';
-      case 'location': return '📍 موقع';
-      case 'call': return '📞 مكالمة';
-      default: return 'مرفق';
+      case 'image': return '📷 ${_t('صورة')}';
+      case 'video': return '🎬 ${_t('فيديو')}';
+      case 'audio': return '🎤 ${_t('رسالة صوتية')}';
+      case 'file': return '📎 ${_t('ملف')}';
+      case 'location': return '📍 ${_t('موقع')}';
+      case 'call': return '📞 ${_t('مكالمة')}';
+      default: return _t('مرفق');
     }
   }
 
@@ -369,7 +372,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildImage(String path) {
-    if (path.isEmpty) return const SizedBox(width: 230, height: 100, child: Center(child: Text('تعذر تحميل الصورة')));
+    if (path.isEmpty) return SizedBox(width: 230, height: 100, child: Center(child: Text(AppStrings.of(context).translate('تعذر تحميل الصورة'))));
     final local = _isLocal(path);
     final cleanPath = path.replaceFirst('file://', '');
     final image = local ? Image.file(File(cleanPath), fit: BoxFit.contain) : CachedNetworkImage(imageUrl: path, fit: BoxFit.contain);
@@ -377,7 +380,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildVideo(String path) {
-    if (path.isEmpty) return const SizedBox(width: 230, height: 100, child: Center(child: Text('تعذر تحميل الفيديو')));
+    if (path.isEmpty) return SizedBox(width: 230, height: 100, child: Center(child: Text(AppStrings.of(context).translate('تعذر تحميل الفيديو'))));
     return GestureDetector(onTap: () => showDialog<void>(context: context, builder: (_) => _VideoViewer(url: path, isLocal: _isLocal(path))), child: Container(width: 230, height: 160, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14)), child: const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 50))));
   }
 
@@ -385,7 +388,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final url = m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
     final name = (m['fileName']?.toString().trim().isNotEmpty == true)
         ? m['fileName'].toString()
-        : 'ملف';
+        : _t('ملف');
     final mime = (m['fileMimeType']?.toString() ?? '').toLowerCase();
     final ext = name.contains('.') ? name.split('.').last.toLowerCase() : '';
     final isPdf = ext == 'pdf' || mime == 'application/pdf';
@@ -417,11 +420,11 @@ class _MessageBubbleState extends State<MessageBubble> {
         showDragHandle: true,
         builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
           Padding(padding: const EdgeInsets.all(16), child: Text(
-            isLab ? 'كيف تريد تنفيذ الفحوصات؟' : 'كيف تريد صرف الوصفة؟',
+            isLab ? _t('كيف تريد تنفيذ الفحوصات؟') : _t('كيف تريد صرف الوصفة؟'),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-          ListTile(leading: const Icon(Icons.storefront_outlined), title: Text(isLab ? 'اختيار مختبر من منصة صحتك' : 'اختيار صيدلية من منصة صحتك'), onTap: () => Navigator.pop(ctx, 'facility')),
-          ListTile(leading: const Icon(Icons.home_work_outlined), title: Text(isLab ? 'طلب سحب العينة من المنزل' : 'طلب توصيل الدواء إلى المنزل'), onTap: () => Navigator.pop(ctx, 'home')),
-          ListTile(leading: const Icon(Icons.directions_walk_outlined), title: Text(isLab ? 'سأذهب بنفسي إلى المختبر' : 'سأستلم الدواء من الصيدلية'), onTap: () => Navigator.pop(ctx, 'self')),
+          ListTile(leading: const Icon(Icons.storefront_outlined), title: Text(isLab ? _t('اختيار مختبر من منصة صحتك') : _t('اختيار صيدلية من منصة صحتك')), onTap: () => Navigator.pop(ctx, 'facility')),
+          ListTile(leading: const Icon(Icons.home_work_outlined), title: Text(isLab ? _t('طلب سحب العينة من المنزل') : _t('طلب توصيل الدواء إلى المنزل')), onTap: () => Navigator.pop(ctx, 'home')),
+          ListTile(leading: const Icon(Icons.directions_walk_outlined), title: Text(isLab ? _t('سأذهب بنفسي إلى المختبر') : _t('سأستلم الدواء من الصيدلية')), onTap: () => Navigator.pop(ctx, 'self')),
         ])),
       );
       if (choice == null) return;
@@ -434,7 +437,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             final s = await FirebaseFirestore.instance.collection(collection).limit(30).get();
             for (final d in s.docs) {
               final data = d.data();
-              names.add({'id': d.id, 'name': (data['name'] ?? data['title'] ?? 'منشأة صحية').toString()});
+              names.add({'id': d.id, 'name': (data['name'] ?? data['title'] ?? _t('منشأة صحية')).toString()});
             }
           } catch (_) {}
           if (names.isNotEmpty) break;
@@ -443,7 +446,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         final selected = await showModalBottomSheet<Map<String,String>>(
           context: context, showDragHandle: true,
           builder: (ctx) => SafeArea(child: SizedBox(height: 420, child:
-            names.isEmpty ? const Center(child: Text('لا توجد منشآت متاحة حالياً')) :
+            names.isEmpty ? Center(child: Text(AppStrings.of(context).translate('لا توجد منشآت متاحة حالياً'))) :
             ListView(children: [for (final n in names)
               ListTile(leading: Icon(isLab ? Icons.biotech : Icons.local_pharmacy), title: Text(n['name']!), onTap: () => Navigator.pop(ctx, n))]
           ))),
@@ -456,7 +459,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           .where('fileName', isEqualTo: name).limit(1).get();
       final documentId = docs.docs.isNotEmpty ? docs.docs.first.id : '';
       if (documentId.isEmpty) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر العثور على المستند الطبي.')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر العثور على المستند الطبي.'))));
         return;
       }
       await FirebaseFirestore.instance.collection('medical_requests').add({
@@ -471,7 +474,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         'createdAt': FieldValue.serverTimestamp(),
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isLab ? 'تم إرسال طلب الفحوصات.' : 'تم إرسال الوصفة إلى خدمة الصيدلية.')),
+        SnackBar(content: Text(isLab ? _t('تم إرسال طلب الفحوصات.') : _t('تم إرسال الوصفة إلى خدمة الصيدلية.'))),
       );
     }
 
@@ -489,7 +492,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             final other = parts.firstWhere((x) => x != uid, orElse: () => '');
             final details = data['participantDetails'] is Map ? Map<String,dynamic>.from(data['participantDetails']) : <String,dynamic>{};
             final otherData = details[other] is Map ? Map<String,dynamic>.from(details[other]) : <String,dynamic>{};
-            return ListTile(leading: const Icon(Icons.chat_bubble_outline), title: Text((otherData['name'] ?? 'محادثة').toString()), onTap: () => Navigator.pop(ctx, d.id));
+            return ListTile(leading: const Icon(Icons.chat_bubble_outline), title: Text((otherData['name'] ?? AppStrings.of(context).translate('محادثة')).toString()), onTap: () => Navigator.pop(ctx, d.id));
           }).toList(),
         ))),
       );
@@ -498,7 +501,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         chatId: selected, sourceFile: file, type: 'file', folder: 'documents',
         preview: '📄 $name', fileName: name, fileSize: m['fileSize']?.toString(), mimeType: mime,
       );
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تجهيز المستند للإرسال إلى الدردشة المحددة.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم تجهيز المستند للإرسال إلى الدردشة المحددة.'))));
     }
 
     Future<void> _documentActions() async {
@@ -510,14 +513,14 @@ class _MessageBubbleState extends State<MessageBubble> {
           if (name.toLowerCase().contains('_rx.pdf') || name.toLowerCase().contains('_labs.pdf'))
             ListTile(
               leading: Icon(name.toLowerCase().contains('_labs.pdf') ? Icons.biotech_outlined : Icons.local_pharmacy_outlined),
-              title: Text(name.toLowerCase().contains('_labs.pdf') ? 'تنفيذ طلب الفحوصات' : 'تنفيذ الوصفة الطبية'),
+              title: Text(name.toLowerCase().contains('_labs.pdf') ? _t('تنفيذ طلب الفحوصات') : _t('تنفيذ الوصفة الطبية')),
               onTap: () => Navigator.pop(ctx, 'service'),
             ),
-          ListTile(leading: const Icon(Icons.visibility_outlined), title: const Text('فتح المستند'), onTap: () => Navigator.pop(ctx, 'open')),
-          ListTile(leading: const Icon(Icons.share_outlined), title: const Text('مشاركة / إرسال خارج التطبيق'), onTap: () => Navigator.pop(ctx, 'share')),
-          ListTile(leading: const Icon(Icons.save_alt_outlined), title: const Text('حفظ في المكتبة'), onTap: () => Navigator.pop(ctx, 'library')),
-          ListTile(leading: const Icon(Icons.download_outlined), title: const Text('حفظ نسخة على الهاتف'), onTap: () => Navigator.pop(ctx, 'download')),
-          ListTile(leading: const Icon(Icons.send_outlined), title: const Text('إرسال إلى دردشة أخرى'), onTap: () => Navigator.pop(ctx, 'chat')),
+          ListTile(leading: const Icon(Icons.visibility_outlined), title: Text(_t('فتح المستند')), onTap: () => Navigator.pop(ctx, 'open')),
+          ListTile(leading: const Icon(Icons.share_outlined), title: Text(_t('مشاركة / إرسال خارج التطبيق')), onTap: () => Navigator.pop(ctx, 'share')),
+          ListTile(leading: const Icon(Icons.save_alt_outlined), title: Text(_t('حفظ في المكتبة')), onTap: () => Navigator.pop(ctx, 'library')),
+          ListTile(leading: const Icon(Icons.download_outlined), title: Text(_t('حفظ نسخة على الهاتف')), onTap: () => Navigator.pop(ctx, 'download')),
+          ListTile(leading: const Icon(Icons.send_outlined), title: Text(_t('إرسال إلى دردشة أخرى')), onTap: () => Navigator.pop(ctx, 'chat')),
         ])),
       );
       if (action == null) return;
@@ -533,7 +536,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           if (mounted) await showDialog<void>(context: context, builder: (_) => _TextDocumentDialog(title: name, content: text));
         }
       } else if (action == 'share' || action == 'download') {
-        await MedicalDocumentServiceCompat.share(file, download: action == 'download');
+        await MedicalDocumentServiceCompat.share(file, text: _t(action == 'download' ? 'نسخة محفوظة من مستند صحتك' : 'مستند من منصة صحتك'), download: action == 'download');
       } else if (action == 'library') {
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
@@ -541,7 +544,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             'ownerId': uid, 'chatId': m['chatId'], 'fileName': name,
             'fileUrl': url, 'mimeType': mime, 'savedAt': FieldValue.serverTimestamp(),
           });
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ المستند في المكتبة.')));
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم حفظ المستند في المكتبة.'))));
         }
       } else if (action == 'chat') {
         await _sendToAnotherChat(file);
@@ -619,7 +622,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   void _showFileError() {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح الملف حالياً. حاول مرة أخرى.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر فتح الملف حالياً. حاول مرة أخرى.'))));
   }
 
   Widget _buildCall(Map<String, dynamic> m, bool dark) {
@@ -630,7 +633,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final missed = status == 'missed' || status == 'rejected' || status == 'busy';
     final incoming = !missed && !widget.isMe;
     final icon = missed ? Icons.call_missed : incoming ? Icons.call_received : Icons.call_made;
-    final title = missed ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} فائتة' : incoming ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} واردة' : 'مكالمة ${video ? 'فيديو' : 'صوتية'} صادرة';
+    final title = _t(missed ? (video ? 'مكالمة فيديو فائتة' : 'مكالمة صوتية فائتة') : incoming ? (video ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة') : (video ? 'مكالمة فيديو صادرة' : 'مكالمة صوتية صادرة'));
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
     final ic = missed ? Colors.red : incoming ? Colors.green : Colors.blue;
     return _shell(Padding(padding: const EdgeInsets.all(10), child: Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 48, height: 48, decoration: BoxDecoration(color: ic.withOpacity(.15), shape: BoxShape.circle), child: Icon(icon, color: ic, size: 24)), const SizedBox(width: 12), Flexible(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(color: tc, fontWeight: FontWeight.bold, fontSize: 13)), if (duration.isNotEmpty) ...[const SizedBox(height: 3), Text(duration, style: TextStyle(color: tc.withOpacity(.7), fontSize: 11))]])), const SizedBox(width: 12), InkWell(borderRadius: BorderRadius.circular(20), onTap: () => widget.onCallAgain?.call(video ? 'video' : 'audio'), child: Padding(padding: const EdgeInsets.all(6), child: Icon(video ? Icons.videocam : Icons.call, color: tc, size: 20)))])), dark);
@@ -641,7 +644,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final lng = (m['locationLng'] as num?)?.toDouble();
     final address = (m['locationAddress']?.toString().trim().isNotEmpty == true)
         ? m['locationAddress'].toString()
-        : (m['text']?.toString() ?? 'الموقع');
+        : (m['text']?.toString() ?? _t('الموقع'));
     final meta = m['metadata'] is Map ? Map<String, dynamic>.from(m['metadata'] as Map) : <String, dynamic>{};
     final street = meta['locationStreet']?.toString() ?? '';
     final neighborhood = meta['locationNeighborhood']?.toString() ?? '';
@@ -720,7 +723,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('الموقع المرسل', style: TextStyle(color: tc, fontWeight: FontWeight.w800, fontSize: 12)),
+                          Text(_t('الموقع المرسل'), style: TextStyle(color: tc, fontWeight: FontWeight.w800, fontSize: 12)),
                           const SizedBox(height: 3),
                           Text(address, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(color: tc, fontSize: 12)),
                           if (details.isNotEmpty) ...[
@@ -776,7 +779,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             if ((widget.message['text']?.toString().trim() ?? '').isNotEmpty)
               ListTile(
                 leading: const Icon(Icons.copy),
-                title: const Text('نسخ الرسالة'),
+                title: Text(_t('نسخ الرسالة')),
                 onTap: () async {
                   await Clipboard.setData(ClipboardData(text: widget.message['text'].toString()));
                   if (mounted) Navigator.pop(context);
@@ -784,7 +787,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               ),
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('معلومات الرسالة'),
+              title: Text(AppStrings.of(context).translate('معلومات الرسالة')),
               onTap: () {
                 Navigator.pop(context);
                 _showMessageInfo();
@@ -793,22 +796,22 @@ class _MessageBubbleState extends State<MessageBubble> {
             if (widget.onReply != null)
               ListTile(
                 leading: const Icon(Icons.reply),
-                title: const Text('رد'),
+                title: Text(_t('رد')),
                 onTap: () {
                   Navigator.pop(context);
                   widget.onReply?.call();
                 },
               ),
             if (widget.onEdit != null && widget.message['isDeleted'] != true && (widget.message['text']?.toString().trim() ?? '').isNotEmpty)
-              ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('تعديل الرسالة'), onTap: () { Navigator.pop(context); widget.onEdit?.call(); }),
+              ListTile(leading: const Icon(Icons.edit_outlined), title: Text(_t('تعديل الرسالة')), onTap: () { Navigator.pop(context); widget.onEdit?.call(); }),
             if (widget.onPin != null)
-              ListTile(leading: Icon((widget.message['isPinned'] == true) ? Icons.push_pin : Icons.push_pin_outlined), title: Text(widget.message['isPinned'] == true ? 'إلغاء تثبيت الرسالة' : 'تثبيت الرسالة'), onTap: () { Navigator.pop(context); widget.onPin?.call(); }),
+              ListTile(leading: Icon((widget.message['isPinned'] == true) ? Icons.push_pin : Icons.push_pin_outlined), title: Text(widget.message['isPinned'] == true ? _t('إلغاء تثبيت الرسالة') : _t('تثبيت الرسالة')), onTap: () { Navigator.pop(context); widget.onPin?.call(); }),
             if (widget.onDeleteForMe != null)
-              ListTile(leading: const Icon(Icons.delete_sweep_outlined), title: const Text('حذف لدي فقط'), onTap: () { Navigator.pop(context); widget.onDeleteForMe?.call(); }),
+              ListTile(leading: const Icon(Icons.delete_sweep_outlined), title: Text(_t('حذف لدي فقط')), onTap: () { Navigator.pop(context); widget.onDeleteForMe?.call(); }),
             if (widget.onDelete != null)
               ListTile(
                 leading: const Icon(Icons.delete_outline),
-                title: const Text('حذف للجميع'),
+                title: Text(_t('حذف للجميع')),
                 onTap: () {
                   Navigator.pop(context);
                   widget.onDelete?.call();
@@ -930,7 +933,7 @@ class _JustAudioMessagePlayerState extends State<JustAudioMessagePlayer> {
 }
 
 class MedicalDocumentServiceCompat {
-  static Future<void> share(File file, {bool download = false}) async {
-    await Share.shareXFiles([XFile(file.path)], text: download ? 'نسخة محفوظة من مستند صحتك' : 'مستند من منصة صحتك');
+  static Future<void> share(File file, {required String text, bool download = false}) async {
+    await Share.shareXFiles([XFile(file.path)], text: text);
   }
 }

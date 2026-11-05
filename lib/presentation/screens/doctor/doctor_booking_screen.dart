@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -15,6 +16,8 @@ class DoctorBookingScreen extends StatefulWidget {
 }
 
 class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   String _selectedType = 'استشارة عامة';
@@ -60,7 +63,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'حجز موعد',
+        title: AppStrings.of(context).translate('حجز موعد'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -136,8 +139,8 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                                   color: Colors.green.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  'متاح',
+                                child: Text(
+                                  _t('متاح'),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: Colors.green,
@@ -171,7 +174,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'تاريخ الموعد',
+                          _t('تاريخ الموعد'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -210,7 +213,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        ['أحد', 'إثن', 'ثلاث', 'أربع', 'خميس', 'جمعة', 'سبت'][date.weekday % 7],
+                                        _t(['أحد', 'إثن', 'ثلاث', 'أربع', 'خميس', 'جمعة', 'سبت'][date.weekday % 7]),
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: isSelected
@@ -259,7 +262,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'وقت الموعد',
+                          _t('وقت الموعد'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -348,7 +351,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'نوع الاستشارة',
+                          _t('نوع الاستشارة'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -380,7 +383,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  type,
+                                  _t(type),
                                   style: TextStyle(
                                     color: isSelected
                                         ? Colors.white
@@ -415,7 +418,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ملاحظات',
+                          _t('ملاحظات'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -426,7 +429,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                         TextField(
                           maxLines: 3,
                           decoration: InputDecoration(
-                            hintText: 'اكتب أي ملاحظات إضافية...',
+                            hintText: AppStrings.of(context).translate('اكتب أي ملاحظات إضافية...'),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
@@ -468,8 +471,8 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'تأكيد الحجز',
+                      child: Text(
+                        _t('تأكيد الحجز'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -487,7 +490,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     setState(() => _isLoading = true);
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _isLoading = false);
-      ToastService.showSuccess('✅ تم حجز الموعد بنجاح!');
+      ToastService.showSuccess(_t('تم حجز الموعد بنجاح!'));
       Navigator.pop(context);
     });
   }

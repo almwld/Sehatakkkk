@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/models/cart/cart_item_model.dart';
 import 'package:sehatak/core/services/cart_service.dart';
 
@@ -11,6 +12,7 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final CartService _cartService = CartService();
   List<CartItemModel> _items = [];
   bool _isLoading = true;
@@ -58,7 +60,7 @@ class _CartScreenState extends State<CartScreen> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم إزالة ${item.name} من السلة'),
+        content: Text(_t('تم إزالة ') + item.name + _t(' من السلة')),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 2),
       ),
@@ -69,17 +71,17 @@ class _CartScreenState extends State<CartScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('مسح السلة'),
-        content: const Text('هل أنت متأكد من رغبتك في مسح جميع العناصر من السلة؟'),
+        title: Text(_t('مسح السلة')),
+        content: Text(_t('هل أنت متأكد من رغبتك في مسح جميع العناصر من السلة؟')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(_, false),
-            child: const Text('إلغاء'),
+            child: Text(_t('إلغاء')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(_, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('مسح'),
+            child: Text(_t('مسح')),
           ),
         ],
       ),
@@ -89,8 +91,8 @@ class _CartScreenState extends State<CartScreen> {
       await _cartService.clearCart();
       await _loadCart();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم مسح السلة'),
+        SnackBar(
+          content: Text(_t('تم مسح السلة')),
           backgroundColor: Colors.red,
         ),
       );
@@ -104,7 +106,7 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('سلة المشتريات'),
+        title: Text(_t('سلة المشتريات')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -162,7 +164,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'سلة المشتريات فارغة',
+            _t('سلة المشتريات فارغة'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -171,7 +173,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'أضف منتجات من الصيدلية أو المختبرات',
+            _t('أضف منتجات من الصيدلية أو المختبرات'),
             style: TextStyle(
               fontSize: 14,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -183,7 +185,7 @@ class _CartScreenState extends State<CartScreen> {
               Navigator.pop(context);
             },
             icon: const Icon(Icons.shopping_bag),
-            label: const Text('تسوق الآن'),
+            label: Text(_t('تسوق الآن')),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -270,7 +272,7 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     if (hasDiscount) ...[
                       Text(
-                        '${item.price.toStringAsFixed(0)} ريال',
+                        AppStrings.of(context).formatCurrency(item.price),
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -279,7 +281,7 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '${item.totalWithDiscount.toStringAsFixed(0)} ريال',
+                        AppStrings.of(context).formatCurrency(item.totalWithDiscount),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -294,7 +296,7 @@ class _CartScreenState extends State<CartScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'خصم ${item.discount!.toStringAsFixed(0)}%',
+                          _t('الخصم') + ' ${item.discount!.toStringAsFixed(0)}%',
                           style: const TextStyle(
                             fontSize: 8,
                             color: Colors.green,
@@ -304,7 +306,7 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ] else ...[
                       Text(
-                        '${item.total.toStringAsFixed(0)} ريال',
+                        AppStrings.of(context).formatCurrency(item.total),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -321,7 +323,7 @@ class _CartScreenState extends State<CartScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
-                          'غير متوفر',
+                          _t('غير متوفر'),
                           style: TextStyle(
                             fontSize: 8,
                             color: Colors.red,
@@ -407,14 +409,14 @@ class _CartScreenState extends State<CartScreen> {
       ),
       child: Column(
         children: [
-          _buildSummaryRow('المجموع الفرعي', _subtotal),
+          _buildSummaryRow(_t('المجموع الفرعي'), _subtotal),
           if (_discount > 0)
-            _buildSummaryRow('الخصم', -_discount, color: Colors.green),
-          _buildSummaryRow('رسوم التوصيل', _deliveryFee),
-          _buildSummaryRow('الضريبة', _tax),
+            _buildSummaryRow(_t('الخصم'), -_discount, color: Colors.green),
+          _buildSummaryRow(_t('رسوم التوصيل'), _deliveryFee),
+          _buildSummaryRow(_t('الضريبة'), _tax),
           const Divider(height: 16),
           _buildSummaryRow(
-            'الإجمالي',
+            _t('الإجمالي'),
             _total,
             isTotal: true,
           ),
@@ -426,7 +428,7 @@ class _CartScreenState extends State<CartScreen> {
               onPressed: _items.isEmpty ? null : () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('جاري التوجيه إلى صفحة الدفع...'),
+                    content: Text(_t('جاري التوجيه إلى صفحة الدفع...')),
                     backgroundColor: Colors.teal,
                   ),
                 );
@@ -443,7 +445,7 @@ class _CartScreenState extends State<CartScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'إتمام الطلب (${_total.toStringAsFixed(0)} ريال)',
+                    _t('إتمام الطلب') + ' (' + AppStrings.of(context).formatCurrency(_total) + ')',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -477,7 +479,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
           ),
           Text(
-            '${value.toStringAsFixed(0)} ريال',
+            AppStrings.of(context).formatCurrency(value),
             style: TextStyle(
               fontSize: isTotal ? 14 : 13,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,

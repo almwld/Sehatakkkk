@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_plus/share_plus.dart';
@@ -324,11 +325,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
       
       if (image == null) return;
       
-      ToastService.showInfo('⏳ جاري رفع الصورة...');
+      ToastService.showInfo('⏳ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'جاري رفع الصورة...' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Téléversement de l’image…' : 'Uploading image…'}');
       
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+        ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'يرجى تسجيل الدخول أولاً' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Veuillez d’abord vous connecter' : 'Please sign in first'}');
         return;
       }
 
@@ -349,9 +350,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
       });
       
       await _saveToCache();
-      ToastService.showSuccess('✅ تم رفع الصورة بنجاح');
+      ToastService.showSuccess('✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم رفع الصورة بنجاح' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Image téléversée avec succès' : 'Image uploaded successfully'}');
     } catch (e) {
-      ToastService.showError('❌ فشل رفع الصورة: $e');
+      ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'فشل رفع الصورة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Échec du téléversement de l’image' : 'Image upload failed'}: $e');
     }
   }
 
@@ -360,22 +361,22 @@ class _PatientDashboardState extends State<PatientDashboard> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+        ToastService.showError('❌ ${AppStrings.of(context).translate('يرجى تسجيل الدخول أولاً')}');
         return;
       }
 
       final shareText = '''
-🏥 ملفي الصحي - صحتك (Sehatak)
+🏥 ${AppStrings.of(context).translate('ملفي الصحي - صحتك')} (Sehatak)
 
-👤 الاسم: $_userName
-📧 البريد: $_userEmail
-📱 الهاتف: $_userPhone
-🩸 فصيلة الدم: $_bloodType
-🔢 رقم المريض: $_patientNumber
+👤 ${AppStrings.of(context).translate('الاسم')}: $_userName
+📧 ${AppStrings.of(context).translate('البريد')}: $_userEmail
+📱 ${AppStrings.of(context).translate('الهاتف')}: $_userPhone
+🩸 ${AppStrings.of(context).translate('فصيلة الدم')}: $_bloodType
+🔢 ${AppStrings.of(context).translate('رقم المريض')}: $_patientNumber
 ''';
-      await Share.share(shareText, subject: 'ملفي الصحي - صحتك');
+      await Share.share(shareText, subject: AppStrings.of(context).translate('ملفي الصحي - صحتك'));
     } catch (e) {
-      ToastService.showError('❌ فشل مشاركة الملف: $e');
+      ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'فشل مشاركة الملف' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Échec du partage du fichier' : 'File sharing failed'}: $e');
     } finally {
       setState(() => _isSharing = false);
     }
@@ -385,7 +386,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('رمز QR للملف الصحي'),
+        title: Text(AppStrings.of(context).translate('رمز QR للملف الصحي')),
         content: SizedBox(
           width: 200,
           height: 200,
@@ -396,7 +397,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+            child: Text(AppStrings.of(context).translate('إغلاق')),
           ),
         ],
       ),
@@ -414,7 +415,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ملفي الصحي'),
+        title: Text(AppStrings.of(context).translate('ملفي الصحي')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -433,7 +434,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 color: Colors.orange.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text('📶 غير متصل', style: TextStyle(fontSize: 9, color: Colors.orange)),
+              child: Text(AppStrings.of(context).translate('📶 غير متصل'), style: TextStyle(fontSize: 9, color: Colors.orange)),
             ),
           Container(
             margin: const EdgeInsets.only(right: 8),
@@ -452,12 +453,12 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
                 : const Icon(Icons.share),
             onPressed: _isSharing ? null : _shareProfile,
-            tooltip: 'مشاركة الملف الصحي',
+            tooltip: AppStrings.of(context).translate('مشاركة الملف الصحي'),
           ),
           IconButton(
             icon: const Icon(Icons.qr_code),
             onPressed: _showQRCode,
-            tooltip: 'عرض الباركود',
+            tooltip: AppStrings.of(context).translate('عرض الباركود'),
           ),
         ],
       ),
@@ -587,11 +588,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
             Text(
-              'رقم المريض: $_patientNumber',
+              '${AppStrings.of(context).translate('رقم المريض')}: $_patientNumber',
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
             Text(
-              'العمر: 29 سنة • فصيلة الدم: $_bloodType',
+              '${AppStrings.of(context).translate('العمر')}: 29 ${AppStrings.of(context).translate('سنة')} • ${AppStrings.of(context).translate('فصيلة الدم')}: $_bloodType',
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
             const SizedBox(height: 12),
@@ -613,8 +614,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
       children: [
         _buildIcon(iconPath, size: 28, color: Colors.white),
         const SizedBox(height: 2),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 9)),
+        Text(AppStrings.of(context).translate(value), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+        Text(AppStrings.of(context).translate(label), style: const TextStyle(color: Colors.white60, fontSize: 9)),
       ],
     );
   }
@@ -707,7 +708,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         return GridView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:3,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:.9),itemCount:all.length,itemBuilder:(context,index){
           final vital=all[index];final label=vital['label'] as String;final value=values[label]??vital['value'] as String;final color=vital['color'] as Color;
           return GestureDetector(onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>vital['screen'] as Widget)),child:Container(padding:const EdgeInsets.all(8),decoration:BoxDecoration(color:isDark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
-            _buildIcon(vital['icon'] as String,size:42,color:color),const SizedBox(height:6),Text(value,style:TextStyle(fontSize:14,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87),maxLines:1,overflow:TextOverflow.ellipsis),Text(label,style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[600]),maxLines:1,overflow:TextOverflow.ellipsis)
+            _buildIcon(vital['icon'] as String,size:42,color:color),const SizedBox(height:6),Text(AppStrings.of(context).translate(value),style:TextStyle(fontSize:14,fontWeight:FontWeight.bold,color:isDark?Colors.white:Colors.black87),maxLines:1,overflow:TextOverflow.ellipsis),Text(AppStrings.of(context).translate(label),style:TextStyle(fontSize:10,color:isDark?Colors.grey[400]:Colors.grey[600]),maxLines:1,overflow:TextOverflow.ellipsis)
           ])));
         });
       },
@@ -819,7 +820,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           Expanded(
             child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
           ),
-          Text(value, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          Text(AppStrings.of(context).translate(value), style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ],
       ),
     );
@@ -836,8 +837,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
         children: [
           _buildIcon('assets/images/services/blood_donation.webp', size: 40, color: AppColors.primary),
           const SizedBox(width: 10),
-          const Expanded(
-            child: Text('جميع التطعيمات محدثة', style: TextStyle(fontSize: 12)),
+          Expanded(
+            child: Text(AppStrings.of(context).translate('جميع التطعيمات محدثة'), style: TextStyle(fontSize: 12)),
           ),
         ],
       ),
@@ -855,8 +856,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
         children: [
           _buildIcon('assets/images/tracking/mental_health.webp', size: 40, color: AppColors.primary),
           const SizedBox(width: 10),
-          const Expanded(
-            child: Text('لا توجد حساسية مسجلة', style: TextStyle(fontSize: 12)),
+          Expanded(
+            child: Text(AppStrings.of(context).translate('لا توجد حساسية مسجلة'), style: TextStyle(fontSize: 12)),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +15,8 @@ class AddMedicationScreen extends StatefulWidget {
 }
 
 class _AddMedicationScreenState extends State<AddMedicationScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final _name = TextEditingController();
   final _dose = TextEditingController();
   final _frequency = TextEditingController(text: 'مرة يومياً');
@@ -101,7 +104,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         _dose.text.trim().isEmpty ||
         _doseTimes.isEmpty ||
         _parseTime(_time.text) == null) {
-      ToastService.showError('أدخل اسم الدواء والجرعة ووقتاً صحيحاً');
+      ToastService.showError(_t('أدخل اسم الدواء والجرعة ووقتاً صحيحاً'));
       return;
     }
 
@@ -125,7 +128,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         Navigator.pop(context, true);
       }
     } catch (_) {
-      if (mounted) ToastService.showError('تعذر حفظ الدواء');
+      if (mounted) ToastService.showError(_t('تعذر حفظ الدواء'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -159,7 +162,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           ? const Color(0xFF0B1121)
           : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('إضافة دواء'),
+        title: Text(_t('إضافة دواء')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -178,21 +181,21 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'سيتم تفعيل تنبيهات محلية دقيقة لكل أوقات الجرعات، حتى عند إغلاق التطبيق.',
+                    _t('سيتم تفعيل تنبيهات محلية دقيقة لكل أوقات الجرعات، حتى عند إغلاق التطبيق.'),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          _field('اسم الدواء', _name),
+          _field(_t('اسم الدواء'), _name),
           const SizedBox(height: 12),
-          _field('الجرعة', _dose),
+          _field(_t('الجرعة'), _dose),
           const SizedBox(height: 12),
-          _field('التكرار', _frequency),
+          _field(_t('التكرار'), _frequency),
           const SizedBox(height: 12),
           _field(
-            'وقت الجرعة الأساسي',
+            _t('وقت الجرعة الأساسي'),
             _time,
             onTap: () => _pickTime(index: 0),
           ),
@@ -203,8 +206,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'أوقات الجرعات',
+                  Text(
+                    _t('أوقات الجرعات'),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -237,7 +240,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                   OutlinedButton.icon(
                     onPressed: _pickTime,
                     icon: SvgPicture.asset(AppAssets.addIcon, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
-                    label: const Text('إضافة وقت جرعة'),
+                    label: Text(_t('إضافة وقت جرعة')),
                   ),
                 ],
               ),
@@ -248,7 +251,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             contentPadding: EdgeInsets.zero,
             leading: SvgPicture.asset(AppAssets.calendarIcon, width: 22, height: 22, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
             title: Text(
-              'تاريخ البدء: ${DateFormat('yyyy-MM-dd').format(_startDate)}',
+              '${_t('تاريخ البدء')}: ${DateFormat('yyyy-MM-dd').format(_startDate)}',
             ),
             onTap: () async {
               final date = await showDatePicker(
@@ -261,18 +264,18 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             },
           ),
           _field(
-            'الكمية المتبقية',
+            _t('الكمية المتبقية'),
             _remaining,
             type: TextInputType.number,
           ),
           const SizedBox(height: 12),
           _field(
-            'إجمالي الكمية',
+            _t('إجمالي الكمية'),
             _total,
             type: TextInputType.number,
           ),
           const SizedBox(height: 12),
-          _field('ملاحظات', _notes),
+          _field(_t('ملاحظات'), _notes),
           const SizedBox(height: 24),
           SizedBox(
             height: 52,
@@ -284,8 +287,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
               ),
               child: _saving
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'حفظ وتفعيل التنبيهات',
+                  : Text(
+                      _t('حفظ وتفعيل التنبيهات'),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,

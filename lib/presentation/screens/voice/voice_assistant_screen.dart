@@ -2,6 +2,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class VoiceAssistantScreen extends StatefulWidget {
   const VoiceAssistantScreen({super.key});
@@ -11,6 +12,7 @@ class VoiceAssistantScreen extends StatefulWidget {
 }
 
 class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
   String _text = 'اضغط على الميكروفون للتحدث';
@@ -89,7 +91,7 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('المساعد الصوتي', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('المساعد الصوتي'), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.purple,
         foregroundColor: Colors.white,
       ),
@@ -123,7 +125,7 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              _isListening ? 'جاري الاستماع...' : 'اضغط للتحدث',
+              _isListening ? _t('جاري الاستماع...') : _t('اضغط للتحدث'),
               style: TextStyle(
                 color: _isListening ? AppColors.error : AppColors.grey,
                 fontSize: 14,
@@ -137,7 +139,7 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                _text,
+                _t(_text),
                 style: const TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
@@ -156,7 +158,7 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
                     const Icon(Icons.auto_awesome, color: AppColors.primary),
                     const SizedBox(height: 8),
                     Text(
-                      _response,
+                      _t(_response),
                       style: const TextStyle(fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
@@ -175,7 +177,7 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
                     border: Border.all(color: AppColors.primary.withOpacity(0.2)),
                   ),
                   child: Text(
-                    cmd['command']!,
+                    _t(cmd['command']!),
                     style: const TextStyle(fontSize: 11, color: AppColors.primary),
                   ),
                 );

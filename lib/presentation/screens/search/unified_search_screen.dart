@@ -7,6 +7,7 @@ import 'package:sehatak/core/services/search_service.dart';
 import 'package:sehatak/core/services/unified_search_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/unified_search_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class AdvancedSearchScreen extends StatefulWidget {
   final String? initialQuery;
@@ -17,6 +18,7 @@ class AdvancedSearchScreen extends StatefulWidget {
 }
 
 class _UnifiedSearchScreenState extends State<AdvancedSearchScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _controller = TextEditingController();
   final _service = UnifiedSearchService();
   final _history = SearchService();
@@ -75,12 +77,12 @@ class _UnifiedSearchScreenState extends State<AdvancedSearchScreen> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('البحث الذكي'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(_t('البحث الذكي')), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: Column(children: [
         UnifiedSearchBar(
           controller: _controller,
           onChanged: _suggest,
-          hint: 'طبيب، دواء، خدمة، مستشفى، مقال...',
+          hint: _t('طبيب، دواء، خدمة، مستشفى، مقال...'),
           margin: const EdgeInsets.fromLTRB(14, 14, 14, 8),
           suffixIcon: _loading
               ? const SizedBox(
@@ -95,7 +97,7 @@ class _UnifiedSearchScreenState extends State<AdvancedSearchScreen> {
           onTap: () {},
         ),
         if (_suggestions.isNotEmpty && _results.isEmpty) _suggestionsView(dark),
-        SizedBox(height: 44, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 14), itemCount: _types.length, separatorBuilder: (_, __) => const SizedBox(width: 6), itemBuilder: (_, i) { final entry = _types.entries.elementAt(i); final selected = _type == entry.key; return ChoiceChip(label: Text(entry.key, style: TextStyle(fontSize: 10, color: selected ? Colors.white : (dark ? Colors.white70 : Colors.black87))), selected: selected, selectedColor: AppColors.primary, onSelected: (_) => setState(() => _type = entry.key)); })),
+        SizedBox(height: 44, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 14), itemCount: _types.length, separatorBuilder: (_, __) => const SizedBox(width: 6), itemBuilder: (_, i) { final entry = _types.entries.elementAt(i); final selected = _type == entry.key; return ChoiceChip(label: Text(_t(entry.key), style: TextStyle(fontSize: 10, color: selected ? Colors.white : (dark ? Colors.white70 : Colors.black87))), selected: selected, selectedColor: AppColors.primary, onSelected: (_) => setState(() => _type = entry.key)); })),
         Expanded(child: _loading ? const Center(child: CircularProgressIndicator()) : _filtered.isEmpty ? _empty(dark) : ListView.builder(padding: const EdgeInsets.fromLTRB(14, 8, 14, 24), itemCount: _filtered.length, itemBuilder: (_, i) => _resultCard(_filtered[i], dark))),
       ]),
     );
@@ -108,7 +110,7 @@ class _UnifiedSearchScreenState extends State<AdvancedSearchScreen> {
     const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(result.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: dark ? Colors.white : const Color(0xFF173131))), if (result.subtitle.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: Text(result.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: dark ? Colors.white60 : Colors.grey[600]))), Text(_label(result.type), style: const TextStyle(fontSize: 9, color: AppColors.primary, fontWeight: FontWeight.w800))]))
   ])));
 
-  String _label(String type) => const {'doctor':'طبيب','pharmacy':'صيدلية','lab':'مختبر','hospital':'مستشفى','product':'منتج','drug':'دواء','article':'مقال','post':'منشور','health':'صحتي','service':'خدمة'}[type] ?? 'نتيجة';
+  String _label(String type) => _t({'doctor':'طبيب','pharmacy':'صيدلية','lab':'مختبر','hospital':'مستشفى','product':'منتج','drug':'دواء','article':'مقال','post':'منشور','health':'صحتي','service':'خدمة'}[type] ?? 'نتيجة');
 
   void _open(UnifiedSearchResult result) {
     switch (result.type) {
@@ -137,5 +139,5 @@ class _UnifiedSearchScreenState extends State<AdvancedSearchScreen> {
 
   void _go(String route) => context.push(route);
 
-  Widget _empty(bool dark) => Center(child: Padding(padding: const EdgeInsets.all(30), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(_controller.text.isEmpty ? 'ابحث في منصة صحتك' : 'لا توجد نتائج مطابقة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: dark ? Colors.white : const Color(0xFF173131))), const SizedBox(height: 8), Text('يشمل الأطباء والأدوية والمنتجات والمنشآت والخدمات والمقالات والمجتمع وبيانات صحتي.', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: dark ? Colors.white60 : Colors.grey[600]))])));
+  Widget _empty(bool dark) => Center(child: Padding(padding: const EdgeInsets.all(30), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(_t(_controller.text.isEmpty ? 'ابحث في منصة صحتك' : 'لا توجد نتائج مطابقة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: dark ? Colors.white : const Color(0xFF173131))), const SizedBox(height: 8), Text(_t('يشمل الأطباء والأدوية والمنتجات والمنشآت والخدمات والمقالات والمجتمع وبيانات صحتي.'), textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: dark ? Colors.white60 : Colors.grey[600]))])));
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -24,10 +25,18 @@ class _HelpScreenState extends State<HelpScreen> {
     _Faq('كيف أتواصل مع الدعم؟', 'استخدم البريد الإلكتروني أو الاتصال الهاتفي من قسم تواصل مع الدعم أدناه.', Icons.support_agent_rounded),
   ];
 
+  TextDirection _textDirection(BuildContext context) =>
+      AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr;
+
   List<_Faq> get _filteredFaqs {
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return _faqs;
-    return _faqs.where((faq) => (faq.question + ' ' + faq.answer).toLowerCase().contains(q)).toList();
+    final strings = AppStrings.of(context);
+    return _faqs.where((faq) {
+      final question = strings.translate(faq.question);
+      final answer = strings.translate(faq.answer);
+      return ('$question $answer').toLowerCase().contains(q);
+    }).toList();
   }
 
   @override
@@ -42,11 +51,11 @@ class _HelpScreenState extends State<HelpScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح وسيلة التواصل')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر فتح وسيلة التواصل'))));
       }
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح وسيلة التواصل')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر فتح وسيلة التواصل'))));
     }
   }
 
@@ -58,7 +67,7 @@ class _HelpScreenState extends State<HelpScreen> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF081A1A) : const Color(0xFFF6F9F9),
       appBar: CustomAppBar(
-        title: 'المساعدة والدعم',
+        title: AppStrings.of(context).translate('المساعدة والدعم'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -71,9 +80,9 @@ class _HelpScreenState extends State<HelpScreen> {
           TextField(
             controller: _searchController,
             onChanged: (value) => setState(() => _query = value),
-            textDirection: TextDirection.rtl,
+            
             decoration: InputDecoration(
-              hintText: 'ابحث في الأسئلة الشائعة...',
+              hintText: AppStrings.of(context).translate('ابحث في الأسئلة الشائعة...'),
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: _query.isEmpty
                   ? null
@@ -90,7 +99,7 @@ class _HelpScreenState extends State<HelpScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          const Text('الأسئلة الشائعة', textDirection: TextDirection.rtl, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          Text(AppStrings.of(context).translate('الأسئلة الشائعة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
           if (faqs.isEmpty)
             _EmptyFaq(dark: dark)
@@ -117,21 +126,18 @@ class _HeroCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(22)),
-      child: const Row(
+      child: Row(
         children: [
           CircleAvatar(radius: 28, backgroundColor: Colors.white24, child: Icon(Icons.support_agent_rounded, color: Colors.white, size: 32)),
           SizedBox(width: 14),
           Expanded(
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Column(
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('كيف يمكننا مساعدتك؟', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900)),
+                  Text(AppStrings.of(context).translate('كيف يمكننا مساعدتك؟'), style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900)),
                   SizedBox(height: 5),
-                  Text('ابحث عن إجابة أو تواصل مباشرة مع فريق الدعم.', style: TextStyle(color: Colors.white70, height: 1.45)),
+                  Text(AppStrings.of(context).translate('ابحث عن إجابة أو تواصل مباشرة مع فريق الدعم.'), style: TextStyle(color: Colors.white70, height: 1.45)),
                 ],
-              ),
             ),
           ),
         ],
@@ -165,15 +171,15 @@ class _FaqTile extends StatelessWidget {
           child: Icon(faq.icon, color: AppColors.primary, size: 20),
         ),
         title: Text(
-          faq.question,
-          textDirection: TextDirection.rtl,
+          AppStrings.of(context).translate(faq.question),
+          textDirection: AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
           style: TextStyle(color: dark ? Colors.white : const Color(0xFF173131), fontSize: 14, fontWeight: FontWeight.w800),
         ),
         children: [
           Align(
             alignment: AlignmentDirectional.centerEnd,
             child: Text(
-              faq.answer,
+              AppStrings.of(context).translate(faq.answer),
               textDirection: TextDirection.rtl,
               style: TextStyle(color: dark ? Colors.white70 : const Color(0xFF647474), fontSize: 13, height: 1.7),
             ),
@@ -203,15 +209,15 @@ class _SupportCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('تواصل مع الدعم', textDirection: TextDirection.rtl, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          Text(AppStrings.of(context).translate('تواصل مع الدعم'), textDirection: TextDirection.rtl, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
           const SizedBox(height: 6),
-          Text('اختر الطريقة المناسبة وسنساعدك في أقرب وقت.', textDirection: TextDirection.rtl, style: TextStyle(color: dark ? Colors.white60 : Colors.black54, fontSize: 12)),
+          Text(AppStrings.of(context).translate('اختر الطريقة المناسبة وسنساعدك في أقرب وقت.'), textDirection: TextDirection.rtl, style: TextStyle(color: dark ? Colors.white60 : Colors.black54, fontSize: 12)),
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: _ContactButton(icon: Icons.email_outlined, label: 'البريد الإلكتروني', value: 'support@sehatak.com', onTap: onEmail)),
+              Expanded(child: _ContactButton(icon: Icons.email_outlined, label: AppStrings.of(context).translate('البريد الإلكتروني'), value: 'support@sehatak.com', onTap: onEmail)),
               const SizedBox(width: 10),
-              Expanded(child: _ContactButton(icon: Icons.phone_outlined, label: 'الهاتف', value: '+967 1 234 567', onTap: onPhone)),
+              Expanded(child: _ContactButton(icon: Icons.phone_outlined, label: AppStrings.of(context).translate('الهاتف'), value: '+967 1 234 567', onTap: onPhone)),
             ],
           ),
         ],
@@ -262,7 +268,7 @@ class _EmptyFaq extends StatelessWidget {
         children: [
           Icon(Icons.search_off_rounded, size: 48, color: dark ? Colors.white24 : Colors.black26),
           const SizedBox(height: 8),
-          Text('لا توجد نتائج مطابقة', style: TextStyle(color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w700)),
+          Text(AppStrings.of(context).translate('لا توجد نتائج مطابقة'), style: TextStyle(color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w700)),
         ],
       ),
     );

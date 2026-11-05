@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
@@ -26,7 +27,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الفيديوهات التثقيفية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.of(context).translate('الفيديوهات التثقيفية'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -45,7 +46,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+                  return Center(child: Text('${AppStrings.of(context).translate('حدث خطأ')}: ${snapshot.error}'));
                 }
 
                 var videos = snapshot.data?.docs ?? [];
@@ -64,13 +65,13 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                 }
 
                 if (videos.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.video_library, size: 60, color: AppColors.grey),
                         SizedBox(height: 16),
-                        Text('لا توجد فيديوهات', style: TextStyle(color: AppColors.grey)),
+                        Text(AppStrings.of(context).translate('لا توجد فيديوهات'), style: TextStyle(color: AppColors.grey)),
                       ],
                     ),
                   );
@@ -106,7 +107,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
           color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
           borderRadius: BorderRadius.circular(14),
         ),
-        child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن فيديو...'),
+        child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: AppStrings.of(context).translate('ابحث عن فيديو...')),
       ),
     );
   }
@@ -131,7 +132,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                cat,
+                AppStrings.of(context).translate(cat),
                 style: TextStyle(
                   color: selected ? Colors.white : AppColors.darkGrey,
                   fontSize: 12,
@@ -197,14 +198,14 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  data['title'] ?? 'فيديو تعليمي',
+                  data['title'] ?? AppStrings.of(context).translate('فيديو تعليمي'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  data['category'] ?? 'تعليمي',
+                  AppStrings.of(context).translate(data['category']?.toString() ?? 'تعليمي'),
                   style: const TextStyle(fontSize: 9, color: AppColors.grey),
                 ),
                 const SizedBox(height: 4),
@@ -216,7 +217,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                     const Spacer(),
                     ElevatedButton(
                       onPressed: () {
-                        ToastService.showSuccess(context, '▶️ جاري تشغيل الفيديو...');
+                        ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? '▶️ جاري تشغيل الفيديو...' : AppStrings.of(context).locale.languageCode == 'fr' ? '▶️ Lecture de la vidéo…' : '▶️ Playing video…');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
@@ -225,7 +226,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         textStyle: const TextStyle(fontSize: 8),
                       ),
-                      child: const Text('تشغيل'),
+                      child: Text(AppStrings.of(context).translate('تشغيل')),
                     ),
                   ],
                 ),

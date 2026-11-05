@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/health/health_medical_visualization.dart';
@@ -28,16 +29,16 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
 
   Future<void> _saveWeight() async{
     final v=double.tryParse(_weight.text.trim());
-    if(v==null||v<=0||v>500){ToastService.showError('أدخل وزناً صحيحاً');return;}
+    if(v==null||v<=0||v>500){ToastService.showError(AppStrings.of(context).translate('أدخل وزناً صحيحاً'));return;}
     final now=DateTime.now();_history.insert(0,{'weight':v,'date':now.toIso8601String(),'note':_note.text.trim()});
     final p=await SharedPreferences.getInstance();await p.setString(_cacheKey,jsonEncode(_history));
     try{await HealthMetricsService.update({'weight':v,'weight_at':now.toIso8601String()});}catch(_){}
-    _weight.clear();_note.clear();if(mounted){setState((){});ToastService.showSuccess('تم تسجيل الوزن');}
+    _weight.clear();_note.clear();if(mounted){setState((){});ToastService.showSuccess(AppStrings.of(context).translate('تم تسجيل الوزن'));}
   }
 
   Future<void> _setTarget() async{
     final c=TextEditingController(text:_target?.toString()??'');
-    final v=await showDialog<double>(context:context,builder:(_)=>AlertDialog(title:const Text('الوزن المستهدف'),content:TextField(controller:c,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'كجم')),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('إلغاء')),ElevatedButton(onPressed:(){final n=double.tryParse(c.text);if(n!=null&&n>0)Navigator.pop(context,n);},child:const Text('حفظ'))]));
+    final v=await showDialog<double>(context:context,builder:(_)=>AlertDialog(title:Text(AppStrings.of(context).translate('الوزن المستهدف')),content:TextField(controller:c,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:AppStrings.of(context).translate('كجم'))),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:Text(AppStrings.of(context).translate('إلغاء'))),ElevatedButton(onPressed:(){final n=double.tryParse(c.text);if(n!=null&&n>0)Navigator.pop(context,n);},child:Text(AppStrings.of(context).translate('حفظ')))]));
     c.dispose();if(v!=null){final p=await SharedPreferences.getInstance();await p.setDouble('target_weight',v);setState(()=>_target=v);}
   }
 
@@ -47,8 +48,8 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
     final latest = _history.isEmpty ? null : _history.first;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
-      appBar: AppBar(title: const Text('تتبع الوزن'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _setTarget, icon: const Icon(Icons.track_changes_outlined))]),
-      floatingActionButton: FloatingActionButton.extended(onPressed: () => _addSheet(dark), backgroundColor: AppColors.primary, icon: const Icon(Icons.add_rounded), label: const Text('إضافة وزن')),
+      appBar: AppBar(title: Text(AppStrings.of(context).translate('تتبع الوزن')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _setTarget, icon: const Icon(Icons.track_changes_outlined))]),
+      floatingActionButton: FloatingActionButton.extended(onPressed: () => _addSheet(dark), backgroundColor: AppColors.primary, icon: const Icon(Icons.add_rounded), label: Text(AppStrings.of(context).translate('إضافة وزن'))),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: _loading ? const Center(child: CircularProgressIndicator()) : ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
@@ -67,17 +68,17 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
             Container(width: 58, height: 58, decoration: BoxDecoration(color: Colors.white.withOpacity(.14), shape: BoxShape.circle), child: const Icon(Icons.monitor_weight_outlined, color: Colors.white, size: 30)),
             const SizedBox(width: 14),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('آخر وزن مسجل', style: TextStyle(color: Colors.white70)),
+              Text(AppStrings.of(context).translate('آخر وزن مسجل'), style: TextStyle(color: Colors.white70)),
               const SizedBox(height: 4),
-              Text(latest == null ? 'لا يوجد' : '${latest['weight']} كجم', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
-              if (_target != null) Text('الهدف: $_target كجم', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+              Text(latest == null ? AppStrings.of(context).translate('لا يوجد') : '${latest['weight']} ${AppStrings.of(context).translate('كجم')}', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
+              if (_target != null) Text('${AppStrings.of(context).translate('الهدف:')} $_target ${AppStrings.of(context).translate('كجم')}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
             ])),
           ])),
           const SizedBox(height: 18),
-          const Text('السجل', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          Text(AppStrings.of(context).translate('السجل'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
           if (_history.isEmpty)
-            Container(padding: const EdgeInsets.all(28), decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(18)), child: const Text('لا توجد بيانات وزن بعد. أضف قياسك الفعلي.', textAlign: TextAlign.center))
+            Container(padding: const EdgeInsets.all(28), decoration: BoxDecoration(color: dark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(18)), child: Text(AppStrings.of(context).translate('لا توجد بيانات وزن بعد. أضف قياسك الفعلي.'), textAlign: TextAlign.center))
           else
             ..._history.map((r) => Container(
               margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(15),
@@ -85,7 +86,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
               child: Row(children: [
                 const Icon(Icons.monitor_weight_outlined, color: AppColors.primary), const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('${r['weight']} كجم', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  Text('${r['weight']} ${AppStrings.of(context).translate('كجم')}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                   Text(_time(r['date']?.toString() ?? ''), style: TextStyle(fontSize: 11, color: dark ? Colors.grey[400] : Colors.grey[600])),
                   if ((r['note'] ?? '').toString().isNotEmpty) Text(r['note'].toString(), style: const TextStyle(fontSize: 11)),
                 ])),
@@ -113,8 +114,8 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'إضافة قياس وزن',
+            Text(
+              AppStrings.of(context).translate('إضافة قياس وزن'),
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 14),
@@ -122,16 +123,16 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
               controller: _weight,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               textAlign: TextAlign.center,
-              decoration: const InputDecoration(
-                labelText: 'الوزن بالكيلوجرام',
+              decoration: InputDecoration(
+                labelText: AppStrings.of(context).translate('الوزن بالكيلوجرام'),
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _note,
-              decoration: const InputDecoration(
-                labelText: 'ملاحظة اختيارية',
+              decoration: InputDecoration(
+                labelText: AppStrings.of(context).translate('ملاحظة اختيارية'),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -147,7 +148,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen>{
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                 ),
-                child: _saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Text('حفظ القياس'),
+                child: _saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : Text(AppStrings.of(context).translate('حفظ القياس')),
               ),
             ),
           ],

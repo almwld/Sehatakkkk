@@ -1,5 +1,6 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class InsuranceScreen extends StatefulWidget {
@@ -71,6 +72,38 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
   String _selectedFilter = 'الكل';
   final List<String> _filters = ['الكل', 'وطني', 'خاص', 'حكومي', 'الأعلى تقييماً'];
 
+  String _translateInsuranceText(String value) {
+    final strings = AppStrings.of(context);
+    const translations = <String, List<String>>{
+      'شركة اليمن للتأمين': ['Yemen Insurance Company', 'Compagnie d’assurance du Yémen'],
+      'شركة الرعاية للتأمين': ['Care Insurance Company', 'Compagnie d’assurance Al-Riaya'],
+      'هيئة التأمين الصحي الوطنية': ['National Health Insurance Authority', 'Autorité nationale d’assurance maladie'],
+      'شركة الصفوة للتأمين': ['Al-Safwa Insurance Company', 'Compagnie d’assurance Al-Safwa'],
+      'شركة الثقة للتأمين': ['Al-Thiqa Insurance Company', 'Compagnie d’assurance Al-Thiqa'],
+      'تغطية شاملة': ['Comprehensive coverage', 'Couverture complète'],
+      'شبكة واسعة من المستشفيات': ['Extensive hospital network', 'Vaste réseau hospitalier'],
+      'خدمة عملاء 24/7': ['24/7 customer support', 'Service client 24 h/24 et 7 j/7'],
+      'تغطية متقدمة': ['Enhanced coverage', 'Couverture renforcée'],
+      'خصومات على الأدوية': ['Medicine discounts', 'Réductions sur les médicaments'],
+      'استشارات مجانية': ['Free consultations', 'Consultations gratuites'],
+      'تغطية أساسية': ['Basic coverage', 'Couverture de base'],
+      'أسعار مخفضة': ['Reduced prices', 'Tarifs réduits'],
+      'شبكة حكومية': ['Public healthcare network', 'Réseau de santé public'],
+      'مستشفيات ممتازة': ['Partner hospitals', 'Hôpitaux partenaires'],
+      'خدمة سريعة': ['Fast service', 'Service rapide'],
+      'تغطية متوسطة': ['Standard coverage', 'Couverture standard'],
+      'أسعار تنافسية': ['Competitive prices', 'Prix compétitifs'],
+      'دعم فوري': ['Immediate support', 'Assistance immédiate'],
+      'الكل': ['All', 'Tout'],
+      'الأعلى تقييماً': ['Top rated', 'Les mieux notés'],
+    };
+    final translated = translations[value];
+    if (translated == null) return strings.translate(value);
+    if (strings.locale.languageCode == 'en') return translated[0];
+    if (strings.locale.languageCode == 'fr') return translated[1];
+    return value;
+  }
+
   List<Map<String, dynamic>> get _filteredCompanies {
     var list = List<Map<String, dynamic>>.from(_companies);
     
@@ -100,7 +133,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('التأمين الصحي'),
+        title: Text(AppStrings.of(context).translate('التأمين الصحي')),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -108,7 +141,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () {
-              ToastService.showSuccess('📋 عرض سياساتي');
+              ToastService.showSuccess(AppStrings.of(context).translate('عرض سياساتي'));
             },
           ),
         ],
@@ -136,7 +169,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        filter,
+                        _translateInsuranceText(filter),
                         style: TextStyle(
                           color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -160,7 +193,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                         children: [
                           Icon(Icons.search_off, size: 60, color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
                           const SizedBox(height: 12),
-                          Text('لا توجد شركات تأمين', style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade600)),
+                          Text(AppStrings.of(context).translate('لا توجد شركات تأمين'), style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade600)),
                         ],
                       ),
                     )
@@ -212,7 +245,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      company['name'],
+                      _translateInsuranceText(company['name'].toString()),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -228,7 +261,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            company['type'],
+                            AppStrings.of(context).translate(company['type'].toString()),
                             style: TextStyle(
                               fontSize: 9,
                               color: AppColors.primary,
@@ -254,7 +287,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '\$${company['price']}/شهر',
+                    AppStrings.of(context).translate('السعر') + ': ' + AppStrings.of(context).formatCurrency((company['price'] as num?) ?? 0) + '/' + AppStrings.of(context).translate('شهر'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -262,7 +295,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                     ),
                   ),
                   Text(
-                    'تغطية ${company['coverage']}',
+                    '${AppStrings.of(context).translate('تغطية')} ${company['coverage']}',
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.green,
@@ -284,7 +317,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  feature,
+                  _translateInsuranceText(feature.toString()),
                   style: TextStyle(
                     fontSize: 10,
                     color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -308,7 +341,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('تفاصيل', style: TextStyle(fontSize: 12)),
+                  child: Text(AppStrings.of(context).translate('تفاصيل'), style: TextStyle(fontSize: 12)),
                 ),
               ),
               const SizedBox(width: 8),
@@ -322,7 +355,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('اشتراك', style: TextStyle(fontSize: 12)),
+                  child: Text(AppStrings.of(context).translate('اشتراك'), style: TextStyle(fontSize: 12)),
                 ),
               ),
             ],
@@ -374,14 +407,14 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        company['name'],
+                        _translateInsuranceText(company['name'].toString()),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        '${company['type']} • ⭐ ${company['rating']} (${company['reviews']} تقييم)',
+                        '${AppStrings.of(context).translate(company['type'].toString())} • ⭐ ${company['rating']} (${company['reviews']} ${AppStrings.of(context).translate('تقييم')})',
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                     ],
@@ -393,7 +426,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             const Divider(),
             const SizedBox(height: 8),
             Text(
-              'مميزات الباقة:',
+              AppStrings.of(context).translate('مميزات الباقة:'),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -407,7 +440,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   children: [
                     const Icon(Icons.check_circle, size: 16, color: Colors.green),
                     const SizedBox(width: 8),
-                    Text(feature),
+                    Text(_translateInsuranceText(feature.toString())),
                   ],
                 ),
               );
@@ -429,7 +462,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('الاشتراك الآن'),
+                    child: Text(AppStrings.of(context).translate('الاشتراك الآن')),
                   ),
                 ),
               ],
@@ -444,33 +477,33 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('الاشتراك في ${company['name']}'),
+        title: Text('${AppStrings.of(context).translate('الاشتراك في')} ${_translateInsuranceText(company['name'].toString())}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('السعر: \$${company['price']}/شهر'),
+            Text('${AppStrings.of(context).translate('السعر')}: ${AppStrings.of(context).formatCurrency((company['price'] as num?) ?? 0)}/${AppStrings.of(context).translate('شهر')}'),
             const SizedBox(height: 8),
-            Text('التغطية: ${company['coverage']}'),
+            Text('${AppStrings.of(context).translate('التغطية')}: ${company['coverage']}'),
             const SizedBox(height: 8),
-            const Text('هل أنت متأكد من رغبتك في الاشتراك؟'),
+            Text(AppStrings.of(context).translate('هل أنت متأكد من رغبتك في الاشتراك؟')),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(AppStrings.of(context).translate('إلغاء')),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              ToastService.showSuccess('✅ تم الاشتراك في ${company['name']} بنجاح!');
+              ToastService.showSuccess('✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم الاشتراك في' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Abonnement à' : 'Subscribed to'} ${_translateInsuranceText(company['name'].toString())} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'بنجاح!' : AppStrings.of(context).locale.languageCode == 'fr' ? 'avec succès !' : 'successfully!'}');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('تأكيد الاشتراك'),
+            child: Text(AppStrings.of(context).translate('تأكيد الاشتراك')),
           ),
         ],
       ),

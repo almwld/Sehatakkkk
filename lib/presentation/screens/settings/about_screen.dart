@@ -1,6 +1,7 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -8,11 +9,13 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final strings = AppStrings.of(context);
+    String t(String value) => strings.translate(value);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'عن التطبيق',
+        title: strings.about,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -21,7 +24,6 @@ class AboutScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ✅ الشعار
             Container(
               width: 100,
               height: 100,
@@ -36,29 +38,15 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-
-            // ✅ الاسم
             Text(
-              'صحتك',
+              'Sehatak',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 4),
-
-            // ✅ النسخة
-            Text(
-              'الإصدار 1.1.0',
-              style: TextStyle(
-                fontSize: 16,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // ✅ الوصف
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -74,38 +62,35 @@ class AboutScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'منصة صحتك الشاملة',
+                  Text(
+                    t('منصة صحتك الشاملة'),
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'تطبيق صحي متكامل يقدم خدمات طبية متقدمة تشمل حجز المواعيد، الاستشارات الطبية، متابعة المؤشرات الحيوية، وشراء الأدوية.',
+                    t('تطبيق صحي متكامل يقدم خدمات طبية متقدمة تشمل حجز المواعيد، الاستشارات الطبية، متابعة المؤشرات الحيوية، وشراء الأدوية.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      height: 1.5,
+                      height: 1.6,
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-
-            // ✅ المعلومات
-            _buildInfoItem('المطور', 'فريق صحتك', isDark),
-            _buildInfoItem('المنصة', 'Flutter + Firebase', isDark),
-            _buildInfoItem('النسخة', '1.1.0 (Build 240)', isDark),
-            _buildInfoItem('التاريخ', '2026', isDark),
+            _buildInfoItem(t('المطور'), t('فريق صحتك'), isDark),
+            _buildInfoItem(t('المنصة'), 'Flutter + Firebase', isDark),
+            _buildInfoItem(t('العام'), '2026', isDark),
             const SizedBox(height: 24),
-
-            // ✅ حقوق النشر
             Text(
-              '© 2026 Sehatak Platform\nجميع الحقوق محفوظة',
+              '© 2026 Sehatak Platform\n${t('جميع الحقوق محفوظة')}',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
@@ -137,12 +122,7 @@ class AboutScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-          ),
+          Text(label, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600])),
           Text(
             value,
             style: TextStyle(

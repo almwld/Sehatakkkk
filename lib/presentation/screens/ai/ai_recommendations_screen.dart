@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class AIRecommendationsScreen extends StatefulWidget {
   const AIRecommendationsScreen({super.key});
@@ -10,6 +11,7 @@ class AIRecommendationsScreen extends StatefulWidget {
 }
 
 class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final List<Map<String, dynamic>> _recommendations = [
     {
       'id': '1',
@@ -82,7 +84,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('توصيات الذكاء الاصطناعي 🤖'),
+        title: Text(_t('توصيات الذكاء الاصطناعي 🤖')),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -110,7 +112,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        category,
+                        _t(category),
                         style: TextStyle(
                           color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -134,7 +136,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                         children: [
                           Icon(Icons.search_off, size: 60, color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
                           const SizedBox(height: 12),
-                          Text('لا توجد توصيات', style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade600)),
+                          Text(_t('لا توجد توصيات'), style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade600)),
                         ],
                       ),
                     )
@@ -192,7 +194,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        recommendation['title'],
+                        _t(recommendation['title'] as String),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -209,7 +211,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        recommendation['category'],
+                        _t(recommendation['category'] as String),
                         style: TextStyle(
                           fontSize: 9,
                           color: color,
@@ -220,7 +222,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  recommendation['description'],
+                  _t(recommendation['description'] as String),
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -250,8 +252,8 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 0),
                       ),
-                      child: const Text(
-                        'تفاصيل',
+                      child: Text(
+                        _t('تفاصيل'),
                         style: TextStyle(fontSize: 12),
                       ),
                     ),
@@ -343,10 +345,10 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
-                      ToastService.showSuccess('✅ تم تطبيق التوصية: ${recommendation['title']}');
+                      ToastService.showSuccess('✅ ${_t('تم تطبيق التوصية: ')}${_t(recommendation['title'] as String)}');
                     },
                     icon: const Icon(Icons.check),
-                    label: const Text('تطبيق التوصية'),
+                    label: Text(_t('تطبيق التوصية')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -366,7 +368,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    label: const Text('إغلاق'),
+                    label: Text(_t('إغلاق')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 12),

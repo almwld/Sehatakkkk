@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:sehatak/core/constants/app_assets.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -15,7 +16,6 @@ import 'package:sehatak/presentation/screens/booking/booking_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
@@ -27,6 +27,8 @@ class DoctorDetailsScreen extends StatefulWidget {
 }
 
 class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ChatService _chatService = ChatService();
@@ -50,7 +52,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (Firebase.apps.isEmpty) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ToastService.showError('❌ خدمة Firebase غير جاهزة');
+        ToastService.showError(_t('خدمة Firebase غير جاهزة'));
       }
       return;
     }
@@ -66,14 +68,14 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
       if (!doctorDoc.exists || doctorDoc.data() == null) {
         setState(() => _isLoading = false);
-        ToastService.showError('❌ الطبيب غير موجود');
+        ToastService.showError(_t('الطبيب غير موجود'));
         return;
       }
 
       final doctor = DoctorModel.fromFirestore(doctorDoc.id, doctorDoc.data()!);
       if (doctor.isVerified != true) {
         setState(() => _isLoading = false);
-        ToastService.showError('❌ الطبيب غير متاح');
+        ToastService.showError(_t('الطبيب غير متاح'));
         return;
       }
 
@@ -84,7 +86,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ToastService.showError('❌ فشل تحميل بيانات الطبيب');
+      ToastService.showError(_t('فشل تحميل بيانات الطبيب'));
     }
   }
 
@@ -105,7 +107,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   Future<void> _toggleFavorite() async {
     final user = _auth.currentUser;
     if (user == null) {
-      ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+      ToastService.showError(_t('يرجى تسجيل الدخول أولاً'));
       return;
     }
 
@@ -119,17 +121,17 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       if (_isFavorite) {
         await ref.delete();
         if (mounted) setState(() => _isFavorite = false);
-        ToastService.showInfo('تمت إزالة الطبيب من المفضلة');
+        ToastService.showInfo(_t('تمت إزالة الطبيب من المفضلة'));
       } else {
         await ref.set({
           'doctorId': widget.doctorId,
           'addedAt': FieldValue.serverTimestamp(),
         });
         if (mounted) setState(() => _isFavorite = true);
-        ToastService.showSuccess('تمت إضافة الطبيب إلى المفضلة');
+        ToastService.showSuccess(_t('تمت إضافة الطبيب إلى المفضلة'));
       }
     } catch (_) {
-      ToastService.showError('❌ تعذر تحديث المفضلة');
+      ToastService.showError(_t('تعذر تحديث المفضلة'));
     }
   }
 
@@ -137,25 +139,25 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     final user = _auth.currentUser;
     final doctor = _doctor;
     if (user == null) {
-      ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+      ToastService.showError(_t('يرجى تسجيل الدخول أولاً'));
       return null;
     }
     if (doctor == null) return null;
 
     final doctorUid = doctor.userId?.trim();
     if (doctorUid == null || doctorUid.isEmpty) {
-      ToastService.showError('❌ حساب الطبيب غير مرتبط بحساب المستخدم');
+      ToastService.showError(_t('حساب الطبيب غير مرتبط بحساب المستخدم'));
       return null;
     }
     if (doctorUid == user.uid) {
-      ToastService.showError('❌ لا يمكنك التواصل مع حسابك');
+      ToastService.showError(_t('لا يمكنك التواصل مع حسابك'));
       return null;
     }
 
     return _chatService.createChat(
       doctorId: doctorUid,
       doctorName: doctor.name,
-      patientName: user.displayName ?? 'مريض',
+      patientName: user.displayName ?? _t('مريض'),
       doctorImage: doctor.photoUrl,
     );
   }
@@ -182,22 +184,22 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     final doctor = _doctor;
     if (doctor == null) return;
     if (!doctor.isAvailable) {
-      ToastService.showInfo('الطبيب غير متاح حاليًا');
+      ToastService.showInfo(_t('الطبيب غير متاح حاليًا'));
       return;
     }
 
     final user = _auth.currentUser;
     final doctorUid = doctor.userId?.trim();
     if (user == null) {
-      ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+      ToastService.showError(_t('يرجى تسجيل الدخول أولاً'));
       return;
     }
     if (doctorUid == null || doctorUid.isEmpty) {
-      ToastService.showError('❌ حساب الطبيب غير مرتبط بحساب المستخدم');
+      ToastService.showError(_t('حساب الطبيب غير مرتبط بحساب المستخدم'));
       return;
     }
     if (doctorUid == user.uid) {
-      ToastService.showError('❌ لا يمكنك الاتصال بنفسك');
+      ToastService.showError(_t('لا يمكنك الاتصال بنفسك'));
       return;
     }
 
@@ -215,7 +217,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       );
 
       if (!mounted || call == null || call.id.isEmpty) {
-        if (mounted) ToastService.showError('❌ تعذر إنشاء المكالمة');
+        if (mounted) ToastService.showError(_t('تعذر إنشاء المكالمة'));
         return;
       }
 
@@ -233,7 +235,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         ),
       );
     } catch (e) {
-      if (mounted) ToastService.showError('❌ تعذر بدء المكالمة');
+      if (mounted) ToastService.showError(_t('تعذر بدء المكالمة'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -243,7 +245,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     final doctor = _doctor;
     if (doctor == null) return;
     if (!doctor.isAvailable) {
-      ToastService.showInfo('الطبيب غير متاح حاليًا للحجز');
+      ToastService.showInfo(_t('الطبيب غير متاح حاليًا للحجز'));
       return;
     }
     Navigator.push(
@@ -269,7 +271,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (doctor == null) {
       return Scaffold(
         backgroundColor: bg,
-        appBar: _appBar(dark, title: 'غير موجود'),
+        appBar: _appBar(dark, title: AppStrings.of(context).translate('غير موجود')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -278,7 +280,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               children: [
                 Icon(Icons.person_off_outlined, size: 64, color: dark ? Colors.white54 : Colors.black26),
                 const SizedBox(height: 12),
-                Text('تعذر العثور على الطبيب', style: TextStyle(color: dark ? Colors.white : Colors.black87, fontSize: 17, fontWeight: FontWeight.bold)),
+                Text(AppStrings.of(context).translate('تعذر العثور على الطبيب'), style: TextStyle(color: dark ? Colors.white : Colors.black87, fontSize: 17, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -310,27 +312,16 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     );
   }
 
-  PreferredSizeWidget _appBar(bool dark, {String title = 'تفاصيل الطبيب'}) {
+  PreferredSizeWidget _appBar(bool dark, {String title = ''}) {
     return AppBar(
       backgroundColor: dark ? const Color(0xFF0B1121) : Colors.white,
       foregroundColor: dark ? Colors.white : const Color(0xFF263238),
       elevation: 0,
       centerTitle: true,
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+      title: Text(title.isEmpty ? _t('تفاصيل الطبيب') : title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
       actions: [
-        if (_doctor?.userId?.trim().isNotEmpty == true)
-          IconButton(
-            tooltip: 'الملف الشخصي',
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {
-              final uid = _doctor!.userId!.trim();
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(builder: (_) => PatientProfile(userId: uid)),
-              );
-            },
-          ),
         IconButton(
-          tooltip: _isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة',
+          tooltip: _isFavorite ? AppStrings.of(context).translate('إزالة من المفضلة') : AppStrings.of(context).translate('إضافة للمفضلة'),
           onPressed: _doctor == null ? null : _toggleFavorite,
           icon: AnimatedSwitcher(
             duration: const Duration(milliseconds: 180),
@@ -375,15 +366,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                   ],
                 ),
                 const SizedBox(height: 5),
-                Text(doctor.specialty, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w600)),
+                Text(AppStrings.of(context).translate(doctor.specialty), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 9),
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
                   children: [
                     _badge(Icons.star_rounded, '${doctor.rating ?? 0}', Colors.amber, dark),
-                    _badge(Icons.work_history_outlined, '${doctor.experienceYears ?? 0} سنة', AppColors.primary, dark),
-                    _badge(doctor.isAvailable ? Icons.circle : Icons.remove_circle_outline, doctor.isAvailable ? 'متاح' : 'غير متاح', doctor.isAvailable ? Colors.green : Colors.grey, dark),
+                    _badge(Icons.work_history_outlined, '${doctor.experienceYears ?? 0} ${_t('سنة')}', AppColors.primary, dark),
+                    _badge(doctor.isAvailable ? Icons.circle : Icons.remove_circle_outline, doctor.isAvailable ? _t('متاح') : _t('غير متاح'), doctor.isAvailable ? Colors.green : Colors.grey, dark),
                   ],
                 ),
               ],
@@ -414,10 +405,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _action(iconAsset: AppAssets.chatBubble, label: 'دردشة', hint: 'محادثة مباشرة', color: AppColors.primary, onTap: _openChat, dark: dark),
-          _action(iconAsset: AppAssets.chatPhoneCall, label: 'اتصال', hint: 'مكالمة صوتية', color: const Color(0xFF2E9B5F), onTap: () => _startCall(video: false), dark: dark),
-          _action(iconAsset: AppAssets.chatVideoCall, label: 'فيديو', hint: 'استشارة مرئية', color: const Color(0xFF3976D8), onTap: () => _startCall(video: true), dark: dark),
-          _action(iconAsset: AppAssets.chatCalendarBooking, label: 'حجز', hint: 'موعد الطبيب', color: const Color(0xFFE58A22), onTap: _bookAppointment, dark: dark),
+          _action(iconAsset: AppAssets.chatBubble, label: AppStrings.of(context).translate('دردشة'), hint: AppStrings.of(context).translate('محادثة مباشرة'), color: AppColors.primary, onTap: _openChat, dark: dark),
+          _action(iconAsset: AppAssets.chatPhoneCall, label: AppStrings.of(context).translate('اتصال'), hint: AppStrings.of(context).translate('مكالمة صوتية'), color: const Color(0xFF2E9B5F), onTap: () => _startCall(video: false), dark: dark),
+          _action(iconAsset: AppAssets.chatVideoCall, label: AppStrings.of(context).translate('فيديو'), hint: AppStrings.of(context).translate('استشارة مرئية'), color: const Color(0xFF3976D8), onTap: () => _startCall(video: true), dark: dark),
+          _action(iconAsset: AppAssets.chatCalendarBooking, label: AppStrings.of(context).translate('حجز'), hint: AppStrings.of(context).translate('موعد الطبيب'), color: const Color(0xFFE58A22), onTap: _bookAppointment, dark: dark),
         ],
       ),
     );
@@ -479,7 +470,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   decoration: BoxDecoration(color: selected ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(11)),
-                  child: Center(child: Text(_tabs[index], style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w800 : FontWeight.w600, color: selected ? Colors.white : (dark ? Colors.white60 : Colors.black54)))),
+                  child: Center(child: Text(AppStrings.of(context).translate(_tabs[index]), style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w800 : FontWeight.w600, color: selected ? Colors.white : (dark ? Colors.white60 : Colors.black54)))),
                 ),
               ),
             );
@@ -507,40 +498,40 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if ((doctor.about ?? '').trim().isNotEmpty) ...[
-            _sectionTitle('نبذة عن الطبيب', Icons.person_outline_rounded, dark),
+            _sectionTitle(AppStrings.of(context).translate('نبذة عن الطبيب'), Icons.person_outline_rounded, dark),
             _card(dark, Padding(padding: const EdgeInsets.all(16), child: Text(doctor.about!, style: TextStyle(height: 1.65, fontSize: 13, color: dark ? Colors.white70 : Colors.black54)))),
             const SizedBox(height: 14),
           ],
-          _sectionTitle('المعلومات المهنية', Icons.badge_outlined, dark),
+          _sectionTitle(AppStrings.of(context).translate('المعلومات المهنية'), Icons.badge_outlined, dark),
           _card(dark, Column(children: [
-            _infoRow(Icons.medical_services_outlined, 'التخصص', doctor.specialty, dark),
-            _infoRow(Icons.workspace_premium_outlined, 'الخبرة', '${doctor.experienceYears ?? 0} سنة', dark),
-            _infoRow(Icons.payments_outlined, 'رسوم الكشف', '${doctor.consultationFee ?? 0} ر.ي', dark),
-            if ((doctor.hospital ?? '').isNotEmpty) _infoRow(Icons.local_hospital_outlined, 'المستشفى', doctor.hospital!, dark),
-            if ((doctor.clinicAddress ?? '').isNotEmpty) _infoRow(Icons.location_on_outlined, 'العنوان', doctor.clinicAddress!, dark),
+            _infoRow(Icons.medical_services_outlined, _t('التخصص'), AppStrings.of(context).translate(doctor.specialty), dark),
+            _infoRow(Icons.workspace_premium_outlined, _t('الخبرة'), '${doctor.experienceYears ?? 0} ${_t('سنة')}', dark),
+            _infoRow(Icons.payments_outlined, _t('رسوم الكشف'), AppStrings.of(context).formatCurrency(doctor.consultationFee ?? 0), dark),
+            if ((doctor.hospital ?? '').isNotEmpty) _infoRow(Icons.local_hospital_outlined, _t('المستشفى'), doctor.hospital!, dark),
+            if ((doctor.clinicAddress ?? '').isNotEmpty) _infoRow(Icons.location_on_outlined, _t('العنوان'), doctor.clinicAddress!, dark),
           ])),
           const SizedBox(height: 14),
           if (doctor.workingHours != null && doctor.workingHours!.isNotEmpty) ...[
-            _sectionTitle('أوقات الدوام', Icons.schedule_rounded, dark),
+            _sectionTitle(AppStrings.of(context).translate('أوقات الدوام'), Icons.schedule_rounded, dark),
             _card(dark, Column(children: doctor.workingHours!.entries.map((entry) {
               final value = entry.value is Map ? Map<String,dynamic>.from(entry.value) : <String,dynamic>{};
               final enabled = value['enabled'] != false;
-              final text = enabled ? (value['start']?.toString() ?? '') + ' — ' + (value['end']?.toString() ?? '') : 'إجازة';
+              final text = enabled ? (value['start']?.toString() ?? '') + ' — ' + (value['end']?.toString() ?? '') : _t('إجازة');
               return _infoRow(Icons.access_time_rounded, entry.key.toString(), text, dark);
             }).toList())),
             const SizedBox(height: 14),
           ],
           if (doctor.services != null && doctor.services!.isNotEmpty) ...[
-            _sectionTitle('الخدمات التي يقدمها الطبيب', Icons.medical_services_outlined, dark),
+            _sectionTitle(AppStrings.of(context).translate('الخدمات التي يقدمها الطبيب'), Icons.medical_services_outlined, dark),
             _card(dark, Padding(padding: const EdgeInsets.all(14), child: Wrap(spacing: 7, runSpacing: 7, children: doctor.services!.map((s) => Chip(label: Text(s), visualDensity: VisualDensity.compact)).toList()))),
             const SizedBox(height: 14),
           ],
-          _sectionTitle('إجراءات سريعة', Icons.flash_on_rounded, dark),
+          _sectionTitle(AppStrings.of(context).translate('إجراءات سريعة'), Icons.flash_on_rounded, dark),
           _card(dark, Column(children: [
-            _listAction(AppAssets.chatBubble, 'فتح الدردشة', 'تواصل مباشرة مع الطبيب', _openChat, dark),
-            _listAction(AppAssets.chatCalendarBooking, 'حجز موعد', 'اختر الموعد المناسب لك', _bookAppointment, dark),
-            _listAction(AppAssets.chatPhoneCall, 'مكالمة صوتية', 'بدء استشارة صوتية', () => _startCall(video: false), dark),
-            _listAction(AppAssets.chatVideoCall, 'مكالمة مرئية', 'بدء استشارة بالفيديو', () => _startCall(video: true), dark),
+            _listAction(AppAssets.chatBubble, _t('فتح الدردشة'), _t('تواصل مباشرة مع الطبيب'), _openChat, dark),
+            _listAction(AppAssets.chatCalendarBooking, _t('حجز موعد'), _t('اختر الموعد المناسب لك'), _bookAppointment, dark),
+            _listAction(AppAssets.chatPhoneCall, _t('مكالمة صوتية'), _t('بدء استشارة صوتية'), () => _startCall(video: false), dark),
+            _listAction(AppAssets.chatVideoCall, _t('مكالمة مرئية'), _t('بدء استشارة بالفيديو'), () => _startCall(video: true), dark),
           ])),
         ],
       ),
@@ -554,11 +545,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         const SizedBox(height: 4),
         Icon(Icons.calendar_month_rounded, size: 48, color: AppColors.primary.withOpacity(.75)),
         const SizedBox(height: 10),
-        Text('احجز موعدك مع الطبيب', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
+        Text(AppStrings.of(context).translate('احجز موعدك مع الطبيب'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
         const SizedBox(height: 6),
-        Text('انتقل إلى شاشة الحجز لاختيار التاريخ والوقت والخدمة.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
+        Text(AppStrings.of(context).translate('انتقل إلى شاشة الحجز لاختيار التاريخ والوقت والخدمة.'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
         const SizedBox(height: 16),
-        SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: _bookAppointment, icon: const Icon(Icons.event_available_rounded), label: const Text('حجز موعد الآن'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
+        SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: _bookAppointment, icon: const Icon(Icons.event_available_rounded), label: Text(AppStrings.of(context).translate('حجز موعد الآن')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
       ])),
     );
   }
@@ -573,15 +564,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           Container(width: 76, height: 76, decoration: BoxDecoration(color: Colors.amber.withOpacity(.10), shape: BoxShape.circle), child: Center(child: Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.amber)))),
           const SizedBox(width: 16),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('التقييم العام', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
+            Text(AppStrings.of(context).translate('التقييم العام'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: dark ? Colors.white : Colors.black87)),
             const SizedBox(height: 5),
             Row(children: List.generate(5, (i) => Icon(i < rating.round() ? Icons.star_rounded : Icons.star_border_rounded, color: Colors.amber, size: 18))),
             const SizedBox(height: 4),
-            Text('$count تقييم', style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
+            Text('$count ${AppStrings.of(context).translate('تقييم')}', style: TextStyle(fontSize: 12, color: dark ? Colors.white60 : Colors.black54)),
           ])),
         ]),
         const SizedBox(height: 18),
-        Container(width: double.infinity, padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: dark ? Colors.white.withOpacity(.035) : const Color(0xFFF7F9FA), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.primary), const SizedBox(width: 8), Expanded(child: Text('ستظهر التقييمات المكتملة من المرضى هنا عند توفرها.', style: TextStyle(fontSize: 11, color: dark ? Colors.white60 : Colors.black54)))])),
+        Container(width: double.infinity, padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: dark ? Colors.white.withOpacity(.035) : const Color(0xFFF7F9FA), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.primary), const SizedBox(width: 8), Expanded(child: Text(AppStrings.of(context).translate('ستظهر التقييمات المكتملة من المرضى هنا عند توفرها.'), style: TextStyle(fontSize: 11, color: dark ? Colors.white60 : Colors.black54)))])),
       ])),
     );
   }

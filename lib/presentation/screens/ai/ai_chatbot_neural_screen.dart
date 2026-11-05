@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/services/local_ai/neural_medical_ai.dart';
 import 'package:sehatak/services/local_ai/chat_bot_offline.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class AIChatbotNeuralScreen extends StatefulWidget {
   const AIChatbotNeuralScreen({super.key});
@@ -11,6 +12,7 @@ class AIChatbotNeuralScreen extends StatefulWidget {
 }
 
 class _AIChatbotNeuralScreenState extends State<AIChatbotNeuralScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   late final NeuralMedicalAI _neuralAI;
   late final ChatBotOffline _chatBot;
   final _controller = TextEditingController();
@@ -39,7 +41,7 @@ class _AIChatbotNeuralScreenState extends State<AIChatbotNeuralScreen> {
           'isUser': m['is_user'] == 1,
           'timestamp': DateTime.fromMillisecondsSinceEpoch((m['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch),
         }));
-        if (_messages.isEmpty) _messages.add({'text': 'مرحباً! أنا المساعد الطبي العصبي. اكتب استفسارك وسأحلله محلياً.', 'isUser': false, 'timestamp': DateTime.now()});
+        if (_messages.isEmpty) _messages.add({'text': _t('مرحباً! أنا المساعد الطبي العصبي. اكتب استفسارك وسأحلله محلياً.'), 'isUser': false, 'timestamp': DateTime.now()});
         _loading = false;
       });
     } catch (_) {
@@ -57,7 +59,7 @@ class _AIChatbotNeuralScreenState extends State<AIChatbotNeuralScreen> {
       if (!mounted) return;
       setState(() { _messages.add({'text': result['response']?.toString() ?? '', 'isUser': false, 'timestamp': DateTime.now()}); _loading = false; });
     } catch (_) {
-      if (mounted) setState(() { _messages.add({'text': 'تعذر تحليل الرسالة حالياً.', 'isUser': false, 'timestamp': DateTime.now()}); _loading = false; });
+      if (mounted) setState(() { _messages.add({'text': _t('تعذر تحليل الرسالة حالياً.'), 'isUser': false, 'timestamp': DateTime.now()}); _loading = false; });
     }
     _scrollToBottom();
   }
@@ -74,10 +76,10 @@ class _AIChatbotNeuralScreenState extends State<AIChatbotNeuralScreen> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('المساعد الطبي العصبي'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(_t('المساعد الطبي العصبي')), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: Column(children: [
         Expanded(child: ListView.builder(controller: _scrollController, padding: const EdgeInsets.all(16), itemCount: _messages.length + (_loading ? 1 : 0), itemBuilder: (_, i) => i == _messages.length ? const Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()) : _bubble(_messages[i], dark))),
-        SafeArea(child: Padding(padding: const EdgeInsets.all(10), child: Row(children: [Expanded(child: TextField(controller: _controller, onSubmitted: (_) => _send(), decoration: const InputDecoration(hintText: 'اكتب استفسارك الطبي...', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(24))))),), const SizedBox(width: 8), CircleAvatar(backgroundColor: AppColors.primary, child: IconButton(onPressed: _loading ? null : _send, icon: const Icon(Icons.send, color: Colors.white)))]))),
+        SafeArea(child: Padding(padding: const EdgeInsets.all(10), child: Row(children: [Expanded(child: TextField(controller: _controller, onSubmitted: (_) => _send(), decoration: InputDecoration(hintText: _t('اكتب استفسارك الطبي...'), border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(24))))),), const SizedBox(width: 8), CircleAvatar(backgroundColor: AppColors.primary, child: IconButton(onPressed: _loading ? null : _send, icon: const Icon(Icons.send, color: Colors.white)))]))),
       ]),
     );
   }

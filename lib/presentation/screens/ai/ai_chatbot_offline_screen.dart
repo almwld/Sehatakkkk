@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/services/local_ai/chat_bot_offline.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class AIChatbotOfflineScreen extends StatefulWidget {
   const AIChatbotOfflineScreen({super.key});
@@ -10,6 +11,7 @@ class AIChatbotOfflineScreen extends StatefulWidget {
 }
 
 class _AIChatbotOfflineScreenState extends State<AIChatbotOfflineScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   late final ChatBotOffline _chatBot;
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
@@ -69,7 +71,7 @@ class _AIChatbotOfflineScreenState extends State<AIChatbotOfflineScreen> {
         _loading = false;
       });
     } catch (_) {
-      if (mounted) setState(() { _messages.add({'text': 'تعذر إنشاء الرد حالياً. حاول مرة أخرى.', 'isUser': false, 'timestamp': DateTime.now()}); _loading = false; });
+      if (mounted) setState(() { _messages.add({'text': _t('تعذر إنشاء الرد حالياً. حاول مرة أخرى.'), 'isUser': false, 'timestamp': DateTime.now()}); _loading = false; });
     }
     _scrollToBottom();
   }
@@ -87,16 +89,16 @@ class _AIChatbotOfflineScreenState extends State<AIChatbotOfflineScreen> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('المساعد الصحي'),
+        title: Text(_t('المساعد الصحي')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [IconButton(onPressed: () async { await _chatBot.clearHistory(); if (mounted) setState(() { _messages.clear(); _addWelcome(); }); }, icon: const Icon(Icons.delete_outline))],
       ),
       body: Column(children: [
-        Container(width: double.infinity, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7), color: Colors.green.withOpacity(.1), child: const Text('يعمل دون اتصال بالإنترنت ويحفظ المحادثة محلياً', style: TextStyle(fontSize: 11, color: Colors.green))),
+        Container(width: double.infinity, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7), color: Colors.green.withOpacity(.1), child: Text(_t('يعمل دون اتصال بالإنترنت ويحفظ المحادثة محلياً'), style: TextStyle(fontSize: 11, color: Colors.green))),
         Expanded(child: _loading && _messages.isEmpty ? const Center(child: CircularProgressIndicator()) : ListView.builder(controller: _scrollController, padding: const EdgeInsets.all(16), itemCount: _messages.length + (_loading ? 1 : 0), itemBuilder: (_, i) => i == _messages.length ? const Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()) : _bubble(_messages[i], dark))),
-        if (_messages.length <= 2) SizedBox(height: 55, child: ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 12), scrollDirection: Axis.horizontal, itemCount: _suggestions.length, separatorBuilder: (_, __) => const SizedBox(width: 8), itemBuilder: (_, i) => ActionChip(label: Text(_suggestions[i]), onPressed: () => _send(_suggestions[i])))),
-        SafeArea(child: Padding(padding: const EdgeInsets.all(10), child: Row(children: [Expanded(child: TextField(controller: _controller, onSubmitted: (_) => _send(), decoration: const InputDecoration(hintText: 'اكتب استفسارك الطبي...', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(24))))),), const SizedBox(width: 8), CircleAvatar(backgroundColor: AppColors.primary, child: IconButton(onPressed: _loading ? null : _send, icon: const Icon(Icons.send, color: Colors.white)))]))),
+        if (_messages.length <= 2) SizedBox(height: 55, child: ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 12), scrollDirection: Axis.horizontal, itemCount: _suggestions.length, separatorBuilder: (_, __) => const SizedBox(width: 8), itemBuilder: (_, i) => ActionChip(label: Text(_t(_suggestions[i])), onPressed: () => _send(_suggestions[i])))),
+        SafeArea(child: Padding(padding: const EdgeInsets.all(10), child: Row(children: [Expanded(child: TextField(controller: _controller, onSubmitted: (_) => _send(), decoration: InputDecoration(hintText: _t('اكتب استفسارك الطبي...'), border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(24))))),), const SizedBox(width: 8), CircleAvatar(backgroundColor: AppColors.primary, child: IconButton(onPressed: _loading ? null : _send, icon: const Icon(Icons.send, color: Colors.white)))]))),
       ]),
     );
   }

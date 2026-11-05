@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import '../../../core/constants/app_colors.dart';
@@ -22,6 +23,8 @@ class PharmacyMarketplaceScreen extends StatefulWidget {
 
 class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     with SingleTickerProviderStateMixin {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   final _search = TextEditingController();
   final _cart = UnifiedCartService.instance;
   late final TabController _tabController;
@@ -85,7 +88,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
       if (mounted) setState(() => _error = null);
       if (_tab == 3) await _loadOrders();
     } catch (_) {
-      if (mounted) setState(() => _error = 'تعذر تحميل بيانات الصيدلية حالياً');
+      if (mounted) setState(() => _error = _t('تعذر تحميل بيانات الصيدلية حالياً'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -210,7 +213,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     if (id.isEmpty || price <= 0 || stock <= 0) return;
     _cart.add(
         productId: id,
-        name: '${p['name'] ?? 'منتج'}',
+        name: '${p['name'] ?? AppStrings.of(context).translate('منتج')}',
         unitPrice: price,
         requiresPrescription: p['requiresPrescription'] == true,
         pharmacyId: '${p['pharmacyId'] ?? p['sellerId'] ?? ''}'.trim().isEmpty ? null : '${p['pharmacyId'] ?? p['sellerId'] ?? ''}'.trim(),
@@ -218,7 +221,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         prescriptionId: p['prescriptionId']?.toString());
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تمت إضافة المنتج إلى السلة')));
+        SnackBar(content: Text(AppStrings.of(context).translate('تمت إضافة المنتج إلى السلة'))));
   }
 
   double? _oldPrice(Map<String, dynamic> p) {
@@ -238,7 +241,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(34))),
-        title: const Text('صيدلية صحتك',
+        title: Text(AppStrings.of(context).translate('صيدلية صحتك'),
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
@@ -269,7 +272,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
       body: Column(children: [
         Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-            child: UnifiedSearchBar(controller: _search, hintText: 'ابحث عن دواء، منتج، أو صيدلية')),
+            child: UnifiedSearchBar(controller: _search, hintText: AppStrings.of(context).translate('ابحث عن دواء، منتج، أو صيدلية'))),
         TabBar(
             controller: _tabController,
             isScrollable: true,
@@ -277,7 +280,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
             labelColor: AppColors.primary,
             unselectedLabelColor: Colors.grey,
             indicatorColor: AppColors.primary,
-            tabs: _tabLabels.map((t) => Tab(text: t)).toList()),
+            tabs: _tabLabels.map((t) => Tab(text: _t(t))).toList()),
         SizedBox(
             height: 48,
             child: ListView.separated(
@@ -289,7 +292,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                 itemBuilder: (_, i) {
                   final c = _categories[i];
                   return ChoiceChip(
-                      label: Text(c),
+                      label: Text(_t(c)), 
                       selected: _category == c,
                       onSelected: (_) => setState(() => _category = c));
                 })),
@@ -310,15 +313,15 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   Widget _errorView() => Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(_error!, textAlign: TextAlign.center),
+        Text(_t(_error!), textAlign: TextAlign.center),
         const SizedBox(height: 10),
-        ElevatedButton(onPressed: _loadAll, child: const Text('إعادة المحاولة'))
+        ElevatedButton(onPressed: _loadAll, child: Text(AppStrings.of(context).translate('إعادة المحاولة')))
       ]));
 
   Widget _storesTab() {
     final stores = _visiblePharmacies;
     if (stores.isEmpty)
-      return const Center(child: Text('لا توجد صيدليات منشورة تطابق البحث حالياً'));
+      return Center(child: Text(AppStrings.of(context).translate('لا توجد صيدليات منشورة تطابق البحث حالياً')));
     return RefreshIndicator(
         onRefresh: _loadAll,
         child: ListView.builder(
@@ -349,18 +352,18 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                                             child: const Icon(Icons.local_pharmacy, color: AppColors.primary, size: 36)))),
                             const SizedBox(width: 12),
                             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text('${p['name'] ?? 'صيدلية'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text('${p['name'] ?? AppStrings.of(context).translate('صيدلية')}', style: const TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
-                              Text('${p['address'] ?? p['city'] ?? 'الموقع غير محدد'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.grey)),
+                              Text('${p['address'] ?? p['city'] ?? AppStrings.of(context).translate('الموقع غير محدد')}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.grey)),
                               const SizedBox(height: 6),
-                              Text('${open ? 'مفتوحة الآن' : 'مغلقة'} • ${delivery ? 'توصيل متاح' : 'التوصيل غير متاح'}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text('${AppStrings.of(context).translate(open ? 'مفتوحة الآن' : 'مغلقة')} • ${AppStrings.of(context).translate(delivery ? 'توصيل متاح' : 'التوصيل غير متاح')}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                             ])),
                           ]))));
             }));
   }
   Widget _productsTab() => _productList(
-      _visibleProducts, 'لا توجد منتجات منشورة تطابق البحث حالياً');
-  Widget _offersTab() => _productList(_offers, 'لا توجد عروض منشورة حالياً');
+      _visibleProducts, _t('لا توجد منتجات منشورة تطابق البحث حالياً'));
+  Widget _offersTab() => _productList(_offers, AppStrings.of(context).translate('لا توجد عروض منشورة حالياً'));
 
   Widget _productList(List<Map<String, dynamic>> products, String empty) {
     if (products.isEmpty) return Center(child: Text(empty));
@@ -415,7 +418,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    Text('${p['name'] ?? 'منتج'}',
+                    Text('${p['name'] ?? AppStrings.of(context).translate('منتج')}',
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     if (p['companyName'] != null || p['genericName'] != null)
                       Text('${p['companyName'] ?? p['genericName']}',
@@ -427,13 +430,13 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                               fontSize: 11, color: Colors.grey)),
                     const SizedBox(height: 5),
                     Row(children: [
-                      Text('${price.toStringAsFixed(0)} ر.ي',
+                      Text(AppStrings.of(context).formatCurrency(price),
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary)),
                       if (old != null && old > price) ...[
                         const SizedBox(width: 7),
-                        Text('${old.toStringAsFixed(0)} ر.ي',
+                        Text(AppStrings.of(context).formatCurrency(old),
                             style: const TextStyle(
                                 decoration: TextDecoration.lineThrough,
                                 color: Colors.grey,
@@ -445,14 +448,14 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       Text(
                           available
                               ? (stock <= 5
-                                  ? 'متوفر — المتبقي $stock'
-                                  : 'متوفر')
-                              : 'نفد المخزون',
+                                  ? '${_t('متوفر — المتبقي')} $stock'
+                                  : _t('متوفر'))
+                              : _t('نفد المخزون'),
                           style: TextStyle(
                               fontSize: 11,
                               color: available ? Colors.green : Colors.red)),
                       if (prescription)
-                        const Text('يتطلب وصفة',
+                        Text(AppStrings.of(context).translate('يتطلب وصفة'),
                             style: TextStyle(
                                 fontSize: 10, color: Colors.deepOrange))
                     ]),
@@ -465,14 +468,14 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   Widget _ordersTab() {
     if (FirebaseAuth.instance.currentUser == null)
-      return const Center(child: Text('سجّل الدخول لعرض طلباتك'));
+      return Center(child: Text(AppStrings.of(context).translate('سجّل الدخول لعرض طلباتك')));
     final orders = _visibleOrders;
     if (orders.isEmpty)
       return RefreshIndicator(
           onRefresh: _loadOrders,
-          child: ListView(children: const [
-            SizedBox(height: 180),
-            Center(child: Text('لا توجد طلبات صيدلية حالياً'))
+          child: ListView(children: [
+            const SizedBox(height: 180),
+            Center(child: Text(AppStrings.of(context).translate('لا توجد طلبات صيدلية حالياً')))
           ]));
     return RefreshIndicator(
         onRefresh: _loadOrders,
@@ -481,14 +484,15 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
             itemCount: orders.length,
             itemBuilder: (_, i) {
               final o = orders[i];
+              final orderId = o['id'] ?? o['orderId'] ?? '';
               final status = _statusLabel('${o['status'] ?? ''}');
               return Card(
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ListTile(
-                      title: Text('طلب #${o['id'] ?? o['orderId'] ?? ''}',
+                      title: Text('${AppStrings.of(context).translate('طلب')} #$orderId',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
-                          '${o['pharmacyName'] ?? o['providerName'] ?? 'طلب صيدلية'}\n$status'),
+                          '${o['pharmacyName'] ?? o['providerName'] ?? _t('طلب صيدلية')}\n${_t(status)}'),
                       trailing: const Icon(Icons.chevron_left),
                       onTap: () {}));
             }));

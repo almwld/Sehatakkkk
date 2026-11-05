@@ -30,7 +30,7 @@ class MedicalLibraryScreen extends StatelessWidget {
                 title:Text(d['title']?.toString().isNotEmpty==true?d['title'].toString():name,maxLines:2,overflow:TextOverflow.ellipsis),
                 subtitle:Text(name,maxLines:1,overflow:TextOverflow.ellipsis),
                 onTap:()async{
-                  if(path.isNotEmpty&&await File(path).exists()){await showDialog(context:context,builder:(_)=>Dialog(child:Column(mainAxisSize:MainAxisSize.min,children:[const Padding(padding:EdgeInsets.all(16),child:Text('الملف محفوظ داخل الجهاز')),Text(path,style:const TextStyle(fontSize:10),textAlign:TextAlign.center),TextButton(onPressed:()=>Navigator.pop(context),child:Text(AppStrings.of(context).translate('إغلاق')))])));return;}
+                  if(path.isNotEmpty&&await File(path).exists()){await showDialog(context:context,builder:(_)=>Dialog(child:Column(mainAxisSize:MainAxisSize.min,children:[Padding(padding:const EdgeInsets.all(16),child:Text(AppStrings.of(context).translate('الملف محفوظ داخل الجهاز'))),Text(path,style:const TextStyle(fontSize:10),textAlign:TextAlign.center),TextButton(onPressed:()=>Navigator.pop(context),child:Text(AppStrings.of(context).translate('إغلاق')))])));return;}
                   final lower=name.toLowerCase();
                   final isPdf=lower.endsWith('.pdf');
                   final isOffice=['.doc','.docx','.xls','.xlsx','.ppt','.pptx'].any(lower.endsWith);

@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -190,7 +191,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الأدوية والمستلزمات', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.of(context).translate('الأدوية والمستلزمات'), style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         bottom: TabBar(
@@ -199,18 +200,18 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           isScrollable: true,
-          tabs: const [
-            Tab(text: '💊 أدوية'),
-            Tab(text: '🩺 مستلزمات صحية'),
-            Tab(text: '💄 تجميل'),
-            Tab(text: '🏥 صيدليات'),
+          tabs: [
+            Tab(text: '💊 ${AppStrings.of(context).translate('أدوية')}'),
+            Tab(text: '🩺 ${AppStrings.of(context).translate('مستلزمات صحية')}'),
+            Tab(text: '💄 ${AppStrings.of(context).translate('تجميل')}'),
+            Tab(text: '🏥 ${AppStrings.of(context).translate('صيدليات')}'),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              ToastService.showSuccess(context, '🛒 تم إضافة المنتجات إلى السلة');
+              ToastService.showSuccess(context, '🛒 ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم إضافة المنتجات إلى السلة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Produits ajoutés au panier' : 'Products added to cart'}');
             },
           ),
         ],
@@ -249,7 +250,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
               color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
               borderRadius: BorderRadius.circular(14),
             ),
-            child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: 'ابحث عن دواء، مستلزمات...'),
+            child: UnifiedSearchBar(controller: _searchCtrl, onChanged: (_) => setState(() {}), hintText: AppStrings.of(context).translate('ابحث عن دواء، مستلزمات...')),
           ),
           const SizedBox(height: 8),
           // ✅ تصفية وترتيب
@@ -285,7 +286,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
-          label,
+          AppStrings.of(context).translate(label),
           style: TextStyle(
             fontSize: 10,
             color: selected ? Colors.white : AppColors.darkGrey,
@@ -307,7 +308,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
-          label,
+          AppStrings.of(context).translate(label),
           style: TextStyle(
             fontSize: 10,
             color: selected ? Colors.white : AppColors.darkGrey,
@@ -326,7 +327,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           children: [
             Icon(Icons.medication, size: 60, color: AppColors.grey),
             const SizedBox(height: 16),
-            const Text('لا توجد منتجات في هذا القسم', style: TextStyle(color: AppColors.grey)),
+            Text(AppStrings.of(context).translate('لا توجد منتجات في هذا القسم'), style: TextStyle(color: AppColors.grey)),
           ],
         ),
       );
@@ -401,7 +402,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                 Row(
                   children: [
                     Text(
-                      '${item['price']} ر.ي',
+                      AppStrings.of(context).formatCurrency((item['price'] as num?) ?? num.tryParse(item['price']?.toString() ?? '') ?? 0),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -416,7 +417,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        item['category'] ?? 'دواء',
+                        AppStrings.of(context).translate((item['category'] ?? 'دواء').toString()),
                         style: const TextStyle(fontSize: 7, color: AppColors.primary),
                       ),
                     ),
@@ -443,7 +444,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                   height: 28,
                   child: ElevatedButton(
                     onPressed: () {
-                      ToastService.showSuccess(context, '✅ تم إضافة ${item['name']} إلى السلة');
+                      ToastService.showSuccess(context, '✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم إضافة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Ajouté' : 'Added'} ${item['name']} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'إلى السلة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'au panier' : 'to cart'}');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -454,7 +455,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                       ),
                       minimumSize: const Size(0, 28),
                     ),
-                    child: const Text('إضافة', style: TextStyle(fontSize: 10)),
+                    child: Text(AppStrings.of(context).translate('إضافة'), style: TextStyle(fontSize: 10)),
                   ),
                 ),
               ],
@@ -520,8 +521,8 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                                   color: AppColors.success.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  '📦 توصيل',
+                                child: Text(
+                                  '📦 ${AppStrings.of(context).translate('توصيل')}',
                                   style: TextStyle(fontSize: 8, color: AppColors.success),
                                 ),
                               ),
