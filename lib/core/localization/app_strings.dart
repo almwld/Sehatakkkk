@@ -4457,6 +4457,8 @@ class AppStrings {
       "تضيف طبقة حماية إضافية لحسابك. حتى لو عرف أحدهم كلمة مرورك، لن يستطيع الدخول بدون رمز التحقق.": ["It adds an extra layer of protection to your account. Even if someone knows your password, they cannot sign in without the verification code.", "Elle ajoute une couche de protection supplémentaire à votre compte. Même si quelqu’un connaît votre mot de passe, il ne pourra pas se connecter sans le code de vérification."],
       "المفتاح السري:": ["Secret key:", "Clé secrète :"],
       "عرض النتائج": ["View results", "Voir les résultats"],
+      "بحث": ["Search", "Rechercher"],
+      "شاشة البحث قيد التطوير": ["Search screen is under development", "L’écran de recherche est en cours de développement"],
       "منتجات صيدلية": ["Pharmacy products", "Produits de pharmacie"],
       "تنظيم الأسرة": ["Family planning", "Planification familiale"],
       "شاشة تنظيم الأسرة قيد التطوير": ["Family planning screen is under development", "L’écran de planification familiale est en cours de développement"],
