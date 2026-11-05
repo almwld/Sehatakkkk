@@ -87,7 +87,7 @@ class _PediatricDoseScreenState extends State<PediatricDoseScreen> {
                 _doseCard('الحد الأقصى', '${maxDaily.toStringAsFixed(1)} mg', Icons.warning, AppColors.warning),
               ]),
               const SizedBox(height: 10),
-              Text('التكرار: ${med['freq']}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+              Text('${_localizedUiText(context, 'التكرار: ')}${_localizedUiText(context, med['freq']?.toString() ?? '')}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
             ]),
           ),
         ]),
