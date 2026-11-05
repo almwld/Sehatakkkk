@@ -45,7 +45,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> {
     );
   }
 
-  Widget _tile(AdModel ad) => Card(child: ListTile(leading: CircleAvatar(backgroundColor: ad.displayColor.withOpacity(.12), child: Icon(ad.displayIcon, color: ad.displayColor)), title: Text(ad.title), subtitle: Text('${ad.displayName} • ${_t(ad.statusText)}\n${ad.views} ${_t('مشاهدة')} • ${ad.clicks} ${_t('نقرة')}'), isThreeLine: true, trailing: PopupMenuButton<AdStatus>(onSelected: (v) => _firestore.collection('advertisements').doc(ad.id).update({'status': v.name}), itemBuilder: (_) => AdStatus.values.map((v) => PopupMenuItem(value: v, child: Text(v.name))).toList())));
+  Widget _tile(AdModel ad) => Card(child: ListTile(leading: CircleAvatar(backgroundColor: ad.displayColor.withOpacity(.12), child: Icon(ad.displayIcon, color: ad.displayColor)), title: Text(ad.title), subtitle: Text('${_t(ad.displayName)} • ${_t(ad.statusText)}\n${ad.views} ${_t('مشاهدة')} • ${ad.clicks} ${_t('نقرة')}'), isThreeLine: true, trailing: PopupMenuButton<AdStatus>(onSelected: (v) => _firestore.collection('advertisements').doc(ad.id).update({'status': v.name}), itemBuilder: (_) => AdStatus.values.map((v) => PopupMenuItem(value: v, child: Text(_t(v.name)))).toList())));
 
   Future<void> _create() async {
     final title = TextEditingController();
