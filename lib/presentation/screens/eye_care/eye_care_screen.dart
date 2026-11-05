@@ -23,7 +23,7 @@ class EyeCareScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+              Text(_localizedUiText(context, title), style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               ...points.map((point) => Padding(
                     padding: const EdgeInsets.only(bottom: 9),
@@ -32,7 +32,7 @@ class EyeCareScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.check_circle_outline_rounded, color: AppColors.primary, size: 20),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(point, style: const TextStyle(fontSize: 13, height: 1.45))),
+                        Expanded(child: Text(_localizedUiText(context, point), style: const TextStyle(fontSize: 13, height: 1.45))),
                       ],
                     ),
                   )),
@@ -101,9 +101,9 @@ class EyeCareScreen extends StatelessWidget {
                 children: [
                   Text(_localizedUiText(context, 'العناية اليومية'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 10),
-                  _tip('قاعدة 20-20-20 عند استخدام الشاشات لفترات طويلة.'),
-                  _tip('احرص على الإضاءة المناسبة وخذ فواصل منتظمة.'),
-                  _tip('الفحص الطبي الدوري مهم خصوصاً عند وجود أعراض أو عوامل خطورة.'),
+                  _tip(context, 'قاعدة 20-20-20 عند استخدام الشاشات لفترات طويلة.'),
+                  _tip(context, 'احرص على الإضاءة المناسبة وخذ فواصل منتظمة.'),
+                  _tip(context, 'الفحص الطبي الدوري مهم خصوصاً عند وجود أعراض أو عوامل خطورة.'),
                 ],
               ),
             ),
@@ -145,9 +145,9 @@ class EyeCareScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(_localizedUiText(context, title), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.grey)),
+                    Text(_localizedUiText(context, subtitle), style: const TextStyle(fontSize: 11, color: AppColors.grey)),
                   ],
                 ),
               ),
@@ -159,14 +159,14 @@ class EyeCareScreen extends StatelessWidget {
     );
   }
 
-  Widget _tip(String text) => Padding(
+  Widget _tip(BuildContext context, String text) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Icon(Icons.check_circle_outline_rounded, color: AppColors.primary, size: 18),
             const SizedBox(width: 8),
-            Expanded(child: Text(text, style: const TextStyle(fontSize: 12, height: 1.35))),
+            Expanded(child: Text(_localizedUiText(context, text), style: const TextStyle(fontSize: 12, height: 1.35))),
           ],
         ),
       );
