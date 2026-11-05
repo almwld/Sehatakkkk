@@ -68,7 +68,7 @@ class EyeCareScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: const Color(0xFF3949AB), borderRadius: BorderRadius.circular(20)),
-            child: const Row(
+            child: Row(
               children: [
                 CircleAvatar(radius: 28, backgroundColor: Colors.white24, child: Icon(Icons.visibility_rounded, color: Colors.white, size: 30)),
                 SizedBox(width: 14),
