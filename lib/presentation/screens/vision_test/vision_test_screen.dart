@@ -34,7 +34,7 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
   Widget _test() {
     final size = 92.0 - (_round * 8.0);
     return ListView(children: [
-      const Card(child: Padding(padding: EdgeInsets.all(15), child: Text(_localizedUiText(context, 'اختبار تفاعلي أولي لتمييز اتجاه فتحة الحرف. اجلس بوضع مريح، حافظ على مسافة ثابتة من الشاشة، لا تكبّر العرض، واستخدم إضاءة جيدة. لا يغني الاختبار عن فحص حدة البصر بأدوات سريرية.'), style: TextStyle(height: 1.5)))),
+      Card(child: Padding(padding: EdgeInsets.all(15), child: Text(_localizedUiText(context, 'اختبار تفاعلي أولي لتمييز اتجاه فتحة الحرف. اجلس بوضع مريح، حافظ على مسافة ثابتة من الشاشة، لا تكبّر العرض، واستخدم إضاءة جيدة. لا يغني الاختبار عن فحص حدة البصر بأدوات سريرية.'), style: TextStyle(height: 1.5)))),
       const SizedBox(height: 14),
       Text('المحاولة ${_round + 1} من ${_patterns.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
