@@ -1379,6 +1379,7 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 **4. Respect de la loi :**
 - Respecter les lois et règlements applicables.
 - Ne pas utiliser la plateforme pour des activités illégales.
+- Respecter les droits de propriété intellectuelle.
 - Ne pas porter atteinte aux droits d’autrui.
 
 **5. Communication :**
