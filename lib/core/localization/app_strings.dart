@@ -3948,6 +3948,7 @@ class AppStrings {
       'lab': ['Laboratory', 'Laboratoire'],
       'hospital': ['Hospital', 'Hôpital'],
       'general': ['General', 'Général'],
+      'وصفة': ['Prescription required', 'Ordonnance requise'],
     };
     final entry = translations[value];
     if (entry == null) return value;
