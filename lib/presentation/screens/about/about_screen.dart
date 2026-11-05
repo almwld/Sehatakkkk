@@ -31,7 +31,7 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 20),
           SizedBox(width: 120, height: 120, child: Image.asset('android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png', width: 120, height: 120, fit: BoxFit.contain)),
           const SizedBox(height: 20),
-          const Text('صحتك', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+          Text(_t('صحتك'), style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4), Text('Sehatak', style: TextStyle(fontSize: 16, color: AppColors.grey, letterSpacing: 2)),
           const SizedBox(height: 8),
           Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text('${_t('الإصدار')} $_appVersion+$_buildNumber', style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600))),
