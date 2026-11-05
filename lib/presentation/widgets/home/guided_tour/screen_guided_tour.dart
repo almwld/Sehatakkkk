@@ -281,13 +281,13 @@ class _TourBubble extends StatelessWidget {
               Row(children: [
                 Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: step.accentColor.withOpacity(.15), shape: BoxShape.circle), child: Text(step.emoji, style: const TextStyle(fontSize: 22))),
                 const SizedBox(width: 10),
-                Expanded(child: Text(step.title, style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900))),
+                Expanded(child: Text(_localizedUiText(context, step.title), style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900))),
               ]),
               const SizedBox(height: 12),
-              Text(step.description, textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6)),
+              Text(_localizedUiText(context, step.description), textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6)),
               if (step.actionHint != null) ...[
                 const SizedBox(height: 10),
-                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.09), borderRadius: BorderRadius.circular(10)), child: Text(step.actionHint!, textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.09), borderRadius: BorderRadius.circular(10)), child: Text(_localizedUiText(context, step.actionHint!), textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
               ],
               const Spacer(),
               Row(children: [TextButton(onPressed: onSkip, child: Text(_localizedUiText(context, 'تخطي'))), const Spacer(), Text('${index + 1}/$total', style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.black54))]),
