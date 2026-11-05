@@ -38,7 +38,8 @@ subprojects {
             def vibrateManifest = project.file("src/main/AndroidManifest.xml")
             if (vibrateManifest.exists()) {
                 def manifestText = vibrateManifest.getText("UTF-8")
-                def patchedManifest = manifestText.replaceFirst(/\\s+package=["']flutter\\.plugins\\.vibrate["']/, "")
+                // Groovy slashy regex: match the literal namespace and either quote style.
+                def patchedManifest = manifestText.replaceFirst(/\s+package=["']flutter\.plugins\.vibrate["']/, "")
                 if (patchedManifest != manifestText) {
                     vibrateManifest.setText(patchedManifest, "UTF-8")
                 }
