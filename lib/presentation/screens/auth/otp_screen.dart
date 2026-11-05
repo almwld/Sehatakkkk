@@ -120,12 +120,12 @@ class _OTPScreenState extends State<OTPScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(color: const Color(0xFF25D366).withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.chat, color: Color(0xFF25D366), size: 18),
                     SizedBox(width: 4),
-                    Text('الرمز عبر واتساب', style: TextStyle(color: Color(0xFF25D366), fontSize: 12)),
+                    Text(_t('الرمز عبر واتساب'), style: TextStyle(color: Color(0xFF25D366), fontSize: 12)),
                   ],
                 ),
               ),
