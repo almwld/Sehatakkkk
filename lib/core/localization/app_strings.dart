@@ -4138,6 +4138,14 @@ class AppStrings {
       "إذا كان المنتج متوفراً، استخدم زر الإضافة لبناء طلبك خطوة بخطوة.": ["If the product is available, use the add button to build your order step by step.", "Si le produit est disponible, utilisez le bouton d’ajout pour composer votre commande étape par étape."],
       "الدواء": ["Medicine", "Médicament"],
       "تم نسخ معلومات الدواء": ["Medicine information copied", "Informations sur le médicament copiées"],
+      "تمت إضافة الدواء إلى المفضلة": ["Medicine added to favorites", "Médicament ajouté aux favoris"],
+      "جاري مشاركة الدواء...": ["Sharing medicine...", "Partage du médicament..."],
+      "التصنيف الفرعي": ["Subcategory", "Sous-catégorie"],
+      "مطلوبة": ["Required", "Requise"],
+      "غير مطلوبة": ["Not required", "Non requise"],
+      "التوفر": ["Availability", "Disponibilité"],
+      "✅ تمت إضافة الدواء إلى السلة": ["✅ Medicine added to cart", "✅ Médicament ajouté au panier"],
+      "📋 تم نسخ معلومات الدواء": ["📋 Medicine information copied", "📋 Informations sur le médicament copiées"],
     };
     final entry = translations[value];
     if (entry == null) return value;
