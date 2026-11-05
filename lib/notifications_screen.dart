@@ -12,7 +12,7 @@ class NotificationsScreen extends StatelessWidget {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
-      body: const Center(
+      body: Center(
         child: Text(_localizedUiText(context, 'شاشة الإشعارات قيد التطوير')),
       ),
     );
