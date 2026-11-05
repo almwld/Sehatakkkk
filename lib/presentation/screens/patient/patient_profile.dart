@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
@@ -75,7 +76,12 @@ class _PatientProfileState extends State<PatientProfile> {
 
   String _value(String key, [String fallback = '']) {
     final value = _userData[key];
-    return value == null || value.toString().trim().isEmpty ? fallback : value.toString();
+    if (value == null || value.toString().trim().isEmpty) return fallback;
+    final text = value.toString();
+    if (text == 'زائر' || text == 'استكشف خدمات صحتك الصحية من دون اتصال.') {
+      return AppStrings.of(context).translate(text);
+    }
+    return text;
   }
 
   int? _count(String key) {
@@ -96,7 +102,7 @@ class _PatientProfileState extends State<PatientProfile> {
   Future<void> _toggleFollow() async {
     final me = _auth.currentUser;
     if (me == null) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سجّل الدخول أولاً للمتابعة')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('سجّل الدخول أولاً للمتابعة'))));
       return;
     }
     if (_profileId.isEmpty || _profileId == me.uid || _followBusy) return;
@@ -123,7 +129,7 @@ class _PatientProfileState extends State<PatientProfile> {
       await batch.commit();
       if (mounted) setState(() => _following = !_following);
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر تحديث المتابعة')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر تحديث المتابعة'))));
     } finally {
       if (mounted) setState(() => _followBusy = false);
     }
@@ -147,7 +153,7 @@ class _PatientProfileState extends State<PatientProfile> {
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(_isOwnProfile ? 'ملفي الشخصي' : 'الملف الشخصي'),
+        title: Text(_isOwnProfile ? AppStrings.of(context).translate('ملفي الشخصي') : AppStrings.of(context).translate('الملف الشخصي')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -218,7 +224,7 @@ class _PatientProfileState extends State<PatientProfile> {
             radius: radius,
             backgroundColor: AppColors.primary.withOpacity(.10),
             backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
-            child: photo.isEmpty ? Text(name.isEmpty ? 'م' : name.characters.first, style: TextStyle(fontSize: radius * .7, color: AppColors.primary, fontWeight: FontWeight.w900)) : null,
+            child: photo.isEmpty ? Text(name.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'م' : 'U') : name.characters.first, style: TextStyle(fontSize: radius * .7, color: AppColors.primary, fontWeight: FontWeight.w900)) : null,
           ),
         );
         return GestureDetector(
@@ -268,7 +274,7 @@ class _PatientProfileState extends State<PatientProfile> {
         icon: _followBusy
             ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
             : Icon(_following ? Icons.person_remove_outlined : Icons.person_add_alt_1_outlined),
-        label: Text(_following ? 'إلغاء المتابعة' : 'متابعة'),
+        label: Text(_following ? AppStrings.of(context).translate('إلغاء المتابعة') : AppStrings.of(context).translate('متابعة')),
         style: ElevatedButton.styleFrom(
           backgroundColor: _following ? (dark ? const Color(0xFF263552) : const Color(0xFFE9EFF0)) : AppColors.primary,
           foregroundColor: _following ? (dark ? Colors.white : const Color(0xFF263238)) : Colors.white,
@@ -292,7 +298,7 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _stories(String name, String photo, bool dark) {
-    return _card(dark, 'الحالة اليومية', AppImages.uiUserProfile, StreamBuilder<UserStatusModel?>(
+    return _card(dark, AppStrings.of(context).translate('الحالة اليومية'), AppImages.uiUserProfile, StreamBuilder<UserStatusModel?>(
       stream: _profileId.isEmpty ? Stream.value(null) : _statusService.streamUserStatus(_profileId),
       builder: (context, snapshot) {
         final status = snapshot.data;
@@ -303,22 +309,22 @@ class _PatientProfileState extends State<PatientProfile> {
             child: Column(children: [
               _storyAvatar(name, photo, 28),
               const SizedBox(height: 5),
-              Text(hasStatus ? 'عرض الحالة' : 'لا توجد حالة', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : Colors.grey[700])),
+              Text(hasStatus ? AppStrings.of(context).translate('عرض الحالة') : AppStrings.of(context).translate('لا توجد حالة'), style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : Colors.grey[700])),
             ]),
           ),
           const SizedBox(width: 14),
-          Expanded(child: Text(hasStatus ? 'الحالة اليومية متاحة من دائرة صورة المستخدم.' : 'عند نشر حالة ستظهر هنا ويمكن فتحها من دائرة صورة المستخدم.', style: TextStyle(fontSize: 12, height: 1.45, color: dark ? Colors.white70 : Colors.grey[700]))),
+          Expanded(child: Text(AppStrings.of(context).translate(hasStatus ? 'الحالة اليومية متاحة من دائرة صورة المستخدم.' : 'عند نشر حالة ستظهر هنا ويمكن فتحها من دائرة صورة المستخدم.'), style: TextStyle(fontSize: 12, height: 1.45, color: dark ? Colors.white70 : Colors.grey[700]))),
         ]);
       },
     ));
   }
 
   Widget _posts(bool dark) {
-    if (_profileId.isEmpty) return _card(dark, 'منشورات المجتمع', AppImages.uiUserProfile, const Text('سجّل الدخول لعرض منشورات الحساب.'));
-    return _card(dark, 'منشورات المجتمع', AppImages.uiUserProfile, StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    if (_profileId.isEmpty) return _card(dark, AppStrings.of(context).translate('منشورات المجتمع'), AppImages.uiUserProfile, Text(AppStrings.of(context).translate('سجّل الدخول لعرض منشورات الحساب.')));
+    return _card(dark, AppStrings.of(context).translate('منشورات المجتمع'), AppImages.uiUserProfile, StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _firestore.collection('community_posts').where('userId', isEqualTo: _profileId).where('isPublished', isEqualTo: true).limit(20).snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const Text('تعذر تحميل منشورات المجتمع.');
+        if (snapshot.hasError) return Text(AppStrings.of(context).translate('تعذر تحميل منشورات المجتمع.'));
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(strokeWidth: 2));
         final docs = [...snapshot.data!.docs];
         docs.sort((a, b) {
@@ -328,7 +334,7 @@ class _PatientProfileState extends State<PatientProfile> {
           final bt = bv is Timestamp ? bv.toDate() : DateTime.fromMillisecondsSinceEpoch(0);
           return bt.compareTo(at);
         });
-        if (docs.isEmpty) return const Text('لا توجد منشورات منشورة لهذا الحساب حالياً.');
+        if (docs.isEmpty) return Text(AppStrings.of(context).translate('لا توجد منشورات منشورة لهذا الحساب حالياً.'));
         return Column(children: docs.map((doc) => _post(doc, dark)).toList());
       },
     ));
@@ -360,11 +366,11 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _accountSections(bool dark) {
-    return _card(dark, 'حساب المستخدم', AppImages.uiUserProfile, Column(children: [
-      _tile('assets/images/ui/favorites.webp', 'الأطباء المفضلون', 'الوصول إلى الأطباء المضافين للمفضلة', _favoriteDoctors, dark),
-      _tile(AppImages.uiSettingsGear, 'التفضيلات', 'إدارة تفضيلات الحساب والخدمات', _settings, dark),
-      _tile(AppImages.uiUserProfile, 'المتابعات', 'الحسابات التي يتابعها المستخدم', null, dark),
-      if (_isOwnProfile) _tile(AppImages.uiEditButton, 'تعديل الملف', 'تحديث تفاصيل الحساب', _edit, dark),
+    return _card(dark, AppStrings.of(context).translate('حساب المستخدم'), AppImages.uiUserProfile, Column(children: [
+      _tile('assets/images/ui/favorites.webp', AppStrings.of(context).translate('الأطباء المفضلون'), AppStrings.of(context).translate('الوصول إلى الأطباء المضافين للمفضلة'), _favoriteDoctors, dark),
+      _tile(AppImages.uiSettingsGear, AppStrings.of(context).translate('التفضيلات'), AppStrings.of(context).translate('إدارة تفضيلات الحساب والخدمات'), _settings, dark),
+      _tile(AppImages.uiUserProfile, AppStrings.of(context).translate('المتابعات'), AppStrings.of(context).translate('الحسابات التي يتابعها المستخدم'), null, dark),
+      if (_isOwnProfile) _tile(AppImages.uiEditButton, AppStrings.of(context).translate('تعديل الملف'), AppStrings.of(context).translate('تحديث تفاصيل الحساب'), _edit, dark),
     ]));
   }
 
