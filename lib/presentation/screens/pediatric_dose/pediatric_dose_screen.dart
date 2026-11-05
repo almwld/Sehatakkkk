@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -35,7 +36,7 @@ class _PediatricDoseScreenState extends State<PediatricDoseScreen> {
     final maxDaily = (med['max'] as double) * _weight;
 
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('حاسبة جرعات الأطفال', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_localizedUiText(context, 'حاسبة جرعات الأطفال'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -45,12 +46,12 @@ class _PediatricDoseScreenState extends State<PediatricDoseScreen> {
             child: Column(children: [
               const Icon(Icons.child_care, color: Colors.white, size: 48),
               const SizedBox(height: 8),
-              const Text('حاسبة جرعات الأطفال', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-              const Text('احسب الجرعة حسب الوزن', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              Text(_localizedUiText(context, 'حاسبة جرعات الأطفال'), style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(_localizedUiText(context, 'احسب الجرعة حسب الوزن'), style: TextStyle(color: Colors.white70, fontSize: 12)),
             ]),
           ),
           const SizedBox(height: 16),
-          Text('اختر الدواء', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          Text(_localizedUiText(context, 'اختر الدواء'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(spacing: 6, children: _drugNames.map((k) {
             final m = _getMed(k);
@@ -65,12 +66,12 @@ class _PediatricDoseScreenState extends State<PediatricDoseScreen> {
           const SizedBox(height: 10),
           Text(med['desc'], style: const TextStyle(fontSize: 11, color: AppColors.grey)),
           const SizedBox(height: 16),
-          Text('وزن الطفل', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          Text(_localizedUiText(context, 'وزن الطفل'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           Container(
             margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
             child: Column(children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('الوزن'), Text('${_weight.toInt()} كجم', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppColors.primary))]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(_localizedUiText(context, 'الوزن')), Text('${_weight.toInt()} كجم', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppColors.primary))]),
               Slider(value: _weight, min: 2, max: 60, activeColor: AppColors.primary, onChanged: (v) => setState(() => _weight = v)),
             ]),
           ),
@@ -98,3 +99,7 @@ class _PediatricDoseScreenState extends State<PediatricDoseScreen> {
     return Column(children: [Icon(icon, color: color, size: 24), const SizedBox(height: 4), Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)), Text(label, style: const TextStyle(fontSize: 10, color: AppColors.grey))]);
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
