@@ -3956,7 +3956,6 @@ class AppStrings {
       "الموقع: ": ["Location: ", "Emplacement : "],
       "رعاية الحوامل": ["Pregnancy care", "Suivi de grossesse"],
       "متابعة الحمل من البداية حتى الولادة": ["Pregnancy care from the beginning through birth", "Suivi de grossesse du début jusqu’à l’accouchement"],
-      "الأسبوع": ["Week", "Semaine"],
       "من 40": ["of 40", "sur 40"],
       "موعد تقديري: ": ["Estimated due date: ", "Date prévue estimée : "],
       "حددي أسبوع الحمل للاطلاع على مراحل المتابعة": ["Select your pregnancy week to view the follow-up stages", "Sélectionnez votre semaine de grossesse pour consulter les étapes du suivi"],
