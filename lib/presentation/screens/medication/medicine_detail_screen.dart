@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -33,7 +34,7 @@ class MedicineDetailScreen extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
         body: const Center(
-          child: Text('الدواء غير موجود'),
+          child: Text(_localizedUiText(context, 'الدواء غير موجود')),
         ),
       );
     }
@@ -177,8 +178,7 @@ class MedicineDetailScreen extends StatelessWidget {
                             children: [
                               const Icon(Icons.assignment, size: 12, color: Colors.orange),
                               const SizedBox(width: 4),
-                              Text(
-                                'يتطلب وصفة طبية',
+                              Text(_localizedUiText(context, 'يتطلب وصفة طبية'),
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Colors.orange,
@@ -229,8 +229,7 @@ class MedicineDetailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // ✅ الوصف
-                  const Text(
-                    'الوصف',
+                  Text(_localizedUiText(context, 'الوصف'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -248,8 +247,7 @@ class MedicineDetailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // ✅ معلومات إضافية
-                  const Text(
-                    'معلومات إضافية',
+                  Text(_localizedUiText(context, 'معلومات إضافية'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -275,7 +273,7 @@ class MedicineDetailScreen extends StatelessWidget {
                                 }
                               : null,
                           icon: const Icon(Icons.shopping_cart),
-                          label: const Text('إضافة إلى السلة'),
+                          label: Text(_localizedUiText(context, 'إضافة إلى السلة')),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -293,7 +291,7 @@ class MedicineDetailScreen extends StatelessWidget {
                             ToastService.showSuccess(context, '📋 تم نسخ معلومات الدواء');
                           },
                           icon: const Icon(Icons.copy),
-                          label: const Text('نسخ المعلومات'),
+                          label: Text(_localizedUiText(context, 'نسخ المعلومات')),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -340,3 +338,7 @@ class MedicineDetailScreen extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
