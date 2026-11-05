@@ -3951,7 +3951,6 @@ class AppStrings {
       'الكوليسترول': ['Cholesterol', 'Cholestérol'],
       'الربو': ['Asthma', 'Asthme'],
       'general': ['General', 'Général'],
-    };
       "فعّل خدمة الموقع في الهاتف أولاً": ["Enable location services on your phone first", "Activez d’abord les services de localisation sur votre téléphone"],
       "يلزم السماح للموقع لتحديده": ["Location permission is required to select your position", "L’autorisation de localisation est nécessaire pour choisir votre position"],
       "تعذر تحديد موقعك حالياً": ["Could not determine your location right now", "Impossible de déterminer votre position pour le moment"],
@@ -3994,6 +3993,7 @@ class AppStrings {
       "ابحث عن دواء...": ["Search for a medicine...", "Rechercher un médicament..."],
       "لا توجد أدوية متاحة حالياً": ["No medicines are currently available", "Aucun médicament n’est disponible pour le moment"],
       'وصفة': ['Prescription required', 'Ordonnance requise'],
+    };
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
