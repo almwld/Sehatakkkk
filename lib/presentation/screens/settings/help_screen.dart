@@ -209,9 +209,9 @@ class _SupportCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(AppStrings.of(context).translate('تواصل مع الدعم'), textDirection: TextDirection.rtl, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          Text(AppStrings.of(context).translate('تواصل مع الدعم'), textDirection: AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
           const SizedBox(height: 6),
-          Text(AppStrings.of(context).translate('اختر الطريقة المناسبة وسنساعدك في أقرب وقت.'), textDirection: TextDirection.rtl, style: TextStyle(color: dark ? Colors.white60 : Colors.black54, fontSize: 12)),
+          Text(AppStrings.of(context).translate('اختر الطريقة المناسبة وسنساعدك في أقرب وقت.'), textDirection: AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr, style: TextStyle(color: dark ? Colors.white60 : Colors.black54, fontSize: 12)),
           const SizedBox(height: 14),
           Row(
             children: [
