@@ -296,7 +296,7 @@ class _TourBubble extends StatelessWidget {
                   OutlinedButton(onPressed: onPrevious, child: Text(_localizedUiText(context, 'السابق'))),
                   const SizedBox(width: 8),
                 ],
-                Expanded(child: FilledButton(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor, foregroundColor: Colors.white), child: Text(index == total - 1 ? 'تم' : 'التالي'))),
+                Expanded(child: FilledButton(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor, foregroundColor: Colors.white), child: Text(_localizedUiText(context, index == total - 1 ? 'تم' : 'التالي')))),
               ]),
             ],
           ),
