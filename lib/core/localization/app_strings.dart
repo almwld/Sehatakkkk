@@ -4136,6 +4136,7 @@ class AppStrings {
       '+ كوب': ['+ cup', '+ verre'],
       'تسجيل وجبة': ['Log a meal', 'Enregistrer un repas'],
       'الاحتياجات الغذائية تختلف باختلاف العمر والنشاط والحالة الصحية. عند وجود مرض مزمن أو حمل أو احتياج غذائي خاص، استعن بمختص.': ['Nutritional needs vary with age, activity, and health status. If you have a chronic condition, are pregnant, or have special dietary needs, consult a professional.', 'Les besoins nutritionnels varient selon l’âge, l’activité et l’état de santé. En cas de maladie chronique, de grossesse ou de besoins particuliers, consultez un professionnel.'],
+
     };
     final entry = translations[value];
     if (entry == null) return value;
