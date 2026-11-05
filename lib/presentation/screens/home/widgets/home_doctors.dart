@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/core/models/doctor_model.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HomeDoctorsList extends StatelessWidget {
   final List<DoctorModel> doctors;
@@ -29,7 +30,7 @@ class HomeDoctorsList extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'أفضل الأطباء',
+                AppStrings.of(context).translate('أفضل الأطباء'),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -38,7 +39,7 @@ class HomeDoctorsList extends StatelessWidget {
               ),
               TextButton(
                 onPressed: onViewAll,
-                child: const Text('عرض الكل'),
+                child: Text(AppStrings.of(context).translate('عرض الكل')),
               ),
             ],
           ),
