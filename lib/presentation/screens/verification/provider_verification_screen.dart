@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -29,7 +30,7 @@ class _ProviderVerificationScreenState extends State<ProviderVerificationScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('توثيق مقدمي الخدمة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(_localizedUiText(context, 'توثيق مقدمي الخدمة'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         bottom: TabBar(
@@ -370,3 +371,7 @@ Widget _noteCard(String text) {
     ]),
   );
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
