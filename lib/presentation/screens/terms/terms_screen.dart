@@ -1656,7 +1656,11 @@ class TermsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            content,
+            TermsTranslations.body(
+              title.replaceFirst('⚠️ ', ''),
+              content,
+              Localizations.localeOf(context),
+            ),
             style: const TextStyle(
               fontSize: 14,
               height: 1.8,
