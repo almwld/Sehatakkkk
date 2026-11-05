@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 
 class AppSearchDelegate extends SearchDelegate<String> {
@@ -30,7 +31,7 @@ class AppSearchDelegate extends SearchDelegate<String> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('نتائج البحث عن:'),
+          Text(_localizedUiText(context, 'نتائج البحث عن:')),
           Text(
             query,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -45,7 +46,7 @@ class AppSearchDelegate extends SearchDelegate<String> {
                 ),
               );
             },
-            child: const Text('عرض طبيب'),
+            child: Text(_localizedUiText(context, 'عرض طبيب')),
           ),
         ],
       ),
@@ -55,7 +56,10 @@ class AppSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildSuggestions(BuildContext context) {
     return const Center(
-      child: Text('ابحث عن أطباء، خدمات، أو أدوية'),
+      child: Text(_localizedUiText(context, 'ابحث عن أطباء، خدمات، أو أدوية')),
     );
   }
 }
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
