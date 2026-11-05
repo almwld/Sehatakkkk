@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -18,6 +19,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
   String _bloodType = 'A+';
   String _city = 'صنعاء';
   bool _isLoading = false;
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   final List<String> _bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   final List<String> _cities = ['صنعاء', 'عدن', 'تعز', 'الحديدة', 'إب', 'ذمار', 'المكلا', 'سيئون'];
@@ -29,7 +31,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'التبرع بالدم',
+        title: _t('التبرع بالدم'),
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -53,14 +55,14 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.bloodtype, size: 48, color: Colors.white),
                           SizedBox(height: 8),
                           Text(
-                            'تبرع بالدم .. أنقذ حياة',
+                            _t('تبرع بالدم .. أنقذ حياة'),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -74,8 +76,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                   const SizedBox(height: 24),
 
                   // ✅ نموذج التسجيل
-                  const Text(
-                    'بيانات المتبرع',
+                  Text(
+                    _t('بيانات المتبرع'),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
@@ -83,8 +85,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                   TextField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: 'الاسم الكامل',
-                      hintText: 'أدخل اسمك الكامل',
+                      labelText: _t('الاسم الكامل'),
+                      hintText: _t('أدخل اسمك الكامل'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -100,8 +102,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                      labelText: 'رقم الهاتف',
-                      hintText: 'أدخل رقم هاتفك',
+                      labelText: _t('رقم الهاتف'),
+                      hintText: _t('أدخل رقم هاتفك'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -117,8 +119,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                     controller: _ageController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'العمر',
-                      hintText: 'أدخل عمرك',
+                      labelText: _t('العمر'),
+                      hintText: _t('أدخل عمرك'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -136,7 +138,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                         child: DropdownButtonFormField<String>(
                           value: _bloodType,
                           decoration: InputDecoration(
-                            labelText: 'فصيلة الدم',
+                            labelText: _t('فصيلة الدم'),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -157,7 +159,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                         child: DropdownButtonFormField<String>(
                           value: _city,
                           decoration: InputDecoration(
-                            labelText: 'المدينة',
+                            labelText: _t('المدينة'),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -168,7 +170,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                           dropdownColor: isDark ? const Color(0xFF1A2540) : Colors.white,
                           style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                           items: _cities.map((city) {
-                            return DropdownMenuItem(value: city, child: Text(city));
+                            return DropdownMenuItem(value: city, child: Text(_t(city)));
                           }).toList(),
                           onChanged: (value) => setState(() => _city = value!),
                         ),
@@ -189,8 +191,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'سجل كمتبرع',
+                      child: Text(
+                        _t('سجل كمتبرع'),
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -198,8 +200,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                   const SizedBox(height: 24),
 
                   // ✅ قائمة المتبرعين
-                  const Text(
-                    'المتبرعون الحاليون',
+                  Text(
+                    _t('المتبرعون الحاليون'),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -221,13 +223,13 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('خطأ: ${snapshot.error}'));
+          return Center(child: Text('${_t('خطأ')}: ${snapshot.error}'));
         }
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('لا يوجد متبرعون حالياً'));
+          return Center(child: Text(AppStrings.of(context).translate('لا يوجد متبرعون حالياً')));
         }
 
         return ListView.builder(
@@ -247,7 +249,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                   ),
                 ),
                 title: Text(
-                  data['name'] ?? 'مجهول',
+                  data['name'] ?? _t('مجهول'),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text('${data['city'] ?? ''} • ${data['phone'] ?? ''}'),
@@ -262,7 +264,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
 
   Future<void> _registerDonor() async {
     if (_nameController.text.isEmpty || _phoneController.text.isEmpty || _ageController.text.isEmpty) {
-      ToastService.showError('الرجاء ملء جميع الحقول');
+      ToastService.showError(_t('الرجاء ملء جميع الحقول'));
       return;
     }
 
@@ -278,13 +280,13 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      ToastService.showSuccess('✅ تم التسجيل كمتبرع! شكراً لك');
+      ToastService.showSuccess('✅ ${_t('تم التسجيل كمتبرع! شكراً لك')}');
 
       _nameController.clear();
       _phoneController.clear();
       _ageController.clear();
     } catch (e) {
-      ToastService.showError('❌ خطأ: $e');
+      ToastService.showError('❌ ${_t('خطأ:')} $e');
     }
 
     setState(() => _isLoading = false);
