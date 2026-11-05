@@ -30,7 +30,7 @@ class TermsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // ✅ جدول المحتويات
-            _buildTableOfContents(),
+            _buildTableOfContents(context),
             const SizedBox(height: 24),
             
             // ✅ القسم 1: مقدمة شاملة
@@ -1361,7 +1361,7 @@ class TermsScreen extends StatelessWidget {
             // ✅ القسم 18: القانون الحاكم والفضاء
             _buildSection(
               context,
-              title: '18. القانون الحاكم والفضاء',
+              title: '18. القانون الحاكم والقضاء',
               content: '''
 تخضع هذه الشروط والأحكام للقوانين واللوائح المعمول بها في الجمهورية اليمنية:
 
@@ -1541,51 +1541,46 @@ class TermsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTableOfContents() {
+  Widget _buildTableOfContents(BuildContext context) {
+    const sections = <String>[
+      '1. مقدمة شاملة',
+      '2. تعريفات ومصطلحات',
+      '3. قبول الشروط والموافقة',
+      '4. وصف الخدمات التفصيلي',
+      '5. الحسابات والتسجيل',
+      '6. إخلاء المسؤولية الطبية',
+      '7. مسؤولية الأطباء ومقدمي الخدمة',
+      '8. جمع البيانات واستخدامها',
+      '9. أمان البيانات',
+      '10. حقوق المستخدم',
+      '11. التزامات المستخدم',
+      '12. المحتوى والملكية الفكرية',
+      '13. المدفوعات والاشتراكات',
+      '14. سياسة الخصوصية',
+      '15. التواصل والإشعارات',
+      '16. إجراءات الأمان',
+      '17. إلغاء الحساب',
+      '18. القانون الحاكم والقضاء',
+      '19. اتصل بنا',
+    ];
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.info.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.info.withOpacity(0.1),
-        ),
+        border: Border.all(color: AppColors.info.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '📑 جدول المحتويات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Text(
+            AppStrings.of(context).translate('📑 جدول المحتويات'),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            '1. مقدمة شاملة\n'
-            '2. تعريفات ومصطلحات\n'
-            '3. قبول الشروط والموافقة\n'
-            '4. وصف الخدمات التفصيلي\n'
-            '5. الحسابات والتسجيل\n'
-            '6. إخلاء المسؤولية الطبية ⚠️\n'
-            '7. مسؤولية الأطباء ومقدمي الخ service ⚠️\n'
-            '8. جمع البيانات واستخدامها\n'
-            '9. أمان البيانات\n'
-            '10. حقوق المستخدم\n'
-            '11. التزامات المستخدم\n'
-            '12. المحتوى والملكية الفكرية\n'
-            '13. المدفوعات والاشتراكات\n'
-            '14. سياسة الخصوصية\n'
-            '15. التواصل والإشعارات\n'
-            '16. إجراءات الأمان\n'
-            '17. إلغاء الحساب\n'
-            '18. القانون الحاكم والفضاء\n'
-            '19. اتصل بنا',
-            style: TextStyle(
-              fontSize: 13,
-              height: 1.8,
-            ),
+            sections.map((section) => AppStrings.of(context).translate(section)).join('\\n'),
+            style: const TextStyle(fontSize: 13, height: 1.8),
           ),
         ],
       ),
