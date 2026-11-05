@@ -2521,7 +2521,9 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
       ]
     };
     final pair = translations[section];
-    if (pair == null || language == 'ar') return arabic;
-    return language == 'fr' ? pair[1] : pair[0];
+    if (pair == null) return arabic;
+    if (language == 'en') return pair[0];
+    if (language == 'fr') return pair[1];
+    return arabic;
   }
 }
