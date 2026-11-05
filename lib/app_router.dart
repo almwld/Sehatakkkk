@@ -57,7 +57,6 @@ import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/packages/packages_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
-import 'package:sehatak/presentation/screens/splash_screen.dart';
 import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
 import 'package:sehatak/presentation/widgets/home/guided_tour/screen_tours.dart';
 
