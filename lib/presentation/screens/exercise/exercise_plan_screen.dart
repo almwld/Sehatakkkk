@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class ExercisePlanScreen extends StatefulWidget {
   const ExercisePlanScreen({super.key});
@@ -16,6 +17,8 @@ class ExercisePlanScreen extends StatefulWidget {
 }
 
 class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
+  String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+
   int _selectedLevel = 0;
   Timer? _timer;
   int _remainingSeconds = 0;
@@ -37,7 +40,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF6F8FA),
       appBar: CustomAppBar(
-        title: 'خطة التمارين',
+        title: _t(context, 'خطة التمارين'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         centerTitle: true,
@@ -70,8 +73,8 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'مستوى التمرين',
+                  Text(
+                    _t(context, 'مستوى التمرين'),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -95,7 +98,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              level,
+                              _t(context, level),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: selected ? AppColors.primary : Colors.white,
@@ -113,15 +116,15 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
             const SizedBox(height: 20),
             
             // ✅ قائمة التمارين
-            const Text(
-              'تمارين اليوم',
+            Text(
+              _t(context, 'تمارين اليوم'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 10),
-            ..._exercises.map((exercise) => _buildExerciseCard(exercise, isDark)),
+            ..._exercises.map((exercise) => _buildExerciseCard(context, exercise, isDark)),
             const SizedBox(height: 20),
             
             // ✅ زر بدء التمرين
@@ -137,8 +140,8 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
                   color: Colors.white,
                   errorBuilder: (_, __, ___) => const Icon(Icons.play_arrow),
                 ),
-                label: const Text(
-                  'بدء التمرين',
+                label: Text(
+                  _t(context, 'بدء التمرين'),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -188,14 +191,14 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
             const SizedBox(height: 18), Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               IconButton.filled(onPressed: _running ? pause : start, icon: Icon(_running ? Icons.pause : Icons.play_arrow), iconSize: 28),
               const SizedBox(width: 12),
-              OutlinedButton(onPressed: () { _timer?.cancel(); _running = false; _remainingSeconds = minutes * 60; setSheetState(() {}); }, child: const Text('إعادة')),
+              OutlinedButton(onPressed: () { _timer?.cancel(); _running = false; _remainingSeconds = minutes * 60; setSheetState(() {}); }, child: Text(_t(context, 'إعادة'))),
             ])
           ]));
         },
       ),
     ).whenComplete(() { _timer?.cancel(); _running = false; });
   }
-  Widget _buildExerciseCard(Map<String, dynamic> exercise, bool isDark) {
+  Widget _buildExerciseCard(BuildContext context, Map<String, dynamic> exercise, bool isDark) {
     final color = exercise['color'] as Color;
     final icon = exercise['icon'] as String;
     
@@ -236,7 +239,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  exercise['name'],
+                  _t(context, exercise['name'] as String),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -245,7 +248,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '⏱ ${exercise['time']}',
+                  '⏱ ${_t(context, exercise['time'] as String)}',
                   style: TextStyle(
                     fontSize: 11,
                     color: isDark ? Colors.grey[400] : AppColors.grey,
@@ -264,8 +267,8 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
                   color: color,
                 ),
               ),
-              const Text(
-                'سعرة',
+              Text(
+                _t(context, 'سعرة'),
                 style: TextStyle(
                   fontSize: 9,
                   color: AppColors.grey,
