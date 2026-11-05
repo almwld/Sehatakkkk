@@ -397,7 +397,7 @@ class _TooltipBubble extends StatelessWidget {
                           : Icons.arrow_back_rounded,
                       size: 18,
                     ),
-                    label: Text(index == total - 1 ? 'تم' : 'التالي'),
+                    label: Text(_localizedUiText(context, index == total - 1 ? 'تم' : 'التالي')),
                   ),
                 ),
               ],
