@@ -4181,6 +4181,9 @@ class AppStrings {
       "التخصص: ": ["Specialty: ", "Spécialité : "],
       "السعر: ": ["Price: ", "Prix : "],
       "الأقل سعراً": ["Lowest price", "Prix le plus bas"],
+      "كوب": ["cup", "tasse"],
+      "مسجلة": ["logged", "enregistrés"],
+      "الوجبات": ["Meals", "Repas"],
     };
     final entry = translations[value];
     if (entry == null) return value;
