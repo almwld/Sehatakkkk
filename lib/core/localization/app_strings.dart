@@ -130,6 +130,13 @@ class AppStrings {
           : 'A new verification request for the $role role needs review.';
     }
     final translations = <String, List<String>>{
+      'المستخدم مشغول بمكالمة أخرى': ['The user is busy on another call', 'L’utilisateur est déjà en communication'],
+      'تعذر رفض المكالمة:': ['Could not reject the call:', 'Impossible de refuser l’appel :'],
+      'تعذر قبول المكالمة:': ['Could not answer the call:', 'Impossible de répondre à l’appel :'],
+      'تشغيل الرنين': ['Turn ringtone on', 'Activer la sonnerie'],
+      'كتم الرنين': ['Mute ringtone', 'Couper la sonnerie'],
+      'قبول': ['Answer', 'Répondre'],
+
       'عيادات قريبة': ['Nearby clinics', 'Cliniques à proximité'],
       'مجمع الرازي الطبي': ['Al-Razi Medical Complex', 'Complexe médical Al-Razi'],
       'العيادة الشاملة': ['Comprehensive Clinic', 'Clinique polyvalente'],
