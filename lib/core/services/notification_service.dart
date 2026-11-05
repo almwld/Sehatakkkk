@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -335,27 +336,43 @@ class NotificationService {
   static const socialChannelId = 'sehatak_social_v1';
   static const callChannelId = 'sehatak_calls_v3';
 
-  static const _messageChannel = AndroidNotificationChannel(
-    messageChannelId, 'صحتك - الرسائل',
-    description: 'إشعارات الرسائل الجديدة في الدردشة', importance: Importance.high,
-    playSound: true, sound: RawResourceAndroidNotificationSound('notification'),
-  );
-  static const _appointmentChannel = AndroidNotificationChannel(appointmentChannelId, 'صحتك - المواعيد', description: 'تأكيدات وتذكيرات المواعيد', importance: Importance.high);
-  static const _medicationChannel = AndroidNotificationChannel(medicationChannelId, 'صحتك - الأدوية', description: 'تذكيرات الأدوية', importance: Importance.high);
-  static const _labChannel = AndroidNotificationChannel(labChannelId, 'صحتك - التحاليل', description: 'نتائج وتذكيرات التحاليل', importance: Importance.high);
-  static const _paymentChannel = AndroidNotificationChannel(paymentChannelId, 'صحتك - المدفوعات', description: 'تحديثات المدفوعات والمحفظة', importance: Importance.high);
-  static const _invoiceChannel = AndroidNotificationChannel(invoiceChannelId, 'صحتك - الفواتير', description: 'الفواتير والمدفوعات', importance: Importance.high);
-  static const _labRequestChannel = AndroidNotificationChannel(labRequestChannelId, 'صحتك - طلبات الفحص', description: 'طلبات الفحوصات والتحاليل', importance: Importance.high);
-  static const _orderChannel = AndroidNotificationChannel(orderChannelId, 'صحتك - الطلبات', description: 'تحديثات طلبات الصيدلية والخدمات', importance: Importance.high);
-  static const _promotionalChannel = AndroidNotificationChannel(promotionalChannelId, 'صحتك - العروض', description: 'العروض والمحتوى الترويجي', importance: Importance.defaultImportance);
-  static const _systemChannel = AndroidNotificationChannel(systemChannelId, 'صحتك - النظام', description: 'تحديثات وصيانة وتنبيهات النظام', importance: Importance.defaultImportance);
-  static const _healthChannel = AndroidNotificationChannel(healthChannelId, 'صحتك - الصحة', description: 'التذكيرات والتحديات الصحية', importance: Importance.defaultImportance);
-  static const _socialChannel = AndroidNotificationChannel(socialChannelId, 'صحتك - الاجتماعي', description: 'التفاعلات الاجتماعية', importance: Importance.defaultImportance);
-  static const _callChannel = AndroidNotificationChannel(
-    callChannelId, 'صحتك - المكالمات',
-    description: 'إشعارات المكالمات الواردة', importance: Importance.max,
-    playSound: true, sound: RawResourceAndroidNotificationSound('call_ringtone'),
-  );
+  Future<String> _languageCode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString('app_locale_code');
+      return saved == 'en' || saved == 'fr' ? saved! : 'ar';
+    } catch (_) {
+      return 'ar';
+    }
+  }
+
+  String _localized(String languageCode, String ar, String en, String fr) {
+    switch (languageCode) {
+      case 'en': return en;
+      case 'fr': return fr;
+      default: return ar;
+    }
+  }
+
+  String _translate(String languageCode, String value) =>
+      AppStrings(Locale(languageCode)).translate(value);
+
+  List<AndroidNotificationChannel> _channelsFor(String languageCode) => [
+    AndroidNotificationChannel(messageChannelId, _localized(languageCode, 'صحتك - الرسائل', 'Sehatak - Messages', 'Sehatak - Messages'), description: _localized(languageCode, 'إشعارات الرسائل الجديدة في الدردشة', 'New chat message notifications', 'Notifications de nouveaux messages du chat'), importance: Importance.high, playSound: true, sound: const RawResourceAndroidNotificationSound('notification')),
+    AndroidNotificationChannel(appointmentChannelId, _localized(languageCode, 'صحتك - المواعيد', 'Sehatak - Appointments', 'Sehatak - Rendez-vous'), description: _localized(languageCode, 'تأكيدات وتذكيرات المواعيد', 'Appointment confirmations and reminders', 'Confirmations et rappels de rendez-vous'), importance: Importance.high),
+    AndroidNotificationChannel(medicationChannelId, _localized(languageCode, 'صحتك - الأدوية', 'Sehatak - Medications', 'Sehatak - Médicaments'), description: _localized(languageCode, 'تذكيرات الأدوية', 'Medication reminders', 'Rappels de médicaments'), importance: Importance.high),
+    AndroidNotificationChannel(labChannelId, _localized(languageCode, 'صحتك - التحاليل', 'Sehatak - Lab results', 'Sehatak - Analyses'), description: _localized(languageCode, 'نتائج وتذكيرات التحاليل', 'Lab results and reminders', 'Résultats et rappels d’analyses'), importance: Importance.high),
+    AndroidNotificationChannel(paymentChannelId, _localized(languageCode, 'صحتك - المدفوعات', 'Sehatak - Payments', 'Sehatak - Paiements'), description: _localized(languageCode, 'تحديثات المدفوعات والمحفظة', 'Payment and wallet updates', 'Mises à jour des paiements et du portefeuille'), importance: Importance.high),
+    AndroidNotificationChannel(invoiceChannelId, _localized(languageCode, 'صحتك - الفواتير', 'Sehatak - Invoices', 'Sehatak - Factures'), description: _localized(languageCode, 'الفواتير والمدفوعات', 'Invoices and payments', 'Factures et paiements'), importance: Importance.high),
+    AndroidNotificationChannel(labRequestChannelId, _localized(languageCode, 'صحتك - طلبات الفحص', 'Sehatak - Lab requests', 'Sehatak - Demandes d’analyses'), description: _localized(languageCode, 'طلبات الفحوصات والتحاليل', 'Test and lab requests', 'Demandes d’examens et d’analyses'), importance: Importance.high),
+    AndroidNotificationChannel(orderChannelId, _localized(languageCode, 'صحتك - الطلبات', 'Sehatak - Orders', 'Sehatak - Commandes'), description: _localized(languageCode, 'تحديثات طلبات الصيدلية والخدمات', 'Pharmacy and service order updates', 'Mises à jour des commandes de pharmacie et de services'), importance: Importance.high),
+    AndroidNotificationChannel(promotionalChannelId, _localized(languageCode, 'صحتك - العروض', 'Sehatak - Offers', 'Sehatak - Offres'), description: _localized(languageCode, 'العروض والمحتوى الترويجي', 'Offers and promotional content', 'Offres et contenu promotionnel'), importance: Importance.defaultImportance),
+    AndroidNotificationChannel(systemChannelId, _localized(languageCode, 'صحتك - النظام', 'Sehatak - System', 'Sehatak - Système'), description: _localized(languageCode, 'تحديثات وصيانة وتنبيهات النظام', 'System updates, maintenance and alerts', 'Mises à jour, maintenance et alertes système'), importance: Importance.defaultImportance),
+    AndroidNotificationChannel(healthChannelId, _localized(languageCode, 'صحتك - الصحة', 'Sehatak - Health', 'Sehatak - Santé'), description: _localized(languageCode, 'التذكيرات والتحديات الصحية', 'Health reminders and challenges', 'Rappels et défis santé'), importance: Importance.defaultImportance),
+    AndroidNotificationChannel(socialChannelId, _localized(languageCode, 'صحتك - الاجتماعي', 'Sehatak - Social', 'Sehatak - Social'), description: _localized(languageCode, 'التفاعلات الاجتماعية', 'Social interactions', 'Interactions sociales'), importance: Importance.defaultImportance),
+    AndroidNotificationChannel(callChannelId, _localized(languageCode, 'صحتك - المكالمات', 'Sehatak - Calls', 'Sehatak - Appels'), description: _localized(languageCode, 'إشعارات المكالمات الواردة', 'Incoming call notifications', 'Notifications d’appels entrants'), importance: Importance.max, playSound: true, sound: const RawResourceAndroidNotificationSound('call_ringtone')),
+  ];
+
 
   void setNotificationTapHandler(NotificationTapHandler? handler) => _tapHandler = handler;
 
@@ -398,19 +415,10 @@ class NotificationService {
         }
       }, onDidReceiveBackgroundNotificationResponse: notificationActionBackgroundHandler);
       final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      await android?.createNotificationChannel(_messageChannel);
-      await android?.createNotificationChannel(_appointmentChannel);
-      await android?.createNotificationChannel(_medicationChannel);
-      await android?.createNotificationChannel(_labChannel);
-      await android?.createNotificationChannel(_paymentChannel);
-      await android?.createNotificationChannel(_invoiceChannel);
-      await android?.createNotificationChannel(_labRequestChannel);
-      await android?.createNotificationChannel(_orderChannel);
-      await android?.createNotificationChannel(_promotionalChannel);
-      await android?.createNotificationChannel(_systemChannel);
-      await android?.createNotificationChannel(_healthChannel);
-      await android?.createNotificationChannel(_socialChannel);
-      await android?.createNotificationChannel(_callChannel);
+      final languageCode = await _languageCode();
+      for (final channel in _channelsFor(languageCode)) {
+        await android?.createNotificationChannel(channel);
+      }
       // ⚡ Full Screen Intent is UI-only. The FCM background isolate
       // initializes this service with startCallCoordinator=false, so it must
       // never touch the MainActivity-backed MethodChannel.
@@ -511,16 +519,19 @@ class NotificationService {
       return;
     }
 
+    final languageCode = await _languageCode();
     final isChatMessage =
         type == 'new_message' || type == 'chat_message' || type == 'message';
     final safeTitle = isChatMessage
         ? (data?['senderName']?.toString().trim().isNotEmpty == true
             ? data!['senderName'].toString()
             : title)
-        : title;
+        : _translate(languageCode, title);
     final safeBody = body.trim().isNotEmpty
-        ? body
-        : (isChatMessage ? 'لديك رسالة جديدة في الدردشة' : 'لديك إشعار جديد');
+        ? _translate(languageCode, body)
+        : (isChatMessage
+            ? _localized(languageCode, 'لديك رسالة جديدة في الدردشة', 'You have a new chat message', 'Vous avez un nouveau message')
+            : _localized(languageCode, 'لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'));
 
     if (isChatMessage) {
       await showMessageNotification(
@@ -534,7 +545,7 @@ class NotificationService {
     }
 
     final channelId = _channelFor(family);
-    final channelName = _channelNameFor(family);
+    final channelName = _channelNameFor(family, languageCode);
     final importance = _importanceFor(family);
     final resolvedSound =
         playSound ?? family != SehatakNotificationType.promotional;
@@ -608,6 +619,7 @@ class NotificationService {
     bool? playSound,
   }) async {
     await initialize(startCallCoordinator: false);
+    final languageCode = await _languageCode();
     final resolvedSound = playSound ?? true;
     final notificationData = data ?? const <String, dynamic>{};
     final chatId = notificationData['chatId']?.toString().trim() ?? '';
@@ -645,15 +657,15 @@ class NotificationService {
       name: title,
       key: senderId.isEmpty ? title : senderId,
     );
-    const me = Person(name: 'أنت', key: 'self');
+    final me = Person(name: _localized(languageCode, 'أنت', 'You', 'Vous'), key: 'self');
     final timestamp = DateTime.now();
 
     String messageText = body;
     if (messageType == 'image' && messageText.trim().isEmpty) {
-      messageText = '📷 أرسل صورة';
+      messageText = _localized(languageCode, '📷 أرسل صورة', '📷 Sent a photo', '📷 Photo envoyée');
     } else if (messageType == 'file' && messageText.trim().isEmpty) {
       messageText =
-          '📎 ${notificationData['fileName']?.toString().trim().isNotEmpty == true ? notificationData['fileName'] : 'أرسل ملفاً'}';
+          '📎 ${notificationData['fileName']?.toString().trim().isNotEmpty == true ? notificationData['fileName'] : _localized(languageCode, 'أرسل ملفاً', 'Sent a file', 'Fichier envoyé')}';
     }
 
     final messages = <Message>[
@@ -690,10 +702,10 @@ class NotificationService {
       if (chatId.isNotEmpty)
         AndroidNotificationAction(
           'message_reply',
-          'رد',
+          _localized(languageCode, 'رد', 'Reply', 'Répondre'),
           inputs: const <AndroidNotificationActionInput>[
             AndroidNotificationActionInput(
-              label: 'اكتب ردك…',
+              label: _localized(languageCode, 'اكتب ردك…', 'Type your reply…', 'Écrivez votre réponse…'),
               allowFreeFormInput: true,
             ),
           ],
@@ -703,14 +715,14 @@ class NotificationService {
       if (chatId.isNotEmpty)
         AndroidNotificationAction(
           'message_read',
-          'تمت القراءة',
+          _localized(languageCode, 'تمت القراءة', 'Mark as read', 'Marquer comme lu'),
           showsUserInterface: false,
           cancelNotification: true,
         ),
       if (chatId.isNotEmpty)
         AndroidNotificationAction(
           'message_mute',
-          'كتم',
+          _localized(languageCode, 'كتم', 'Mute', 'Désactiver le son'),
           showsUserInterface: false,
           cancelNotification: true,
         ),
@@ -719,8 +731,8 @@ class NotificationService {
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         messageChannelId,
-        'صحتك - الرسائل',
-        channelDescription: 'إشعارات الرسائل الجديدة في الدردشة',
+        _localized(languageCode, 'صحتك - الرسائل', 'Sehatak - Messages', 'Sehatak - Messages'),
+        channelDescription: _localized(languageCode, 'إشعارات الرسائل الجديدة في الدردشة', 'New chat message notifications', 'Notifications de nouveaux messages du chat'),
         importance: Importance.high,
         priority: Priority.high,
         playSound: resolvedSound,
@@ -777,21 +789,22 @@ class NotificationService {
   }
 
   Future<void> _showCallNotification({required int id, required String callerName, required String callId, required bool isVideo, required bool silent, required String smallIcon}) async {
+    final languageCode = await _languageCode();
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
-        callChannelId, 'صحتك - المكالمات', channelDescription: 'إشعارات المكالمات الواردة',
+        callChannelId, _localized(languageCode, 'صحتك - المكالمات', 'Sehatak - Calls', 'Sehatak - Appels'), channelDescription: _localized(languageCode, 'إشعارات المكالمات الواردة', 'Incoming call notifications', 'Notifications d’appels entrants'),
         importance: Importance.max, priority: Priority.max, playSound: !silent,
         sound: silent ? null : const RawResourceAndroidNotificationSound('call_ringtone'),
         category: AndroidNotificationCategory.call, visibility: NotificationVisibility.public,
         fullScreenIntent: true, ongoing: true, autoCancel: false, onlyAlertOnce: true,
-        showWhen: false, ticker: 'مكالمة واردة من $callerName',
+        showWhen: false, ticker: _localized(languageCode, 'مكالمة واردة من $callerName', 'Incoming call from $callerName', 'Appel entrant de $callerName'),
         color: const Color(0xFF0A8F83), colorized: false, icon: smallIcon,
         actions: <AndroidNotificationAction>[
           // Android displays actions left-to-right in the notification UI.
           // Keep the call controls explicit: answer, end, message/call later.
           AndroidNotificationAction(
             'call_answer',
-            'الرد',
+            _localized(languageCode, 'الرد', 'Answer', 'Répondre'),
             icon: DrawableResourceAndroidBitmap('ic_call_answer'),
             titleColor: const Color(0xFF2DBE68),
             // Answer must return to the Flutter UI so the app can open
@@ -801,7 +814,7 @@ class NotificationService {
           ),
           AndroidNotificationAction(
             'call_reject',
-            'رفض',
+            _localized(languageCode, 'رفض', 'Decline', 'Refuser'),
             icon: DrawableResourceAndroidBitmap('ic_call_reject'),
             titleColor: const Color(0xFFE53935),
             showsUserInterface: false,
@@ -809,7 +822,7 @@ class NotificationService {
           ),
           AndroidNotificationAction(
             'call_message',
-            'رسالة',
+            _localized(languageCode, 'رسالة', 'Message', 'Message'),
             icon: DrawableResourceAndroidBitmap('ic_call_message'),
             titleColor: const Color(0xFF2A8F83),
             // This action must launch the foreground Flutter UI; it is never
@@ -837,7 +850,9 @@ class NotificationService {
     await _notifications.show(
       id,
       callerName,
-      isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
+      isVideo
+          ? _localized(languageCode, 'مكالمة فيديو واردة', 'Incoming video call', 'Appel vidéo entrant')
+          : _localized(languageCode, 'مكالمة صوتية واردة', 'Incoming voice call', 'Appel vocal entrant'),
       details,
       payload: payload,
     );
@@ -881,20 +896,20 @@ class NotificationService {
     }
   }
 
-  String _channelNameFor(SehatakNotificationType type) {
+  String _channelNameFor(SehatakNotificationType type, String languageCode) {
     switch (type) {
-      case SehatakNotificationType.newMessage: return 'صحتك - الرسائل';
-      case SehatakNotificationType.appointment: return 'صحتك - المواعيد';
-      case SehatakNotificationType.medication: return 'صحتك - الأدوية';
-      case SehatakNotificationType.labResult: return 'صحتك - التحاليل';
-      case SehatakNotificationType.labRequest: return 'صحتك - طلبات الفحص';
-      case SehatakNotificationType.payment: return 'صحتك - المدفوعات';
-      case SehatakNotificationType.invoice: return 'صحتك - الفواتير';
-      case SehatakNotificationType.order: return 'صحتك - الطلبات';
-      case SehatakNotificationType.promotional: return 'صحتك - العروض';
-      case SehatakNotificationType.system: return 'صحتك - النظام';
-      case SehatakNotificationType.health: return 'صحتك - الصحة';
-      case SehatakNotificationType.social: return 'صحتك - الاجتماعي';
+      case SehatakNotificationType.newMessage: return _localized(languageCode, 'صحتك - الرسائل', 'Sehatak - Messages', 'Sehatak - Messages');
+      case SehatakNotificationType.appointment: return _localized(languageCode, 'صحتك - المواعيد', 'Sehatak - Appointments', 'Sehatak - Rendez-vous');
+      case SehatakNotificationType.medication: return _localized(languageCode, 'صحتك - الأدوية', 'Sehatak - Medications', 'Sehatak - Médicaments');
+      case SehatakNotificationType.labResult: return _localized(languageCode, 'صحتك - التحاليل', 'Sehatak - Lab results', 'Sehatak - Analyses');
+      case SehatakNotificationType.labRequest: return _localized(languageCode, 'صحتك - طلبات الفحص', 'Sehatak - Lab requests', 'Sehatak - Demandes d’analyses');
+      case SehatakNotificationType.payment: return _localized(languageCode, 'صحتك - المدفوعات', 'Sehatak - Payments', 'Sehatak - Paiements');
+      case SehatakNotificationType.invoice: return _localized(languageCode, 'صحتك - الفواتير', 'Sehatak - Invoices', 'Sehatak - Factures');
+      case SehatakNotificationType.order: return _localized(languageCode, 'صحتك - الطلبات', 'Sehatak - Orders', 'Sehatak - Commandes');
+      case SehatakNotificationType.promotional: return _localized(languageCode, 'صحتك - العروض', 'Sehatak - Offers', 'Sehatak - Offres');
+      case SehatakNotificationType.system: return _localized(languageCode, 'صحتك - النظام', 'Sehatak - System', 'Sehatak - Système');
+      case SehatakNotificationType.health: return _localized(languageCode, 'صحتك - الصحة', 'Sehatak - Health', 'Sehatak - Santé');
+      case SehatakNotificationType.social: return _localized(languageCode, 'صحتك - الاجتماعي', 'Sehatak - Social', 'Sehatak - Social');
     }
   }
 
