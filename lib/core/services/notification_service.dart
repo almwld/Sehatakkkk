@@ -360,8 +360,32 @@ class NotificationService {
   String _translateNotificationBody(String languageCode, String type, String body) {
     if (languageCode == 'ar') return body;
     if (type == 'medication_prescription') {
-      final match = RegExp(
-        r'^أضاف\s+(.+?)\s+وصفة دوائية(?:\s*:\s*(.*?))?\. تم نقلها إلى تذكير الأدوية\.
+      const prefix = 'أضاف ';
+      const marker = ' وصفة دوائية';
+      const suffix = '. تم نقلها إلى تذكير الأدوية.';
+      final value = body.trim();
+      if (value.startsWith(prefix) && value.endsWith(suffix)) {
+        final middle = value.substring(prefix.length, value.length - suffix.length);
+        final markerIndex = middle.indexOf(marker);
+        if (markerIndex >= 0) {
+          final rawDoctor = middle.substring(0, markerIndex).trim();
+          final doctor = rawDoctor == 'الطبيب'
+              ? _localized(languageCode, 'الطبيب', 'the doctor', 'le médecin')
+              : rawDoctor;
+          final remainder = middle.substring(markerIndex + marker.length).trim();
+          final medications = remainder.startsWith(':')
+              ? remainder.substring(1).trim()
+              : '';
+          final suffixText = medications.isEmpty ? '' : ': $medications';
+          return languageCode == 'fr'
+              ? '$doctor a ajouté une nouvelle ordonnance$suffixText. Elle a été ajoutée aux rappels de médicaments.'
+              : '$doctor added a new prescription$suffixText. It has been added to medication reminders.';
+        }
+      }
+    }
+    return _translate(languageCode, body);
+  }
+
   List<AndroidNotificationChannel> _channelsFor(String languageCode) => [
     AndroidNotificationChannel(messageChannelId, _localized(languageCode, 'صحتك - الرسائل', 'Sehatak - Messages', 'Sehatak - Messages'), description: _localized(languageCode, 'إشعارات الرسائل الجديدة في الدردشة', 'New chat message notifications', 'Notifications de nouveaux messages du chat'), importance: Importance.high, playSound: true, sound: const RawResourceAndroidNotificationSound('notification')),
     AndroidNotificationChannel(appointmentChannelId, _localized(languageCode, 'صحتك - المواعيد', 'Sehatak - Appointments', 'Sehatak - Rendez-vous'), description: _localized(languageCode, 'تأكيدات وتذكيرات المواعيد', 'Appointment confirmations and reminders', 'Confirmations et rappels de rendez-vous'), importance: Importance.high),
