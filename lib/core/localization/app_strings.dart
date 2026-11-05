@@ -4107,7 +4107,6 @@ class AppStrings {
       'اختيار طبيب وبدء الحجز': ['Choose a dentist and start booking', 'Choisir un dentiste et commencer la réservation'],
       'تفاصيل عيادة الأسنان': ['Dental clinic details', 'Détails de la clinique dentaire'],
       'العيادة غير متوفرة': ['Clinic unavailable', 'Clinique indisponible'],
-      'التقييم:': ['Rating:', 'Note :'],
       'مفتوح الآن': ['Open now', 'Ouvert maintenant'],
       'مغلق الآن': ['Closed now', 'Fermé actuellement'],
       'المصادقة الثنائية مفعلة': ['Two-factor authentication is enabled', 'L’authentification à deux facteurs est activée'],
