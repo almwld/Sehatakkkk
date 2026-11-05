@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -31,7 +32,7 @@ class _PregnancyTrackerScreenState extends State<PregnancyTrackerScreen> {
     final daysLeft = _dueDate.difference(DateTime.now()).inDays;
     final tip = _currentTip;
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('متابعة الحمل', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_localizedUiText(context, 'متابعة الحمل'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
           padding: const EdgeInsets.all(18),
@@ -39,8 +40,8 @@ class _PregnancyTrackerScreenState extends State<PregnancyTrackerScreen> {
           child: Column(children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               const Text('🤰', style: TextStyle(fontSize: 40)),
-              Column(children: [const Text('الأسبوع', style: TextStyle(color: Colors.white70, fontSize: 12)), Text('$_week', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)), const Text('من 40', style: TextStyle(color: Colors.white70, fontSize: 12))]),
-              Column(children: [const Text('متبقي', style: TextStyle(color: Colors.white70, fontSize: 12)), Text('$daysLeft', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)), const Text('يوم', style: TextStyle(color: Colors.white70, fontSize: 12))]),
+              Column(children: [Text(_localizedUiText(context, 'الأسبوع'), style: TextStyle(color: Colors.white70, fontSize: 12)), Text('$_week', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)), Text(_localizedUiText(context, 'من 40'), style: TextStyle(color: Colors.white70, fontSize: 12))]),
+              Column(children: [Text(_localizedUiText(context, 'متبقي'), style: TextStyle(color: Colors.white70, fontSize: 12)), Text('$daysLeft', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)), Text(_localizedUiText(context, 'يوم'), style: TextStyle(color: Colors.white70, fontSize: 12))]),
             ]),
             const SizedBox(height: 10),
             LinearProgressIndicator(value: _week / 40, backgroundColor: Colors.white24, color: Colors.white, minHeight: 6, borderRadius: BorderRadius.circular(3)),
@@ -53,3 +54,7 @@ class _PregnancyTrackerScreenState extends State<PregnancyTrackerScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
