@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -22,12 +23,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   ];
 
   final TextEditingController _addController = TextEditingController();
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   Widget build(BuildContext context) {
     final done = _items.where((i) => i['done']).length;
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('قائمة التسوق الصحي', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.delete_outline), onPressed: () {})]),
+      appBar: CustomAppBar(title: Text(_t('قائمة التسوق الصحي'), style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.delete_outline), onPressed: () {})]),
       body: Column(children: [
         Container(
           margin: const EdgeInsets.all(14),
@@ -37,7 +39,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             const Icon(Icons.shopping_cart_checkout, color: Colors.white, size: 32),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('$done/${_items.length} مكتمل', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('$done/${_items.length} ${_t('مكتمل')}', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               LinearProgressIndicator(value: done / _items.length, backgroundColor: Colors.white24, color: Colors.white, minHeight: 4, borderRadius: BorderRadius.circular(2)),
             ])),
           ]),
@@ -55,8 +57,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 child: CheckboxListTile(
                   value: item['done'],
                   activeColor: AppColors.success,
-                  title: Row(children: [Text(item['icon'], style: const TextStyle(fontSize: 20)), const SizedBox(width: 8), Text(item['name'], style: TextStyle(fontSize: 13, decoration: item['done'] ? TextDecoration.lineThrough : null, color: item['done'] ? AppColors.grey : null))]),
-                  subtitle: Text(item['category'], style: const TextStyle(fontSize: 9, color: AppColors.grey)),
+                  title: Row(children: [Text(item['icon'], style: const TextStyle(fontSize: 20)), const SizedBox(width: 8), Text(_t(item['name'] as String), style: TextStyle(fontSize: 13, decoration: item['done'] ? TextDecoration.lineThrough : null, color: item['done'] ? AppColors.grey : null))]),
+                  subtitle: Text(_t(item['category'] as String), style: const TextStyle(fontSize: 9, color: AppColors.grey)),
                   onChanged: (v) => setState(() => item['done'] = v),
                 ),
               );
@@ -64,7 +66,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
         ),
         Container(padding: const EdgeInsets.all(10), color: Colors.white, child: Row(children: [
-          Expanded(child: TextField(controller: _addController, textAlign: TextAlign.right, decoration: InputDecoration(hintText: 'أضف منتجاً...', filled: true, fillColor: AppColors.surfaceContainerLow, border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8)))),
+          Expanded(child: TextField(controller: _addController, textAlign: TextAlign.right, decoration: InputDecoration(hintText: _t('أضف منتجاً...'), filled: true, fillColor: AppColors.surfaceContainerLow, border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8)))),
           const SizedBox(width: 6),
           CircleAvatar(backgroundColor: AppColors.success, child: IconButton(icon: const Icon(Icons.add, color: Colors.white), onPressed: () { if (_addController.text.isNotEmpty) { setState(() => _items.add({'name': _addController.text, 'category': 'عام', 'done': false, 'icon': '🛒'})); _addController.clear(); } })),
         ])),
