@@ -33,7 +33,7 @@ class DentalCareScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
-            child: const Row(
+            child: Row(
               children: [
                 CircleAvatar(radius: 28, backgroundColor: Colors.white24, child: Icon(Icons.health_and_safety_rounded, color: Colors.white, size: 30)),
                 SizedBox(width: 14),
