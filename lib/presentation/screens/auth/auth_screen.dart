@@ -1868,7 +1868,10 @@ class _AuthScreenState extends State<AuthScreen>
                   CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 8),
-                SizedBox(
+                if (widget.showIntroSplash && _showIntroSplash)
+                  const SizedBox(height: 104)
+                else
+                  SizedBox(
                   height: 104,
                   child: Lottie.asset(
                     'assets/animations/sehatak_animation.json',
@@ -2362,7 +2365,7 @@ class _AuthScreenState extends State<AuthScreen>
         ),
       ),
         ),
-        if (_showIntroSplash)
+        if (widget.showIntroSplash)
           Positioned.fill(
             child: IgnorePointer(
               child: AnimatedOpacity(
