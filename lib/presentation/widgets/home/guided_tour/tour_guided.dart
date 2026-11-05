@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 import 'package:flutter/material.dart';
 
@@ -308,7 +309,7 @@ class _TooltipBubble extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    step.title,
+                    _localizedUiText(context, step.title),
                     style: TextStyle(
                       color: titleColor,
                       fontSize: 18,
@@ -320,7 +321,7 @@ class _TooltipBubble extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              step.description,
+              _localizedUiText(context, step.description),
               textAlign: TextAlign.right,
               style: TextStyle(color: bodyColor, fontSize: 14, height: 1.6),
             ),
@@ -349,7 +350,7 @@ class _TooltipBubble extends StatelessWidget {
                 TextButton(
                   onPressed: onSkip,
                   style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
-                  child: const Text('تخطي'),
+                  child: Text(_localizedUiText(context, 'تخطي')),
                 ),
                 const Spacer(),
                 Container(
@@ -375,7 +376,7 @@ class _TooltipBubble extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: onPrevious,
                     icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                    label: const Text('السابق'),
+                    label: Text(_localizedUiText(context, 'السابق')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: step.accentColor,
                       side: BorderSide(color: step.accentColor.withOpacity(.35)),
@@ -396,7 +397,7 @@ class _TooltipBubble extends StatelessWidget {
                           : Icons.arrow_back_rounded,
                       size: 18,
                     ),
-                    label: Text(index == total - 1 ? 'تم' : 'التالي'),
+                    label: Text(_localizedUiText(context, index == total - 1 ? 'تم' : 'التالي')),
                   ),
                 ),
               ],
@@ -407,3 +408,7 @@ class _TooltipBubble extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
