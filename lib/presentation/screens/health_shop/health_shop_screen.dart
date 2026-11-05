@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class HealthShopScreen extends StatefulWidget {
   const HealthShopScreen({super.key});
@@ -10,6 +11,7 @@ class HealthShopScreen extends StatefulWidget {
 
 class _HealthShopScreenState extends State<HealthShopScreen> {
   String _cat = 'الكل';
+  String _t(String value) => AppStrings.of(context).translate(value);
   int _cart = 0;
 
   final List<Map<String, dynamic>> _products = const [
@@ -32,13 +34,13 @@ class _HealthShopScreenState extends State<HealthShopScreen> {
     final filtered = _cat == 'الكل' ? _products : _products.where((p) => p['cat'] == _cat).toList();
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('المتجر الصحي', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(_t('المتجر الصحي'), style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [Stack(children: [IconButton(icon: const Icon(Icons.shopping_cart), onPressed: () {}), if (_cart > 0) Positioned(right: 4, top: 4, child: Container(padding: const EdgeInsets.all(3), decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle), child: Text('$_cart', style: const TextStyle(color: Colors.white, fontSize: 9))))])],
       ),
       body: Column(children: [
         SizedBox(height: 42, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), itemCount: 4, separatorBuilder: (_, __) => const SizedBox(width: 6), itemBuilder: (c, i) {
           final cats = ['الكل', 'أجهزة', 'مكملات', 'راحة'];
-          return ChoiceChip(label: Text(cats[i], style: const TextStyle(fontSize: 10)), selected: _cat == cats[i], selectedColor: AppColors.primary, labelStyle: TextStyle(color: _cat == cats[i] ? Colors.white : null), onSelected: (v) => setState(() => _cat = v! ? cats[i] : 'الكل'));
+          return ChoiceChip(label: Text(_t(cats[i]), style: const TextStyle(fontSize: 10)), selected: _cat == cats[i], selectedColor: AppColors.primary, labelStyle: TextStyle(color: _cat == cats[i] ? Colors.white : null), onSelected: (v) => setState(() => _cat = v! ? cats[i] : 'الكل'));
         })),
         Expanded(
           child: GridView.builder(
@@ -58,11 +60,11 @@ class _HealthShopScreenState extends State<HealthShopScreen> {
                     padding: const EdgeInsets.all(10),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(p['brand'], style: const TextStyle(fontSize: 9, color: AppColors.grey)),
-                      Text(p['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(_t(p['name']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
                       Row(children: [const Icon(Icons.star, color: AppColors.amber, size: 12), Text(' ${p['rating']}', style: const TextStyle(fontSize: 10))]),
                       const SizedBox(height: 6),
                       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                        Text('${p['price']} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 14)),
+                        Text(AppStrings.of(context).formatCurrency(num.tryParse((p['price'] as String).replaceAll(',', '')) ?? 0), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 14)),
                         GestureDetector(
                           onTap: () => setState(() => _cart++),
                           child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.add_shopping_cart, color: Colors.white, size: 16)),
