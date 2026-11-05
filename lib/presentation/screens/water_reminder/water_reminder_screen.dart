@@ -11,12 +11,11 @@ class WaterReminderScreen extends StatefulWidget {
 
 class _WaterReminderScreenState extends State<WaterReminderScreen> {
   int _glasses = 4, _goal = 8, _size = 250;
-  String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: Text(_t('تذكير شرب الماء'), style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_localizedUiText(context, 'تذكير شرب الماء'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(children: [
@@ -26,26 +25,26 @@ class _WaterReminderScreenState extends State<WaterReminderScreen> {
             child: Column(children: [
               Stack(alignment: Alignment.center, children: [
                 SizedBox(width: 160, height: 160, child: CircularProgressIndicator(value: _glasses / _goal, strokeWidth: 14, backgroundColor: Colors.white24, color: Colors.white, strokeCap: StrokeCap.round)),
-                Column(children: [const Text('💧', style: TextStyle(fontSize: 36)), Text('$_glasses/$_goal', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)), Text(_t('كوب'), style: TextStyle(color: Colors.white70, fontSize: 12))]),
+                Column(children: [const Text('💧', style: TextStyle(fontSize: 36)), Text('$_glasses/$_goal', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)), Text(_localizedUiText(context, 'كوب'), style: TextStyle(color: Colors.white70, fontSize: 12))]),
               ]),
               const SizedBox(height: 8),
-              Text('${_glasses * _size} ${_t('مل')} / ${_goal * _size} ${_t('مل')}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+              Text('${_glasses * _size} ${_localizedUiText(context, 'مل')} / ${_goal * _size} ${_localizedUiText(context, 'مل')}', style: const TextStyle(color: Colors.white, fontSize: 16)),
             ]),
           ),
           const SizedBox(height: 20),
           Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-            _add('كوب صغير', '🥛', 1), _add('كوب متوسط', '🥤', 2), _add('زجاجة', '🍶', 4),
+            _add(_localizedUiText(context, 'كوب صغير'), '🥛', 1), _add(_localizedUiText(context, 'كوب متوسط'), '🥤', 2), _add(_localizedUiText(context, 'زجاجة'), '🍶', 4),
           ]),
           const SizedBox(height: 20),
-          Text(_t('سجل اليوم'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          ...List.generate(_glasses, (i) => Container(margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(10)), child: Row(children: [const Icon(Icons.water_drop, color: Colors.blue), const SizedBox(width: 8), Text('${_t('كوب')} ${i + 1} - $_size ${_t('مل')}', style: const TextStyle(fontWeight: FontWeight.w500)), const Spacer(), const Text('✓', style: TextStyle(color: AppColors.success))]))),
-          if (_glasses == 0) Center(child: Text(_t('لم تشرب الماء اليوم بعد!'), style: const TextStyle(color: AppColors.grey))),
+          Text(_localizedUiText(context, 'سجل اليوم'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          ...List.generate(_glasses, (i) => Container(margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(10)), child: Row(children: [const Icon(Icons.water_drop, color: Colors.blue), const SizedBox(width: 8), Text('${_localizedUiText(context, 'كوب')} ${i + 1} - $_size ${_localizedUiText(context, 'مل')}', style: const TextStyle(fontWeight: FontWeight.w500)), const Spacer(), const Text('✓', style: TextStyle(color: AppColors.success))]))),
+          if (_glasses == 0) Center(child: Text(_localizedUiText(context, 'لم تشرب الماء اليوم بعد!'), style: const TextStyle(color: AppColors.grey))),
           const SizedBox(height: 16),
           Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_t('💡 فوائد شرب الماء'), style: TextStyle(fontWeight: FontWeight.bold)), SizedBox(height: 6),
-            Text(_t('• يحسن وظائف الكلى'), style: TextStyle(fontSize: 12)),
-            Text(_t('• ينشط الدورة الدموية'), style: TextStyle(fontSize: 12)),
-            Text(_t('• يحسن نضارة البشرة'), style: TextStyle(fontSize: 12)),
+            Text(_localizedUiText(context, '💡 فوائد شرب الماء'), style: TextStyle(fontWeight: FontWeight.bold)), SizedBox(height: 6),
+            Text(_localizedUiText(context, '• يحسن وظائف الكلى'), style: TextStyle(fontSize: 12)),
+            Text(_localizedUiText(context, '• ينشط الدورة الدموية'), style: TextStyle(fontSize: 12)),
+            Text(_localizedUiText(context, '• يحسن نضارة البشرة'), style: TextStyle(fontSize: 12)),
           ])),
         ]),
       ),
@@ -54,6 +53,10 @@ class _WaterReminderScreenState extends State<WaterReminderScreen> {
 
   Widget _add(String label, String emoji, int g) => GestureDetector(
     onTap: () => setState(() => _glasses = (_glasses + g).clamp(0, _goal)),
-    child: Column(children: [Text(emoji, style: const TextStyle(fontSize: 36)), const SizedBox(height: 4), Text(_t(label), style: const TextStyle(fontSize: 11))]),
+    child: Column(children: [Text(emoji, style: const TextStyle(fontSize: 36)), const SizedBox(height: 4), Text(label, style: const TextStyle(fontSize: 11))]),
   );
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
