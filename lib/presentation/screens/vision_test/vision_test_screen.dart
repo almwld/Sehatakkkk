@@ -36,7 +36,7 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
     return ListView(children: [
       Card(child: Padding(padding: EdgeInsets.all(15), child: Text(_localizedUiText(context, 'اختبار تفاعلي أولي لتمييز اتجاه فتحة الحرف. اجلس بوضع مريح، حافظ على مسافة ثابتة من الشاشة، لا تكبّر العرض، واستخدم إضاءة جيدة. لا يغني الاختبار عن فحص حدة البصر بأدوات سريرية.'), style: TextStyle(height: 1.5)))),
       const SizedBox(height: 14),
-      Text('المحاولة ${_round + 1} من ${_patterns.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
+      Text('${_localizedUiText(context, 'المحاولة ')}${_round + 1}${_localizedUiText(context, ' من ')}${_patterns.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       LinearProgressIndicator(value: (_round + 1) / _patterns.length),
       const SizedBox(height: 26),
@@ -67,7 +67,7 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
       const SizedBox(height: 14),
       Text(_localizedUiText(context, 'تقييم جودة النظر'), textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
       const SizedBox(height: 10),
-      Text('$_score من ${_patterns.length}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
+      Text('$_score${_localizedUiText(context, ' من ')}${_patterns.length}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       Text(_localizedUiText(context, label), textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
       const SizedBox(height: 18),
