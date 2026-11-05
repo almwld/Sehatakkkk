@@ -95,7 +95,7 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
 
   Future<bool> _prepare() async {
     for (var attempt = 0; attempt < 24; attempt++) {
-      if (_disposed || !mounted) return;
+      if (_disposed || !mounted) return false;
       final element = _findTarget(widget.steps[_index].targetText);
       if (element != null) {
         try {
