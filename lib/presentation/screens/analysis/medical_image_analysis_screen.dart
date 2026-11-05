@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class MedicalImageAnalysisScreen extends StatefulWidget {
@@ -15,6 +16,8 @@ class _MedicalImageAnalysisScreenState extends State<MedicalImageAnalysisScreen>
   bool _isAnalyzing = false;
   String _result = '';
   double _confidence = 0.0;
+
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   final List<Map<String, dynamic>> _analysisTypes = [
     {'name': 'تحليل الجلد', 'icon': Icons.face, 'color': AppColors.info},
@@ -61,11 +64,11 @@ class _MedicalImageAnalysisScreenState extends State<MedicalImageAnalysisScreen>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('تحليل الصور الطبية', style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: CustomAppBar(title: Text(_t('تحليل الصور الطبية'), style: const TextStyle(fontWeight: FontWeight.bold)), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('اختر نوع التحليل', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(_t('اختر نوع التحليل'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           GridView.count(
             shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 4, crossAxisSpacing: 8, mainAxisSpacing: 8,
@@ -76,21 +79,21 @@ class _MedicalImageAnalysisScreenState extends State<MedicalImageAnalysisScreen>
                 decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.2))),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(type['icon'] as IconData, color: color, size: 24), const SizedBox(height: 4),
-                  Text(type['name'] as String, style: TextStyle(fontSize: 8, color: color), textAlign: TextAlign.center),
+                  Text(_t(type['name'] as String), style: TextStyle(fontSize: 8, color: color), textAlign: TextAlign.center),
                 ]),
               );
             }).toList(),
           ),
           const SizedBox(height: 20),
           Row(children: [
-            Expanded(child: ElevatedButton.icon(onPressed: _pickImage, icon: const Icon(Icons.photo_library), label: const Text('اختر صورة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.info, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)))),
+            Expanded(child: ElevatedButton.icon(onPressed: _pickImage, icon: const Icon(Icons.photo_library), label: Text(_t('اختر صورة')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.info, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)))),
             const SizedBox(width: 8),
-            Expanded(child: ElevatedButton.icon(onPressed: _captureImage, icon: const Icon(Icons.camera_alt), label: const Text('تصوير'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)))),
+            Expanded(child: ElevatedButton.icon(onPressed: _captureImage, icon: const Icon(Icons.camera_alt), label: Text(_t('تصوير')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)))),
           ]),
           const SizedBox(height: 16),
           if (_selectedImage != null) Container(height: 200, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), image: DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover))),
           const SizedBox(height: 16),
-          if (_selectedImage != null) SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _isAnalyzing ? null : _analyzeImage, style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)), child: _isAnalyzing ? const CircularProgressIndicator(color: Colors.white) : const Text('تحليل الصورة', style: TextStyle(fontSize: 16)))),
+          if (_selectedImage != null) SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _isAnalyzing ? null : _analyzeImage, style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)), child: _isAnalyzing ? const CircularProgressIndicator(color: Colors.white) : Text(_t('تحليل الصورة'), style: const TextStyle(fontSize: 16)))),
           const SizedBox(height: 16),
           if (_result.isNotEmpty) _buildResult(isDark),
         ]),
@@ -105,9 +108,9 @@ class _MedicalImageAnalysisScreenState extends State<MedicalImageAnalysisScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: resultColor.withOpacity(0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: resultColor)),
       child: Column(children: [
-        Text(_result, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: resultColor)),
+        Text(_t(_result), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: resultColor)),
         const SizedBox(height: 8),
-        Text('دقة: ${(_confidence * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 14)),
+        Text('${_t('دقة: ')}${(_confidence * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 14)),
         const SizedBox(height: 8),
         LinearProgressIndicator(value: _confidence, backgroundColor: isDark ? Colors.white24 : Colors.grey[300], color: _confidence > 0.8 ? AppColors.success : AppColors.warning),
       ]),
