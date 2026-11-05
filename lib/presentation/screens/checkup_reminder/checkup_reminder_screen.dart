@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -22,11 +23,11 @@ class _CheckupReminderScreenState extends State<CheckupReminderScreen> {
   Widget build(BuildContext context) {
     final done = _checks.where((c) => c['done']).length;
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('تذكير الفحوصات', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_localizedUiText(context, 'تذكير الفحوصات'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         Container(margin: const EdgeInsets.all(14), padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(16)), child: Column(children: [
           Text('$done/${_checks.length}', style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-          const Text('فحص مكتمل', style: TextStyle(color: Colors.white70)),
+          Text(_localizedUiText(context, 'فحص مكتمل'), style: TextStyle(color: Colors.white70)),
           LinearProgressIndicator(value: done / _checks.length, backgroundColor: Colors.white24, color: Colors.white, minHeight: 5, borderRadius: BorderRadius.circular(3)),
         ])),
         Expanded(child: ListView.builder(padding: const EdgeInsets.symmetric(horizontal: 14), itemCount: _checks.length, itemBuilder: (c, i) {
@@ -42,3 +43,7 @@ class _CheckupReminderScreenState extends State<CheckupReminderScreen> {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
