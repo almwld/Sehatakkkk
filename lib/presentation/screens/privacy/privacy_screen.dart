@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class PrivacyScreen extends StatelessWidget {
@@ -11,7 +12,7 @@ class PrivacyScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الخصوصية'),
+        title: Text(_localizedUiText(context, 'الخصوصية')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -36,16 +37,14 @@ class PrivacyScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'سياسة الخصوصية',
+                  Text(_localizedUiText(context, 'سياسة الخصوصية'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'نحن في صحتك نولي خصوصية بياناتك أهمية كبيرة. إليك ملخص لسياسة الخصوصية:',
+                  Text(_localizedUiText(context, 'نحن في صحتك نولي خصوصية بياناتك أهمية كبيرة. إليك ملخص لسياسة الخصوصية:'),
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
@@ -115,3 +114,7 @@ class PrivacyScreen extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
