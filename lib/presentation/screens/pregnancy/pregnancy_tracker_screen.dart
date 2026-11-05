@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -10,6 +11,7 @@ class PregnancyTrackerScreen extends StatefulWidget {
 
 class _PregnancyTrackerScreenState extends State<PregnancyTrackerScreen> {
   int _week = 24;
+  String _t(String value) => AppStrings.of(context).translate(value);
   final DateTime _dueDate = DateTime.now().add(const Duration(days: 112));
 
   final Map<int, Map<String, String>> _tips = {
@@ -31,7 +33,7 @@ class _PregnancyTrackerScreenState extends State<PregnancyTrackerScreen> {
     final daysLeft = _dueDate.difference(DateTime.now()).inDays;
     final tip = _currentTip;
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('متابعة الحمل', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: Text(_t('متابعة الحمل'), style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
           padding: const EdgeInsets.all(18),
@@ -39,16 +41,16 @@ class _PregnancyTrackerScreenState extends State<PregnancyTrackerScreen> {
           child: Column(children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               const Text('🤰', style: TextStyle(fontSize: 40)),
-              Column(children: [const Text('الأسبوع', style: TextStyle(color: Colors.white70, fontSize: 12)), Text('$_week', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)), const Text('من 40', style: TextStyle(color: Colors.white70, fontSize: 12))]),
-              Column(children: [const Text('متبقي', style: TextStyle(color: Colors.white70, fontSize: 12)), Text('$daysLeft', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)), const Text('يوم', style: TextStyle(color: Colors.white70, fontSize: 12))]),
+              Column(children: [Text(_t('الأسبوع'), style: TextStyle(color: Colors.white70, fontSize: 12)), Text('$_week', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)), Text(_t('من 40'), style: TextStyle(color: Colors.white70, fontSize: 12))]),
+              Column(children: [Text(_t('متبقي'), style: TextStyle(color: Colors.white70, fontSize: 12)), Text('$daysLeft', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)), Text(_t('يوم'), style: TextStyle(color: Colors.white70, fontSize: 12))]),
             ]),
             const SizedBox(height: 10),
             LinearProgressIndicator(value: _week / 40, backgroundColor: Colors.white24, color: Colors.white, minHeight: 6, borderRadius: BorderRadius.circular(3)),
-            Text('الموعد: ${_dueDate.day}/${_dueDate.month}/${_dueDate.year}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+            Text('${_t('الموعد:')} ${_dueDate.day}/${_dueDate.month}/${_dueDate.year}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
           ]),
         ),
         const SizedBox(height: 14),
-        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.pink.shade50, borderRadius: BorderRadius.circular(14)), child: Row(children: [Text(tip['icon']!, style: const TextStyle(fontSize: 44)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(tip['title']!, style: const TextStyle(fontWeight: FontWeight.bold)), Text('طفلك الآن ${tip['baby']}', style: const TextStyle(color: AppColors.darkGrey)), const SizedBox(height: 4), Text('💡 ${tip['tip']}', style: const TextStyle(fontSize: 12))]))])),
+        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.pink.shade50, borderRadius: BorderRadius.circular(14)), child: Row(children: [Text(tip['icon']!, style: const TextStyle(fontSize: 44)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(tip['title']!), style: const TextStyle(fontWeight: FontWeight.bold)), Text('${_t('طفلك الآن')} ${_t(tip['baby']!)}', style: const TextStyle(color: AppColors.darkGrey)), const SizedBox(height: 4), Text('💡 ${_t(tip['tip']!)}', style: const TextStyle(fontSize: 12))]))])),
       ])),
     );
   }
