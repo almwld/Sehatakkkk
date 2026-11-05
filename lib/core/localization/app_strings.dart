@@ -3993,6 +3993,10 @@ class AppStrings {
       "ابحث عن دواء...": ["Search for a medicine...", "Rechercher un médicament..."],
       "لا توجد أدوية متاحة حالياً": ["No medicines are currently available", "Aucun médicament n’est disponible pour le moment"],
       'وصفة': ['Prescription required', 'Ordonnance requise'],
+      'ابحث عن إيموجي...': ['Search emojis...', 'Rechercher des émojis...'],
+      'منشور من منصة صحتك — الرعاية الصحية الرقمية': ['A post from Sehatak — digital healthcare', 'Publication de Sehatak — soins de santé numériques'],
+      'صحتك — منصة الرعاية الصحية': ['Sehatak — Healthcare Platform', 'Sehatak — Plateforme de santé'],
+      'تعليقات': ['Comments', 'Commentaires'],
     };
     final entry = translations[value];
     if (entry == null) return value;
