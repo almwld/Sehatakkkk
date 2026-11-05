@@ -52,7 +52,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
   // ✅ 100+ دواء مع صور Unsplash
   final List<Map<String, dynamic>> _medications = [
     // مسكنات
-    {'id': '1', 'name': 'بار.ييتامول 500mg', 'category': 'مسكنات', 'price': 500, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'description': 'مسكن للآلام وخافض للحرارة', 'prescription': false, 'pharmacy': 'صيدلية الرحمة - حدة'},
+    {'id': '1', 'name': 'باراسيتامول 500mg', 'category': 'مسكنات', 'price': 500, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'description': 'مسكن للآلام وخافض للحرارة', 'prescription': false, 'pharmacy': 'صيدلية الرحمة - حدة'},
     {'id': '2', 'name': 'إيبوبروفين 400mg', 'category': 'مسكنات', 'price': 800, 'image': 'https://images.unsplash.com/photo-1550572012-edd7b1a7b51c?w=200', 'description': 'مضاد للالتهاب ومسكن', 'prescription': false, 'pharmacy': 'صيدلية النور - الستين'},
     {'id': '3', 'name': 'بنادول إكسترا', 'category': 'مسكنات', 'price': 600, 'image': 'https://images.unsplash.com/photo-1632833239869-a37e7a58066e?w=200', 'description': 'مسكن للصداع والآلام', 'prescription': false, 'pharmacy': 'صيدلية الشفاء - الزراعة'},
     {'id': '4', 'name': 'فولتارين 50mg', 'category': 'مسكنات', 'price': 1200, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'description': 'مضاد التهاب غير.يتيرويدي', 'prescription': true, 'pharmacy': 'صيدلية الأمل - التحرير'},
