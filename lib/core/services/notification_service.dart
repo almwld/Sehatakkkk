@@ -528,7 +528,7 @@ class NotificationService {
             : title)
         : _translate(languageCode, title);
     final safeBody = body.trim().isNotEmpty
-        ? _translate(languageCode, body)
+        ? (isChatMessage ? body : _translate(languageCode, body))
         : (isChatMessage
             ? _localized(languageCode, 'لديك رسالة جديدة في الدردشة', 'You have a new chat message', 'Vous avez un nouveau message')
             : _localized(languageCode, 'لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'));
