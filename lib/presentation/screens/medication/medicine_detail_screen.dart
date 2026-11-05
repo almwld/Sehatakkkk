@@ -33,7 +33,7 @@ class MedicineDetailScreen extends StatelessWidget {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
         ),
-        body: const Center(
+        body: Center(
           child: Text(_localizedUiText(context, 'الدواء غير موجود')),
         ),
       );
