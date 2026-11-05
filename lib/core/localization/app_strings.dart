@@ -4609,9 +4609,10 @@ class AppStrings {
       '15. التواصل والإشعارات': ['15. Communication and notifications', '15. Communication et notifications'],
       '16. إجراءات الأمان': ['16. Security measures', '16. Mesures de sécurité'],
       '17. إلغاء الحساب': ['17. Account cancellation', '17. Résiliation du compte'],
-      '18. القانون الحاكم والفضاء': ['18. Governing law and jurisdiction', '18. Droit applicable et juridiction'],
+      '18. القانون الحاكم والقضاء': ['18. Governing law and jurisdiction', '18. Droit applicable et juridiction'],
       '19. اتصل بنا': ['19. Contact us', '19. Nous contacter'],
       'باستخدامك لتطبيق "صحتك"، فإنك توافق على جميع الشروط والأحكام بما فيها إخلاء المسؤولية الطبية وسياسة الخصوصية.': ['By using the Sehatak app, you agree to all terms and conditions, including the medical disclaimer and privacy policy.', 'En utilisant l’application Sehatak, vous acceptez l’ensemble des conditions, y compris l’avertissement médical et la politique de confidentialité.'],
+      '📑 جدول المحتويات': ['📑 Table of contents', '📑 Table des matières'],
     };
 
     final entry = translations[value];
