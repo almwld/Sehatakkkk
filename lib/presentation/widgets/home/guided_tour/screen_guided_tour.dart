@@ -61,7 +61,7 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
     _pulse = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    )..repeat();
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _timer = Timer(widget.startDelay, _start);
     });
@@ -122,6 +122,7 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
   }
 
   void _insert() {
+    _pulse.repeat();
     _overlay?.remove();
     _overlay = OverlayEntry(builder: (_) => _buildOverlay());
     Overlay.of(context, rootOverlay: true).insert(_overlay!);
@@ -146,6 +147,7 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
         // is absent (for example, a role/locale-specific label).
         _overlay?.remove();
         _overlay = null;
+        _pulse.stop();
       }
     }
     _busy = false;
@@ -156,6 +158,7 @@ class _ScreenGuidedTourState extends State<ScreenGuidedTour>
     if (_disposed) return;
     _overlay?.remove();
     _overlay = null;
+    _pulse.stop();
   }
 
   @override
