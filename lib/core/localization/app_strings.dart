@@ -4757,6 +4757,8 @@ class AppStrings {
       'عمر الحمل': ['Gestational age', 'Âge gestationnel'],
       'الثلث': ['Trimester', 'Trimestre'],
       'حجز مستشفى': ['Book a hospital', 'Réserver un hôpital'],
+      'منذ 5 دقائق': ['5 minutes ago', 'Il y a 5 minutes'],
+      'تحليل سكر': ['Blood glucose test', 'Analyse de la glycémie'],
     };
 
 
