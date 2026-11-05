@@ -1244,6 +1244,389 @@ Pour bénéficier des services de Sehatak, vous devez créer un compte personnel
 - Soumettre des suggestions et commentaires.
 - Participer à des études et recherches.
 - Rejoindre la communauté de santé.'''],
+      '11': [
+'''By using Sehatak, you undertake to:
+
+**1. Accurate information:**
+- Provide correct and complete information when registering.
+- Update your information regularly.
+- Do not impersonate others or use false or misleading information.
+
+**2. Responsible use:**
+- Use the platform only for lawful purposes.
+- Do not publish harmful or offensive content.
+- Do not harass or disturb other users.
+- Do not exploit the platform for unlawful purposes.
+
+**3. Security:**
+- Keep your password confidential.
+- Immediately report any suspected breach.
+- Use secure methods to access the platform.
+- Do not share login credentials.
+
+**4. Legal compliance:**
+- Comply with applicable laws and regulations.
+- Do not use the platform for unlawful activities.
+- Respect intellectual-property rights and the rights of others.
+
+**5. Communication:**
+- Communicate politely and respectfully.
+- Do not use abusive or violent language.
+- Respect other users’ opinions.
+- Provide constructive feedback.
+
+**6. Payments:**
+- Pay fees and subscriptions on time.
+- Provide accurate payment information.
+- Accept responsibility for additional fees.
+- Report payment problems to the platform.
+
+**7. Social responsibility:**
+- Help build a positive health community.
+- Share useful information and avoid misleading content.
+- Support other users.
+
+**8. Reporting problems:**
+- Report technical errors and problems.
+- Report content that violates the rules.
+- Cooperate with support and provide complete details.
+
+**9. Application updates:**
+- Install updates regularly.
+- Use supported application versions.
+- Report update problems.
+- Update your operating system when necessary.
+
+**10. Protecting reputation:**
+- Do not damage the platform’s reputation.
+- Do not publish false information about the platform.
+- Report misleading information.
+
+**11. Respect:**
+- Respect others’ privacy, opinions, and beliefs.
+- Do not share another person’s information without consent.
+- Treat all users kindly.
+
+**12. Integrity:**
+- Be honest in all dealings.
+- Do not commit fraud or deception.
+- Report suspicious activity.
+- Preserve the integrity of the platform.''',
+'''En utilisant Sehatak, vous vous engagez à respecter les obligations suivantes :
+
+**1. Exactitude des informations :**
+- Fournir des informations exactes et complètes lors de l’inscription.
+- Mettre régulièrement vos informations à jour.
+- Ne pas usurper l’identité d’autrui ni utiliser d’informations fausses ou trompeuses.
+
+**2. Utilisation responsable :**
+- Utiliser la plateforme uniquement à des fins licites.
+- Ne pas publier de contenu nuisible ou offensant.
+- Ne pas harceler ni importuner les autres utilisateurs.
+- Ne pas exploiter la plateforme à des fins illégales.
+
+**3. Sécurité :**
+- Garder votre mot de passe confidentiel.
+- Signaler immédiatement toute violation présumée.
+- Utiliser des moyens sécurisés pour accéder à la plateforme.
+- Ne pas partager vos identifiants de connexion.
+
+**4. Respect de la loi :**
+- Respecter les lois et règlements applicables.
+- Ne pas utiliser la plateforme pour des activités illégales.
+- Respecter les droits de propriété intellectuelle et les droits d’autrui.
+
+**5. Communication :**
+- Communiquer poliment et avec respect.
+- Ne pas utiliser de langage injurieux ou violent.
+- Respecter les opinions des autres utilisateurs.
+- Fournir des commentaires constructifs.
+
+**6. Paiements :**
+- Régler les frais et abonnements dans les délais.
+- Fournir des informations de paiement exactes.
+- Assumer les frais supplémentaires.
+- Signaler tout problème de paiement à la plateforme.
+
+**7. Responsabilité sociale :**
+- Contribuer à bâtir une communauté de santé positive.
+- Partager des informations utiles et éviter les contenus trompeurs.
+- Soutenir les autres utilisateurs.
+
+**8. Signalement des problèmes :**
+- Signaler les erreurs et problèmes techniques.
+- Signaler les contenus non conformes.
+- Coopérer avec l’assistance et fournir des détails complets.
+
+**9. Mises à jour de l’application :**
+- Installer régulièrement les mises à jour.
+- Utiliser les versions prises en charge.
+- Signaler les problèmes liés aux mises à jour.
+- Mettre à jour le système d’exploitation si nécessaire.
+
+**10. Préservation de la réputation :**
+- Ne pas nuire à la réputation de la plateforme.
+- Ne pas publier de fausses informations sur la plateforme.
+- Signaler les informations trompeuses.
+
+**11. Respect :**
+- Respecter la vie privée, les opinions et les convictions d’autrui.
+- Ne pas partager les informations d’une autre personne sans son consentement.
+- Traiter tous les utilisateurs avec bienveillance.
+
+**12. Intégrité :**
+- Faire preuve d’honnêteté dans toutes les transactions.
+- Ne pas commettre de fraude ni de tromperie.
+- Signaler toute activité suspecte.
+- Préserver l’intégrité de la plateforme.'''],
+      '12': [
+'''All content on Sehatak is protected by intellectual-property laws.
+
+**1. Ownership:**
+- Content is owned by the platform or licensed from third parties.
+- Content may not be copied or distributed without prior permission.
+- Trademarks and logos are protected by law.
+- Copyright is reserved by the platform.
+
+**2. User-published content:**
+- User content does not represent the platform’s views.
+- The platform is not responsible for user content.
+- The platform may remove content that violates the rules.
+- Users are responsible for their own content.
+
+**3. Fair use:**
+- Content may be used for personal, non-commercial purposes.
+- Commercial use requires prior permission.
+- The source must be credited.
+- Fair use is subject to local laws.
+
+**4. Reporting infringement:**
+- Copyright violations may be reported.
+- All reports are investigated.
+- Infringing content is removed promptly.
+- Legal action may be taken against violators.
+
+**5. Automatically generated content:**
+- Some content may be generated by artificial intelligence.
+- Such content is reviewed for accuracy.
+- Generated content may contain errors.
+- The platform is not responsible for errors in generated content.
+
+**6. Third-party content:**
+- We may display third-party content.
+- We are not responsible for its accuracy.
+- External links do not constitute endorsement.
+- Third-party content should be verified.
+
+**7. User rights:**
+- Users retain rights to their content.
+- Users grant the platform a licence to use their content.
+- Users may delete their content at any time.
+- User content is not used commercially without consent.
+
+**8. Trademarks:**
+- The Sehatak trademark is protected.
+- It may not be used without permission.
+- The logo and icons are protected by copyright.
+- Trademark infringement may result in legal liability.
+
+**9. Software:**
+- Platform software is protected by copyright.
+- Software may not be copied or modified.
+- Reverse engineering is prohibited.
+- Software use is limited to personal use.
+
+**10. Design:**
+- The platform design is protected by copyright.
+- It may not be copied or imitated.
+- The user interface is protected by law.
+- The design is the platform’s intellectual property.''',
+'''Tous les contenus de Sehatak sont protégés par les lois relatives à la propriété intellectuelle.
+
+**1. Propriété :**
+- Les contenus appartiennent à la plateforme ou sont utilisés sous licence de tiers.
+- Il est interdit de les copier ou de les distribuer sans autorisation préalable.
+- Les marques et logos sont protégés par la loi.
+- Les droits d’auteur sont réservés à la plateforme.
+
+**2. Contenus publiés par les utilisateurs :**
+- Les contenus des utilisateurs ne représentent pas l’opinion de la plateforme.
+- La plateforme n’est pas responsable de ces contenus.
+- La plateforme peut supprimer tout contenu non conforme.
+- Les utilisateurs sont responsables de leurs propres contenus.
+
+**3. Usage équitable :**
+- Les contenus peuvent être utilisés à des fins personnelles et non commerciales.
+- Toute utilisation commerciale nécessite une autorisation préalable.
+- La source doit être mentionnée.
+- L’usage équitable est soumis aux lois locales.
+
+**4. Signalement des atteintes :**
+- Les violations des droits d’auteur peuvent être signalées.
+- Tous les signalements font l’objet d’une enquête.
+- Les contenus en infraction sont rapidement supprimés.
+- Des poursuites peuvent être engagées contre les contrevenants.
+
+**5. Contenus générés automatiquement :**
+- Certains contenus peuvent être générés par l’intelligence artificielle.
+- Ces contenus sont examinés afin d’en vérifier l’exactitude.
+- Les contenus générés peuvent comporter des erreurs.
+- La plateforme n’est pas responsable de ces erreurs.
+
+**6. Contenus de tiers :**
+- Nous pouvons afficher des contenus provenant de tiers.
+- Nous ne sommes pas responsables de leur exactitude.
+- Les liens externes ne constituent pas une approbation.
+- Les contenus de tiers doivent être vérifiés.
+
+**7. Droits des utilisateurs :**
+- Les utilisateurs conservent les droits sur leurs contenus.
+- Ils accordent à la plateforme une licence d’utilisation.
+- Ils peuvent supprimer leurs contenus à tout moment.
+- Les contenus ne sont pas utilisés à des fins commerciales sans consentement.
+
+**8. Marques :**
+- La marque Sehatak est protégée.
+- Elle ne peut être utilisée sans autorisation.
+- Le logo et les icônes sont protégés par le droit d’auteur.
+- Toute atteinte à une marque peut engager la responsabilité juridique.
+
+**9. Logiciels :**
+- Les logiciels de la plateforme sont protégés par le droit d’auteur.
+- Il est interdit de les copier ou de les modifier.
+- L’ingénierie inverse est interdite.
+- Leur utilisation est limitée à un usage personnel.
+
+**10. Design :**
+- Le design de la plateforme est protégé par le droit d’auteur.
+- Il est interdit de le copier ou de l’imiter.
+- L’interface utilisateur est protégée par la loi.
+- Le design constitue la propriété intellectuelle de la plateforme.'''],
+      '13': [
+'''Payments and subscriptions on Sehatak are governed by these rules:
+
+**1. Payment methods:**
+- Credit and debit cards (Visa, Mastercard).
+- Digital wallets (Google Pay, Apple Pay, STC Pay).
+- Bank transfer for large amounts.
+- Cash on delivery for selected services.
+- Loyalty and reward points.
+
+**2. Subscriptions:**
+- Monthly, annual, and family plans are offered.
+- You may choose a plan that suits your needs.
+- Subscriptions renew automatically unless cancelled.
+- You may cancel at any time.
+
+**3. Fees:**
+- Fees are charged in the local currency (Yemeni riyal).
+- Additional fees may apply depending on the service.
+- Taxes and government charges are included in the price.
+- Prices may change with prior notice.
+
+**4. Refunds:**
+- Refunds may be requested for specified cases, such as technical errors or services not provided.
+- Requests are assessed individually.
+- Refund decisions are subject to the platform’s discretion.
+- Processing may take up to 14 days.
+
+**5. Billing:**
+- Electronic invoices are sent by email.
+- Invoices may be downloaded from your account.
+- You should retain invoice copies.
+- Invoices are available for 3 years.
+
+**6. Suspended accounts:**
+- An account may be suspended for non-payment.
+- You will be notified before suspension.
+- The account may be restored after outstanding payments are settled.
+- Late-payment charges may apply.
+
+**7. Prices:**
+- Prices may change with 30 days’ prior notice.
+- The applicable price is the price in effect at payment.
+- Prices do not include additional taxes and fees.
+- Offers and discounts are subject to special terms.
+
+**8. Financial security:**
+- Transactions are securely encrypted.
+- Credit-card details are not stored.
+- We comply with PCI DSS payment-security standards.
+- We use secure, approved payment gateways.
+
+**9. Electronic invoices:**
+- Electronic invoices are legally recognized.
+- They may be used for tax purposes.
+- Invoices are saved in your account.
+- Paper invoices may be requested.
+
+**10. Donations:**
+- You may donate to support the platform.
+- Donations are voluntary and non-refundable.
+- Donations are used to develop the platform.
+- Donors may be thanked if they wish.''',
+'''Les paiements et abonnements sur Sehatak sont régis par les règles suivantes :
+
+**1. Moyens de paiement :**
+- Cartes de crédit et de débit (Visa, Mastercard).
+- Portefeuilles numériques (Google Pay, Apple Pay, STC Pay).
+- Virement bancaire pour les montants importants.
+- Paiement à la livraison pour certains services.
+- Points de fidélité et de récompense.
+
+**2. Abonnements :**
+- Des formules mensuelles, annuelles et familiales sont proposées.
+- Vous pouvez choisir la formule adaptée à vos besoins.
+- Les abonnements sont renouvelés automatiquement sauf résiliation.
+- Vous pouvez résilier à tout moment.
+
+**3. Frais :**
+- Les frais sont facturés dans la monnaie locale (rial yéménite).
+- Des frais supplémentaires peuvent s’appliquer selon le service.
+- Les taxes et frais gouvernementaux sont inclus dans le prix.
+- Les prix peuvent être modifiés moyennant un préavis.
+
+**4. Remboursements :**
+- Un remboursement peut être demandé dans certains cas, notamment en cas d’erreur technique ou de service non fourni.
+- Les demandes sont examinées individuellement.
+- Les décisions relèvent de l’appréciation de la plateforme.
+- Le traitement peut prendre jusqu’à 14 jours.
+
+**5. Facturation :**
+- Les factures électroniques sont envoyées par e-mail.
+- Elles peuvent être téléchargées depuis votre compte.
+- Vous devez conserver des copies des factures.
+- Les factures sont disponibles pendant 3 ans.
+
+**6. Comptes suspendus :**
+- Un compte peut être suspendu en cas de non-paiement.
+- Vous serez informé avant la suspension.
+- Le compte peut être rétabli après règlement des sommes dues.
+- Des pénalités de retard peuvent s’appliquer.
+
+**7. Prix :**
+- Les prix peuvent être modifiés moyennant un préavis de 30 jours.
+- Le prix applicable est celui en vigueur au moment du paiement.
+- Les prix n’incluent pas les taxes et frais supplémentaires.
+- Les offres et réductions sont soumises à des conditions particulières.
+
+**8. Sécurité financière :**
+- Les transactions sont chiffrées de manière sécurisée.
+- Les données des cartes de crédit ne sont pas stockées.
+- Nous respectons les normes de sécurité des paiements PCI DSS.
+- Nous utilisons des passerelles de paiement sécurisées et agréées.
+
+**9. Factures électroniques :**
+- Les factures électroniques sont légalement reconnues.
+- Elles peuvent être utilisées à des fins fiscales.
+- Elles sont conservées dans votre compte.
+- Des factures papier peuvent être demandées.
+
+**10. Dons :**
+- Vous pouvez faire un don pour soutenir la plateforme.
+- Les dons sont volontaires et non remboursables.
+- Ils servent au développement de la plateforme.
+- Les donateurs peuvent être remerciés s’ils le souhaitent.'''],
       '3': [
 '''These Terms and Conditions constitute a legally binding agreement between you and the Sehatak platform. By using the platform, you fully and unconditionally agree to comply with all provisions of this document.
 
