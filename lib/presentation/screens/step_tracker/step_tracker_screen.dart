@@ -240,7 +240,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     const SizedBox(height: 6),
     Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
     const SizedBox(height: 3),
-    Text(title, style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.black45)),
+    Text(_t(title), style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.black45)),
   ]);
 
   Widget _buildAnalysis(bool isDark, double progress) {

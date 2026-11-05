@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class ChatLocationData {
   final double latitude, longitude;
@@ -17,6 +18,7 @@ class ChatLocationPicker extends StatefulWidget {
   @override State<ChatLocationPicker> createState()=>_ChatLocationPickerState();
 }
 class _ChatLocationPickerState extends State<ChatLocationPicker> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   static const _center=LatLng(15.3694,44.1910);
   final _map=MapController();
   LatLng? _point;
@@ -27,12 +29,12 @@ class _ChatLocationPickerState extends State<ChatLocationPicker> {
   Future<void> _gps() async {
     if(_locating)return; setState(()=>_locating=true);
     try{
-      if(!await Geolocator.isLocationServiceEnabled()){_msg('فعّل خدمة الموقع في الهاتف أولاً');return;}
+      if(!await Geolocator.isLocationServiceEnabled()){_msg(_t('فعّل خدمة الموقع في الهاتف أولاً'));return;}
       var p=await Geolocator.checkPermission(); if(p==LocationPermission.denied)p=await Geolocator.requestPermission();
-      if(p==LocationPermission.denied||p==LocationPermission.deniedForever){_msg('يلزم السماح للموقع لتحديده');return;}
+      if(p==LocationPermission.denied||p==LocationPermission.deniedForever){_msg(_t('يلزم السماح للموقع لتحديده'));return;}
       final x=await Geolocator.getCurrentPosition(desiredAccuracy:LocationAccuracy.high);
       await _select(LatLng(x.latitude,x.longitude),true);
-    }catch(e){debugPrint('chat location gps: $e');_msg('تعذر تحديد موقعك حالياً');}
+    }catch(e){debugPrint('chat location gps: $e');_msg(_t('تعذر تحديد موقعك حالياً'));}
     finally{if(mounted)setState(()=>_locating=false);}
   }
   Future<void> _select(LatLng point,bool move) async {
@@ -48,14 +50,14 @@ class _ChatLocationPickerState extends State<ChatLocationPicker> {
     }catch(e){debugPrint('chat location reverse: $e');if(mounted)setState(()=>_location=ChatLocationData(latitude:point.latitude,longitude:point.longitude,address:_fallback(point)));}
     finally{if(mounted)setState(()=>_loading=false);}
   }
-  String _fallback(LatLng p)=>'الموقع: ${p.latitude.toStringAsFixed(6)}, ${p.longitude.toStringAsFixed(6)}';
+  String _fallback(LatLng p)=>_t('الموقع: ')+'${p.latitude.toStringAsFixed(6)}, ${p.longitude.toStringAsFixed(6)}';
   void _msg(String s){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(s)));}
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تحديد الموقع'),
+        title: Text(_t('تحديد الموقع')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -120,12 +122,12 @@ class _ChatLocationPickerState extends State<ChatLocationPicker> {
                     ),
                     Text('${_location!.latitude.toStringAsFixed(6)}, ${_location!.longitude.toStringAsFixed(6)}', textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 11)),
                   ] else
-                    const Text('اضغط على الخريطة أو استخدم GPS لتحديد الموقع'),
+                    Text(_t('اضغط على الخريطة أو استخدم GPS لتحديد الموقع')),
                   const SizedBox(height: 8),
                   FilledButton.icon(
                     onPressed: _location == null || _loading ? null : () => Navigator.pop(context, _location),
                     icon: const Icon(Icons.location_on),
-                    label: const Text('إرسال هذا الموقع'),
+                    label: Text(_t('إرسال هذا الموقع')),
                     style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                   ),
                 ],
