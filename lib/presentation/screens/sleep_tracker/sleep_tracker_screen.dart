@@ -642,7 +642,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
               await _service.deleteAllData();
               await _loadData();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text(_localizedUiText(context, 'OK تم حذف جميع البيانات')),
                   backgroundColor: Colors.green,
                 ),
