@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class TemplatePreview extends StatelessWidget {
   final String templateId;
@@ -23,7 +24,7 @@ class TemplatePreview extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('معاينة القالب'),
+        title: Text(AppStrings.of(context).translate('معاينة القالب')),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
