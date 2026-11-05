@@ -27,6 +27,10 @@ class BackgroundService {
     if (_configured) return;
     _configured = true;
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final language = prefs.getString('app_locale_code') ?? 'ar';
+      final initialTitle = language == 'fr' ? 'Sehatak • Suivi des pas' : language == 'en' ? 'Sehatak • Step tracking' : 'صحتك • تتبع الخطوات';
+      final initialContent = language == 'fr' ? 'Suivi des pas actif' : language == 'en' ? 'Step tracking is active' : 'تتبع الخطوات نشط';
       await _service.configure(
         androidConfiguration: AndroidConfiguration(
           onStart: _onStart,
@@ -34,8 +38,8 @@ class BackgroundService {
           autoStartOnBoot: true,
           isForegroundMode: true,
           notificationChannelId: 'sehatak_steps_tracking',
-          initialNotificationTitle: 'صحتك',
-          initialNotificationContent: 'تتبع الخطوات نشط',
+          initialNotificationTitle: initialTitle,
+          initialNotificationContent: initialContent,
           foregroundServiceNotificationId: 71001,
         ),
         iosConfiguration: IosConfiguration(
@@ -90,6 +94,9 @@ class BackgroundService {
     WidgetsFlutterBinding.ensureInitialized();
     DartPluginRegistrant.ensureInitialized();
     final prefs = await SharedPreferences.getInstance();
+    final language = prefs.getString('app_locale_code') ?? 'ar';
+    String notificationTitle() => language == 'fr' ? 'Sehatak • Suivi des pas' : language == 'en' ? 'Sehatak • Step tracking' : 'صحتك • تتبع الخطوات';
+    String notificationContent(int current, int target) => language == 'fr' ? '$current sur $target pas' : language == 'en' ? '$current of $target steps' : '$current من $target خطوة';
 
     if (!(prefs.getBool(_trackingEnabledKey) ?? false)) {
       service.stopSelf();
@@ -136,8 +143,8 @@ class BackgroundService {
       try {
         await service.setAsForegroundService();
         await service.setForegroundNotificationInfo(
-          title: 'صحتك • تتبع الخطوات',
-          content: '$steps من $goal خطوة',
+          title: notificationTitle(),
+          content: notificationContent(steps, goal),
         );
       } catch (e) {
         await stopSafely(reason: 'foreground service setup failed: $e');
@@ -206,8 +213,8 @@ class BackgroundService {
 
               if (service is AndroidServiceInstance && !stopped) {
                 await service.setForegroundNotificationInfo(
-                  title: 'صحتك • تتبع الخطوات',
-                  content: '$steps من $goal خطوة',
+                  title: notificationTitle(),
+                  content: notificationContent(steps, goal),
                 );
               }
             }
