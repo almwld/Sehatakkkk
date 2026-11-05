@@ -74,6 +74,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 2: تعريفات ومصطلحات
             _buildSection(
+              context,
               title: '2. تعريفات ومصطلحات',
               content: '''
 في هذه الشروط والأحكام، يكون للكلمات والعبارات التالية المعاني المبينة قرين كل منها:
@@ -177,6 +178,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 3: قبول الشروط والموافقة
             _buildSection(
+              context,
               title: '3. قبول الشروط والموافقة',
               content: '''
 تعتبر هذه الشروط والأحكام بمثابة اتفاقية قانونية ملزمة بينك وبين منصة "صحتك". باستخدامك للمنصة، فإنك توافق بشكل كامل وغير مشروط على الالتزام بجميع البنود الواردة في هذه الوثيقة.
@@ -232,6 +234,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 4: وصف الخدمات التفصيلي
             _buildSection(
+              context,
               title: '4. وصف الخدمات التفصيلي',
               content: '''
 تقدم منصة "صحتك" مجموعة شاملة من الخدمات الصحية الرقمية المصممة لتلبية احتياجات المستخدمين في جميع مراحل الرعاية الصحية:
@@ -330,6 +333,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 5: الحسابات والتسجيل
             _buildSection(
+              context,
               title: '5. الحسابات والتسجيل',
               content: '''
 **إنشاء الحساب:**
@@ -487,6 +491,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 7: مسؤولية الأطباء ومقدمي الخدمة
             _buildWarningSection(
+              context,
               title: '⚠️ 7. مسؤولية الأطباء ومقدمي الخدمة',
               content: '''
 الأطباء ومقدمو الخدمة في منصة "صحتك" يقدمون خدماتهم بحسن نية ومهنية عالية، مع مراعاة ما يلي:
@@ -555,6 +560,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 8: جمع البيانات واستخدامها
             _buildSection(
+              context,
               title: '8. جمع البيانات واستخدامها',
               content: '''
 نحن في منصة "صحتك" نلتزم بحماية خصوصيتك، ونقوم بجمع البيانات التالية:
@@ -670,6 +676,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 9: أمان البيانات
             _buildSection(
+              context,
               title: '9. أمان البيانات',
               content: '''
 نحن في منصة "صحتك" نولي أمان البيانات أولوية قصوى، ونطبق الإجراءات التالية:
@@ -739,6 +746,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 10: حقوق المستخدم
             _buildSection(
+              context,
               title: '10. حقوق المستخدم',
               content: '''
 يتمتع مستخدمو منصة "صحتك" بالحقوق التالية:
@@ -820,6 +828,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 11: التزامات المستخدم
             _buildSection(
+              context,
               title: '11. التزامات المستخدم',
               content: '''
 باستخدامك لمنصة "صحتك"، فإنك تتعهد بما يلي:
@@ -901,6 +910,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 12: المحتوى والملكية الفكرية
             _buildSection(
+              context,
               title: '12. المحتوى والملكية الفكرية',
               content: '''
 جميع المحتويات في منصة "صحتك" محمية بموجب قوانين الملكية الفكرية:
@@ -970,6 +980,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 13: المدفوعات والاشتراكات
             _buildSection(
+              context,
               title: '13. المدفوعات والاشتراكات',
               content: '''
 تتبع عمليات الدفع والاشتراكات في منصة "صحتك" القواعد التالية:
@@ -1040,6 +1051,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 14: سياسة الخصوصية
             _buildSection(
+              context,
               title: '14. سياسة الخصوصية',
               content: '''
 نحن في منصة "صحتك" نلتزم بحماية خصوصيتك وبياناتك الشخصية وفقاً للقوانين المعمول بها.
@@ -1124,6 +1136,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 15: التواصل والإشعارات
             _buildSection(
+              context,
               title: '15. التواصل والإشعارات',
               content: '''
 التواصل بين منصة "صحتك" والمستخدمين يتم عبر القنوات التالية:
@@ -1195,6 +1208,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 16: إجراءات الأمان
             _buildSection(
+              context,
               title: '16. إجراءات الأمان',
               content: '''
 تطبق منصة "صحتك" إجراءات أمان متقدمة لحماية بياناتك:
@@ -1274,6 +1288,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 17: إلغاء الحساب
             _buildSection(
+              context,
               title: '17. إلغاء الحساب',
               content: '''
 يمكنك إلغاء حسابك في منصة "صحتك" وفقاً للإجراءات التالية:
@@ -1345,6 +1360,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 18: القانون الحاكم والفضاء
             _buildSection(
+              context,
               title: '18. القانون الحاكم والفضاء',
               content: '''
 تخضع هذه الشروط والأحكام للقوانين واللوائح المعمول بها في الجمهورية اليمنية:
@@ -1414,6 +1430,7 @@ class TermsScreen extends StatelessWidget {
             
             // ✅ القسم 19: اتصل بنا
             _buildSection(
+              context,
               title: '19. اتصل بنا',
               content: '''
 إذا كان لديك أي استفسار، ملاحظة، أو شكوى، يمكنك التواصل معنا عبر القنوات التالية:
@@ -1576,6 +1593,7 @@ class TermsScreen extends StatelessWidget {
   }
 
   Widget _buildSection(
+              context,
     BuildContext context, {
     required String title,
     required String content,
@@ -1603,6 +1621,7 @@ class TermsScreen extends StatelessWidget {
   }
 
   Widget _buildWarningSection(
+              context,
     BuildContext context, {
     required String title,
     required String content,
