@@ -62,7 +62,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> {
               TextField(controller: title, decoration: InputDecoration(labelText: _t('العنوان'))),
               TextField(controller: desc, decoration: InputDecoration(labelText: _t('الوصف'))),
               TextField(controller: budget, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: _t('الميزانية'))),
-              DropdownButton<AdType>(value: type, isExpanded: true, items: AdType.values.map((v) => DropdownMenuItem(value: v, child: Text(v.name))).toList(), onChanged: (v) { if (v != null) setDialogState(() => type = v); }),
+              DropdownButton<AdType>(value: type, isExpanded: true, items: AdType.values.map((v) => DropdownMenuItem(value: v, child: Text(_t(v.name)))).toList(), onChanged: (v) { if (v != null) setDialogState(() => type = v); }),
             ]),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t('إلغاء'))),
