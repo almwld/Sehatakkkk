@@ -100,6 +100,35 @@ class AppStrings {
       final detail = value.substring('تعذر فتح المحادثة: '.length);
       return _pick('تعذر فتح المحادثة: ', 'Could not open chat: ', 'Impossible d’ouvrir la discussion : ') + detail;
     }
+
+    const prescriptionPrefix = 'أضاف ';
+    const prescriptionMarker = ' وصفة دوائية';
+    const prescriptionSuffix = '. تم نقلها إلى تذكير الأدوية.';
+    if (value.startsWith(prescriptionPrefix) && value.endsWith(prescriptionSuffix)) {
+      final middle = value.substring(prescriptionPrefix.length, value.length - prescriptionSuffix.length);
+      final markerIndex = middle.indexOf(prescriptionMarker);
+      if (markerIndex >= 0) {
+        final rawDoctor = middle.substring(0, markerIndex).trim();
+        final doctor = rawDoctor == 'الطبيب'
+            ? _pick('الطبيب', 'the doctor', 'le médecin')
+            : rawDoctor;
+        final remainder = middle.substring(markerIndex + prescriptionMarker.length).trim();
+        final medications = remainder.startsWith(':') ? remainder.substring(1).trim() : '';
+        final suffix = medications.isEmpty ? '' : ': $medications';
+        return locale.languageCode == 'fr'
+            ? '$doctor a ajouté une nouvelle ordonnance$suffix. Elle a été ajoutée aux rappels de médicaments.'
+            : '$doctor added a new prescription$suffix. It has been added to medication reminders.';
+      }
+    }
+    const verificationPrefix = 'طلب توثيق جديد لدور ';
+    const verificationSuffix = ' يحتاج إلى المراجعة.';
+    if (value.startsWith(verificationPrefix) && value.endsWith(verificationSuffix)) {
+      final rawRole = value.substring(verificationPrefix.length, value.length - verificationSuffix.length).trim();
+      final role = _translateRole(rawRole);
+      return locale.languageCode == 'fr'
+          ? 'Une nouvelle demande de vérification pour le rôle $role doit être examinée.'
+          : 'A new verification request for the $role role needs review.';
+    }
     final translations = <String, List<String>>{
       'عيادات قريبة': ['Nearby clinics', 'Cliniques à proximité'],
       'مجمع الرازي الطبي': ['Al-Razi Medical Complex', 'Complexe médical Al-Razi'],
@@ -4028,6 +4057,33 @@ class AppStrings {
       case 'fr': return entry[1];
       default: return value;
     }
+  }
+
+
+  String _translateRole(String role) {
+    const roles = <String, List<String>>{
+      'doctor': ['doctor', 'médecin'],
+      'nurse': ['nurse', 'infirmier/ière'],
+      'midwife': ['midwife', 'sage-femme'],
+      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
+      'pharmacist': ['pharmacist', 'pharmacien'],
+      'pharmacy': ['pharmacy', 'pharmacie'],
+      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
+      'lab': ['laboratory', 'laboratoire'],
+      'hospital': ['hospital', 'hôpital'],
+      'clinic': ['clinic', 'clinique'],
+      'medical_center': ['medical center', 'centre médical'],
+      'dentist': ['dentist', 'dentiste'],
+      'dental': ['dental clinic', 'clinique dentaire'],
+      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
+      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
+      'optometrist': ['optometrist', 'optométriste'],
+      'delivery': ['delivery provider', 'livreur'],
+      'service': ['service provider', 'prestataire de services'],
+    };
+    final translated = roles[role];
+    if (translated == null) return role;
+    return locale.languageCode == 'fr' ? translated[1] : translated[0];
   }
 
   String _pick(String ar, String en, String fr) {
