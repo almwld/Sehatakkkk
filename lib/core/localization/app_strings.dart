@@ -4740,6 +4740,8 @@ class AppStrings {
       'زر تسجيل الخروج موجود في نهاية الصفحة عندما تحتاج إلى إنهاء الجلسة.': ['The sign-out button is at the bottom of the page when you need to end your session.', 'Le bouton de déconnexion se trouve en bas de la page lorsque vous souhaitez terminer votre session.'],
       'انتهت جولة المزيد.': ['More section tour complete.', 'Visite de la section Plus terminée.'],
 
+      'عرض خدماتك': ['Showcase your services', 'Présentez vos services'],
+      'أضف خدماتك المخبرية وعرضها للعملاء': ['Add your laboratory services and make them available to customers', 'Ajoutez vos services de laboratoire et présentez-les aux clients'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
