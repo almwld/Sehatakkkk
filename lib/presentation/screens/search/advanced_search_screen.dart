@@ -1,4 +1,5 @@
 import 'package:sehatak/core/models/doctor_model.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
   final TextEditingController _searchController = TextEditingController();
 
   bool _isLoading = false;
+  String _t(String value) => AppStrings.of(context).translate(value);
   Map<String, List<dynamic>> _results = {};
   List<String> _suggestions = [];
   List<String> _searchHistory = [];
@@ -82,7 +84,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
 
     } catch (e) {
       setState(() => _isLoading = false);
-      ToastService.showError(context, '❌ حدث خطأ: $e');
+      ToastService.showError(context, '${_t('حدث خطأ')}: $e');
     }
   }
 
@@ -101,7 +103,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: 'بحث متقدم',
+        title: _t('بحث متقدم'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -136,7 +138,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                               } else {
                                 _getSuggestions(value);
                               }
-                            }, hintText: 'ابحث عن طبيب، صيدلية، مختبر...'),
+                            }, hintText: _t('ابحث عن طبيب، صيدلية، مختبر...')),
                         ),
                         if (_searchController.text.isNotEmpty)
                           IconButton(
@@ -189,7 +191,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                 children: [
                   Row(
                     children: [
-                      const Text('التصنيف:'),
+                      Text(_t('التصنيف:')),
                       const SizedBox(width: 8),
                       Expanded(
                         child: SingleChildScrollView(
@@ -210,7 +212,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                                     ),
                                   ),
                                   child: Text(
-                                    category,
+                                    _t(category),
                                     style: TextStyle(
                                       color: isSelected ? Colors.white : Colors.grey,
                                       fontSize: 11,
@@ -227,7 +229,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Text('التقييم:'),
+                      Text(_t('التقييم:')),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Row(
@@ -254,14 +256,14 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Text('السعر:'),
+                      Text(_t('السعر:')),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                'حتى ${_maxPrice.toInt()} ريال',
+                                '${_t('حتى')} ${_maxPrice.toInt()} ${_t('ريال')}',
                                 style: const TextStyle(fontSize: 12),
                               ),
                             ),
@@ -290,7 +292,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 8),
                       ),
-                      child: const Text('بحث'),
+                      child: Text(_t('بحث')),
                     ),
                   ),
                 ],
@@ -320,7 +322,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'ابحث عن ما تريد',
+            _t('ابحث عن ما تريد'),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -329,7 +331,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'اكتب كلمة البحث أعلاه',
+            _t('اكتب كلمة البحث أعلاه'),
             style: TextStyle(
               color: isDark ? Colors.grey[500] : Colors.grey[400],
             ),
@@ -339,8 +341,8 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'عمليات البحث الأخيرة:',
+                Text(
+                  _t('عمليات البحث الأخيرة:'),
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -355,7 +357,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
                 )),
                 TextButton(
                   onPressed: _clearSearchHistory,
-                  child: const Text('مسح سجل البحث'),
+                  child: Text(_t('مسح سجل البحث')),
                 ),
               ],
             ),
@@ -374,17 +376,17 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
             child: TabBar(
               isScrollable: true,
               tabs: [
-                Tab(text: 'الكل (${_getTotalCount()})'),
+                Tab(text: '${_t('الكل')} (${_getTotalCount()})'),
                 if (_results.containsKey('doctors') && _results['doctors']!.isNotEmpty)
-                  Tab(text: 'أطباء (${_results['doctors']!.length})'),
+                  Tab(text: '${_t('أطباء')} (${_results['doctors']!.length})'),
                 if (_results.containsKey('pharmacies') && _results['pharmacies']!.isNotEmpty)
-                  Tab(text: 'صيدليات (${_results['pharmacies']!.length})'),
+                  Tab(text: '${_t('صيدليات')} (${_results['pharmacies']!.length})'),
                 if (_results.containsKey('labs') && _results['labs']!.isNotEmpty)
-                  Tab(text: 'مختبرات (${_results['labs']!.length})'),
+                  Tab(text: '${_t('مختبرات')} (${_results['labs']!.length})'),
                 if (_results.containsKey('hospitals') && _results['hospitals']!.isNotEmpty)
-                  Tab(text: 'مستشفيات (${_results['hospitals']!.length})'),
+                  Tab(text: '${_t('مستشفيات')} (${_results['hospitals']!.length})'),
                 if (_results.containsKey('services') && _results['services']!.isNotEmpty)
-                  Tab(text: 'خدمات (${_results['services']!.length})'),
+                  Tab(text: '${_t('خدمات')} (${_results['services']!.length})'),
               ],
             ),
           ),
