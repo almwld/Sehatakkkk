@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -28,12 +29,12 @@ class MedicineDetailScreen extends StatelessWidget {
     if (medicine == null) {
       return Scaffold(
         appBar: CustomAppBar(
-          title: 'الدواء',
+          title: _localizedUiText(context, 'الدواء'),
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
         ),
-        body: const Center(
-          child: Text('الدواء غير موجود'),
+        body: Center(
+          child: Text(_localizedUiText(context, 'الدواء غير موجود')),
         ),
       );
     }
@@ -50,7 +51,7 @@ class MedicineDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: Text(medicine['name'] ?? 'الدواء'),
+        title: Text(medicine['name'] ?? _localizedUiText(context, 'الدواء')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -58,13 +59,13 @@ class MedicineDetailScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.favorite_border),
             onPressed: () {
-              ToastService.showSuccess(context, 'تمت إضافة الدواء إلى المفضلة');
+              ToastService.showSuccess(context, _localizedUiText(context, 'تمت إضافة الدواء إلى المفضلة'));
             },
           ),
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
-              ToastService.showSuccess(context, 'جاري مشاركة الدواء...');
+              ToastService.showSuccess(context, _localizedUiText(context, 'جاري مشاركة الدواء...'));
             },
           ),
         ],
@@ -177,8 +178,7 @@ class MedicineDetailScreen extends StatelessWidget {
                             children: [
                               const Icon(Icons.assignment, size: 12, color: Colors.orange),
                               const SizedBox(width: 4),
-                              Text(
-                                'يتطلب وصفة طبية',
+                              Text(_localizedUiText(context, 'يتطلب وصفة طبية'),
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Colors.orange,
@@ -229,8 +229,7 @@ class MedicineDetailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // ✅ الوصف
-                  const Text(
-                    'الوصف',
+                  Text(_localizedUiText(context, 'الوصف'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -248,20 +247,19 @@ class MedicineDetailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // ✅ معلومات إضافية
-                  const Text(
-                    'معلومات إضافية',
+                  Text(_localizedUiText(context, 'معلومات إضافية'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildInfoRow('التصنيف', category, isDark),
-                  _buildInfoRow('التصنيف الفرعي', subcategory, isDark),
-                  _buildInfoRow('السعر', '$price ريال', isDark),
-                  _buildInfoRow('التقييم', '$rating من 5', isDark),
-                  _buildInfoRow('الوصفة الطبية', requiresPrescription ? 'مطلوبة' : 'غير مطلوبة', isDark),
-                  _buildInfoRow('التوفر', inStock ? 'متوفر' : 'غير متوفر', isDark),
+                  _buildInfoRow(context, 'التصنيف', category, isDark),
+                  _buildInfoRow(context, 'التصنيف الفرعي', subcategory, isDark),
+                  _buildInfoRow(context, 'السعر', '$price ريال', isDark),
+                  _buildInfoRow(context, 'التقييم', '$rating من 5', isDark),
+                  _buildInfoRow(context, 'الوصفة الطبية', requiresPrescription ? 'مطلوبة' : 'غير مطلوبة', isDark),
+                  _buildInfoRow(context, 'التوفر', inStock ? 'متوفر' : 'غير متوفر', isDark),
                   const SizedBox(height: 32),
 
                   // ✅ أزرار الإجراءات
@@ -271,11 +269,11 @@ class MedicineDetailScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: inStock
                               ? () {
-                                  ToastService.showSuccess(context, '✅ تمت إضافة الدواء إلى السلة');
+                                  ToastService.showSuccess(context, _localizedUiText(context, '✅ تمت إضافة الدواء إلى السلة'));
                                 }
                               : null,
                           icon: const Icon(Icons.shopping_cart),
-                          label: const Text('إضافة إلى السلة'),
+                          label: Text(_localizedUiText(context, 'إضافة إلى السلة')),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -290,10 +288,10 @@ class MedicineDetailScreen extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            ToastService.showSuccess(context, '📋 تم نسخ معلومات الدواء');
+                            ToastService.showSuccess(context, _localizedUiText(context, '📋 تم نسخ معلومات الدواء'));
                           },
                           icon: const Icon(Icons.copy),
-                          label: const Text('نسخ المعلومات'),
+                          label: Text(_localizedUiText(context, 'نسخ المعلومات')),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -314,21 +312,21 @@ class MedicineDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, bool isDark) {
+  Widget _buildInfoRow(BuildContext context, String label, String value, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            label,
+            _localizedUiText(context, label),
             style: TextStyle(
               color: isDark ? Colors.grey[400] : Colors.grey[600],
               fontSize: 14,
             ),
           ),
           Text(
-            value.isNotEmpty ? value : 'غير محدد',
+            value.isNotEmpty ? _localizedUiText(context, value) : _localizedUiText(context, 'غير محدد'),
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black87,
               fontSize: 14,
@@ -340,3 +338,7 @@ class MedicineDetailScreen extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
