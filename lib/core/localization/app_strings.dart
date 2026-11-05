@@ -2213,7 +2213,7 @@ class AppStrings {
       'تم إرسال الرد': ['Reply sent', 'Réponse envoyée'],
       'رد سريع...': ['Quick reply...', 'Réponse rapide...'],
       'الآن': ['Now', 'Maintenant'],
-      'منذ ': ['', 'Il y a '],
+      'منذ ': ['Since ', 'Il y a '],
       'د': ['min', 'min'],
       'س': ['hr', 'h'],
       'منذ يوم': ['1 day ago', 'Il y a 1 jour'],
