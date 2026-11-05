@@ -4656,6 +4656,8 @@ class AppStrings {
       "انتهت الجولة — اختر المختبر الأنسب لك.": ["Tour complete — choose the laboratory that suits you.", "Visite terminée — choisissez le laboratoire qui vous convient."],
       'تم إيقاف التتبع - الجودة: ': ['Tracking stopped - quality: ', 'Suivi arrêté - qualité : '],
 
+      "تعذر تحميل سجل المكالمات حالياً\nتحقق من الاتصال وحاول مرة أخرى": ["Could not load call history right now.\nCheck your connection and try again.", "Impossible de charger l’historique des appels pour le moment.\nVérifiez votre connexion et réessayez."],
+      "لا توجد مكالمات بعد\nستظهر مكالماتك هنا تلقائياً": ["No calls yet\nYour calls will appear here automatically", "Aucun appel pour le moment\nVos appels apparaîtront ici automatiquement"],
     };
 
 
