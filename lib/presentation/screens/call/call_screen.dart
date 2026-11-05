@@ -567,7 +567,7 @@ class _CallScreenState extends State<CallScreen> {
                                 icon: connecting
                                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                                     : const Icon(Icons.refresh_rounded),
-                                label: Text(connecting ? 'جاري إعادة الاتصال...' : 'إعادة المحاولة'),
+                                label: Text(_localizedUiText(context, connecting ? 'جاري إعادة الاتصال...' : 'إعادة المحاولة')),
                                 style: ElevatedButton.styleFrom(backgroundColor: teal, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
                               ),
                             ),
@@ -694,7 +694,7 @@ class _CallScreenState extends State<CallScreen> {
                 child: Icon(speaker ? Icons.volume_up_rounded : Icons.volume_down_rounded, color: Colors.white, size: 26),
               ),
               const SizedBox(height: 5),
-              Text('سماعة ${(speakerVolume * 100).round()}%', style: const TextStyle(color: Colors.white70, fontSize: 10)),
+              Text('${_localizedUiText(context, 'سماعة ')}${(speakerVolume * 100).round()}%', style: const TextStyle(color: Colors.white70, fontSize: 10)),
             ],
           ),
         ),
