@@ -369,6 +369,7 @@ class AppStrings {
       'سيظهر الأطباء المعتمدون هنا عند توفرهم': ['Verified doctors will appear here when available', 'Les médecins vérifiés apparaîtront ici lorsqu’ils seront disponibles'],
       'تعذر تحميل الأطباء': ['Could not load doctors', 'Impossible de charger les médecins'],
       'مختبرات صحتك': ['Sehatak Laboratories', 'Laboratoires Sehatak'],
+
       'المختبرات': ['Laboratories', 'Laboratoires'],
       'سحب منزلي': ['Home sample collection', 'Prélèvement à domicile'],
       'حجوزاتي': ['My bookings', 'Mes réservations'],
