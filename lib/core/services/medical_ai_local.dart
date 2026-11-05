@@ -14,7 +14,7 @@ class LocalMedicalAI {
 
   // ========== قاعدة الأدوية ==========
   final Map<String, Map<String, String>> _drugsDb = {
-    'بار.ييتامول': {
+    'باراسيتامول': {
       'category': 'مسكن ألم وخافض حرارة',
       'dose': '500-1000mg كل 6-8 ساعات',
       'pregnancy': 'آمن',
@@ -245,14 +245,14 @@ class LocalMedicalAI {
       return '💎 الباقة الأساسية: مجانية\n⭐ الذهبية: 99 ر.ي/شهر\n👑 البلاتينية: 249 ر.ي/شهر\n👨‍👩‍👧‍👦 العائلية: 399 ر.ي/شهر';
     }
     // أدوية
-    if (RegExp(r'دواء|علاج|بار.ييتامول|ايبوبروفين').hasMatch(message)) {
+    if (RegExp(r'دواء|علاج|باراسيتامول|ايبوبروفين').hasMatch(message)) {
       for (var drug in _drugsDb.keys) {
         if (message.contains(drug)) {
           final info = _drugsDb[drug]!;
           return '💊 $drug\n📋 ${info['category']}\n💉 ${info['dose']}\n⚠️ ${info['pregnancy']}';
         }
       }
-      return '💊 اكتب اسم الدواء للمعلومات. مثال: "بار.ييتامول"';
+      return '💊 اكتب اسم الدواء للمعلومات. مثال: "باراسيتامول"';
     }
     // خدمات
     if (RegExp(r'كيف|طريقة').hasMatch(message)) {
