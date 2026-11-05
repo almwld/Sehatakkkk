@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,10 +25,12 @@ import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:sehatak/app_router.dart';
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
+  final bool showIntroSplash;
 
   const AuthScreen({
     super.key,
     this.isSignUp = false,
+    this.showIntroSplash = false,
   });
 
   @override
@@ -61,6 +64,8 @@ class _AuthScreenState extends State<AuthScreen>
   String? _selectedSpecialty;
   bool _showAdminTab = false;
   bool _isFirstTimeUser = false;
+  bool _showIntroSplash = false;
+  Timer? _introSplashTimer;
   List<Map<String, dynamic>> _savedAccounts = [];
 
   String _passwordStrength = '';
@@ -268,6 +273,12 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   void initState() {
     super.initState();
+    _showIntroSplash = widget.showIntroSplash;
+    if (_showIntroSplash) {
+      _introSplashTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) setState(() => _showIntroSplash = false);
+      });
+    }
 
     _checkFirstTime();
     _checkBiometric();
@@ -1825,7 +1836,9 @@ class _AuthScreenState extends State<AuthScreen>
     const primaryColor = Color(0xFF0D5257);
     final isSignUp = widget.isSignUp;
 
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -1854,7 +1867,21 @@ class _AuthScreenState extends State<AuthScreen>
               crossAxisAlignment:
                   CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 104,
+                  child: Lottie.asset(
+                    'assets/animations/sehatak_animation.json',
+                    fit: BoxFit.contain,
+                    repeat: false,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.health_and_safety_rounded,
+                      color: Color(0xFF0A8F83),
+                      size: 72,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
 
                 Text(
                   isSignUp
@@ -2334,11 +2361,69 @@ class _AuthScreenState extends State<AuthScreen>
           ),
         ),
       ),
+        ),
+        if (_showIntroSplash)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _showIntroSplash ? 1 : 0,
+                duration: const Duration(milliseconds: 650),
+                curve: Curves.easeInOut,
+                child: _buildIntroSplash(),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildIntroSplash() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A8F83),
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: MediaQuery.sizeOf(context).width * .62,
+                height: MediaQuery.sizeOf(context).width * .38,
+                child: Lottie.asset(
+                  'assets/animations/sehatak_animation.json',
+                  fit: BoxFit.contain,
+                  repeat: false,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('SEHATAK', style: TextStyle(
+                color: Colors.white, fontSize: 32,
+                fontWeight: FontWeight.w900, letterSpacing: 4,
+              )),
+              const SizedBox(height: 4),
+              const Text('صحتك', style: TextStyle(
+                color: Colors.white, fontSize: 27,
+                fontWeight: FontWeight.w900,
+              )),
+              const SizedBox(height: 12),
+              const Text('منصة الرعاية الصحية اليمنية المتكاملة',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 13)),
+              const SizedBox(height: 30),
+              const SizedBox(width: 150, child: LinearProgressIndicator(
+                minHeight: 3,
+                backgroundColor: Colors.white24,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              )),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   @override
   void dispose() {
+    _introSplashTimer?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
