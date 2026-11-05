@@ -4614,6 +4614,9 @@ class AppStrings {
       'باستخدامك لتطبيق "صحتك"، فإنك توافق على جميع الشروط والأحكام بما فيها إخلاء المسؤولية الطبية وسياسة الخصوصية.': ['By using the Sehatak app, you agree to all terms and conditions, including the medical disclaimer and privacy policy.', 'En utilisant l’application Sehatak, vous acceptez l’ensemble des conditions, y compris l’avertissement médical et la politique de confidentialité.'],
       '📑 جدول المحتويات': ['📑 Table of contents', '📑 Table des matières'],
       'نصيحة:': ['Tip:', 'Conseil :'],
+      "منصة الرعاية الصحية الشاملة\nاستشر الأطباء واحجز مواعيدك بسهولة\nمن أي مكان وفي أي وقت": ["A complete digital healthcare platform\nConsult doctors and book appointments easily\nAnywhere, anytime", "Une plateforme complète de santé numérique\nConsultez des médecins et prenez rendez-vous facilement\nOù que vous soyez, à tout moment"],
+      "اطلب أدويتك واستلمها لمنزلك\nمع توصيل سريع وآمن\nخصومات وعروض يومية": ["Order medicines for home delivery\nWith fast, safe delivery\nDaily discounts and offers", "Commandez vos médicaments à domicile\nAvec une livraison rapide et sûre\nRéductions et offres quotidiennes"],
+      "متابعة صحية شاملة وتحاليل مخبرية\nوخدمات طوارئ على مدار الساعة\nملف طبي متكامل لتاريخك الصحي": ["Comprehensive health tracking and lab tests\n24/7 emergency services\nA complete medical record of your health history", "Suivi de santé complet et analyses de laboratoire\nServices d’urgence 24 h/24 et 7 j/7\nUn dossier médical complet retraçant votre santé"],
       'تم إيقاف التتبع - الجودة: ': ['Tracking stopped - quality: ', 'Suivi arrêté - qualité : '],
     };
 
