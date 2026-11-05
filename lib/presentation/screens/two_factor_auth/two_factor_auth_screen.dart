@@ -117,9 +117,12 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _isEnabled
-                        ? 'المصادقة الثنائية مفعلة'
-                        : 'المصادقة الثنائية غير مفعلة',
+                    _localizedUiText(
+                      context,
+                      _isEnabled
+                          ? 'المصادقة الثنائية مفعلة'
+                          : 'المصادقة الثنائية غير مفعلة',
+                    ),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -127,9 +130,12 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                     ),
                   ),
                   Text(
-                    _isEnabled
-                        ? 'حسابك محمي بدرجة عالية'
-                        : 'فعل المصادقة لحماية حسابك',
+                    _localizedUiText(
+                      context,
+                      _isEnabled
+                          ? 'حسابك محمي بدرجة عالية'
+                          : 'فعل المصادقة لحماية حسابك',
+                    ),
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
@@ -139,8 +145,11 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
             if (_verificationStep == 0) ...[
               _infoCard(
                 Icons.security,
-                'لماذا المصادقة الثنائية؟',
-                'تضيف طبقة حماية إضافية لحسابك. حتى لو عرف أحدهم كلمة مرورك، لن يستطيع الدخول بدون رمز التحقق.',
+                _localizedUiText(context, 'لماذا المصادقة الثنائية؟'),
+                _localizedUiText(
+                  context,
+                  'تضيف طبقة حماية إضافية لحسابك. حتى لو عرف أحدهم كلمة مرورك، لن يستطيع الدخول بدون رمز التحقق.',
+                ),
                 AppColors.info,
               ),
               const SizedBox(height: 16),
@@ -198,7 +207,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _codeBox('المفتاح السري:', _secretKey),
+                    _codeBox(_localizedUiText(context, 'المفتاح السري:'), _secretKey),
                     const SizedBox(height: 16),
                     Text(_localizedUiText(context, '2. أدخل رمز التحقق'),
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
@@ -252,8 +261,11 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
             if (_verificationStep == 3) ...[
               _infoCard(
                 Icons.check_circle,
-                'الحالة',
-                'المصادقة الثنائية مفعلة. تم آخر تحقق: اليوم',
+                _localizedUiText(context, 'الحالة'),
+                _localizedUiText(
+                  context,
+                  'المصادقة الثنائية مفعلة. تم آخر تحقق: اليوم',
+                ),
                 AppColors.success,
               ),
               const SizedBox(height: 12),
