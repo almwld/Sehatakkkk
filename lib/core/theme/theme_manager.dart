@@ -27,7 +27,7 @@ class ThemeManager {
         unselectedItemColor: Colors.grey,
         elevation: 8,
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: Colors.white,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -81,7 +81,7 @@ class ThemeManager {
         unselectedItemColor: Colors.grey.shade500,
         elevation: 8,
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: const Color(0xFF1A2540),
         elevation: 2,
         shape: RoundedRectangleBorder(
