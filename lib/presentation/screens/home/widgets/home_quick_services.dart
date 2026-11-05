@@ -1,6 +1,7 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class QuickServiceModel {
   final String icon;
@@ -31,19 +32,19 @@ class HomeQuickServices extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(),
+        _buildHeader(context),
         const SizedBox(height: 12),
         _buildServicesGrid(),
       ],
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'خدمات سريعة',
+          AppStrings.of(context).translate('خدمات سريعة'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -52,7 +53,7 @@ class HomeQuickServices extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {},
-          child: const Text('عرض الكل'),
+          child: Text(AppStrings.of(context).translate('عرض الكل')),
         ),
       ],
     );
@@ -67,13 +68,13 @@ class HomeQuickServices extends StatelessWidget {
         itemCount: services.length,
         itemBuilder: (context, index) {
           final service = services[index];
-          return _buildServiceItem(service);
+          return _buildServiceItem(context, service);
         },
       ),
     );
   }
 
-  Widget _buildServiceItem(QuickServiceModel service) {
+  Widget _buildServiceItem(BuildContext context, QuickServiceModel service) {
     return GestureDetector(
       onTap: () => onServiceTap(service.screen),
       child: Container(
@@ -106,7 +107,7 @@ class HomeQuickServices extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              service.label,
+              AppStrings.of(context).translate(service.label),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
