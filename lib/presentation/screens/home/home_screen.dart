@@ -8,6 +8,7 @@ import 'package:sehatak/bloc/home/home_bloc.dart';
 import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/app_router.dart';
@@ -105,16 +106,12 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('تفعيل المكالمات الواردة'),
-          content: const Text(
-            'لإظهار شاشة المكالمة الواردة فوق شاشة القفل، '
-            'يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. '
-            'إذا لم تمنح الإذن، سيستمر إشعار المكالمة العادي بالعمل.',
-          ),
+          title: Text(AppStrings.of(context).translate('تفعيل المكالمات الواردة')),
+          content: Text(AppStrings.of(context).translate('لإظهار شاشة المكالمة الواردة فوق شاشة القفل، يمكنك السماح بإشعارات ملء الشاشة من إعدادات النظام. إذا لم تمنح الإذن، سيستمر إشعار المكالمة العادي بالعمل.')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('لاحقاً'),
+              child: Text(AppStrings.of(context).translate('لاحقاً')),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -126,7 +123,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   await prefs.remove(_fullScreenIntentGuidanceSeenKey);
                 }
               },
-              child: const Text('فتح إعدادات النظام'),
+              child: Text(AppStrings.of(context).translate('فتح إعدادات النظام')),
             ),
           ],
         ),
@@ -226,7 +223,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     _backPressedOnce = true;
     ToastService.showToast(
-      message: 'انقر مرتين للخروج النهائي',
+      message: AppStrings.of(context).backExitHint,
       type: ToastType.info,
       duration: const Duration(seconds: 2),
     );
