@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -11,6 +12,7 @@ class VaccinationScreen extends StatefulWidget {
 }
 
 class _VaccinationScreenState extends State<VaccinationScreen> {
+  String _t(String value) => AppStrings.of(context).translate(value);
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
@@ -46,18 +48,18 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('إضافة تطعيم'),
+          title: Text(_t('إضافة تطعيم')),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
                   value: beneficiaryType,
-                  decoration: const InputDecoration(labelText: 'المستفيد من التطعيم'),
-                  items: const [
-                    DropdownMenuItem(value: 'self', child: Text('صاحب الحساب')),
-                    DropdownMenuItem(value: 'child', child: Text('طفل')),
-                    DropdownMenuItem(value: 'woman', child: Text('امرأة')),
+                  decoration: InputDecoration(labelText: _t('المستفيد من التطعيم')),
+                  items: [
+                    DropdownMenuItem(value: 'self', child: Text(_t('صاحب الحساب'))),
+                    DropdownMenuItem(value: 'child', child: Text(_t('طفل'))),
+                    DropdownMenuItem(value: 'woman', child: Text(_t('امرأة'))),
                   ],
                   onChanged: (v) { if (v != null) setDialogState(() => beneficiaryType = v); },
                 ),
@@ -66,23 +68,23 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                   TextField(
                     controller: beneficiaryName,
                     decoration: InputDecoration(
-                      labelText: beneficiaryType == 'child' ? 'اسم الطفل *' : 'اسم المرأة *',
+                      labelText: beneficiaryType == 'child' ? _t('اسم الطفل *') : _t('اسم المرأة *'),
                     ),
                   ),
                 ],
                 const SizedBox(height: 8),
                 TextField(
                   controller: name,
-                  decoration: const InputDecoration(labelText: 'اسم اللقاح *'),
+                  decoration: InputDecoration(labelText: _t('اسم اللقاح *')),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: status,
-                  decoration: const InputDecoration(labelText: 'الحالة'),
-                  items: const [
-                    DropdownMenuItem(value: 'مكتمل', child: Text('مكتمل')),
-                    DropdownMenuItem(value: 'قادم', child: Text('قادم')),
-                    DropdownMenuItem(value: 'متأخر', child: Text('متأخر')),
+                  decoration: InputDecoration(labelText: _t('الحالة')),
+                  items: [
+                    DropdownMenuItem(value: 'مكتمل', child: Text(_t('مكتمل'))),
+                    DropdownMenuItem(value: 'قادم', child: Text(_t('قادم'))),
+                    DropdownMenuItem(value: 'متأخر', child: Text(_t('متأخر'))),
                   ],
                   onChanged: (v) {
                     if (v != null) setDialogState(() => status = v);
@@ -90,7 +92,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(date == null ? 'تاريخ التطعيم' : _fmt(date)),
+                  title: Text(date == null ? _t('تاريخ التطعيم') : _fmt(date)),
                   leading: const Icon(Icons.event),
                   onTap: () async {
                     final d = await showDatePicker(
@@ -105,7 +107,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(nextDate == null
-                      ? 'الجرعة القادمة (اختياري)'
+                      ? _t('الجرعة القادمة (اختياري)')
                       : _fmt(nextDate)),
                   leading: const Icon(Icons.event_available),
                   onTap: () async {
@@ -121,7 +123,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 TextField(
                   controller: location,
                   decoration:
-                      const InputDecoration(labelText: 'المركز / المستشفى'),
+                      InputDecoration(labelText: _t('المركز / المستشفى')),
                 ),
               ],
             ),
@@ -129,7 +131,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('إلغاء'),
+              child: Text(_t('إلغاء')),
             ),
             ElevatedButton(
               onPressed: saving ? null : () async {
@@ -163,11 +165,11 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                   debugPrint('save vaccination failed: $e');
                   if (dialogContext.mounted) {
                     setDialogState(() => saving = false);
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('تعذر حفظ التطعيم')));
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text(_t('تعذر حفظ التطعيم'))));
                   }
                 }
               },
-              child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : const Text('حفظ'),
+              child: saving ? const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)) : Text(_t('حفظ')),
             ),
           ],
         ),
@@ -186,7 +188,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
 
   void _msg(String value) {
     if (mounted) ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(value)));
+        .showSnackBar(SnackBar(content: Text(_t(value))));
   }
 
   @override
@@ -194,22 +196,22 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
     final uid = _auth.currentUser?.uid;
     final dark = Theme.of(context).brightness == Brightness.dark;
     if (uid == null) {
-      return const Scaffold(
-        body: Center(child: Text('يرجى تسجيل الدخول لعرض تطعيماتك')),
+      return Scaffold(
+        body: Center(child: Text(_t('يرجى تسجيل الدخول لعرض تطعيماتك'))),
       );
     }
 
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('التطعيمات'),
+        title: Text(_t('التطعيمات')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             onPressed: _add,
             icon: const Icon(Icons.add),
-            tooltip: 'إضافة تطعيم',
+            tooltip: _t('إضافة تطعيم'),
           ),
         ],
       ),
@@ -217,8 +219,8 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
         stream: _items(uid).orderBy('date', descending: true).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(
-              child: Text('تعذر تحميل تطعيماتك. حاول مرة أخرى.'),
+            return Center(
+              child: Text(_t('تعذر تحميل تطعيماتك. حاول مرة أخرى.')),
             );
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -233,17 +235,17 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 children: [
                   const Icon(Icons.vaccines_outlined, size: 72, color: Colors.grey),
                   const SizedBox(height: 16),
-                  const Text(
-                    'لا توجد تطعيمات مسجلة',
+                  Text(
+                    _t('لا توجد تطعيمات مسجلة'),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  const Text('ستظهر هنا التطعيمات التي تسجلها في حسابك.'),
+                  Text(_t('ستظهر هنا التطعيمات التي تسجلها في حسابك.')),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: _add,
                     icon: const Icon(Icons.add),
-                    label: const Text('إضافة تطعيم'),
+                    label: Text(_t('إضافة تطعيم')),
                   ),
                 ],
               ),
@@ -280,16 +282,16 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 confirmDismiss: (_) => showDialog<bool>(
                   context: context,
                   builder: (c) => AlertDialog(
-                    title: const Text('حذف التطعيم'),
-                    content: const Text('هل تريد حذف هذا السجل؟'),
+                    title: Text(_t('حذف التطعيم')),
+                    content: Text(_t('هل تريد حذف هذا السجل؟')),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(c, false),
-                        child: const Text('إلغاء'),
+                        child: Text(_t('إلغاء')),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(c, true),
-                        child: const Text('حذف'),
+                        child: Text(_t('حذف')),
                       ),
                     ],
                   ),
@@ -308,16 +310,16 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (beneficiaryType != 'self' && beneficiary != null && beneficiary.trim().isNotEmpty)
-                          Text(beneficiaryType == 'child' ? 'الطفل: $beneficiary' : 'المرأة: $beneficiary'),
-                        if (date != null) Text('تاريخ التطعيم: ' + _fmt(date)),
+                          Text('${_t(beneficiaryType == 'child' ? 'الطفل: ' : 'المرأة: ')}$beneficiary'),
+                        if (date != null) Text('${_t('تاريخ التطعيم: ')}' + _fmt(date)),
                         if (next != null)
-                          Text('الجرعة القادمة: ' + _fmt(next)),
+                          Text('${_t('الجرعة القادمة: ')}' + _fmt(next)),
                         if ((data['location']?.toString() ?? '').trim().isNotEmpty)
                           Text(data['location'].toString()),
                       ],
                     ),
                     trailing: Chip(
-                      label: Text(status),
+                      label: Text(_t(status)),
                       labelStyle: TextStyle(color: color, fontSize: 11),
                       backgroundColor: color.withOpacity(0.1),
                     ),
