@@ -1,4 +1,5 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -13,7 +14,7 @@ class HospitalBookingScreen extends StatelessWidget {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('hospitals').where('isActive', isEqualTo: true).snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const Scaffold(body: Center(child: Text('تعذر تحميل المستشفيات حالياً')));
+        if (snapshot.hasError) return const Scaffold(body: Center(child: Text(_localizedUiText(context, 'تعذر تحميل المستشفيات حالياً'))));
         if (!snapshot.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
         final hospitals = snapshot.data!.docs;
         return Scaffold(
@@ -104,3 +105,7 @@ class HospitalBookingScreen extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
