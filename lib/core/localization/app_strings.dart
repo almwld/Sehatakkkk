@@ -4655,6 +4655,7 @@ class AppStrings {
       "انتقل إلى تبويب الخدمة المنزلية عندما تريد استعراض المختبرات التي تدعم الوصول إلى المنزل.": ["Select the home-service tab to browse laboratories that offer home visits.", "Sélectionnez l’onglet du service à domicile pour voir les laboratoires proposant des visites à domicile."],
       "انتهت الجولة — اختر المختبر الأنسب لك.": ["Tour complete — choose the laboratory that suits you.", "Visite terminée — choisissez le laboratoire qui vous convient."],
       'تم إيقاف التتبع - الجودة: ': ['Tracking stopped - quality: ', 'Suivi arrêté - qualité : '],
+
     };
 
 
