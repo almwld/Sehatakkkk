@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 class ReactionPicker extends StatelessWidget {
   final Function(String) onReactionSelected;
@@ -14,7 +15,7 @@ class ReactionPicker extends StatelessWidget {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
         const SizedBox(height: 12),
-        const Text('اختر رد فعل', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(_localizedUiText(context, 'اختر رد فعل'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: _reactions.map((emoji) => GestureDetector(onTap: () { onReactionSelected(emoji); Navigator.pop(context); }, child: Container(width: 48, height: 48, decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)), child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24)))))).toList()),
         const SizedBox(height: 12),
@@ -22,3 +23,7 @@ class ReactionPicker extends StatelessWidget {
     );
   }
 }
+
+
+String _localizedUiText(BuildContext context, String value) =>
+    AppStrings.of(context).translate(value);
