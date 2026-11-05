@@ -53,28 +53,29 @@ class PrivacyScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildPrivacyItem(
-                    'جمع البيانات',
-                    'نجمع البيانات الأساسية مثل الاسم والبريد الإلكتروني والمعلومات الصحية الضرورية لتقديم الخدمات.',
+                    context,
+                    _localizedUiText(context, 'جمع البيانات'),
+                    _localizedUiText(context, 'نجمع البيانات الأساسية مثل الاسم والبريد الإلكتروني والمعلومات الصحية الضرورية لتقديم الخدمات.'),
                     isDark,
                   ),
                   _buildPrivacyItem(
-                    'استخدام البيانات',
-                    'نستخدم بياناتك لتقديم خدمات صحية مخصصة وتحسين تجربتك في التطبيق.',
+                    _localizedUiText(context, 'استخدام البيانات'),
+                    _localizedUiText(context, 'نستخدم بياناتك لتقديم خدمات صحية مخصصة وتحسين تجربتك في التطبيق.'),
                     isDark,
                   ),
                   _buildPrivacyItem(
-                    'مشاركة البيانات',
-                    'لا نشارك بياناتك مع أطراف ثالثة إلا بموافقتك الصريحة أو عند الضرورة القانونية.',
+                    _localizedUiText(context, 'مشاركة البيانات'),
+                    _localizedUiText(context, 'لا نشارك بياناتك مع أطراف ثالثة إلا بموافقتك الصريحة أو عند الضرورة القانونية.'),
                     isDark,
                   ),
                   _buildPrivacyItem(
-                    'أمن البيانات',
-                    'نتخذ إجراءات أمنية متقدمة لحماية بياناتك من الوصول غير المصرح به.',
+                    _localizedUiText(context, 'أمن البيانات'),
+                    _localizedUiText(context, 'نتخذ إجراءات أمنية متقدمة لحماية بياناتك من الوصول غير المصرح به.'),
                     isDark,
                   ),
                   _buildPrivacyItem(
-                    'حذف البيانات',
-                    'يمكنك طلب حذف بياناتك في أي وقت من خلال التواصل مع فريق الدعم.',
+                    _localizedUiText(context, 'حذف البيانات'),
+                    _localizedUiText(context, 'يمكنك طلب حذف بياناتك في أي وقت من خلال التواصل مع فريق الدعم.'),
                     isDark,
                   ),
                 ],
@@ -86,14 +87,14 @@ class PrivacyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPrivacyItem(String title, String description, bool isDark) {
+  Widget _buildPrivacyItem(BuildContext context, String title, String description, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '• $title',
+            '• ${_localizedUiText(context, title)}',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
@@ -102,7 +103,7 @@ class PrivacyScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            description,
+            _localizedUiText(context, description),
             style: TextStyle(
               fontSize: 13,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
