@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 enum AddButtonVariant { appBar, fab, text, outlined }
 
@@ -22,12 +23,15 @@ class AddActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
+    final strings = AppStrings.of(context);
+    final buttonLabel = strings.translate(label ?? 'إضافة');
+    final buttonTooltip = tooltip == null ? null : strings.translate(tooltip!);
 
     switch (variant) {
       case AddButtonVariant.appBar:
         return IconButton(
           onPressed: onPressed,
-          tooltip: tooltip,
+          tooltip: buttonTooltip,
           icon: const Icon(Icons.add_rounded),
           color: Colors.white,
           disabledColor: Colors.white38,
@@ -39,7 +43,7 @@ class AddActionButton extends StatelessWidget {
           backgroundColor: enabled ? AppColors.primary : Colors.grey,
           foregroundColor: Colors.white,
           icon: const Icon(Icons.add_rounded),
-          label: Text(label ?? 'إضافة'),
+          label: Text(buttonLabel),
         );
       case AddButtonVariant.text:
         return ElevatedButton.icon(
