@@ -45,11 +45,11 @@ class _PregnancyTrackerScreenState extends State<PregnancyTrackerScreen> {
             ]),
             const SizedBox(height: 10),
             LinearProgressIndicator(value: _week / 40, backgroundColor: Colors.white24, color: Colors.white, minHeight: 6, borderRadius: BorderRadius.circular(3)),
-            Text('الموعد: ${_dueDate.day}/${_dueDate.month}/${_dueDate.year}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+            Text('${_localizedUiText(context, 'الموعد: ')}${_dueDate.day}/${_dueDate.month}/${_dueDate.year}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
           ]),
         ),
         const SizedBox(height: 14),
-        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.pink.shade50, borderRadius: BorderRadius.circular(14)), child: Row(children: [Text(tip['icon']!, style: const TextStyle(fontSize: 44)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(tip['title']!, style: const TextStyle(fontWeight: FontWeight.bold)), Text('طفلك الآن ${tip['baby']}', style: const TextStyle(color: AppColors.darkGrey)), const SizedBox(height: 4), Text('💡 ${tip['tip']}', style: const TextStyle(fontSize: 12))]))])),
+        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.pink.shade50, borderRadius: BorderRadius.circular(14)), child: Row(children: [Text(tip['icon']!, style: const TextStyle(fontSize: 44)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_localizedUiText(context, tip['title']!.toString()), style: const TextStyle(fontWeight: FontWeight.bold)), Text('${_localizedUiText(context, 'طفلك الآن ')}${tip['baby']}', style: const TextStyle(color: AppColors.darkGrey)), const SizedBox(height: 4), Text('💡 ${_localizedUiText(context, tip['tip']!.toString())}', style: const TextStyle(fontSize: 12))]))])),
       ])),
     );
   }
