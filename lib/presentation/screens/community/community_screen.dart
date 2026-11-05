@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -101,14 +102,14 @@ class _CommunityScreenState extends State<CommunityScreen>
   Future<void> _openCreatePost() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _message('سجل الدخول أولاً لإضافة منشور');
+      _message(AppStrings.of(context).translate('سجل الدخول أولاً لإضافة منشور'));
       return;
     }
 
     final verified = await _isVerifiedDoctor();
     if (!mounted) return;
     if (!verified) {
-      _message('إضافة المنشورات متاحة للأطباء الموثقين فقط');
+      _message(AppStrings.of(context).translate('إضافة المنشورات متاحة للأطباء الموثقين فقط'));
       return;
     }
 
@@ -122,7 +123,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     } catch (_) {
       await Share.share(
         '${post.title}\n${post.content ?? ''}',
-        subject: 'منشور من صحتك',
+        subject: AppStrings.of(context).translate('منشور من صحتك'),
       );
     }
   }
@@ -144,7 +145,7 @@ class _CommunityScreenState extends State<CommunityScreen>
   Future<void> _toggleLike(CommunityPostModel post) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _message('سجل الدخول للتفاعل مع المنشورات');
+      _message(AppStrings.of(context).translate('سجل الدخول للتفاعل مع المنشورات'));
       return;
     }
     final postRef = _query.doc(post.id);
@@ -199,8 +200,8 @@ class _CommunityScreenState extends State<CommunityScreen>
                 autofocus: true,
                 minLines: 1,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  hintText: 'اكتب تعليقك...',
+                decoration: InputDecoration(
+                  hintText: AppStrings.of(context).translate('اكتب تعليقك...'),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -218,7 +219,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     if (text == null || text.trim().isEmpty) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _message('سجل الدخول لإضافة تعليق');
+      _message(AppStrings.of(context).translate('سجل الدخول لإضافة تعليق'));
       return;
     }
     final userDoc = await FirebaseFirestore.instance
@@ -266,7 +267,7 @@ class _CommunityScreenState extends State<CommunityScreen>
           if (snapshot.hasError) {
             return Center(
               child: Text(
-                'تعذر تحميل المجتمع\n${snapshot.error}',
+                '${AppStrings.of(context).translate('تعذر تحميل المجتمع')}\n${snapshot.error}',
                 textAlign: TextAlign.center,
               ),
             );
@@ -276,7 +277,7 @@ class _CommunityScreenState extends State<CommunityScreen>
           }
           final docs = snapshot.data!.docs;
           if (docs.isEmpty) {
-            return const Center(child: Text('لا توجد منشورات منشورة حالياً'));
+            return Center(child: Text(AppStrings.of(context).translate('لا توجد منشورات منشورة حالياً')));
           }
           return RefreshIndicator(
             onRefresh: () async => setState(() {}),
@@ -327,12 +328,12 @@ class _CommunityScreenState extends State<CommunityScreen>
                           bottom: Radius.circular(30),
                         ),
                       ),
-                      child: const Align(
+                      child: Align(
                         alignment: Alignment.center,
                         child: Padding(
                           padding: EdgeInsets.only(top: 10),
                           child: Text(
-                            'مجتمع صحتك',
+                            AppStrings.of(context).translate('مجتمع صحتك'),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 19,
@@ -463,7 +464,7 @@ class _PostCard extends StatelessWidget {
                         ],
                       ),
                       Text(
-                        '${post.category ?? 'عام'} • ${post.timeAgo}',
+                        '${post.category ?? AppStrings.of(context).translate('عام')} • ${post.timeAgo}',
                         style: TextStyle(
                           fontSize: 10,
                           color: dark ? Colors.white60 : Colors.grey[600],
@@ -557,7 +558,7 @@ class _PostCard extends StatelessWidget {
                 if (post.comments > 0)
                   TextButton(
                     onPressed: () => onComment(post),
-                    child: const Text('أضف تعليقاً'),
+                    child: Text(AppStrings.of(context).translate('أضف تعليقاً')),
                   ),
               ],
             ),
@@ -620,9 +621,9 @@ class _CommentsSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'التعليقات',
+                      AppStrings.of(context).translate('التعليقات'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
@@ -653,7 +654,7 @@ class _CommentsSheet extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (snap.data!.docs.isEmpty) {
-                    return const Center(child: Text('لا توجد تعليقات بعد'));
+                    return Center(child: Text(AppStrings.of(context).translate('لا توجد تعليقات بعد')));
                   }
                   return ListView.separated(
                     padding: const EdgeInsets.all(16),
@@ -664,13 +665,13 @@ class _CommentsSheet extends StatelessWidget {
                       return ListTile(
                         leading: CircleAvatar(
                           child: Text(
-                            (d['userName']?.toString() ?? 'م')
+                            (d['userName']?.toString() ?? (AppStrings.of(context).locale.languageCode == 'ar' ? 'م' : 'U'))
                                 .characters
                                 .first,
                           ),
                         ),
                         title: Text(
-                          d['userName']?.toString() ?? 'مستخدم',
+                          d['userName']?.toString() ?? AppStrings.of(context).translate('مستخدم'),
                           style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
                         subtitle: Text(d['comment']?.toString() ?? ''),
