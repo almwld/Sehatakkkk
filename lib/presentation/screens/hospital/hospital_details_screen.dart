@@ -25,7 +25,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(hospital['name'] ?? 'تفاصيل المستشفى'),
+        title: Text(hospital['name'] ?? _localizedUiText(context, 'تفاصيل المستشفى')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -49,7 +49,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
 
             // اسم المستشفى
             Text(
-              hospital['name'] ?? 'اسم المستشفى',
+              hospital['name'] ?? _localizedUiText(context, 'اسم المستشفى'),
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -63,7 +63,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                 Icon(Icons.location_on, color: AppColors.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  hospital['location'] ?? 'الموقع غير معروف',
+                  hospital['location'] ?? _localizedUiText(context, 'الموقع غير معروف'),
                   style: TextStyle(
                     fontSize: 16,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -95,7 +95,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    (hospital['open'] ?? true) ? '🟢 مفتوح' : '🔴 مغلق',
+                    '${(hospital['open'] ?? true) ? '🟢 ' : '🔴 '}${_localizedUiText(context, (hospital['open'] ?? true) ? 'مفتوح' : 'مغلق')}',
                     style: TextStyle(
                       color: (hospital['open'] ?? true) ? Colors.green : Colors.red,
                       fontSize: 14,
@@ -110,9 +110,9 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
             const SizedBox(height: 16),
 
             // معلومات إضافية
-            _buildInfoRow('🏥 النوع', hospital['type'] ?? 'عام'),
-            _buildInfoRow('🛏️ عدد الأسرة', '${hospital['beds'] ?? 100} سرير'),
-            _buildInfoRow('📞 الهاتف', hospital['phone'] ?? 'غير متوفر'),
+            _buildInfoRow('🏥 ${_localizedUiText(context, 'النوع')}', hospital['type'] ?? _localizedUiText(context, 'عام')),
+            _buildInfoRow('🛏️ ${_localizedUiText(context, 'عدد الأسرة')}', '${hospital['beds'] ?? 100} ${_localizedUiText(context, 'سرير')}'),
+            _buildInfoRow('📞 ${_localizedUiText(context, 'الهاتف')}', hospital['phone'] ?? _localizedUiText(context, 'غير متوفر')),
 
             const SizedBox(height: 24),
 
@@ -124,7 +124,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                     onPressed: () {
                       // حجز موعد
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(_localizedUiText(context, 'جاري حجز موعد...')),
                           backgroundColor: AppColors.primary,
                         ),
