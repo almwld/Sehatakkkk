@@ -92,7 +92,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'المصادقة الثنائية'),
+      appBar: CustomAppBar(title: _localizedUiText(context, 'المصادقة الثنائية')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
