@@ -2409,7 +2409,7 @@ class _AuthScreenState extends State<AuthScreen>
                 fontWeight: FontWeight.w900,
               )),
               const SizedBox(height: 12),
-              const Text('منصة الرعاية الصحية اليمنية المتكاملة',
+              Text(AppStrings.of(context).translate('منصة الرعاية الصحية اليمنية المتكاملة'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 30),
