@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/localization/app_strings.dart';
 
 class ServicesCarousel extends StatefulWidget {
   const ServicesCarousel({super.key});
@@ -35,6 +36,7 @@ class _ServicesCarouselState extends State<ServicesCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return Column(children: [
       SizedBox(height: 180, child: PageView.builder(
         controller: _pageController, itemCount: _slides.length,
@@ -50,7 +52,7 @@ class _ServicesCarouselState extends State<ServicesCarousel> {
               Positioned(bottom: 16, left: 16, right: 16, child: Row(children: [
                 Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: s['color'], borderRadius: BorderRadius.circular(10)), child: Icon(s['icon'], color: Colors.white, size: 22)),
                 const SizedBox(width: 10),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(s['title'], style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)), Text(s['subtitle'], style: const TextStyle(color: Colors.white70, fontSize: 13))])),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(strings.translate(s['title'] as String), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)), Text(strings.translate(s['subtitle'] as String), style: const TextStyle(color: Colors.white70, fontSize: 13))])),
               ])),
             ]),
           );
