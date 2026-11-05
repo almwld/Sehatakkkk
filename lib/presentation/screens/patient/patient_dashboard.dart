@@ -796,7 +796,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           Icon(icon, color: color, size: 20),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+            child: Text(AppStrings.of(context).translate(title), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
           ),
           Text(AppStrings.of(context).translate(value), style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ],
