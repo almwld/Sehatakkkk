@@ -40,7 +40,7 @@ class BookingRepository {
   Future<BookingModel> confirmBooking({required String doctorId, required String doctorName, required DateTime date, required String time}) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('يجب تسجيل الدخول');
-    final doctorSnap = await _firestore.collection('users').doc(doctorId).get();
+    final doctorSnap = await _firestore.collection('doctors').doc(doctorId).get();
     final doctor = doctorSnap.data() ?? <String,dynamic>{};
     if (doctor['role']?.toString() == 'doctor') {
       if (doctor['isAvailable'] == false || doctor['acceptingAppointments'] == false) throw Exception('الطبيب لا يستقبل مواعيد حاليًا');
