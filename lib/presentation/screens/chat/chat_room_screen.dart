@@ -418,7 +418,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       });
     });
     _userSub = _firestore
-        .collection('users')
+        .collection('chats')
+        .doc(widget.chatId)
+        .collection('presence')
         .doc(widget.otherUserId)
         .snapshots()
         .listen((snapshot) {
@@ -847,11 +849,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
     if (state == AppLifecycleState.resumed) {
-      unawaited(_firestore.collection('users').doc(uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+      unawaited(_firestore.collection('chats').doc(widget.chatId).collection('presence').doc(uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp(), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
       unawaited(_markDeliveryAndRead());
     } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
       unawaited(_setTyping(false));
-      unawaited(_firestore.collection('users').doc(uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+      unawaited(_firestore.collection('chats').doc(widget.chatId).collection('presence').doc(uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp(), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
     }
   }
 
