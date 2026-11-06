@@ -49,6 +49,14 @@ beforeEach(async () => {
       sharedWith: 'patient-b',
       status: 'pending',
     });
+    await setDoc(doc(db, 'chats/chat-1'), {
+      participants: ['patient-a', 'patient-b'],
+    });
+    await setDoc(doc(db, 'chats/chat-1/presence/patient-b'), {
+      isOnline: true,
+      lastSeen: new Date(),
+      updatedAt: new Date(),
+    });
   });
 });
 
@@ -168,5 +176,25 @@ test('clients cannot create shared-record requests directly', async () => {
     sharedBy: 'patient-a',
     sharedWith: 'patient-b',
     status: 'pending',
+  }));
+});
+
+test('chat participants can read scoped presence but outsiders cannot', async () => {
+  const participant = env.authenticatedContext('patient-a').firestore();
+  const outsider = env.authenticatedContext('patient-c').firestore();
+  await assertSucceeds(getDoc(doc(participant, 'chats/chat-1/presence/patient-b')));
+  await assertFails(getDoc(doc(outsider, 'chats/chat-1/presence/patient-b')));
+});
+
+test('a chat participant can write only their own presence document', async () => {
+  const owner = env.authenticatedContext('patient-b').firestore();
+  const peer = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(setDoc(doc(owner, 'chats/chat-1/presence/patient-b'), {
+    isOnline: false,
+    updatedAt: new Date(),
+  }));
+  await assertFails(setDoc(doc(peer, 'chats/chat-1/presence/patient-b'), {
+    isOnline: false,
+    updatedAt: new Date(),
   }));
 });
