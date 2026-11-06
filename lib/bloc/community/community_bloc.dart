@@ -42,7 +42,7 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('يجب تسجيل الدخول');
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      final userDoc = await _firestore.collection('public_profiles').doc(user.uid).get();
       final userData = userDoc.data() ?? <String, dynamic>{};
       if (userData['role']?.toString() != 'doctor' || userData['isVerified'] != true) throw Exception('النشر متاح للأطباء الموثقين فقط');
       final userName = (userData['name'] ?? user.displayName ?? 'طبيب').toString();
