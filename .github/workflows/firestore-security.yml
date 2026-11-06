@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - 'firestore.rules'
+      - 'functions/**'
       - 'security-tests/**'
       - 'functions/**'
       - '.github/workflows/firestore-security.yml'
