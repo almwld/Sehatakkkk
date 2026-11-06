@@ -29,6 +29,46 @@ async function isAdmin(uid) {
   return snap.exists && ['admin','superAdmin'].includes(snap.data().role);
 }
 
+exports.getChatPeerMetadata = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const chatId = text(request.data.chatId, 'chatId', 150);
+  const chatSnap = await db.collection('chats').doc(chatId).get();
+  if (!chatSnap.exists) throw new HttpsError('not-found', 'المحادثة غير موجودة');
+  const participants = Array.isArray(chatSnap.data().participants)
+    ? chatSnap.data().participants
+    : [];
+  if (!participants.includes(uid)) {
+    throw new HttpsError('permission-denied', 'ليست لديك صلاحية لهذه المحادثة');
+  }
+
+  const peerIds = participants.filter((id) => id !== uid).slice(0, 99);
+  const peerSnapshots = await Promise.all(
+    peerIds.map((peerId) => db.collection('users').doc(peerId).get()),
+  );
+  const peers = {};
+  for (let index = 0; index < peerIds.length; index += 1) {
+    const peerId = peerIds[index];
+    const peer = peerSnapshots[index].exists ? peerSnapshots[index].data() : {};
+    const settings = peer.messageSettings && typeof peer.messageSettings === 'object'
+      ? peer.messageSettings
+      : {};
+    const blockedIds = Array.isArray(peer.blockedPatientIds)
+      ? peer.blockedPatientIds
+      : [];
+    peers[peerId] = {
+      role: String(peer.role || 'user'),
+      isOnline: peer.isOnline === true,
+      blockedCurrentUser: blockedIds.includes(uid),
+      messageEnabled: settings.enabled !== false,
+      dailyLimit: Number.isFinite(Number(settings.dailyLimit))
+        ? Math.max(1, Math.min(500, Number(settings.dailyLimit)))
+        : 20,
+    };
+  }
+
+  return {peers};
+});
+
 exports.shareMedicalRecordByEmail = onCall(async (request) => {
   const uid = requireAuth(request);
   const recordId = text(request.data.recordId, 'recordId', 150);
