@@ -10,6 +10,8 @@ test('public profile projection contains only approved display fields', () => {
     name: 'Test Patient',
     email: 'private@example.invalid',
     phone: '+000000000',
+    location: '123 Private Street, Apartment 4',
+    city: 'Sanaa',
     role: 'doctor',
     specialty: 'Cardiology',
     isVerified: true,
@@ -27,6 +29,7 @@ test('public profile projection contains only approved display fields', () => {
   assert.equal(projection.name, 'Test Patient');
   assert.equal(projection.role, 'doctor');
   assert.equal(projection.isVerified, true);
+  assert.equal(projection.location, 'Sanaa');
   for (const privateKey of [
     'email', 'phone', 'isOnline', 'lastSeen', 'rating', 'reviewsCount', 'vitals', 'medicalHistory',
     'fcmToken', 'messageSettings', 'blockedPatientIds',
