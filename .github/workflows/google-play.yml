@@ -32,10 +32,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: 💙 Set up Flutter 3.27.4
+      - name: 💙 Set up Flutter 3.16.0
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'
+          flutter-version: '3.16.0'
           channel: stable
           cache: true
 
@@ -92,26 +92,8 @@ jobs:
 
           echo "Production keystore and alias validated."
 
-      - name: 📦 Install Flutter dependencies (AAB-only compatibility override)
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Keep the repository's Flutter 3.16 APK dependency pins untouched.
-          # Flutter 3.27.4's flutter_test requires path 1.9.0, so apply this
-          # override only in the ephemeral AAB runner workspace.
-          python - <<'PY'
-          from pathlib import Path
-          p = Path("pubspec.yaml")
-          s = p.read_text()
-          marker = "dependency_overrides:\n"
-          if marker not in s:
-              raise SystemExit("dependency_overrides section not found")
-          if "  path: 1.9.0\n" not in s[s.index(marker):]:
-              s = s.replace(marker, marker + "  path: 1.9.0\n", 1)
-          p.write_text(s)
-          PY
-          grep -A4 '^dependency_overrides:' pubspec.yaml
-          flutter pub get
+      - name: 📦 Install Flutter dependencies
+        run: flutter pub get
 
       - name: 🧪 Validate required local medical animations
         shell: bash
