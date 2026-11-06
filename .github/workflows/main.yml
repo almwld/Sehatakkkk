@@ -7,7 +7,20 @@ permissions:
 on:
   push:
     branches: [ master, main ]
+    paths:
+      - 'lib/**'
+      - 'assets/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'web/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/main.yml'
   workflow_dispatch:
+
+concurrency:
+  group: sehatak-apk-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
