@@ -859,7 +859,7 @@ class _AuthScreenState extends State<AuthScreen>
         'experience': _experienceController.text.trim(),
 
         'isVerified': false,
-        'verificationStatus': needsVerification ? 'notSubmitted' : 'verified',
+        'verificationStatus': 'notSubmitted',
 
         'rating': 0.0,
         'reviewCount': 0,
