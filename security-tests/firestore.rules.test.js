@@ -38,6 +38,11 @@ beforeEach(async () => {
       role: 'user',
       isVerified: false,
     });
+    await setDoc(doc(db, 'users/platform-admin'), {
+      uid: 'platform-admin',
+      role: 'admin',
+      name: 'Synthetic Admin',
+    });
     await setDoc(doc(db, 'shared_records/share-1'), {
       recordId: 'record-1',
       sharedBy: 'patient-a',
@@ -118,6 +123,16 @@ test('a user can read their own user document', async () => {
   });
   const db = env.authenticatedContext('patient-a').firestore();
   await assertSucceeds(getDoc(doc(db, 'users/patient-a')));
+});
+
+test('an unrelated signed-in user cannot read another private user document', async () => {
+  const db = env.authenticatedContext('patient-a').firestore();
+  await assertFails(getDoc(doc(db, 'users/patient-b')));
+});
+
+test('a trusted admin can read user documents for platform operations', async () => {
+  const db = env.authenticatedContext('platform-admin').firestore();
+  await assertSucceeds(getDoc(doc(db, 'users/patient-b')));
 });
 
 test('an unauthenticated user cannot read a private user document', async () => {
