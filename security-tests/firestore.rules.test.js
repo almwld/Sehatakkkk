@@ -148,9 +148,14 @@ test('an unauthenticated user cannot read a private user document', async () => 
   await assertFails(getDoc(doc(db, 'users/patient-b')));
 });
 
-test('public profile projection is readable without authentication', async () => {
-  const db = env.unauthenticatedContext().firestore();
+test('public profile projection is readable to authenticated users', async () => {
+  const db = env.authenticatedContext('patient-a').firestore();
   await assertSucceeds(getDoc(doc(db, 'public_profiles/patient-b')));
+});
+
+test('public profile projection is not exposed to unauthenticated clients', async () => {
+  const db = env.unauthenticatedContext().firestore();
+  await assertFails(getDoc(doc(db, 'public_profiles/patient-b')));
 });
 
 test('clients cannot write public profile projections', async () => {
