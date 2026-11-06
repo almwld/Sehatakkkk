@@ -4794,8 +4794,76 @@ class AppStrings {
       'غير آمن': ['Not considered safe', 'Non considéré comme sûr'],
       'آمن نسبياً': ['Relatively safe', 'Relativement sûr'],
       'باستشارة': ['Only with medical advice', 'Uniquement sur avis médical'],
+      'بدء مكالمة فيديو': ['Video call started', 'Appel vidéo démarré'],
+      'بدء مكالمة صوتية': ['Audio call started', 'Appel audio démarré'],
+      'تم قبول المكالمة': ['Call accepted', 'Appel accepté'],
+      'تم رفض المكالمة': ['Call rejected', 'Appel refusé'],
+      'تم إلغاء المكالمة': ['Call cancelled', 'Appel annulé'],
+      'مكالمة فائتة': ['Missed call', 'Appel manqué'],
+      'مشغول في مكالمة أخرى': ['Busy on another call', 'Déjà en communication'],
+      'تعذر إنشاء اتصال المكالمة. تحقق من الإنترنت ثم أعد المحاولة.': ['Could not connect the call. Check your internet connection and try again.', 'Impossible d’établir l’appel. Vérifiez votre connexion Internet et réessayez.'],
+      'انتهت مهلة الاتصال. تحقق من جودة الإنترنت وحاول مرة أخرى.': ['The connection timed out. Check your internet connection and try again.', 'Le délai de connexion a expiré. Vérifiez votre connexion Internet et réessayez.'],
+      'يلزم السماح بالميكروفون لإجراء المكالمة.': ['Microphone permission is required to make the call.', 'L’autorisation du microphone est nécessaire pour passer l’appel.'],
+      'يلزم السماح بالميكروفون والكاميرا لإجراء المكالمة.': ['Microphone and camera permissions are required to make the call.', 'Les autorisations du microphone et de la caméra sont nécessaires pour passer l’appel.'],
+      'تعذر الاتصال بالشبكة. تحقق من الإنترنت وحاول مرة أخرى.': ['Could not connect to the network. Check your internet connection and try again.', 'Impossible de se connecter au réseau. Vérifiez votre connexion Internet et réessayez.'],
+      'تعذر بدء المكالمة. حاول مرة أخرى.': ['Could not start the call. Try again.', 'Impossible de démarrer l’appel. Réessayez.'],
+      'في انتظار قبول المكالمة...': ['Waiting for the call to be answered…', 'En attente de la réponse à l’appel…'],
+      'لا يوجد اتصال بالإنترنت': ['No internet connection', 'Aucune connexion Internet'],
+      'متصل': ['Connected', 'Connecté'],
+      'إنهاء': ['End', 'Terminer'],
+      'تبديل': ['Switch', 'Changer'],
+      'تعذر العثور على المحادثة المرتبطة بالمكالمة': ['Could not find the chat linked to this call.', 'Impossible de trouver la conversation associée à cet appel.'],
     };
 
+    final callDurationMatch = RegExp(r'^انتهت المكالمة • (\d+)s
+    if (entry == null) return value;
+    switch (locale.languageCode) {
+      case 'en': return entry[0];
+      case 'fr': return entry[1];
+      default: return value;
+    }
+  }
+
+
+  String _translateRole(String role) {
+    const roles = <String, List<String>>{
+      'doctor': ['doctor', 'médecin'],
+      'nurse': ['nurse', 'infirmier/ière'],
+      'midwife': ['midwife', 'sage-femme'],
+      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
+      'pharmacist': ['pharmacist', 'pharmacien'],
+      'pharmacy': ['pharmacy', 'pharmacie'],
+      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
+      'lab': ['laboratory', 'laboratoire'],
+      'hospital': ['hospital', 'hôpital'],
+      'clinic': ['clinic', 'clinique'],
+      'medical_center': ['medical center', 'centre médical'],
+      'dentist': ['dentist', 'dentiste'],
+      'dental': ['dental clinic', 'clinique dentaire'],
+      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
+      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
+      'optometrist': ['optometrist', 'optométriste'],
+      'delivery': ['delivery provider', 'livreur'],
+      'service': ['service provider', 'prestataire de services'],
+    };
+    final translated = roles[role];
+    if (translated == null) return role;
+    return locale.languageCode == 'fr' ? translated[1] : translated[0];
+  }
+
+  String _pick(String ar, String en, String fr) {
+    switch (locale.languageCode) {
+      case 'en': return en;
+      case 'fr': return fr;
+      default: return ar;
+    }
+  }
+}
+).firstMatch(value);
+    if (callDurationMatch != null) {
+      final seconds = callDurationMatch.group(1)!;
+      return _pick(value, 'Call ended • ${seconds}s', 'Appel terminé • ${seconds}s');
+    }
 
     final entry = translations[value];
     if (entry == null) return value;
