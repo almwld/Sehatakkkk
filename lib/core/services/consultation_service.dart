@@ -61,7 +61,11 @@ class ConsultationService {
       'labResult': labResult,
       'labTests': labTests,
       'status': ConsultationStatus.labDone.name,
-      '  Future<void> addPrescription({
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> addPrescription({
     required String consultationId,
     required List<Map<String, dynamic>> prescription,
     required List<String> medicines,
@@ -76,11 +80,6 @@ class ConsultationService {
       'medicineInstructions': medicineInstructions,
       'diagnosis': diagnosis,
     });
-  }
-stamp(),
-      });
-    }
-    await batch.commit();
   }
 
   Stream<List<ConsultationModel>> getPatientConsultations(String patientId) => _firestore.collection('consultations').where('patientId', isEqualTo: patientId).orderBy('createdAt', descending: true).snapshots().map((s) => s.docs.map((d) => ConsultationModel.fromFirestore(d.data(), d.id)).toList());
