@@ -6,6 +6,7 @@ on:
     paths:
       - 'firestore.rules'
       - 'security-tests/**'
+      - 'functions/**'
       - '.github/workflows/firestore-security.yml'
   pull_request:
     paths:
@@ -13,6 +14,10 @@ on:
       - 'security-tests/**'
       - '.github/workflows/firestore-security.yml'
   workflow_dispatch:
+
+concurrency:
+  group: firestore-security-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
