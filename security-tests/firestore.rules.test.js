@@ -47,6 +47,11 @@ beforeEach(async () => {
       role: 'admin',
       name: 'Synthetic Admin',
     });
+    await setDoc(doc(db, 'users/platform-super-admin'), {
+      uid: 'platform-super-admin',
+      role: 'superAdmin',
+      name: 'Synthetic Super Admin',
+    });
     await setDoc(doc(db, 'shared_records/share-1'), {
       recordId: 'record-1',
       sharedBy: 'patient-a',
@@ -144,6 +149,27 @@ test('a user can read their own user document', async () => {
 test('an unrelated signed-in user cannot read another private user document', async () => {
   const db = env.authenticatedContext('patient-a').firestore();
   await assertFails(getDoc(doc(db, 'users/patient-b')));
+});
+
+test('an admin cannot promote themselves to superAdmin', async () => {
+  const db = env.authenticatedContext('platform-admin').firestore();
+  await assertFails(updateDoc(doc(db, 'users/platform-admin'), {
+    role: 'superAdmin',
+  }));
+});
+
+test('an admin can update non-privileged user profile fields', async () => {
+  const db = env.authenticatedContext('platform-admin').firestore();
+  await assertSucceeds(updateDoc(doc(db, 'users/patient-b'), {
+    name: 'Admin corrected display name',
+  }));
+});
+
+test('a superAdmin can assign a privileged role', async () => {
+  const db = env.authenticatedContext('platform-super-admin').firestore();
+  await assertSucceeds(updateDoc(doc(db, 'users/patient-b'), {
+    role: 'admin',
+  }));
 });
 
 test('a trusted admin can read user documents for platform operations', async () => {
