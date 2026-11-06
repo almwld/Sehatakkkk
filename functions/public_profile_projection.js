@@ -23,6 +23,9 @@ function publicProfileFromUser(data, uid) {
     reviewsCount: Math.max(0, Math.trunc(numberOrZero(data.reviewsCount || data.reviewCount))),
     isDoctor: role === 'doctor' || data.isDoctor === true,
     isVerified: data.isVerified === true,
+    // Minimal presence data for authenticated chat peers.
+    isOnline: data.isOnline === true,
+    lastSeen: data.lastSeen || null,
   };
 }
 
