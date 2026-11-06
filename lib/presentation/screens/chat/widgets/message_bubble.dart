@@ -753,7 +753,22 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   String _systemMessageText(String value) {
-    final callDuration = RegExp(r'^انتهت المكالمة • (\d+)s
+    final callDuration = RegExp(r'انتهت المكالمة • ([0-9]+)s').firstMatch(value);
+    if (callDuration != null && callDuration.group(0) == value) {
+      return _t('انتهت المكالمة') + ' • ' + callDuration.group(1)! + 's';
+    }
+    return _t(value);
+  }
+
+  Widget _buildSystem(Map<String, dynamic> m) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Center(
+          child: Text(
+            _systemMessageText(m['text']?.toString() ?? ''),
+            style: const TextStyle(fontSize: 11, color: Color(0xFF49615E)),
+          ),
+        ),
+      );
 
   void _options() {
     showModalBottomSheet<void>(
