@@ -33,19 +33,30 @@ class PharmacyService {
       // Older deployments may not have the composite index yet.
     }
 
-    final all = await getAllProducts();
-    final featured = all.where((product) {
-      final number = int.tryParse(product.id.replaceFirst('med_', ''));
-      return number != null && number >= 1 && number <= 10;
-    }).toList()
-      ..sort((a, b) {
-        final byRating = b.rating.compareTo(a.rating);
-        if (byRating != 0) return byRating;
-        final aNumber = int.tryParse(a.id.replaceFirst('med_', '')) ?? 999;
-        final bNumber = int.tryParse(b.id.replaceFirst('med_', '')) ?? 999;
-        return aNumber.compareTo(bNumber);
-      });
-    return featured.take(limit).toList();
+    // Fallback for deployments without the composite index. Apply the same
+    // visibility flags as the primary query before converting documents.
+    try {
+      final snapshot = await _firestore.collection('products').get();
+      final featured = snapshot.docs.where((doc) {
+        final data = doc.data();
+        final number = int.tryParse(doc.id.replaceFirst('med_', ''));
+        return number != null &&
+            number >= 1 &&
+            number <= 10 &&
+            data['isFeatured'] == true &&
+            data['isActive'] == true;
+      }).map((doc) => ProductModel.fromFirestore(doc.data(), doc.id)).toList()
+        ..sort((a, b) {
+          final byRating = b.rating.compareTo(a.rating);
+          if (byRating != 0) return byRating;
+          final aNumber = int.tryParse(a.id.replaceFirst('med_', '')) ?? 999;
+          final bNumber = int.tryParse(b.id.replaceFirst('med_', '')) ?? 999;
+          return aNumber.compareTo(bNumber);
+        });
+      return featured.take(limit).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   // جلب منتجات حسب التصنيف
