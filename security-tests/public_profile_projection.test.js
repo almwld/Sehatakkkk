@@ -26,7 +26,7 @@ test('public profile projection contains only approved display fields', () => {
   assert.equal(projection.role, 'doctor');
   assert.equal(projection.isVerified, true);
   for (const privateKey of [
-    'email', 'phone', 'isOnline', 'vitals', 'medicalHistory',
+    'email', 'phone', 'isOnline', 'lastSeen', 'vitals', 'medicalHistory',
     'fcmToken', 'messageSettings', 'blockedPatientIds',
   ]) {
     assert.equal(Object.hasOwn(projection, privateKey), false, `leaked ${privateKey}`);
