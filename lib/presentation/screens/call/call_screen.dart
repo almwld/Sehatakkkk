@@ -249,7 +249,7 @@ class _CallScreenState extends State<CallScreen> {
           connecting = false;
           error = friendly;
         });
-        ToastService.showError(friendly);
+        ToastService.showError(_localizedUiText(context, friendly));
       }
     }
   }
@@ -357,7 +357,7 @@ class _CallScreenState extends State<CallScreen> {
           connecting = false;
           error = friendly;
         });
-        ToastService.showError(friendly);
+        ToastService.showError(_localizedUiText(context, friendly));
       }
     }
   }
