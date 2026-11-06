@@ -5,6 +5,7 @@ import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -383,20 +384,55 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   void _showQRCode() {
+    final patientCode = _patientNumber.trim();
+    if (patientCode.isEmpty) {
+      ToastService.showError(
+        AppStrings.of(context).translate('رقم المريض غير متاح حالياً'),
+      );
+      return;
+    }
+
+    // A standards-compliant QR payload containing only the patient's
+    // Sehatak identifier. It does not expose medical records or contact data.
+    final qrPayload = 'SEHATEK:PATIENT:$patientCode';
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppStrings.of(context).translate('رمز QR للملف الصحي')),
-        content: SizedBox(
-          width: 200,
-          height: 200,
-          child: CustomPaint(
-            painter: QRCodePainter(_patientNumber),
-          ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          AppStrings.of(context).translate('رمز QR للملف الصحي'),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 232,
+              height: 232,
+              padding: const EdgeInsets.all(12),
+              color: Colors.white,
+              child: QrImageView(
+                data: qrPayload,
+                version: QrVersions.auto,
+                size: 208,
+                backgroundColor: Colors.white,
+                errorCorrectionLevel: QrErrorCorrectLevel.H,
+                gapless: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SelectableText(
+              patientCode,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(AppStrings.of(context).translate('إغلاق')),
           ),
         ],
@@ -855,27 +891,3 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 }
 
-class QRCodePainter extends CustomPainter {
-  final String data;
-
-  QRCodePainter(this.data);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black;
-    final moduleSize = size.width / 21;
-    for (int i = 0; i < 21; i++) {
-      for (int j = 0; j < 21; j++) {
-        if ((i + j + data.length) % 3 == 0 || (i * j) % 5 == 0) {
-          canvas.drawRect(
-            Rect.fromLTWH(i * moduleSize, j * moduleSize, moduleSize, moduleSize),
-            paint,
-          );
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant QRCodePainter oldDelegate) => oldDelegate.data != data;
-}
