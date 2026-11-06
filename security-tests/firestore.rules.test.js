@@ -62,6 +62,17 @@ test('a user cannot self-create a superAdmin account', async () => {
   }));
 });
 
+test('a user can register with an explicitly unverified status', async () => {
+  const db = env.authenticatedContext('doctor-pending').firestore();
+  await assertSucceeds(setDoc(doc(db, 'users/doctor-pending'), {
+    uid: 'doctor-pending',
+    role: 'doctor',
+    doctorId: 'doctor-pending',
+    isVerified: false,
+    verificationStatus: 'notSubmitted',
+  }));
+});
+
 test('a user cannot self-assign verification or admin permission fields', async () => {
   const db = env.authenticatedContext('attacker-verified').firestore();
   await assertFails(setDoc(doc(db, 'users/attacker-verified'), {
