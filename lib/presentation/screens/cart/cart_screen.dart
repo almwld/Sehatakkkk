@@ -322,7 +322,7 @@ class _CartScreenState extends State<CartScreen> {
                           color: Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
+                        child: Text(
                           _t('غير متوفر'),
                           style: TextStyle(
                             fontSize: 8,
@@ -427,7 +427,7 @@ class _CartScreenState extends State<CartScreen> {
             child: ElevatedButton(
               onPressed: _items.isEmpty ? null : () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text(_t('جاري التوجيه إلى صفحة الدفع...')),
                     backgroundColor: Colors.teal,
                   ),
