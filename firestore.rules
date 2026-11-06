@@ -23,9 +23,21 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create: if isSelf(userId) 
+      // Self-registration must never grant administrative or verification authority.
+      // Privileged roles and verification state are assigned only by trusted backend/admin flows.
+      allow create: if isSelf(userId)
         && request.resource.data.uid == request.auth.uid
-        && (request.resource.data.role != 'doctor' 
+        && request.resource.data.get('role', 'user') in [
+          'user', 'patient', 'doctor', 'nurse', 'midwife', 'physiotherapist',
+          'pharmacist', 'pharmacy', 'pharmacyOwner', 'lab', 'hospital', 'clinic',
+          'medical_center', 'dentist', 'dental', 'ophthalmology', 'eye_clinic',
+          'optometrist', 'paramedic', 'delivery', 'service', 'veterinarian'
+        ]
+        && !request.resource.data.keys().hasAny([
+          'isAdmin', 'isSuperAdmin', 'permissions', 'adminPermissions',
+          'isVerified', 'verificationStatus', 'verifiedBy', 'verifiedAt'
+        ])
+        && (request.resource.data.get('role', 'user') != 'doctor'
             || request.resource.data.doctorId == request.auth.uid);
       allow update: if isAdmin()
         || (isSelf(userId)
