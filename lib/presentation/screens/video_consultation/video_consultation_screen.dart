@@ -130,9 +130,10 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
         ),
       );
     } catch (e) {
+      debugPrint('Video consultation call failed: $e');
       if (mounted) {
         ToastService.showError(
-          '${_localizedUiText(context, 'تعذر بدء المكالمة')}: $e',
+          _localizedUiText(context, 'تعذر بدء المكالمة. حاول مرة أخرى.'),
         );
       }
     }
