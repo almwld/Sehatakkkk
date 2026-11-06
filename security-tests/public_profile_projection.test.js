@@ -43,8 +43,8 @@ test('public profile projection sanitizes optional values', () => {
   }, 'user-1');
 
   assert.equal(projection.name, 'مستخدم');
-  assert.equal(projection.rating, 0);
-  assert.equal(projection.reviewsCount, 0);
+  assert.equal(Object.hasOwn(projection, 'rating'), false);
+  assert.equal(Object.hasOwn(projection, 'reviewsCount'), false);
 });
 
 test('a user cannot self-assert professional status in the public projection', () => {
