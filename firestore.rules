@@ -24,7 +24,7 @@ service cloud.firestore {
     // Public profile projection contains only approved display fields.
     // The trusted Cloud Function is the only writer.
     match /public_profiles/{userId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow write: if false;
     }
 
