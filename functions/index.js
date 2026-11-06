@@ -273,6 +273,7 @@ exports.reviewTransaction = onCall(async (request) => {
 
 // Triggers are kept separate from the core callable functions to keep this file maintainable.
 Object.assign(exports, require('./notification_triggers'));
+Object.assign(exports, require('./public_profile_sync'));
 
 exports.adminSendNotification = onCall(async (request) => {
   const actorId = requireAuth(request);
