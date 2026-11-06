@@ -67,7 +67,7 @@ Owner-scoped health services continue to read their own user document and nested
 - `functions/public_profile_projection.test.js`: verifies that the public projection contains only allowlisted fields and excludes private account/health data.
 - `.github/workflows/firestore-security.yml`: runs Firestore Emulator tests, Cloud Functions syntax checks, and Functions unit tests on relevant changes.
 
-The expanded security workflow passed on commit `3f04cce579de92a0e31c37ddd9b20d5b80c4de30` (run `42304113028`): Firestore Emulator 23/23 tests passed; Functions unit tests 5/5 passed; all Cloud Functions syntax checks passed. This is source/emulator validation only, not a live Firebase deployment test.
+The latest expanded security workflow passed on commit `7a8811066e4b3697b68689c36643e7f746eb23f2` (run `42304978333`): Firestore Emulator 26/26 tests passed; Functions unit tests 5/5 passed; all Cloud Functions syntax checks passed. This is source/emulator validation only, not a live Firebase deployment test.
 
 ## Backfill and deployment gates
 
@@ -89,5 +89,5 @@ No production rules read, production backfill, production deployment, or live pa
 - Chat presence is available only to participants in that chat.
 - Medical record sharing is authorized server-side and readable only by its participants.
 - Firestore Emulator and Functions unit tests pass on the latest commit.
-- The Flutter 3.16.0 APK workflow remains pinned to 3.16.0 and its configuration was not changed by the security fixes. The current APK validation run `42304069010` is still in progress; do not mark APK build green until it completes.
+- The Flutter 3.16.0 APK workflow remains pinned to 3.16.0 and its configuration was not changed by the security fixes. The current APK validation run `42304069010` has passed Flutter analyze and is still building the APK; do not mark APK build green until signing and artifact upload complete.
 - Production rules and profile backfill are deployed only after staging validation and explicit approval.
