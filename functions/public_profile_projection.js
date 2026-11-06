@@ -19,9 +19,7 @@ function publicProfileFromUser(data, uid) {
     specialty: stringOrEmpty(data.specialty, 120),
     hospital: stringOrEmpty(data.hospital, 160),
     location: stringOrEmpty(data.location || data.city, 160),
-    rating: numberOrZero(data.rating),
-    reviewsCount: Math.max(0, Math.trunc(numberOrZero(data.reviewsCount || data.reviewCount))),
-    isDoctor: role === 'doctor' || data.isDoctor === true,
+    isDoctor: role === 'doctor',
     isVerified: data.isVerified === true,
   };
 }
