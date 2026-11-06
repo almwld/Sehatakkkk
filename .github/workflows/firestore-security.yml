@@ -32,3 +32,15 @@ jobs:
       - name: Run Firestore emulator rule tests
         working-directory: security-tests
         run: npm test
+      - name: Install Cloud Functions dependencies
+        working-directory: functions
+        run: npm install --no-audit --no-fund
+      - name: Validate Cloud Functions syntax
+        run: |
+          node --check functions/index.js
+          node --check functions/public_profile_sync.js
+          node --check functions/public_profile_projection.js
+          node --check functions/scripts/backfill_public_profiles.js
+      - name: Run Cloud Functions unit tests
+        working-directory: functions
+        run: npm test
