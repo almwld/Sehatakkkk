@@ -42,13 +42,17 @@ exports.getChatPeerMetadata = onCall(async (request) => {
   }
 
   const peerIds = participants.filter((id) => id !== uid).slice(0, 99);
-  const peerSnapshots = await Promise.all(
-    peerIds.map((peerId) => db.collection('users').doc(peerId).get()),
-  );
+  const [peerSnapshots, presenceSnapshots] = await Promise.all([
+    Promise.all(peerIds.map((peerId) => db.collection('users').doc(peerId).get())),
+    Promise.all(peerIds.map((peerId) =>
+      db.collection('chats').doc(chatId).collection('presence').doc(peerId).get(),
+    )),
+  ]);
   const peers = {};
   for (let index = 0; index < peerIds.length; index += 1) {
     const peerId = peerIds[index];
     const peer = peerSnapshots[index].exists ? peerSnapshots[index].data() : {};
+    const presence = presenceSnapshots[index].exists ? presenceSnapshots[index].data() : {};
     const settings = peer.messageSettings && typeof peer.messageSettings === 'object'
       ? peer.messageSettings
       : {};
@@ -57,7 +61,7 @@ exports.getChatPeerMetadata = onCall(async (request) => {
       : [];
     peers[peerId] = {
       role: String(peer.role || 'user'),
-      isOnline: peer.isOnline === true,
+      isOnline: presence.isOnline === true,
       blockedCurrentUser: blockedIds.includes(uid),
       messageEnabled: settings.enabled !== false,
       dailyLimit: Number.isFinite(Number(settings.dailyLimit))
