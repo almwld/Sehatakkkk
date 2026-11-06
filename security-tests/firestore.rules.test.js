@@ -61,6 +61,10 @@ beforeEach(async () => {
       lastSeen: new Date(),
       updatedAt: new Date(),
     });
+    await setDoc(doc(db, 'users/patient-b/following/patient-c'), {
+      userId: 'patient-c',
+      createdAt: new Date(),
+    });
   });
 });
 
@@ -186,6 +190,11 @@ test('clients cannot create shared-record requests directly', async () => {
     sharedWith: 'patient-b',
     status: 'pending',
   }));
+});
+
+test('authenticated users can read public social-graph edges', async () => {
+  const db = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(db, 'users/patient-b/following/patient-c')));
 });
 
 test('chat participants can read scoped presence but outsiders cannot', async () => {
