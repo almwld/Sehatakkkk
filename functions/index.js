@@ -29,6 +29,86 @@ async function isAdmin(uid) {
   return snap.exists && ['admin','superAdmin'].includes(snap.data().role);
 }
 
+exports.prescribeConsultationMedication = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const consultationId = text(request.data.consultationId, 'consultationId', 150);
+  const prescription = Array.isArray(request.data.prescription) ? request.data.prescription : [];
+  const medicines = Array.isArray(request.data.medicines) ? request.data.medicines : [];
+  if (prescription.length > 50 || medicines.length > 50) {
+    throw new HttpsError('invalid-argument', 'عدد عناصر الوصفة يتجاوز الحد المسموح');
+  }
+  const medicineInstructions = String(request.data.medicineInstructions || '').trim().slice(0, 2000);
+  const diagnosis = String(request.data.diagnosis || '').trim().slice(0, 2000);
+  const consultationRef = db.collection('consultations').doc(consultationId);
+  const doctorRef = db.collection('users').doc(uid);
+
+  await db.runTransaction(async (tx) => {
+    const [consultationSnap, doctorSnap] = await Promise.all([
+      tx.get(consultationRef),
+      tx.get(doctorRef),
+    ]);
+    if (!consultationSnap.exists) throw new HttpsError('not-found', 'الاستشارة غير موجودة');
+    if (!doctorSnap.exists
+        || doctorSnap.data().role !== 'doctor'
+        || doctorSnap.data().isVerified !== true) {
+      throw new HttpsError('permission-denied', 'الطبيب غير موثق');
+    }
+    const consultation = consultationSnap.data();
+    if (consultation.doctorId !== uid) {
+      throw new HttpsError('permission-denied', 'لا تملك صلاحية تعديل هذه الاستشارة');
+    }
+    const patientId = String(consultation.patientId || '');
+    if (!patientId) throw new HttpsError('failed-precondition', 'المريض غير مرتبط بالاستشارة');
+
+    const now = FieldValue.serverTimestamp();
+    tx.update(consultationRef, {
+      prescription,
+      medicines: medicines.map((item) => String(item).trim().slice(0, 120)).filter(Boolean),
+      medicineInstructions,
+      diagnosis,
+      status: 'prescription',
+      prescriptionDate: now,
+      updatedAt: now,
+    });
+
+    for (let index = 0; index < prescription.length; index += 1) {
+      const item = prescription[index] && typeof prescription[index] === 'object'
+        ? prescription[index]
+        : {};
+      const name = String(item.name || item.medicine || item.medication || '').trim().slice(0, 160);
+      if (!name) continue;
+      const rawTimes = Array.isArray(item.times) ? item.times : Array.isArray(item.scheduleTimes) ? item.scheduleTimes : [];
+      const times = rawTimes.map((value) => String(value).trim()).filter(Boolean).slice(0, 10);
+      if (!times.length && item.time) times.push(String(item.time).trim().slice(0, 40));
+      const medicationRef = db.collection('users').doc(patientId)
+        .collection('medications').doc(`rx_${consultationId}_${index}`);
+      tx.set(medicationRef, {
+        name,
+        dose: String(item.dose || item.dosage || '').trim().slice(0, 120),
+        frequency: String(item.frequency || '').trim().slice(0, 120),
+        time: times[0] || '',
+        times,
+        instructions: String(item.instructions || medicineInstructions).trim().slice(0, 1000),
+        notes: String(item.notes || '').trim().slice(0, 1000),
+        doctorId: uid,
+        doctorName: String(consultation.doctorName || '').slice(0, 120),
+        patientId,
+        consultationId,
+        active: true,
+        quantity: Number(item.quantity || item.totalQuantity || 0) || 0,
+        remainingQuantity: Number(item.remainingQuantity || item.quantity || 0) || 0,
+        remainingPills: Number(item.remainingQuantity || item.quantity || 0) || 0,
+        productId: item.productId ? String(item.productId).slice(0, 150) : null,
+        prescriptionItemId: `rx_${consultationId}_${index}`,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  });
+
+  return {success: true, consultationId};
+});
+
 exports.getChatPeerMetadata = onCall(async (request) => {
   const uid = requireAuth(request);
   const chatId = text(request.data.chatId, 'chatId', 150);
