@@ -29,7 +29,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Private account document: owner and trusted platform admins only. Public fields live in public_profiles.\n      allow read: if isSelf(userId) || isAdmin();
+      // Private account document: owner and trusted platform admins only. Public fields live in public_profiles.
+      allow read: if isSelf(userId) || isAdmin();
       // Self-registration must never grant administrative or verification authority.
       // Privileged roles and verification state are assigned only by trusted backend/admin flows.
       allow create: if isSelf(userId)
