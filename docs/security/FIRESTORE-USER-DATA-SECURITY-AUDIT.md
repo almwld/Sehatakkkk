@@ -1,112 +1,90 @@
-# Firestore user-data security audit and migration plan
+# Firestore user-data security audit and remediation record
 
-**Audited source:** `almwld/Sehatakkkk` branch `master`  
-**Audited commit:** `d286c9ffd8b1375d6d68b189710c06de70f40b7d`  
+**Repository:** `almwld/Sehatakkkk`  
+**Branch:** `master`  
 **Firebase project configured in source:** `sehatak-platform`  
-**Status:** the self-assigned admin/verification creation path has been mitigated in source and covered by Firestore Emulator tests. Cross-user parent-document reads remain open pending public-profile migration. Deployed rules and live data have not been inspected.
+**Audit boundary:** source review + synthetic Firestore Emulator tests added; no production data accessed and no production rules deployment performed.
 
-## Executive summary
+## Executive status
 
-The original source rules contained two high-priority authorization defects in `match /users/{userId}`. The self-assigned role/verification path has since been mitigated in source; the broad read remains unresolved:
+The source-level privacy and self-assigned-role risks identified in the original audit have been mitigated in the checked-in source:
 
-1. `allow read: if isSignedIn();` lets every authenticated account read every user's complete parent document. The document is not field-filtered by Firestore rules. Source consumers show that the document can contain email, phone, blood type, profile details, and current vitals.
-2. `allow create` checks that the document belongs to the caller, but does not constrain the initial `role` to a safe self-assignable role. A caller can satisfy the shown rule while setting a privileged role such as `admin` or `superAdmin`. The admin helper then trusts the role stored in that same user document. This is a potential privilege-escalation path and must be treated as P0 until disproved by deployed rules and a rules-emulator test.
+- Self-registration cannot create `admin` or `superAdmin` accounts.
+- Self-registration cannot assign privileged permissions or mark an account verified.
+- A user can read their own private `users/{uid}` document; unrelated users cannot. Trusted admins retain access for the existing admin dashboards.
+- Cross-user profile reads use a server-written `public_profiles/{uid}` projection with a strict allowlist.
+- Chat presence is stored under each chat at `chats/{chatId}/presence/{uid}` and is readable only by chat participants.
+- Record sharing recipient resolution runs in the authenticated Cloud Function, not through a client query against the users collection.
 
-These are findings in the checked-in rules source. They do **not** establish that this exact rules version is currently deployed to Firebase production.
+**Important:** source remediation does not prove that the same rules have been deployed to Firebase. Production deployment status remains unverified.
 
-## Confirmed source evidence
+## Findings and remediation
 
-### Parent user document exposure
+### 1. Private user document reads
 
-- `firestore.rules`: `match /users/{userId}` grants parent-document reads to any signed-in user.
-- `lib/core/services/vitals_service.dart`: reads and writes `users/{uid}.vitals`.
-- `lib/presentation/screens/patient/patient_profile.dart`: loads `users/{profileId}` for both own and other-user profiles, then displays public profile fields; email is rendered only for the owner, but the full document is still fetched by the client.
-- `lib/presentation/screens/records/share_record_screen.dart`: searches `users` by email to resolve a record recipient.
-- `lib/core/services/report_service.dart`: queries the users collection for reports.
-- `lib/presentation/screens/dashboard/role_based_dashboard_screen.dart`: reads the current user's role from their own user document.
-- `lib/core/services/preload_service.dart`: reads and updates the current user's own document.
-- `lib/core/services/symptom_service.dart` and `lib/core/services/health_tracking_service.dart`: access health data under the current user's document/subcollections.
+**Original issue:** `allow read: if isSignedIn()` allowed every authenticated account to fetch every user's complete parent document. That document can include email, phone, blood type, vitals, account preferences, and other private data.
 
-### Potential self-assigned privileged role
+**Current source rule:** `users/{userId}` reads are restricted to the document owner or an admin recognized by the rules helper. New Firestore Emulator tests verify that patient A cannot read patient B's document and that owner/admin reads remain allowed.
 
-The current create condition is equivalent to:
+### 2. Self-assigned administrative roles
 
-```text
-isSelf(userId)
-&& request.resource.data.uid == request.auth.uid
-&& (request.resource.data.role != 'doctor'
-    || request.resource.data.doctorId == request.auth.uid)
-```
+**Original issue:** the create rule checked document ownership but did not restrict the initial role. The admin helper trusts the role in the caller's user document, creating a possible privilege-escalation route.
 
-It does not limit `role` to `user`/ `patient` or another approved self-registration role. The helper `isAdmin()` reads the caller's own user document and treats `role == 'admin'` or `role == 'superAdmin'` as administrative authority. The registration screens create Firebase Auth users, so the rules must independently enforce safe initial roles; client-side UI restrictions are not an authorization boundary.
+**Current mitigation:** create rules allow only the supported self-registration role list, reject admin/superAdmin and privileged permission fields, and allow only unverified initial states. The public registration UI no longer offers the admin role. Existing role changes remain protected from self-service updates.
 
-## Work completed so far\n\n- `firestore.rules` now blocks self-creation of `admin`/`superAdmin`, blocks client-supplied admin permission fields, and prevents clients from setting `isVerified: true` or `verificationStatus: 'verified'` during account creation.\n- `AuthScreen` no longer offers `admin` as a public self-registration option and creates accounts in `notSubmitted` verification state.\n- Added `security-tests/firestore.rules.test.js` and `.github/workflows/firestore-security.yml` to exercise self-registration, attempted admin/superAdmin creation, attempted verification/permission assignment, role promotion, owner access, and unauthenticated denial. The latest run for the expanded suite is pending at the time of this update.\n- Added a server-written `public_profiles/{uid}` projection with an explicit allowlist (display name, avatar, bio, role, specialty, facility/location, rating, review count, doctor flag, verification badge). Email, phone, vitals, medical history, online status, FCM tokens, and messaging preferences are excluded.
-- Added a Firestore trigger to synchronize the projection and a dry-run-first Admin SDK backfill script at `functions/scripts/backfill_public_profiles.js`. Run it in an authorized Firebase environment with `node scripts/backfill_public_profiles.js --apply` from `functions/` only after reviewing the dry-run count. The backfill has not been executed against production.
-- Migrated the patient profile's cross-user read and community author identity to `public_profiles`; the booking repository now reads the public doctor directory rather than another user's parent document.
-- The parent-document `allow read: if isSignedIn()` rule has **not** been tightened yet. Chat recipient policy/settings, record-recipient lookup, admin dashboards, and reporting still need server/public-projection migration. This remains an active privacy issue until those consumers are migrated and cross-user denial tests pass.\n\n## Required target data boundaries
+### 3. Public profile projection
 
-### Private `users/{uid}` document
+`functions/public_profile_projection.js` maps a user document into a deliberately limited profile containing only:
+- uid, display name, photo/avatar URL, bio;
+- role and approved professional display fields;
+- specialty, facility/location, rating and review count;
+- doctor and verification display flags.
 
-Owner-only client read. Keep account and private application data here, including (as applicable):
+It excludes email, phone, blood type, vitals, medical history, FCM tokens, notification state, moderation flags, and private messaging preferences. Only trusted Cloud Functions can write `public_profiles`; authenticated clients can read them.
 
-- email, phone, contact and identity fields;
-- blood type and other private health/profile fields;
-- current vitals and private preferences;
-- notification counters and private account state;
-- fields used only by trusted backend/admin operations.
+A Firestore trigger synchronizes changes. A dry-run-first Admin SDK backfill script exists at `functions/scripts/backfill_public_profiles.js`. It has **not** been executed against production. Existing public profile pages may not show legacy accounts until this backfill is run in an authorized environment.
 
-A narrowly authorized administrative read must be based on trusted authorization (prefer Firebase custom claims or a server-side callable), not a role value a user can self-assign.
+### 4. Chat presence
 
-### Public `public_profiles/{uid}` document
+Presence is scoped per chat at `chats/{chatId}/presence/{uid}`. Rules require the caller to be a participant in that chat, and writes must target the caller's own presence document with only the allowed presence fields. This avoids publishing global online status.
 
-Create a separate, explicitly allowlisted projection. Candidate fields require product/privacy approval before implementation:
+### 5. Medical record sharing
 
-- display name;
-- avatar/photo URL;
-- short public bio;
-- approved professional/public role and verified public badge;
-- public counters if needed.
+The client calls `shareMedicalRecordByEmail`. The trusted function checks that the caller owns the medical record, resolves the recipient by email on the server, and creates a pending share request. The rules restrict shared-record reads to sender/recipient and block direct client creation.
 
-Do not copy email, phone, blood type, vitals, medical records, private account flags, tokens, or private relationship data. Do not make online status public by default; decide separately whether it is necessary and disclose it to users.
+### 6. Admin dashboards and reports
 
-## Migration order — do not skip gates
+The existing admin dashboards still query user documents directly. These reads are permitted only for callers whose own user document has an admin/superAdmin role. The source create/update rules now prevent ordinary users from self-assigning those roles. Migration to Firebase custom claims is still recommended as a further hardening step; it is not yet implemented.
 
-1. **P0: prove and close role self-assignment.** Add emulator tests for self-creating a normal user, self-creating an admin, self-creating a superAdmin, and creating a doctor without the required trusted approval. Make privileged roles assignable only by trusted backend/admin authorization. Review existing user provisioning paths before selecting the exact allowed role enum.
-2. **Build public-profile projection.** Define a strict field allowlist and trusted write path (Cloud Function/Admin SDK or a carefully constrained owner update rule). Never let clients write verification/admin fields.
-3. **Migrate cross-user readers.** Move patient public profile views and profile identity resolution to `public_profiles`. Preserve follower/following behavior without exposing the parent user document.
-4. **Replace email-based user search.** Replace client-side `users.where('email', ...)` with an authenticated callable that resolves a recipient on the server and creates a pending share request. Avoid revealing whether an arbitrary email has an account.
-5. **Replace broad admin/report queries.** Move admin user listing and aggregate reporting to server-authorized callable endpoints; do not grant all signed-in clients collection-wide access.
-6. **Keep owner health access.** Keep vitals, symptoms, child records, medications, and medical history under owner-only paths. Verify nested collection rules separately; parent-document restrictions do not automatically prove every nested path safe.
-7. **Tighten parent rules.** Only after steps 1–6 and passing tests, change `users/{userId}` reads to owner-only plus a narrowly trusted admin path. Do not rely on client route visibility or a user-editable role field.
-8. **Deploy with a rollback plan.** Deploy to a staging Firebase project first, run the cross-role matrix, then schedule production deployment. Capture the currently deployed rules before changing them.
+Owner-scoped health services continue to read their own user document and nested health collections. Each nested collection still requires independent review; restricting the parent document does not automatically prove every nested rule safe.
 
-## Required Firestore Emulator test matrix
+## Tests added
 
-Use synthetic users only (patient A, patient B, doctor, pharmacy/lab partner, admin, superAdmin, unauthenticated):
+- `security-tests/firestore.rules.test.js`: synthetic tests for normal registration, rejected admin/superAdmin self-registration, verification-field rejection, role promotion denial, owner read, cross-user denial, admin read, public profile read/write boundaries, shared-record participant access, and chat presence participant boundaries.
+- `functions/public_profile_projection.test.js`: verifies that the public projection contains only allowlisted fields and excludes private account/health data.
+- `.github/workflows/firestore-security.yml`: runs Firestore Emulator tests, Cloud Functions syntax checks, and Functions unit tests on relevant changes.
 
-- unauthenticated user cannot read any private user document;
-- patient A can read/write their own permitted private fields;
-- patient A cannot read or write patient B's private document, vitals, symptoms, children, or vital history;
-- patient A cannot create an `admin` or `superAdmin` user document for themselves;
-- patient A cannot modify role, verification, permission, or admin fields after creation;
-- doctor/partner cannot read another patient's private account or health data;
-- approved public profile can be read without exposing private fields;
-- public-profile writes cannot set privileged roles or verification status;
-- admin-only operations reject ordinary users and accept only trusted admin identity;
-- record sharing resolves recipients through the trusted server path and enforces recipient consent/authorization;
-- followers/following and chat/call recipient display continue to work using approved public fields.
+The latest CI runs were queued at the time of this document update. Do not claim test success until GitHub reports a completed successful run for the latest source commit.
 
-## Deployment verification boundary
+## Backfill and deployment gates
 
-The web repository's `firebase.json` configures Hosting only; it does not point to a Firestore rules file. The mobile repository's `.firebaserc` names `sehatak-platform`, and its `firebase.json` points Firestore rules to `firestore.rules`. This configuration is not proof of the deployed rules revision.
+1. Run the backfill script first without `--apply` in an authorized Firebase environment and review the scanned count.
+2. Confirm the target project is the intended staging project, then run with `--apply` only after approval.
+3. Verify the generated public profiles contain no private fields using synthetic test accounts and carefully selected non-sensitive test records.
+4. Inspect the currently deployed production rules in Firebase Console/CLI and save a rollback copy.
+5. Deploy the reviewed rules to staging, run the cross-account authorization matrix, and test profile, chat, admin, and record-sharing workflows.
+6. Deploy to production only after staging acceptance and explicit release approval.
+7. Record the deployed rules revision and verify it matches the reviewed source.
 
-No production rules read/deployment or live authorization test was performed in this audit. The source mitigation is not active in production until an authorized deployment is performed and verified. Do not deploy rules based only on this document. First obtain an authorized Firebase CLI/console view of the currently deployed rules and use a staging project plus emulator tests. Never put service-account credentials or patient data in GitHub or chat.
+No production rules read, production backfill, production deployment, or live patient-account authorization test has been performed in this audit. Never use real patient records in emulator tests or place service-account credentials in GitHub or chat.
 
 ## Acceptance criteria
 
-- No ordinary user can self-assign a privileged role.
-- No unrelated signed-in user can read another user's private parent document or health data.
-- Approved public profile reads return only allowlisted public fields.
-- Admin and partner actions are enforced by trusted server authorization.
-- All emulator tests pass; Flutter/backend CI remains green.
-- Deployed production rules are compared with the reviewed source and the exact deployment is recorded.
+- Ordinary users cannot self-assign admin/superAdmin roles or verification.
+- A user cannot read another user's private parent document or health data.
+- Public profile documents contain only the approved allowlist.
+- Chat presence is available only to participants in that chat.
+- Medical record sharing is authorized server-side and readable only by its participants.
+- Firestore Emulator and Functions unit tests pass on the latest commit.
+- APK/build CI remains green; the Flutter 3.16.0 APK workflow is not modified by this security work.
+- Production rules and profile backfill are deployed only after staging validation and explicit approval.
