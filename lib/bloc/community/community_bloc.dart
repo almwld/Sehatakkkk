@@ -59,7 +59,7 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
         mediaUrls.add(upload.url!);
         mediaNames.add(file.name);
       }
-      final post = CommunityPostModel(id: '', userId: user.uid, userName: userName, userAvatar: userData['avatar']?.toString(), title: event.title.trim(), content: event.content?.trim(), imageUrl: mediaUrls.isEmpty ? null : mediaUrls.first, images: mediaUrls, category: event.category ?? 'عام', tags: _extractTags('${event.title} ${event.content ?? ''}'), isDoctorPost: true, isVerified: true, createdAt: DateTime.now(), isPublished: true);
+      final post = CommunityPostModel(id: '', userId: user.uid, userName: userName, userAvatar: userData['photoUrl']?.toString(), title: event.title.trim(), content: event.content?.trim(), imageUrl: mediaUrls.isEmpty ? null : mediaUrls.first, images: mediaUrls, category: event.category ?? 'عام', tags: _extractTags('${event.title} ${event.content ?? ''}'), isDoctorPost: true, isVerified: true, createdAt: DateTime.now(), isPublished: true);
       final docRef = await _firestore.collection('community_posts').add({...post.toFirestore(), 'mediaNames': mediaNames, 'mediaCount': mediaUrls.length, 'mediaStorage': 'nextcloud', 'mediaOwnerId': user.uid});
       emit(state.copyWith(status: CommunityStatus.loaded, posts: [post.copyWith(id: docRef.id), ...state.posts], isUploading: false, uploadProgress: 0));
     } catch (e) {
