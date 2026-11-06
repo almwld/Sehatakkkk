@@ -61,7 +61,8 @@ class _PatientProfileState extends State<PatientProfile> {
       return;
     }
     try {
-      final snap = await _firestore.collection('users').doc(uid).get();
+      final profileCollection = _isOwnProfile ? 'users' : 'public_profiles';
+      final snap = await _firestore.collection(profileCollection).doc(uid).get();
       final data = snap.data() ?? <String, dynamic>{};
       final user = _auth.currentUser;
       if (data.isEmpty && _isOwnProfile && user != null) {
