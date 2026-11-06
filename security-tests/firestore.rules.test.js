@@ -30,6 +30,14 @@ beforeEach(async () => {
       phone: '+000000000',
       vitals: { systolic: 120 },
     });
+    await setDoc(doc(db, 'public_profiles/patient-b'), {
+      uid: 'patient-b',
+      name: 'Synthetic Patient B',
+      photoUrl: '',
+      bio: 'Public test profile',
+      role: 'user',
+      isVerified: false,
+    });
   });
 });
 
@@ -109,4 +117,16 @@ test('a user can read their own user document', async () => {
 test('an unauthenticated user cannot read a private user document', async () => {
   const db = env.unauthenticatedContext().firestore();
   await assertFails(getDoc(doc(db, 'users/patient-b')));
+});
+
+test('public profile projection is readable without authentication', async () => {
+  const db = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(db, 'public_profiles/patient-b')));
+});
+
+test('clients cannot write public profile projections', async () => {
+  const db = env.authenticatedContext('patient-b').firestore();
+  await assertFails(updateDoc(doc(db, 'public_profiles/patient-b'), {
+    name: 'Forged public name',
+  }));
 });
