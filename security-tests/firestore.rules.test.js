@@ -5,7 +5,7 @@ import {
   assertSucceeds,
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 
 const projectId = 'demo-sehatak-firestore-security';
 const rules = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
@@ -149,6 +149,22 @@ test('an unrelated signed-in user cannot read another private user document', as
 test('a trusted admin can read user documents for platform operations', async () => {
   const db = env.authenticatedContext('platform-admin').firestore();
   await assertSucceeds(getDoc(doc(db, 'users/patient-b')));
+});
+
+test('an ordinary user cannot list the users collection', async () => {
+  const db = env.authenticatedContext('patient-a').firestore();
+  await assertFails(getDocs(collection(db, 'users')));
+});
+
+test('an approved admin can list user documents', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'users/admin-list'), {
+      uid: 'admin-list',
+      role: 'admin',
+    });
+  });
+  const db = env.authenticatedContext('admin-list').firestore();
+  await assertSucceeds(getDocs(collection(db, 'users')));
 });
 
 test('an unauthenticated user cannot read a private user document', async () => {
