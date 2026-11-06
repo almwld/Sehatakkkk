@@ -14,6 +14,8 @@ test('public profile projection contains only approved display fields', () => {
     specialty: 'Cardiology',
     isVerified: true,
     isOnline: true,
+    rating: 5,
+    reviewsCount: 999,
     vitals: {systolic: 180},
     medicalHistory: ['private diagnosis'],
     fcmToken: 'secret-token',
@@ -26,7 +28,7 @@ test('public profile projection contains only approved display fields', () => {
   assert.equal(projection.role, 'doctor');
   assert.equal(projection.isVerified, true);
   for (const privateKey of [
-    'email', 'phone', 'isOnline', 'lastSeen', 'vitals', 'medicalHistory',
+    'email', 'phone', 'isOnline', 'lastSeen', 'rating', 'reviewsCount', 'vitals', 'medicalHistory',
     'fcmToken', 'messageSettings', 'blockedPatientIds',
   ]) {
     assert.equal(Object.hasOwn(projection, privateKey), false, `leaked ${privateKey}`);
@@ -43,4 +45,12 @@ test('public profile projection sanitizes optional values', () => {
   assert.equal(projection.name, 'مستخدم');
   assert.equal(projection.rating, 0);
   assert.equal(projection.reviewsCount, 0);
+});
+
+test('a user cannot self-assert professional status in the public projection', () => {
+  const projection = publicProfileFromUser({
+    role: 'user',
+    isDoctor: true,
+  }, 'user-2');
+  assert.equal(projection.isDoctor, false);
 });
