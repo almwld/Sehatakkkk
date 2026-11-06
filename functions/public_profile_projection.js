@@ -14,7 +14,7 @@ function publicProfileFromUser(data, uid) {
     role,
     specialty: stringOrEmpty(data.specialty, 120),
     hospital: stringOrEmpty(data.hospital, 160),
-    location: stringOrEmpty(data.location || data.city, 160),
+    location: stringOrEmpty(data.publicLocation || data.city, 80),
     isDoctor: role === 'doctor',
     isVerified: data.isVerified === true,
   };
