@@ -6,6 +6,7 @@ on:
     paths:
       - 'firestore.rules'
       - 'functions/**'
+      - 'lib/**'
       - 'security-tests/**'
       - 'functions/**'
       - '.github/workflows/firestore-security.yml'
