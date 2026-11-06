@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:sehatak/core/models/consultation/consultation_model.dart';
 import 'package:sehatak/core/models/consultation/consultation_status.dart';
 
@@ -60,75 +61,23 @@ class ConsultationService {
       'labResult': labResult,
       'labTests': labTests,
       'status': ConsultationStatus.labDone.name,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Future<void> addPrescription({
+      '  Future<void> addPrescription({
     required String consultationId,
     required List<Map<String, dynamic>> prescription,
     required List<String> medicines,
     required String medicineInstructions,
     String? diagnosis,
   }) async {
-    final ref = _firestore.collection('consultations').doc(consultationId);
-    final snapshot = await ref.get();
-    if (!snapshot.exists) throw Exception('الاستشارة غير موجودة');
-    final consultation = snapshot.data()!;
-    final currentUser = _auth.currentUser;
-    if (currentUser == null || consultation['doctorId'] != currentUser.uid) throw Exception('غير مصرح للطبيب بتعديل هذه الاستشارة');
-
-    final batch = _firestore.batch();
-    batch.update(ref, {
+    if (_auth.currentUser == null) throw Exception('يجب تسجيل الدخول');
+    await FirebaseFunctions.instance.httpsCallable('prescribeConsultationMedication').call({
+      'consultationId': consultationId,
       'prescription': prescription,
       'medicines': medicines,
       'medicineInstructions': medicineInstructions,
       'diagnosis': diagnosis,
-      'status': ConsultationStatus.prescription.name,
-      'prescriptionDate': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
     });
-
-    // كل دواء يكتبه الطبيب يصبح خطة دوائية للمريض. لا نخمن أوقات الجرعات؛
-    // نستخدم فقط time/times التي حددها الطبيب، حتى يكون التنبيه الطبي دقيقاً.
-    final patientId = consultation['patientId']?.toString();
-    if (patientId == null || patientId.isEmpty) throw Exception('المريض غير مرتبط بالاستشارة');
-    final medicationCollection = _firestore.collection('users').doc(patientId).collection('medications');
-    for (var i = 0; i < prescription.length; i++) {
-      final item = Map<String, dynamic>.from(prescription[i]);
-      final name = (item['name'] ?? item['medicine'] ?? item['medication'] ?? '').toString().trim();
-      if (name.isEmpty) continue;
-      final rawTimes = item['times'] ?? item['scheduleTimes'];
-      final times = rawTimes is List ? rawTimes.whereType<String>().where((e) => e.trim().isNotEmpty).toList() : <String>[];
-      final singleTime = item['time']?.toString().trim();
-      if (times.isEmpty && singleTime != null && singleTime.isNotEmpty) times.add(singleTime);
-      final medicationRef = medicationCollection.doc('rx_${consultationId}_$i');
-      batch.set(medicationRef, {
-        'name': name,
-        'dose': (item['dose'] ?? item['dosage'] ?? '').toString(),
-        'frequency': (item['frequency'] ?? '').toString(),
-        'time': times.isNotEmpty ? times.first : '',
-        'times': times,
-        'instructions': (item['instructions'] ?? medicineInstructions).toString(),
-        'notes': (item['notes'] ?? '').toString(),
-        'doctorId': currentUser.uid,
-        'doctorName': consultation['doctorName'] ?? '',
-        'consultationId': consultationId,
-        'userId': patientId,
-        'active': true,
-        'reminderEnabled': times.isNotEmpty,
-        'taken': false,
-        'startDate': item['startDate'] ?? FieldValue.serverTimestamp(),
-        'endDate': item['endDate'] ?? (item['durationDays'] is num ? DateTime.now().add(Duration(days:(item['durationDays'] as num).toInt())) : null),
-        'durationDays': item['durationDays'] ?? null,
-        'quantity': item['quantity'] ?? item['totalQuantity'] ?? item['remainingQuantity'] ?? 0,
-        'totalQuantity': item['totalQuantity'] ?? item['quantity'] ?? 0,
-        'remainingQuantity': item['remainingQuantity'] ?? item['quantity'] ?? item['totalQuantity'] ?? 0,
-        'remainingPills': item['remainingQuantity'] ?? item['quantity'] ?? item['totalQuantity'] ?? 0,
-        'productId': item['productId'] ?? null,
-        'prescriptionItemId': item['prescriptionItemId'] ?? 'rx_${consultationId}_$i',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
+  }
+stamp(),
       });
     }
     await batch.commit();
