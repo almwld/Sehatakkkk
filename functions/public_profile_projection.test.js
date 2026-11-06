@@ -26,7 +26,7 @@ test('public profile contains only the approved allowlist', () => {
 
   assert.deepEqual(Object.keys(profile).sort(), [
     'bio', 'hospital', 'isDoctor', 'isVerified', 'location', 'name',
-    'photoUrl', 'rating', 'reviewsCount', 'role', 'specialty', 'uid',
+    'photoUrl', 'role', 'specialty', 'uid',
   ].sort());
   assert.equal(profile.uid, 'user-123');
   assert.equal(profile.name, 'Synthetic User');
@@ -50,7 +50,7 @@ test('public profile sanitizes types and limits text fields', () => {
 
   assert.equal(profile.name.length, 100);
   assert.equal(profile.bio.length, 500);
-  assert.equal(profile.rating, 0);
-  assert.equal(profile.reviewsCount, 0);
+  assert.equal(Object.hasOwn(profile, 'rating'), false);
+  assert.equal(Object.hasOwn(profile, 'reviewsCount'), false);
   assert.equal(profile.role, 'user');
 });
