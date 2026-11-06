@@ -21,6 +21,13 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════
     match /health_metrics/{userId} { allow read, write: if isSignedIn() && request.auth.uid == userId; }
 
+    // Public profile projection contains only approved display fields.
+    // The trusted Cloud Function is the only writer.
+    match /public_profiles/{userId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn();
       // Self-registration must never grant administrative or verification authority.
