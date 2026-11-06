@@ -397,6 +397,13 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
       allow update, delete: if isSignedIn() && resource.data.patientId == request.auth.uid;
     }
+    match /shared_records/{shareId} {
+      allow get, list: if isSignedIn()
+        && (resource.data.sharedBy == request.auth.uid
+            || resource.data.sharedWith == request.auth.uid);
+      // Requests are created only by the trusted callable after checking ownership.
+      allow create, update, delete: if false;
+    }
     match /reports/{reportId} {
       allow read: if isSignedIn() && resource.data.patientId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
