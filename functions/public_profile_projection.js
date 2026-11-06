@@ -2,10 +2,6 @@ function stringOrEmpty(value, maxLength) {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 }
 
-function numberOrZero(value) {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
-}
-
 // Deliberately excludes email, phone, vitals, medical history, tokens,
 // notification state, moderation flags, and private messaging preferences.
 function publicProfileFromUser(data, uid) {
