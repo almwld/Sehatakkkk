@@ -29,6 +29,44 @@ async function isAdmin(uid) {
   return snap.exists && ['admin','superAdmin'].includes(snap.data().role);
 }
 
+exports.shareMedicalRecordByEmail = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const recordId = text(request.data.recordId, 'recordId', 150);
+  const email = text(request.data.email, 'email', 254).toLowerCase();
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    throw new HttpsError('invalid-argument', 'البريد الإلكتروني غير صالح');
+  }
+
+  const recordRef = db.collection('medical_records').doc(recordId);
+  const recordSnap = await recordRef.get();
+  if (!recordSnap.exists || recordSnap.data().patientId !== uid) {
+    throw new HttpsError('permission-denied', 'لا تملك صلاحية مشاركة هذا السجل');
+  }
+
+  const recipients = await db.collection('users')
+    .where('email', '==', email)
+    .limit(2)
+    .get();
+  if (recipients.empty) throw new HttpsError('not-found', 'المستخدم غير موجود');
+  if (recipients.size !== 1) throw new HttpsError('failed-precondition', 'تعذر تحديد حساب مستلم واحد');
+  const recipientId = recipients.docs[0].id;
+  if (recipientId === uid) throw new HttpsError('invalid-argument', 'لا يمكنك مشاركة السجل مع حسابك');
+
+  const record = recordSnap.data() || {};
+  const shareRef = db.collection('shared_records').doc();
+  await shareRef.create({
+    recordId,
+    recordTitle: text(record.title || record.name || record.fileName || 'سجل طبي', 'recordTitle', 200),
+    sharedBy: uid,
+    sharedWith: recipientId,
+    status: 'pending',
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  return {success: true, shareId: shareRef.id};
+});
+
 exports.createWallet = onCall(async (request) => {
   const uid = requireAuth(request);
   const ref = db.collection('wallets').doc(uid);
