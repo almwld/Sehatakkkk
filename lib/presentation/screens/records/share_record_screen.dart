@@ -1,7 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -15,7 +15,6 @@ class ShareRecordScreen extends StatefulWidget {
 }
 class _ShareRecordScreenState extends State<ShareRecordScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _emailCtrl = TextEditingController();
   bool _isLoading = false;
   String _t(String value) => AppStrings.of(context).translate(value);
@@ -24,11 +23,12 @@ class _ShareRecordScreenState extends State<ShareRecordScreen> {
     if (_emailCtrl.text.isEmpty) { ToastService.showError(context, _t('يرجى إدخال البريد الإلكتروني')); return; }
     setState(() => _isLoading = true);
     try {
-      final userQuery = await _firestore.collection('users').where('email', isEqualTo: _emailCtrl.text.trim()).get();
-      if (userQuery.docs.isEmpty) { ToastService.showError(context, _t('المستخدم غير موجود')); return; }
-      final currentUser = _auth.currentUser;
-      if (currentUser == null) { ToastService.showError(context, _t('يرجى تسجيل الدخول')); return; }
-      await _firestore.collection('shared_records').add({'recordId': widget.recordId, 'recordTitle': widget.recordTitle, 'sharedBy': currentUser.uid, 'sharedWith': userQuery.docs.first.id, 'status': 'pending', 'createdAt': FieldValue.serverTimestamp()});
+      if (_auth.currentUser == null) { ToastService.showError(context, _t('يرجى تسجيل الدخول')); return; }
+      final callable = FirebaseFunctions.instance.httpsCallable('shareMedicalRecordByEmail');
+      await callable.call({
+        'recordId': widget.recordId,
+        'email': _emailCtrl.text.trim(),
+      });
       if (mounted) { ToastService.showSuccess(context, _t('تم مشاركة الملف بنجاح')); Navigator.pop(context); }
     } catch (e) { if (mounted) ToastService.showError(context, '${_t('فشل المشاركة:')} $e'); }
     finally { if (mounted) setState(() => _isLoading = false); }
