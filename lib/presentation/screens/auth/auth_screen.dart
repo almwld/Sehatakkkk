@@ -136,12 +136,6 @@ class _AuthScreenState extends State<AuthScreen>
       'icon': Icons.handyman,
       'color': 0xFF607D8B,
     },
-    {
-      'id': 'admin',
-      'name': 'مشرف',
-      'icon': Icons.admin_panel_settings,
-      'color': 0xFFFF5722,
-    },
   ];
 
   final List<Map<String, dynamic>> _allRoles = [
