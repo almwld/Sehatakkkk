@@ -3,11 +3,11 @@
 **Audited source:** `almwld/Sehatakkkk` branch `master`  
 **Audited commit:** `d286c9ffd8b1375d6d68b189710c06de70f40b7d`  
 **Firebase project configured in source:** `sehatak-platform`  
-**Status:** source-level findings confirmed; deployed rules and live data have not been inspected.
+**Status:** the self-assigned admin/verification creation path has been mitigated in source and covered by Firestore Emulator tests. Cross-user parent-document reads remain open pending public-profile migration. Deployed rules and live data have not been inspected.
 
 ## Executive summary
 
-The current source rules contain two high-priority authorization defects in `match /users/{userId}`:
+The original source rules contained two high-priority authorization defects in `match /users/{userId}`. The self-assigned role/verification path has since been mitigated in source; the broad read remains unresolved:
 
 1. `allow read: if isSignedIn();` lets every authenticated account read every user's complete parent document. The document is not field-filtered by Firestore rules. Source consumers show that the document can contain email, phone, blood type, profile details, and current vitals.
 2. `allow create` checks that the document belongs to the caller, but does not constrain the initial `role` to a safe self-assignable role. A caller can satisfy the shown rule while setting a privileged role such as `admin` or `superAdmin`. The admin helper then trusts the role stored in that same user document. This is a potential privilege-escalation path and must be treated as P0 until disproved by deployed rules and a rules-emulator test.
@@ -40,7 +40,7 @@ isSelf(userId)
 
 It does not limit `role` to `user`/ `patient` or another approved self-registration role. The helper `isAdmin()` reads the caller's own user document and treats `role == 'admin'` or `role == 'superAdmin'` as administrative authority. The registration screens create Firebase Auth users, so the rules must independently enforce safe initial roles; client-side UI restrictions are not an authorization boundary.
 
-## Required target data boundaries
+## Work completed so far\n\n- `firestore.rules` now blocks self-creation of `admin`/`superAdmin`, blocks client-supplied admin permission fields, and prevents clients from setting `isVerified: true` or `verificationStatus: 'verified'` during account creation.\n- `AuthScreen` no longer offers `admin` as a public self-registration option and creates accounts in `notSubmitted` verification state.\n- Added `security-tests/firestore.rules.test.js` and `.github/workflows/firestore-security.yml` to exercise self-registration, attempted admin/superAdmin creation, attempted verification/permission assignment, role promotion, owner access, and unauthenticated denial. The latest run for the expanded suite is pending at the time of this update.\n- The parent-document `allow read: if isSignedIn()` rule has **not** been tightened yet. It remains an active privacy issue until all cross-user consumers are migrated.\n\n## Required target data boundaries
 
 ### Private `users/{uid}` document
 
@@ -97,7 +97,7 @@ Use synthetic users only (patient A, patient B, doctor, pharmacy/lab partner, ad
 
 The web repository's `firebase.json` configures Hosting only; it does not point to a Firestore rules file. The mobile repository's `.firebaserc` names `sehatak-platform`, and its `firebase.json` points Firestore rules to `firestore.rules`. This configuration is not proof of the deployed rules revision.
 
-No production rules read/deployment or live authorization test was performed in this audit. Do not deploy rules based only on this document. First obtain an authorized Firebase CLI/console view of the currently deployed rules and use a staging project plus emulator tests. Never put service-account credentials or patient data in GitHub or chat.
+No production rules read/deployment or live authorization test was performed in this audit. The source mitigation is not active in production until an authorized deployment is performed and verified. Do not deploy rules based only on this document. First obtain an authorized Firebase CLI/console view of the currently deployed rules and use a staging project plus emulator tests. Never put service-account credentials or patient data in GitHub or chat.
 
 ## Acceptance criteria
 
