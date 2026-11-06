@@ -52,19 +52,23 @@ Presence is scoped per chat at `chats/{chatId}/presence/{uid}`. Rules require th
 
 The client calls `shareMedicalRecordByEmail`. The trusted function checks that the caller owns the medical record, resolves the recipient by email on the server, and creates a pending share request. The rules restrict shared-record reads to sender/recipient and block direct client creation.
 
-### 6. Admin dashboards and reports
+### 6. Consultation prescriptions and private medication data
 
-The existing admin dashboards still query user documents directly. These reads are permitted only for callers whose own user document has an admin/superAdmin role. The source create/update rules now prevent ordinary users from self-assigning those roles. Migration to Firebase custom claims is still recommended as a further hardening step; it is not yet implemented.
+Medication and medication-history subcollections are now explicitly owner-only. The doctor prescription flow calls `prescribeConsultationMedication`; the trusted function verifies that the caller is the assigned, verified doctor, then updates the consultation and writes the patient's medication plan using Admin SDK. The client no longer writes directly into another user's medication collection.
+
+### 7. Admin dashboards and reports
+
+The existing admin dashboards still query user documents directly. These reads are permitted only for callers whose own user document has an admin/superAdmin role. The source create/update rules now prevent ordinary users from self-assigning those roles going forward. However, existing admin/superAdmin accounts have not yet been audited against an authoritative administrator list. Until that audit is completed, the legacy role-based admin check remains a residual risk. Migration to Firebase custom claims is recommended but not yet implemented.
 
 Owner-scoped health services continue to read their own user document and nested health collections. Each nested collection still requires independent review; restricting the parent document does not automatically prove every nested rule safe.
 
 ## Tests added
 
-- `security-tests/firestore.rules.test.js`: synthetic tests for normal registration, rejected admin/superAdmin self-registration, verification-field rejection, role promotion denial, owner read, cross-user denial, admin read, public profile read/write boundaries, shared-record participant access, and chat presence participant boundaries.
+- `security-tests/firestore.rules.test.js`: synthetic tests for normal registration, rejected admin/superAdmin self-registration, verification-field rejection, role promotion denial, owner read, cross-user denial, admin read, public profile read/write boundaries, shared-record participant access, medication owner isolation, shared-record participant access, and chat presence participant boundaries.
 - `functions/public_profile_projection.test.js`: verifies that the public projection contains only allowlisted fields and excludes private account/health data.
 - `.github/workflows/firestore-security.yml`: runs Firestore Emulator tests, Cloud Functions syntax checks, and Functions unit tests on relevant changes.
 
-The latest CI runs were queued at the time of this document update. Do not claim test success until GitHub reports a completed successful run for the latest source commit.
+The latest expanded CI run is in progress at the time of this document update. Do not claim test success until GitHub reports a completed successful run for the latest source commit.
 
 ## Backfill and deployment gates
 
