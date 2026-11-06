@@ -1,6 +1,7 @@
 const {
   initializeApp,
   cert,
+  applicationDefault,
   getApps,
 } = require('firebase-admin/app');
 
@@ -32,19 +33,26 @@ function initializeFirebase() {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-  if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(
-      'FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY are required'
-    );
+  if (!projectId) {
+    throw new Error('FIREBASE_PROJECT_ID is required');
+  }
+  if (Boolean(clientEmail) !== Boolean(privateKey)) {
+    throw new Error('FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY must be provided together');
   }
 
-  try {
-    initializeApp({
-      credential: cert({
+  // Support both explicit service-account fields and the documented
+  // GOOGLE_APPLICATION_CREDENTIALS / platform ADC deployment flow.
+  const credential = clientEmail && privateKey
+    ? cert({
         projectId,
         clientEmail,
         privateKey: privateKey.replace(/\\n/g, '\n'),
-      }),
+      })
+    : applicationDefault();
+
+  try {
+    initializeApp({
+      credential,
       projectId,
       storageBucket:
           process.env.FIREBASE_STORAGE_BUCKET || undefined,
