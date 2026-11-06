@@ -2,6 +2,7 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {setGlobalOptions} = require('firebase-functions/v2/options');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+const {appointmentInstantFromDateMarker} = require('./appointment-date');
 
 admin.initializeApp();
 setGlobalOptions({region: 'us-central1', maxInstances: 10});
@@ -94,7 +95,10 @@ exports.createAppointment = onCall(async (request) => {
   if (dateValue && typeof dateValue === 'string') date = new Date(dateValue);
   else if (dateValue && typeof dateValue._seconds === 'number') date = new Date(dateValue._seconds * 1000);
   else throw new HttpsError('invalid-argument', 'تاريخ الموعد غير صالح');
-  if (Number.isNaN(date.getTime()) || date.getTime() < Date.now() - 60000) throw new HttpsError('invalid-argument', 'تاريخ الموعد يجب أن يكون مستقبلياً');
+  if (Number.isNaN(date.getTime())) throw new HttpsError('invalid-argument', 'تاريخ الموعد غير صالح');
+  if (!/^(?:[01]?\d|2[0-3]):[0-5]\d$/.test(time.trim())) throw new HttpsError('invalid-argument', 'وقت الموعد غير صالح');
+  const [requestedHour, requestedMinute] = time.trim().split(':').map(Number);
+  const requestedMinutes = requestedHour * 60 + requestedMinute;
   await db.runTransaction(async (tx) => {
     const [doctorSnap, userSnap, existingSnap] = await Promise.all([
       tx.get(doctorRef), tx.get(userRef),
@@ -105,6 +109,9 @@ exports.createAppointment = onCall(async (request) => {
     const doctor = doctorSnap.data();
     if (doctor.userId !== doctorId || doctor.isVerified !== true) throw new HttpsError('failed-precondition', 'الطبيب غير موثق أو ارتباط الحساب غير صالح');
     if (doctor.isAvailable === false || doctor.acceptingAppointments === false) throw new HttpsError('failed-precondition', 'الطبيب لا يستقبل مواعيد حالياً');
+    const timeZone = doctor.timeZone || doctor.timezone || doctor.clinicTimeZone || 'Asia/Aden';
+    const appointmentInstant = appointmentInstantFromDateMarker(date, time, timeZone);
+    if (appointmentInstant.getTime() < Date.now() - 60000) throw new HttpsError('invalid-argument', 'وقت الموعد يجب أن يكون في المستقبل');
     const dayNames = {6:'السبت',7:'الأحد',1:'الاثنين',2:'الثلاثاء',3:'الأربعاء',4:'الخميس',5:'الجمعة'};
     const dayName = dayNames[date.getUTCDay() === 0 ? 7 : date.getUTCDay()];
     const workingHours = doctor.workingHours;
@@ -118,12 +125,8 @@ exports.createAppointment = onCall(async (request) => {
         throw new HttpsError('failed-precondition', 'الطبيب في إجازة خلال هذا التاريخ');
       }
     }
-    const match = /^(\\d{1,2}):(\\d{2})$/.exec(time.trim());
-    if (!match) throw new HttpsError('invalid-argument', 'وقت الموعد غير صالح');
-    const requestedMinutes = Number(match[1]) * 60 + Number(match[2]);
-    if (requestedMinutes > 1439) throw new HttpsError('invalid-argument', 'وقت الموعد غير صالح');
     if (dayConfig && typeof dayConfig === 'object') {
-      const parseClock = value => { const m = /^(\\d{1,2}):(\\d{2})$/.exec(String(value || '')); return m ? Number(m[1])*60+Number(m[2]) : null; };
+      const parseClock = value => { const m = /^(?:[01]?\d|2[0-3]):[0-5]\d$/.test(String(value || '')) ? String(value).split(':') : null; return m ? Number(m[0])*60+Number(m[1]) : null; };
       const start = parseClock(dayConfig.start || dayConfig.from);
       const end = parseClock(dayConfig.end || dayConfig.to);
       if (start != null && end != null && (requestedMinutes < start || requestedMinutes >= end)) throw new HttpsError('failed-precondition', 'وقت الموعد خارج ساعات عمل الطبيب');
