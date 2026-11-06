@@ -8,7 +8,6 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/advertisements/ad_management_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 import 'package:sehatak/presentation/screens/platform/marketplace_admin_dashboard.dart';
-import 'package:sehatak/presentation/screens/admin/super_admin_finance_screen.dart';
 
 class SuperAdminDashboard extends StatefulWidget {
   const SuperAdminDashboard({super.key});
@@ -25,7 +24,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
     'user':'المستخدمون','doctor':'الأطباء','pharmacist':'الصيادلة','pharmacyOwner':'ملاك الصيدليات',
     'lab':'المختبرات','hospital':'المشافي','nurse':'الممرضون','paramedic':'المسعفون','delivery':'الموصلون','service':'الخدمات'
   };
-  @override void initState(){super.initState();_tabs=TabController(length:6,vsync:this);}
+  @override void initState(){super.initState();_tabs=TabController(length:5,vsync:this);}
   @override void dispose(){_tabs.dispose();_title.dispose();_body.dispose();super.dispose();}
 
   Future<void> _sendNotification() async {
@@ -64,8 +63,8 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
   @override Widget build(BuildContext context)=>Scaffold(
     appBar:AppBar(title:Text(_t('لوحة المدير الأعلى')),backgroundColor:AppColors.primary,foregroundColor:Colors.white,
       actions:[IconButton(onPressed:()=>_tabs.animateTo(0),icon:const Icon(Icons.dashboard_outlined)),IconButton(onPressed:()=>FirebaseAuth.instance.signOut(),icon:const Icon(Icons.logout))],
-      bottom:TabBar(isScrollable:true,controller:_tabs,tabs:[Tab(text:_t('نظرة عامة')),Tab(text:_t('المستخدمون')),Tab(text:_t('الإشعارات')),Tab(text:_t('الخدمات')),Tab(text:_t('المالية')),Tab(text:_t('التقارير'))])),
-    body:TabBarView(controller:_tabs,children:[_overview(),_users(),_notifications(),_services(),const SuperAdminFinanceScreen(),_reports()]),
+      bottom:TabBar(isScrollable:true,controller:_tabs,tabs:[Tab(text:_t('نظرة عامة')),Tab(text:_t('المستخدمون')),Tab(text:_t('الإشعارات')),Tab(text:_t('الخدمات')),Tab(text:_t('التقارير'))])),
+    body:TabBarView(controller:_tabs,children:[_overview(),_users(),_notifications(),_services(),_reports()]),
   );
 
   Widget _overview()=>RefreshIndicator(onRefresh:()async{setState((){});},child:ListView(padding:const EdgeInsets.all(16),children:[
@@ -126,7 +125,6 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
     _actionCard(_t('منتجات الصيدليات'),_t('مراجعة واعتماد المنتجات قبل النشر'),Icons.medication,()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const MarketplaceAdminDashboard()))),
     _actionCard(_t('الحسابات والصلاحيات'),_t('إيقاف وتفعيل وتوثيق وتغيير الدور'),Icons.manage_accounts,()=>_tabs.animateTo(1)),
     _actionCard(_t('الإشعارات الجماعية'),_t('مستخدم أو دور أو جميع المستخدمين'),Icons.notifications_active,()=>_tabs.animateTo(2)),
-    _actionCard(_t('المركز المالي'),_t('المحافظ والأرصدة والإيداعات والسحوبات والأرباح المسجلة'),Icons.account_balance,()=>_tabs.animateTo(4)),
     _actionCard(_t('التقارير الإدارية'),_t('تقارير الإجراءات اليومية للمشرفين'),Icons.analytics,()=>_tabs.animateTo(5)),
     _actionCard(_t('سجل التدقيق'),_t('مراجعة إجراءات الإدارة المسجلة'),Icons.history,_showAudit),
   ]);
