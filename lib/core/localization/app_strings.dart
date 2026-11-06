@@ -3971,6 +3971,10 @@ class AppStrings {
       'active': ['Active', 'Actif'],
       'rejected': ['Rejected', 'Rejeté'],
       'expired': ['Expired', 'Expiré'],
+      'doctor': ['Doctor', 'Médecin'],
+      'pharmacy': ['Pharmacy', 'Pharmacie'],
+      'lab': ['Laboratory', 'Laboratoire'],
+      'hospital': ['Hospital', 'Hôpital'],
       'السكري': ['Diabetes', 'Diabète'],
       'الكوليسترول': ['Cholesterol', 'Cholestérol'],
       'الربو': ['Asthma', 'Asthme'],
@@ -4361,6 +4365,20 @@ class AppStrings {
       "السعر: ": ["Price: ", "Prix : "],
       "المحاولة ": ["Attempt ", "Tentative "],
       " من ": [" of ", " sur "],
+      'nurse': ['nurse', 'infirmier/ière'],
+      'midwife': ['midwife', 'sage-femme'],
+      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
+      'pharmacist': ['pharmacist', 'pharmacien'],
+      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
+      'clinic': ['clinic', 'clinique'],
+      'medical_center': ['medical center', 'centre médical'],
+      'dentist': ['dentist', 'dentiste'],
+      'dental': ['dental clinic', 'clinique dentaire'],
+      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
+      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
+      'optometrist': ['optometrist', 'optométriste'],
+      'delivery': ['delivery provider', 'livreur'],
+      'service': ['service provider', 'prestataire de services'],
       "نتائج البحث عن:": ["Search results for:", "Résultats de recherche pour :"],
       "عرض طبيب": ["View doctor", "Voir le médecin"],
       "ابحث عن أطباء، خدمات، أو أدوية": ["Search for doctors, services, or medicines", "Rechercher des médecins, des services ou des médicaments"],
@@ -4815,55 +4833,6 @@ class AppStrings {
       'تعذر العثور على المحادثة المرتبطة بالمكالمة': ['Could not find the chat linked to this call.', 'Impossible de trouver la conversation associée à cet appel.'],
     };
 
-    final callDurationMatch = RegExp(r'^انتهت المكالمة • (\d+)s
-    if (entry == null) return value;
-    switch (locale.languageCode) {
-      case 'en': return entry[0];
-      case 'fr': return entry[1];
-      default: return value;
-    }
-  }
-
-
-  String _translateRole(String role) {
-    const roles = <String, List<String>>{
-      'doctor': ['doctor', 'médecin'],
-      'nurse': ['nurse', 'infirmier/ière'],
-      'midwife': ['midwife', 'sage-femme'],
-      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
-      'pharmacist': ['pharmacist', 'pharmacien'],
-      'pharmacy': ['pharmacy', 'pharmacie'],
-      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
-      'lab': ['laboratory', 'laboratoire'],
-      'hospital': ['hospital', 'hôpital'],
-      'clinic': ['clinic', 'clinique'],
-      'medical_center': ['medical center', 'centre médical'],
-      'dentist': ['dentist', 'dentiste'],
-      'dental': ['dental clinic', 'clinique dentaire'],
-      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
-      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
-      'optometrist': ['optometrist', 'optométriste'],
-      'delivery': ['delivery provider', 'livreur'],
-      'service': ['service provider', 'prestataire de services'],
-    };
-    final translated = roles[role];
-    if (translated == null) return role;
-    return locale.languageCode == 'fr' ? translated[1] : translated[0];
-  }
-
-  String _pick(String ar, String en, String fr) {
-    switch (locale.languageCode) {
-      case 'en': return en;
-      case 'fr': return fr;
-      default: return ar;
-    }
-  }
-}
-).firstMatch(value);
-    if (callDurationMatch != null) {
-      final seconds = callDurationMatch.group(1)!;
-      return _pick(value, 'Call ended • ${seconds}s', 'Appel terminé • ${seconds}s');
-    }
 
     final entry = translations[value];
     if (entry == null) return value;
