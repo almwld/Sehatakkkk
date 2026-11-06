@@ -36,9 +36,8 @@ The source-level privacy and self-assigned-role risks identified in the original
 
 `functions/public_profile_projection.js` maps a user document into a deliberately limited profile containing only:
 - uid, display name, photo/avatar URL, bio;
-- role and approved professional display fields;
-- specialty, facility/location, rating and review count;
-- doctor and verification display flags.
+- role, specialty, facility/location and approved profile text;
+- doctor and verification display flags derived from protected account fields.
 
 It excludes email, phone, blood type, vitals, medical history, FCM tokens, notification state, moderation flags, and private messaging preferences. Only trusted Cloud Functions can write `public_profiles`; authenticated clients can read them.
 
