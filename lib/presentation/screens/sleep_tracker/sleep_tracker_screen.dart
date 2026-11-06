@@ -433,7 +433,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                   errorBuilder: (_, __, ___) => const Icon(Icons.star, color: Colors.amber, size: 20),
                 ), Colors.amber),
                 const SizedBox(width: 8),
-                _statCard('الجلسات', '$_totalSessions', Icons.history, Colors.green),
+                _statCard('الجلسات', '$_totalSessions', const Icon(Icons.history, color: Colors.green), Colors.green),
               ],
             ),
 
@@ -638,7 +638,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await _service.deleteAllData();
+              await _service.clearData();
               await _loadData();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
