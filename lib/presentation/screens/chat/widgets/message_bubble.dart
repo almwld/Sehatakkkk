@@ -752,7 +752,208 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  Widget _buildSystem(Map<String, dynamic> m) => Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Center(child: Text(m['text']?.toString() ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF49615E)))));
+  String _systemMessageText(String value) {
+    final callDuration = RegExp(r'^انتهت المكالمة • (\d+)s
+
+  void _options() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Wrap(
+          children: [
+            if (widget.onReaction != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: ['👍', '❤️', '😂', '😮', '🙏']
+                      .map((emoji) => IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              widget.onReaction?.call(emoji);
+                            },
+                            icon: Text(emoji, style: const TextStyle(fontSize: 24)),
+                          ))
+                      .toList(),
+                ),
+              ),
+            if ((widget.message['text']?.toString().trim() ?? '').isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: Text(_t('نسخ الرسالة')),
+                onTap: () async {
+                  await Clipboard.setData(ClipboardData(text: widget.message['text'].toString()));
+                  if (mounted) Navigator.pop(context);
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text(AppStrings.of(context).translate('معلومات الرسالة')),
+              onTap: () {
+                Navigator.pop(context);
+                _showMessageInfo();
+              },
+            ),
+            if (widget.onReply != null)
+              ListTile(
+                leading: const Icon(Icons.reply),
+                title: Text(_t('رد')),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onReply?.call();
+                },
+              ),
+            if (widget.onEdit != null && widget.message['isDeleted'] != true && (widget.message['text']?.toString().trim() ?? '').isNotEmpty)
+              ListTile(leading: const Icon(Icons.edit_outlined), title: Text(_t('تعديل الرسالة')), onTap: () { Navigator.pop(context); widget.onEdit?.call(); }),
+            if (widget.onPin != null)
+              ListTile(leading: Icon((widget.message['isPinned'] == true) ? Icons.push_pin : Icons.push_pin_outlined), title: Text(widget.message['isPinned'] == true ? _t('إلغاء تثبيت الرسالة') : _t('تثبيت الرسالة')), onTap: () { Navigator.pop(context); widget.onPin?.call(); }),
+            if (widget.onDeleteForMe != null)
+              ListTile(leading: const Icon(Icons.delete_sweep_outlined), title: Text(_t('حذف لدي فقط')), onTap: () { Navigator.pop(context); widget.onDeleteForMe?.call(); }),
+            if (widget.onDelete != null)
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: Text(_t('حذف للجميع')),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onDelete?.call();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TextDocumentDialog extends StatelessWidget {
+  final String title;
+  final String content;
+  const _TextDocumentDialog({required this.title, required this.content});
+  @override
+  Widget build(BuildContext context) => Dialog(
+    insetPadding: const EdgeInsets.all(12),
+    child: SizedBox(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * .82,
+      child: Column(children: [
+        AppBar(title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis), automaticallyImplyLeading: false,
+          actions: [IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close))]),
+        Expanded(child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: SelectableText(content, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.7)))),
+      ]),
+    ),
+  );
+}
+
+class _DocumentWebViewDialog extends StatefulWidget {
+  final String title;
+  final String url;
+  const _DocumentWebViewDialog({required this.title, required this.url});
+  @override State<_DocumentWebViewDialog> createState() => _DocumentWebViewDialogState();
+}
+
+class _DocumentWebViewDialogState extends State<_DocumentWebViewDialog> {
+  late final WebViewController _controller;
+  @override
+  void initState() {
+    super.initState();
+    final viewerUrl = 'https://docs.google.com/gview?embedded=1&url=${Uri.encodeComponent(widget.url)}';
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(viewerUrl));
+  }
+  @override
+  Widget build(BuildContext context) => Dialog(
+    insetPadding: const EdgeInsets.all(8),
+    child: SizedBox(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * .9,
+      child: Column(children: [
+        AppBar(title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis), automaticallyImplyLeading: false,
+          actions: [
+            IconButton(onPressed: () async { final uri = Uri.tryParse(widget.url); if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication); }, icon: const Icon(Icons.open_in_new)),
+            IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+          ]),
+        Expanded(child: WebViewWidget(controller: _controller)),
+      ]),
+    ),
+  );
+}
+
+class _VideoViewer extends StatefulWidget {
+  final String url;
+  final bool isLocal;
+  const _VideoViewer({required this.url, required this.isLocal});
+  @override State<_VideoViewer> createState() => _VideoViewerState();
+}
+
+class _VideoViewerState extends State<_VideoViewer> {
+  late final VideoPlayerController controller;
+  @override void initState() {
+    super.initState();
+    final path = widget.url.replaceFirst('file://', '');
+    controller = widget.isLocal ? VideoPlayerController.file(File(path)) : VideoPlayerController.networkUrl(Uri.parse(path));
+    controller.initialize().then((_) { if (mounted) setState(() {}); });
+  }
+  @override void dispose() { controller.dispose(); super.dispose(); }
+  @override Widget build(BuildContext context) {
+    if (!controller.value.isInitialized) return const Dialog(backgroundColor: Colors.black, child: SizedBox(height: 240, child: Center(child: CircularProgressIndicator())));
+    return Dialog(backgroundColor: Colors.black, insetPadding: const EdgeInsets.all(12), child: AspectRatio(aspectRatio: controller.value.aspectRatio, child: Stack(alignment: Alignment.center, children: [VideoPlayer(controller), IconButton(icon: Icon(controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle, color: Colors.white, size: 52), onPressed: () => setState(() => controller.value.isPlaying ? controller.pause() : controller.play()))])));
+  }
+}
+
+class JustAudioMessagePlayer extends StatefulWidget {
+  final String url;
+  final bool local;
+  const JustAudioMessagePlayer({super.key, required this.url, this.local = false});
+  @override State<JustAudioMessagePlayer> createState() => _JustAudioMessagePlayerState();
+}
+
+class _JustAudioMessagePlayerState extends State<JustAudioMessagePlayer> {
+  final player = AudioPlayer();
+  bool ready = false;
+  @override void dispose() { player.dispose(); super.dispose(); }
+  @override Widget build(BuildContext context) {
+    return StreamBuilder<PlayerState>(
+      stream: player.playerStateStream,
+      builder: (context, snapshot) {
+        final playing = snapshot.data?.playing ?? false;
+        return IconButton(
+          icon: Icon(playing ? Icons.pause_circle : Icons.play_circle),
+          onPressed: () async {
+            if (!ready) {
+              if (widget.local) await player.setFilePath(widget.url.replaceFirst('file://', ''));
+              else await player.setUrl(widget.url);
+              ready = true;
+            }
+            if (playing) { await player.pause(); } else { await player.play(); }
+          },
+        );
+      },
+    );
+  }
+}
+
+class MedicalDocumentServiceCompat {
+  static Future<void> share(File file, {required String text, bool download = false}) async {
+    await Share.shareXFiles([XFile(file.path)], text: text);
+  }
+}
+).firstMatch(value);
+    if (callDuration != null) {
+      return '${_t('انتهت المكالمة')} • ${callDuration.group(1)!}s';
+    }
+    return _t(value);
+  }
+
+  Widget _buildSystem(Map<String, dynamic> m) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Center(
+          child: Text(
+            _systemMessageText(m['text']?.toString() ?? ''),
+            style: const TextStyle(fontSize: 11, color: Color(0xFF49615E)),
+          ),
+        ),
+      );
 
   void _options() {
     showModalBottomSheet<void>(
