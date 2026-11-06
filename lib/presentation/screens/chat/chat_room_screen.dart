@@ -862,7 +862,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     WidgetsBinding.instance.removeObserver(this);
     final uid = _auth.currentUser?.uid;
     if (uid != null) {
-      unawaited(_firestore.collection('users').doc(uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+      unawaited(_firestore.collection('chats').doc(widget.chatId).collection('presence').doc(uid).set({'isOnline': false, 'lastSeen': FieldValue.serverTimestamp(), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
     }
     _pendingRefreshTimer?.cancel();
     _typingClearTimer?.cancel();
