@@ -38,6 +38,12 @@ beforeEach(async () => {
       role: 'user',
       isVerified: false,
     });
+    await setDoc(doc(db, 'shared_records/share-1'), {
+      recordId: 'record-1',
+      sharedBy: 'patient-a',
+      sharedWith: 'patient-b',
+      status: 'pending',
+    });
   });
 });
 
@@ -128,5 +134,24 @@ test('clients cannot write public profile projections', async () => {
   const db = env.authenticatedContext('patient-b').firestore();
   await assertFails(updateDoc(doc(db, 'public_profiles/patient-b'), {
     name: 'Forged public name',
+  }));
+});
+
+test('only participants can read a shared-record request', async () => {
+  const sender = env.authenticatedContext('patient-a').firestore();
+  const recipient = env.authenticatedContext('patient-b').firestore();
+  const outsider = env.authenticatedContext('patient-c').firestore();
+  await assertSucceeds(getDoc(doc(sender, 'shared_records/share-1')));
+  await assertSucceeds(getDoc(doc(recipient, 'shared_records/share-1')));
+  await assertFails(getDoc(doc(outsider, 'shared_records/share-1')));
+});
+
+test('clients cannot create shared-record requests directly', async () => {
+  const db = env.authenticatedContext('patient-a').firestore();
+  await assertFails(setDoc(doc(db, 'shared_records/share-2'), {
+    recordId: 'record-2',
+    sharedBy: 'patient-a',
+    sharedWith: 'patient-b',
+    status: 'pending',
   }));
 });
