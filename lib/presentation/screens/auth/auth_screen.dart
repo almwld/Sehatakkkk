@@ -66,6 +66,7 @@ class _AuthScreenState extends State<AuthScreen>
   bool _isFirstTimeUser = false;
   bool _showIntroSplash = false;
   Timer? _introSplashTimer;
+  late final AnimationController _authLogoController;
   List<Map<String, dynamic>> _savedAccounts = [];
 
   String _passwordStrength = '';
@@ -267,6 +268,7 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   void initState() {
     super.initState();
+    _authLogoController = AnimationController(vsync: this);
     _showIntroSplash = widget.showIntroSplash;
     if (_showIntroSplash) {
       _introSplashTimer = Timer(const Duration(seconds: 3), () {
@@ -1871,7 +1873,13 @@ class _AuthScreenState extends State<AuthScreen>
                   child: Lottie.asset(
                     'assets/animations/sehatak_animation.json',
                     fit: BoxFit.contain,
-                    repeat: false,
+                    controller: _authLogoController,
+                    animate: false,
+                    onLoaded: (composition) {
+                      _authLogoController
+                        ..duration = composition.duration
+                        ..value = 1.0;
+                    },
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.health_and_safety_rounded,
                       color: Color(0xFF0A8F83),
@@ -2389,7 +2397,7 @@ class _AuthScreenState extends State<AuthScreen>
                 child: Lottie.asset(
                   'assets/animations/sehatak_animation.json',
                   fit: BoxFit.contain,
-                  repeat: false,
+                  repeat: true,
                 ),
               ),
               const SizedBox(height: 16),
@@ -2422,6 +2430,7 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   void dispose() {
     _introSplashTimer?.cancel();
+    _authLogoController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
