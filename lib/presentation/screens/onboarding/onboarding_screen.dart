@@ -142,7 +142,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             color: Colors.white.withOpacity(0.2),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           _t('تخطي'),
                           style: TextStyle(
                             color: Colors.white,
