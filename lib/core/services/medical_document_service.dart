@@ -113,7 +113,7 @@ class MedicalDocumentService {
             line('ملاحظات: ${values['notes']??''}','Notes / Remarques: ${values['notesEn']??values['notes']??''}'),
           ] else ...[
             line('الجهة المحال إليها: ${values['destination']??''}','Referred to / Orienté vers: ${values['destinationEn']??values['destination']??''}',strong:true),
-            line('سبب الإحالة: ${values['reason']??''}','Reason: ${values['reasonEn']??values['reason']??''}'),
+            line('سبب الإحالة: ${values['reason']??''}','Reason / Motif: ${values['reasonEn']??values['reason']??''}'),
             line('التفاصيل: ${values['details']??''}','Details / Détails: ${values['detailsEn']??values['details']??''}'),
           ],
           pw.Spacer(),pw.Divider(color:PdfColors.grey400),
