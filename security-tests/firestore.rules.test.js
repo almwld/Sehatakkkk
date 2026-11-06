@@ -30,6 +30,10 @@ beforeEach(async () => {
       phone: '+000000000',
       vitals: { systolic: 120 },
     });
+    await setDoc(doc(db, 'users/patient-b/medications/rx-1'), {
+      name: 'Synthetic medication',
+      dose: '1 tablet',
+    });
     await setDoc(doc(db, 'public_profiles/patient-b'), {
       uid: 'patient-b',
       name: 'Synthetic Patient B',
@@ -202,4 +206,27 @@ test('a chat participant can write only their own presence document', async () =
     isOnline: false,
     updatedAt: new Date(),
   }));
+});
+
+test('an unrelated signed-in user cannot read another private user document', async () => {
+  const db = env.authenticatedContext('patient-a').firestore();
+  await assertFails(getDoc(doc(db, 'users/patient-b')));
+});
+
+test('an approved admin can read user documents for administration', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'users/admin-1'), {
+      uid: 'admin-1',
+      role: 'admin',
+    });
+  });
+  const db = env.authenticatedContext('admin-1').firestore();
+  await assertSucceeds(getDoc(doc(db, 'users/patient-b')));
+});
+
+test('private medication subcollections are owner-only', async () => {
+  const owner = env.authenticatedContext('patient-b').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(owner, 'users/patient-b/medications/rx-1')));
+  await assertFails(getDoc(doc(outsider, 'users/patient-b/medications/rx-1')));
 });
