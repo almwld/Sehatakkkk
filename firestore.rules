@@ -51,7 +51,19 @@ service cloud.firestore {
             || request.resource.data.verificationStatus == 'notSubmitted')
         && (request.resource.data.get('role', 'user') != 'doctor'
             || request.resource.data.doctorId == request.auth.uid);
-      allow update: if isAdmin()
+      allow update: if isSuperAdmin()
+        || (isAdmin()
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+              'role',
+              'isAdmin',
+              'isSuperAdmin',
+              'permissions',
+              'adminPermissions',
+              'isVerified',
+              'verificationStatus',
+              'verifiedBy',
+              'verifiedAt'
+            ]))
         || (isSelf(userId)
             && request.resource.data.uid == resource.data.uid
             && request.resource.data.role == resource.data.role
