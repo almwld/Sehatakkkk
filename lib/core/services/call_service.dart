@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:flutter/services.dart';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -388,8 +389,15 @@ class CallService {
     final callerId=(message.data['callerId']??'').toString();
     var chatId=message.data['chatId']?.toString();
     chatId=(chatId==null||chatId.isEmpty)?await resolveChatId(id):chatId;
-    if(chatId==null||chatId.isEmpty){ToastService.showError('تعذر العثور على المحادثة المرتبطة بالمكالمة');return;}
-    if(!context.mounted)return;
+    if (chatId == null || chatId.isEmpty) {
+      if (context.mounted) {
+        ToastService.showError(
+          AppStrings.of(context).translate('تعذر العثور على المحادثة المرتبطة بالمكالمة'),
+        );
+      }
+      return;
+    }
+    if (!context.mounted) return;
     if (registry.hasActiveCall && !registry.isActive(id)) { await markBusy(id); return; }
     // Firestore is the canonical source for caller metadata and the coordinator
     // owns the only incoming UI route (including duplicate-FCM suppression).
