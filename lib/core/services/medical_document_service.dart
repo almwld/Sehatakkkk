@@ -25,7 +25,8 @@ class MedicalDocumentService {
   }
 
   Future<Map<String,dynamic>> userData(String uid) async {
-    final d = await _db.collection('users').doc(uid).get();
+    final collection = uid == _auth.currentUser?.uid ? 'users' : 'public_profiles';
+    final d = await _db.collection(collection).doc(uid).get();
     return d.data() ?? {};
   }
 
