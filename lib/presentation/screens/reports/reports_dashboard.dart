@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/reports/reports_service.dart';
 import 'package:sehatak/core/models/reports/report_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ReportsDashboard extends StatefulWidget {
   const ReportsDashboard({super.key});
@@ -34,10 +35,12 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      _stats = await _reportsService.getUserStats('user_123');
-      _chartData = await _reportsService.getChartData('user_123', _selectedChart);
-      _medicalReports = await _reportsService.getMedicalReports('user_123');
-      _medicationReports = await _reportsService.getMedicationReports('user_123');
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) throw Exception('يجب تسجيل الدخول لعرض تقاريرك الصحية');
+      _stats = await _reportsService.getUserStats(uid);
+      _chartData = await _reportsService.getChartData(uid, _selectedChart);
+      _medicalReports = await _reportsService.getMedicalReports(uid);
+      _medicationReports = await _reportsService.getMedicationReports(uid);
     } catch (e) {
       print('❌ Error loading reports: $e');
     } finally {
