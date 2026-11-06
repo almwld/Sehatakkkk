@@ -732,7 +732,7 @@ class NotificationService {
         AndroidNotificationAction(
           'message_reply',
           _localized(languageCode, 'رد', 'Reply', 'Répondre'),
-          inputs: const <AndroidNotificationActionInput>[
+          inputs: <AndroidNotificationActionInput>[
             AndroidNotificationActionInput(
               label: _localized(languageCode, 'اكتب ردك…', 'Type your reply…', 'Écrivez votre réponse…'),
               allowFreeFormInput: true,
