@@ -12,6 +12,7 @@
     "livekit-server-sdk": "^2.15.0"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "backfill:public-profiles": "node scripts/backfill_public_profiles.js"
   }
 }
