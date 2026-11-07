@@ -302,13 +302,16 @@ test('delivery tracking is readable only by the owner of its linked order', asyn
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
     await setDoc(doc(db, 'orders/order-1'), { userId: 'patient-b', total: 5000 });
-    await setDoc(doc(db, 'deliveries/order-1'), { status: 'shipping', currentStep: 2 });
+    await setDoc(doc(db, 'delivery_companies/company-1'), { ownerId: 'delivery-owner', isActive: true });
+    await setDoc(doc(db, 'deliveries/order-1'), { status: 'shipping', currentStep: 2, companyId: 'company-1' });
   });
   const owner = env.authenticatedContext('patient-b').firestore();
   const outsider = env.authenticatedContext('patient-a').firestore();
   const admin = env.authenticatedContext('platform-admin').firestore();
+  const deliveryOwner = env.authenticatedContext('delivery-owner').firestore();
   const anonymous = env.unauthenticatedContext().firestore();
   await assertSucceeds(getDoc(doc(owner, 'deliveries/order-1')));
+  await assertSucceeds(getDoc(doc(deliveryOwner, 'deliveries/order-1')));
   await assertFails(getDoc(doc(outsider, 'deliveries/order-1')));
   await assertFails(getDoc(doc(anonymous, 'deliveries/order-1')));
   await assertFails(updateDoc(doc(owner, 'deliveries/order-1'), { status: 'delivered' }));
