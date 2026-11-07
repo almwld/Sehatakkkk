@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class LabBookingScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
 
   String _money(double value) => '${value.toStringAsFixed(0)} ${_t('ريال')}';
   String _s(dynamic v) => v?.toString().trim() ?? '';
+  String _field(Map<String, dynamic> data, String key, {String fallback = ''}) => localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
   double _n(dynamic v) => v is num ? v.toDouble() : double.tryParse(_s(v)) ?? 0;
   double get _total => _tests.where((t) => _selected.contains(_s(t['id']))).fold(0.0, (sum, t) => sum + _n(t['price']));
 
@@ -64,12 +66,12 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
     setState(() => _saving = true);
     try {
       final user = FirebaseAuth.instance.currentUser!;
-      final selectedTests = _tests.where((x)=>_selected.contains(_s(x['id']))).map((x)=>{'id':_s(x['id']),'name':_s(x['name']),'description':_s(x['description']),'price':_n(x['price']),'duration':_s(x['duration'])}).toList();
+      final selectedTests = _tests.where((x)=>_selected.contains(_s(x['id']))).map((x)=>{'id':_s(x['id']),'name':_s(x['name']),'nameEn':_s(x['nameEn']),'nameFr':_s(x['nameFr']),'description':_s(x['description']),'descriptionEn':_s(x['descriptionEn']),'descriptionFr':_s(x['descriptionFr']),'price':_n(x['price']),'duration':_s(x['duration'])}).toList();
       final ref = await _db.collection('lab_bookings').add({
         'patientId':user.uid,'patientName':user.displayName??'مستخدم','patientPhone':user.phoneNumber??'',
-        'labId':widget.labId,'labName':_s(_lab!['name']),'labAddress':_s(_lab!['address']??_lab!['location']),
+        'labId':widget.labId,'labName':_field(_lab!, 'name'),'labNameEn':_s(_lab!['nameEn']),'labNameFr':_s(_lab!['nameFr']),'labAddress':_field(_lab!, 'address', fallback:_field(_lab!, 'location')),
         'tests':selectedTests,'testId':selectedTests.length==1?selectedTests.first['id']:null,
-        'testName':selectedTests.map((x)=>x['name']).join('، '),'price':_total,'totalPrice':_total,
+        'testName':selectedTests.map((x)=>x['name']).join('، '),'testNameEn':selectedTests.map((x)=>x['nameEn']).where((x)=>x.toString().isNotEmpty).join(', '),'testNameFr':selectedTests.map((x)=>x['nameFr']).where((x)=>x.toString().isNotEmpty).join(', '),'price':_total,'totalPrice':_total,
         'date':date,'time':time,'appointmentDate':Timestamp.fromDate(appointment),'homeCollection':_homeCollection,
         'collectionAddress':_homeCollection?_collectionAddress.text.trim():'','notes':notes.length>1000?notes.substring(0,1000):notes,
         'status':'pending','createdAt':FieldValue.serverTimestamp(),
@@ -109,7 +111,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(_s(_lab!['name']), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
+          Text(_field(_lab!, 'name'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
           const SizedBox(height: 16),
           ..._tests.map((test) {
             final id = _s(test['id']);
@@ -125,8 +127,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                     _selected.add(id);
                   }
                 }),
-                title: Text(_s(test['name']).isEmpty ? _t('فحص') : _s(test['name'])),
-                subtitle: Text(_s(test['description'])),
+                title: Text(_field(test, 'name', fallback: _t('فحص'))),
+                subtitle: Text(_field(test, 'description')),
                 secondary: Text(_money(_n(test['price'])), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
               ),
             );

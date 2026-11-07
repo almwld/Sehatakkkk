@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -61,7 +62,7 @@ class HospitalBookingScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        hospital['name']?.toString() ?? _localizedUiText(context, 'مستشفى'),
+                        localizedField(hospital, 'name', AppStrings.of(context).locale, fallback: _localizedUiText(context, 'مستشفى')),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -70,7 +71,7 @@ class HospitalBookingScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        hospital['address']?.toString() ?? '',
+                        localizedField(hospital, 'address', AppStrings.of(context).locale, fallback: localizedField(hospital, 'location', AppStrings.of(context).locale)),
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -84,7 +85,7 @@ class HospitalBookingScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          hospital['specialty']?.toString() ?? hospital['type']?.toString() ?? _localizedUiText(context, 'خدمات طبية'),
+                          localizedField(hospital, 'specialty', AppStrings.of(context).locale, fallback: localizedField(hospital, 'type', AppStrings.of(context).locale, fallback: _localizedUiText(context, 'خدمات طبية'))),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.primary,

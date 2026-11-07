@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -14,6 +15,7 @@ class HospitalScreen extends StatefulWidget {
 
 class _HospitalScreenState extends State<HospitalScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _field(Map<String, dynamic> data, String key, {String fallback = ''}) => localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
   final _search = TextEditingController();
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
@@ -39,7 +41,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
   @override Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final q = _search.text.trim().toLowerCase();
-    final filtered = _items.where((h) => q.isEmpty || '${h['name'] ?? ''} ${h['location'] ?? ''}'.toLowerCase().contains(q)).toList();
+    final filtered = _items.where((h) => q.isEmpty || '${_field(h, 'name')} ${_field(h, 'location', fallback: _field(h, 'address'))}'.toLowerCase().contains(q)).toList();
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(title: _t('المستشفيات'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
@@ -60,8 +62,8 @@ class _HospitalScreenState extends State<HospitalScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(10),
         leading: ClipRRect(borderRadius: BorderRadius.circular(10), child: AppImage(imageUrl: _img(h, i), width: 70, height: 70, fit: BoxFit.cover)),
-        title: Text('${h['name'] ?? _t('مستشفى')}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${h['location'] ?? h['address'] ?? _t('اليمن')}\n${h['type'] ?? h['specialty'] ?? _t('مستشفى')}'),
+        title: Text(_field(h, 'name', fallback: _t('مستشفى')), style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('${_field(h, 'location', fallback: _field(h, 'address', fallback: _t('اليمن')))}\n${_field(h, 'type', fallback: _field(h, 'specialty', fallback: _t('مستشفى')))}'),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_left),
         onTap: () => _details(h, i),
@@ -75,10 +77,10 @@ class _HospitalScreenState extends State<HospitalScreen> {
       builder: (_) => SafeArea(child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [ClipRRect(borderRadius: BorderRadius.circular(10), child: AppImage(imageUrl: _img(h, i), width: 60, height: 60)), const SizedBox(width: 12), Expanded(child: Text('${h['name'] ?? _t('مستشفى')}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))]),
+          Row(children: [ClipRRect(borderRadius: BorderRadius.circular(10), child: AppImage(imageUrl: _img(h, i), width: 60, height: 60)), const SizedBox(width: 12), Expanded(child: Text(_field(h, 'name', fallback: _t('مستشفى')), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))]),
           const SizedBox(height: 14),
-          Text('${_t('الموقع')}: ${h['location'] ?? h['address'] ?? _t('غير محدد')}'),
-          if (h['phone'] != null) Text('${_t('الهاتف')}: ${h['phone']}'),
+          Text('${_t('الموقع')}: ${_field(h, 'location', fallback: _field(h, 'address', fallback: _t('غير محدد')))}'),
+          if (h['phone'] != null) Text('${_t('الهاتف')}: ${_field(h, 'phone')}'),
           if (h['emergency'] == true) Padding(padding: const EdgeInsets.only(top: 10), child: Text(_t('الطوارئ متاحة'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
         ]),
       )),
