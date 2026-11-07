@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/services/local_ai/neural_medical_ai.dart';
 import 'package:sehatak/services/local_ai/chat_bot_offline.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 
@@ -14,7 +13,6 @@ class AIChatbotNeuralScreen extends StatefulWidget {
 
 class _AIChatbotNeuralScreenState extends State<AIChatbotNeuralScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
-  late final NeuralMedicalAI _neuralAI;
   late final ChatBotOffline _chatBot;
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
@@ -27,7 +25,6 @@ class _AIChatbotNeuralScreenState extends State<AIChatbotNeuralScreen> {
     super.initState();
     final uid = FirebaseAuth.instance.currentUser?.uid;
     _userId = uid == null ? 'neural_guest_v1' : 'neural_user_$uid';
-    _neuralAI = NeuralMedicalAI();
     _chatBot = ChatBotOffline(sessionId: _userId);
     _initialize();
   }
@@ -57,7 +54,7 @@ class _AIChatbotNeuralScreenState extends State<AIChatbotNeuralScreen> {
     _controller.clear();
     setState(() { _messages.add({'text': text, 'isUser': true, 'timestamp': DateTime.now()}); _loading = true; });
     try {
-      final result = await _neuralAI.processMessage(message: text, userId: _userId);
+      final result = _chatBot.respond(text, languageCode: AppStrings.of(context).locale.languageCode);
       if (!mounted) return;
       setState(() { _messages.add({'text': result['response']?.toString() ?? '', 'isUser': false, 'timestamp': DateTime.now()}); _loading = false; });
     } catch (_) {
