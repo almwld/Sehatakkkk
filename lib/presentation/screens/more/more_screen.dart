@@ -36,7 +36,6 @@ import 'package:sehatak/presentation/screens/family_planning/family_planning_scr
 import 'package:sehatak/presentation/screens/health/womens_health_screen.dart';
 import 'package:sehatak/presentation/screens/health/pregnancy_follow_up_screen.dart';
 import 'package:sehatak/presentation/screens/health/child_health_screen.dart';
-import 'package:sehatak/presentation/screens/family/family_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
@@ -62,7 +61,6 @@ import 'package:sehatak/presentation/screens/library/medical_library_screen.dart
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';
-import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/eye_care/eye_care_screen.dart';
 
 class MoreScreen extends StatefulWidget {
@@ -164,7 +162,6 @@ class _MoreScreenState extends State<MoreScreen>
         return [
           {'icon': 'assets/images/services/womens_health.webp', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const WomensHealthScreen()},
           {'icon': 'assets/images/childhealth.webp', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const ChildHealthScreen()},
-          {'icon': 'assets/images/childhealth.webp', 'title': 'حساب العائلة', 'subtitle': 'إدارة ملفات أطفالك', 'screen': const FamilyDashboardScreen()},
           {'icon': 'assets/images/services/hospital.webp', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
           {'icon': 'assets/images/pregnancy_follow_up.webp', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const PregnancyFollowUpScreen()},
           {'icon': 'assets/images/tracking/mental_health.webp', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
@@ -197,7 +194,6 @@ class _MoreScreenState extends State<MoreScreen>
         ];
       case 'إعدادات':
         return [
-          {'icon': 'assets/images/ui/user_profile.webp', 'title': 'توثيق الحساب', 'subtitle': 'متابعة أو استكمال توثيق حسابك', 'screen': const VerificationScreen()},
           {'icon': 'assets/images/ui/user_profile.webp', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
           {'icon': 'assets/images/ui/settings_gear.webp', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
           {'icon': 'assets/images/services/notifications.webp', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
