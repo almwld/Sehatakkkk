@@ -178,7 +178,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       final name = localizedField(data, 'name', locale, fallback: localizedValue(data['displayName'] ?? data['title'] ?? 'حساب صحي', locale)).trim();
       final image = (data['photoUrl'] ?? data['imageUrl'] ?? data['logoUrl'] ?? data['photo'] ?? '').toString();
       final availability = data['role'] == 'paramedic'
-          ? (data['isAvailable'] == true && data['isOnline'] == true && data['acceptingEmergency'] == true ? 'متاح الآن' : 'غير متاح')
+          ? (data['isAvailable'] == true && data['isOnline'] == true && data['acceptingEmergency'] == true ? _t('متاح الآن') : _t('غير متاح'))
           : '';
       final area = localizedField(data, 'serviceArea', locale, fallback: localizedField(data, 'area', locale, fallback: localizedField(data, 'address', locale, fallback: localizedField(data, 'location', locale)))).trim();
       final baseSubtitle = localizedField(data, 'specialty', locale, fallback: localizedField(data, 'description', locale, fallback: area.isNotEmpty ? area : _t(category))).trim();
