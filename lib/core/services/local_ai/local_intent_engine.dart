@@ -123,6 +123,14 @@ class LocalAiIntentEngine {
   /// Canonical normalization shared by intent, symptom and safety matching.
   static String normalize(String value) {
     return value.toLowerCase()
+        .replaceAll(RegExp(r'[àáâäãå]'), 'a')
+        .replaceAll(RegExp(r'[èéêë]'), 'e')
+        .replaceAll(RegExp(r'[ìíîï]'), 'i')
+        .replaceAll(RegExp(r'[òóôöõ]'), 'o')
+        .replaceAll(RegExp(r'[ùúûü]'), 'u')
+        .replaceAll('ç', 'c')
+        .replaceAll('œ', 'oe')
+        .replaceAll('æ', 'ae')
         .replaceAll('أ', 'ا')
         .replaceAll('إ', 'ا')
         .replaceAll('آ', 'ا')
@@ -188,6 +196,34 @@ class MedicalSafetyIntent {
     'paralysie soudaine',
     'lèvres bleues',
     'surdose',
+    'نزيف اثناء الحمل',
+    'نزيف بعد الولادة',
+    'صداع شديد للحامل',
+    'زغللة للحامل',
+    'تشنجات الحامل',
+    'قلة حركة الجنين',
+    'نزيف اللثة',
+    'قيء مستمر',
+    'حرارة الرضيع',
+    'الطفل حديث الولادة لا يرضع',
+    'ضربة شمس',
+    'ضربة حر',
+    'ارتباك مع عدوى',
+    'قلة التبول مع عدوى',
+    'vaginal bleeding during pregnancy',
+    'severe headache with blurred vision pregnancy',
+    'reduced fetal movement',
+    'newborn not feeding',
+    'newborn convulsions',
+    'heatstroke',
+    'confusion with infection',
+    'low urine output with infection',
+    'saignement pendant la grossesse',
+    'fort mal de tete avec vision trouble',
+    'diminution des mouvements du bebe',
+    'nouveau-ne ne s’alimente pas',
+    'coup de chaleur',
+    'confusion liee a une infection',
   ];
 
   static bool isEmergencyText(String text) {
