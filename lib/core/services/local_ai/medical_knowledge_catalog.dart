@@ -105,6 +105,46 @@ class MedicalKnowledgeCatalog {
       'url': 'https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/first-aid-guidelines',
       'review': 'editorial_source_checked_clinician_review_pending'
     }
+    {
+      'id': 'diabetes',
+      'aliases': ['السكري','سكر الدم','عندي سكر','diabetes','blood sugar','diabète','glycémie'],
+      'ar': 'السكري حالة مزمنة يرتفع فيها سكر الدم. قد تشمل علاماته العطش وكثرة التبول والتعب وتشوش الرؤية أو نقص الوزن غير المقصود. التشخيص يحتاج فحصاً مخبرياً؛ لا تغيّر دواءك أو جرعة الإنسولين اعتماداً على المحادثة. اطلب الطوارئ عند فقدان الوعي أو صعوبة التنفس أو التدهور الشديد.',
+      'en': 'Diabetes is a chronic condition involving high blood glucose. Symptoms can include thirst, frequent urination, tiredness, blurred vision, or unexplained weight loss. Diagnosis requires laboratory testing. Do not change medicines or insulin doses based on this chat. Seek emergency help for loss of consciousness, breathing difficulty, or severe deterioration.',
+      'fr': 'Le diabète est une maladie chronique caractérisée par une glycémie élevée. Les signes peuvent inclure soif, urines fréquentes, fatigue, vision trouble ou perte de poids inexpliquée. Le diagnostic nécessite des analyses. Ne modifiez pas vos médicaments ni votre insuline sur la base de cette conversation. Appelez les secours en cas de perte de connaissance, de difficulté respiratoire ou d’aggravation grave.',
+      'source': 'World Health Organization — Diabetes fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/diabetes',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'hypertension',
+      'aliases': ['ضغط الدم','ضغط مرتفع','ارتفاع الضغط','عندي ضغط','hypertension','high blood pressure','tension artérielle élevée'],
+      'ar': 'ارتفاع ضغط الدم غالباً لا يسبب أعراضاً واضحة، ولا يمكن تأكيده من الشعور وحده؛ يلزم قياس صحيح ومتكرر وتقييم صحي. لا توقف دواء الضغط ولا تضاعف الجرعة بنفسك. ألم الصدر أو ضيق النفس أو ضعف مفاجئ أو اضطراب الكلام مع قراءة مرتفعة يستدعي الطوارئ.',
+      'en': 'High blood pressure often causes no clear symptoms and cannot be confirmed by how you feel; it requires properly repeated measurements and clinical assessment. Do not stop or double your medicine yourself. Chest pain, breathlessness, sudden weakness, or speech problems with a high reading require emergency care.',
+      'fr': 'L’hypertension ne provoque souvent aucun symptôme évident et ne peut pas être confirmée par les sensations seules ; elle nécessite des mesures répétées correctement et une évaluation médicale. N’arrêtez pas et ne doublez pas votre traitement vous-même. Une douleur thoracique, un essoufflement, une faiblesse soudaine ou des troubles de la parole avec une tension élevée nécessitent les urgences.',
+      'source': 'World Health Organization — Hypertension fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/hypertension',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'asthma',
+      'aliases': ['الربو','ازمة ربو','نوبة ربو','صفير الصدر','asthma','asthma attack','asthme','crise d’asthme'],
+      'ar': 'الربو يسبب التهاباً وتضيّقاً متغيراً في الشعب الهوائية وقد يؤدي إلى صفير وسعال وضيق نفس. اتبع خطة الربو والبخاخ الموصوف لك فقط. صعوبة التنفس الشديدة أو عدم القدرة على الكلام بجمل أو ازرقاق الشفاه أو عدم التحسن بعد دواء الإنقاذ الموصوف تستدعي الطوارئ.',
+      'en': 'Asthma causes variable inflammation and narrowing of the airways and may lead to wheezing, cough, and breathlessness. Follow your personal asthma action plan and use only your prescribed inhaler. Severe breathing difficulty, inability to speak in full sentences, blue lips, or failure to improve after your prescribed reliever needs emergency care.',
+      'fr': 'L’asthme provoque une inflammation et un rétrécissement variables des voies respiratoires, avec parfois sifflements, toux et essoufflement. Suivez votre plan d’action et utilisez uniquement votre inhalateur prescrit. Une difficulté respiratoire sévère, l’impossibilité de parler en phrases complètes, des lèvres bleutées ou l’absence d’amélioration après le traitement de secours prescrit nécessitent les urgences.',
+      'source': 'World Health Organization — Asthma fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/asthma',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'healthy_diet',
+      'aliases': ['غذاء صحي','نظام غذائي','التغذية','اكل صحي','healthy diet','nutrition','alimentation saine','régime alimentaire'],
+      'ar': 'اجعل طعامك متنوعاً ومتوازناً: خضروات وفواكه وبقولاً وحبوباً كاملة ومصادر بروتين مناسبة، وقلّل الملح والسكريات الحرة والدهون المتحولة. تختلف الاحتياجات باختلاف العمر والحمل والأمراض والأدوية؛ اطلب خطة من مختص إذا لديك حالة صحية أو حمية علاجية.',
+      'en': 'Aim for a varied, balanced diet with vegetables, fruit, pulses, whole grains, and suitable protein sources; limit salt, free sugars, and trans fats. Needs differ with age, pregnancy, medical conditions, and medicines. Ask a qualified professional for an individual therapeutic diet.',
+      'fr': 'Privilégiez une alimentation variée et équilibrée : légumes, fruits, légumineuses, céréales complètes et sources de protéines adaptées ; limitez le sel, les sucres libres et les acides gras trans. Les besoins varient selon l’âge, la grossesse, les maladies et les médicaments. Demandez conseil à un professionnel pour un régime thérapeutique personnalisé.',
+      'source': 'World Health Organization — Healthy diet fact sheet',
+      'url': 'https://www.who.int/en/news-room/fact-sheets/detail/healthy-diet',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
   ];
 
   static String normalize(String value) => value
