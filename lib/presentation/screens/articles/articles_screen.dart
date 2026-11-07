@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/models/article/article_model.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
@@ -34,6 +35,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
   String? _error;
 
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _articleText(ArticleModel a, String field) => localizedField(a.toFirestore(), field, AppStrings.of(context).locale, fallback: field == 'title' ? a.title : '');
 
   @override
   void initState() {
@@ -58,7 +60,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
 
       final list = snap.docs
           .map(ArticleModel.fromFirestore)
-          .where((a) => a.title.trim().isNotEmpty)
+          .where((a) => a.title.trim().isNotEmpty || (a.titleEn ?? '').trim().isNotEmpty || (a.titleFr ?? '').trim().isNotEmpty)
           .toList();
 
       list.sort((a, b) {
@@ -87,16 +89,16 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
   List<ArticleModel> get _filtered {
     final q = _query.trim().toLowerCase();
     return _articles.where((a) {
-      if (_category != 'الكل' && (a.category ?? '') != _category) {
+      if (_category != 'الكل' && (a.category ?? '') != _category && _articleText(a, 'category') != _t(_category)) {
         return false;
       }
       if (q.isEmpty) return true;
       final values = <String>[
-        a.title,
-        a.subtitle ?? '',
-        a.summary ?? '',
-        a.category ?? '',
-        a.authorName ?? '',
+        _articleText(a, 'title'),
+        _articleText(a, 'subtitle'),
+        _articleText(a, 'summary'),
+        _articleText(a, 'category'),
+        _articleText(a, 'authorName'),
         ...(a.tags ?? const <String>[]),
       ];
       return values.join(' ').toLowerCase().contains(q);
@@ -320,7 +322,7 @@ class _ArticleCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            AppStrings.of(context).translate(article.category!),
+                            localizedField(article.toFirestore(), 'category', AppStrings.of(context).locale, fallback: article.category!),
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontSize: 10,
@@ -330,7 +332,7 @@ class _ArticleCard extends StatelessWidget {
                         ),
                       const Spacer(),
                       Text(
-                        article.timeAgo,
+                        article.timeAgoFor(AppStrings.of(context).locale),
                         style: TextStyle(
                           color: secondary,
                           fontSize: 10,
@@ -341,7 +343,7 @@ class _ArticleCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    article.title,
+                    _articleText(article, 'title'),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -351,10 +353,10 @@ class _ArticleCard extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  if ((article.summary ?? article.subtitle ?? '').trim().isNotEmpty) ...[
+                  if ((_articleText(article, 'summary').isNotEmpty || _articleText(article, 'subtitle').isNotEmpty)) ...[
                     const SizedBox(height: 5),
                     Text(
-                      (article.summary ?? article.subtitle!).trim(),
+                      (_articleText(article, 'summary').isNotEmpty ? _articleText(article, 'summary') : _articleText(article, 'subtitle')),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: secondary, fontSize: 12, height: 1.5),
@@ -367,8 +369,8 @@ class _ArticleCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          article.authorName?.trim().isNotEmpty == true
-                              ? article.authorName!
+                          _articleText(article, 'authorName').trim().isNotEmpty
+                              ? _articleText(article, 'authorName')
                               : AppStrings.of(context).translate('فريق صحتك'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -473,7 +475,7 @@ class ArticleReaderScreen extends StatelessWidget {
               ),
             const SizedBox(height: 7),
             Text(
-              article.title,
+              _articleText(article, 'title'),
               style: TextStyle(
                 color: text,
                 fontSize: 24,
@@ -481,10 +483,10 @@ class ArticleReaderScreen extends StatelessWidget {
                 fontWeight: FontWeight.w900,
               ),
             ),
-            if ((article.subtitle ?? '').trim().isNotEmpty) ...[
+            if (_articleText(article, 'subtitle').trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                article.subtitle!,
+                _articleText(article, 'subtitle'),
                 style: TextStyle(color: body.withOpacity(.75), fontSize: 14, height: 1.6),
               ),
             ],
@@ -495,14 +497,14 @@ class ArticleReaderScreen extends StatelessWidget {
                 const SizedBox(width: 5),
                 Expanded(
                   child: Text(
-                    article.authorName?.trim().isNotEmpty == true
-                        ? article.authorName!
+                    _articleText(article, 'authorName').trim().isNotEmpty
+                        ? _articleText(article, 'authorName')
                         : AppStrings.of(context).translate('فريق صحتك'),
                     style: TextStyle(color: body.withOpacity(.65), fontSize: 12),
                   ),
                 ),
                 Text(
-                  article.timeAgo,
+                  article.timeAgoFor(AppStrings.of(context).locale),
                   style: TextStyle(color: body.withOpacity(.65), fontSize: 11),
                 ),
               ],
@@ -516,9 +518,9 @@ class ArticleReaderScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
               ),
               child: SelectableText(
-                (article.content ?? article.summary ?? '').trim().isEmpty
+                (_articleText(article, 'content').trim().isEmpty && _articleText(article, 'summary').trim().isEmpty)
                     ? AppStrings.of(context).translate('لا يوجد محتوى متاح لهذا المقال حالياً.')
-                    : (article.content ?? article.summary!).trim(),
+                    : (_articleText(article, 'content').trim().isNotEmpty ? _articleText(article, 'content').trim() : _articleText(article, 'summary').trim()),
                 style: TextStyle(color: body, fontSize: 15, height: 1.85),
               ),
             ),
