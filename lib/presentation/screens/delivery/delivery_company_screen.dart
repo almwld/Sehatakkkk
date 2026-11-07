@@ -116,7 +116,7 @@ class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
                             child: ListTile(
                               onTap: () => setState(() => _selected = c.id),
                               leading: const Icon(Icons.delivery_dining),
-                              title: Text(c.name),
+                              title: Text(c.localizedName(AppStrings.of(context).locale.languageCode)),
                               subtitle: Text('${c.rating} ★ • ${_service.calculateDeliveryFee(c, widget.distance).toStringAsFixed(0)} ${_t(context, 'ريال')} • ${_service.estimateDeliveryTime(c, widget.distance)} ${_t(context, 'دقيقة')}'),
                               trailing: Icon(selected ? Icons.check_circle : Icons.radio_button_unchecked, color: selected ? AppColors.primary : Colors.grey),
                             ),

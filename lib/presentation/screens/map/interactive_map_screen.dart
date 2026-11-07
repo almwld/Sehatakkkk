@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +26,23 @@ class InteractiveMapScreen extends StatefulWidget {
 class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     with SingleTickerProviderStateMixin {
   String _t(String value) => AppStrings.of(context).translate(value);
+
+  String _placeField(
+    Map<String, dynamic> place,
+    String field, {
+    String fallback = '',
+  }) {
+    final source = place['sourceData'];
+    if (source is Map) {
+      return localizedField(
+        Map<String, dynamic>.from(source),
+        field,
+        AppStrings.of(context).locale,
+        fallback: fallback,
+      );
+    }
+    return (place[field] ?? fallback).toString();
+  }
 
   late final MapController _mapController;
   late AnimationController _animationController;
@@ -105,8 +123,8 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
       }
       
       if (_searchQuery.isNotEmpty) {
-        final name = (place['name'] ?? '').toString().toLowerCase();
-        final address = (place['address'] ?? '').toString().toLowerCase();
+        final name = _placeField(place, 'name').toLowerCase();
+        final address = _placeField(place, 'address').toLowerCase();
         final query = _searchQuery.toLowerCase();
         if (!name.contains(query) && !address.contains(query)) {
           return false;
@@ -307,7 +325,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        place['name'] as String,
+                        _placeField(place, 'name', fallback: _t('مرفق صحي')),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -325,7 +343,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              place['address'] as String,
+                              _placeField(place, 'address', fallback: _t('الموقع المحفوظ')),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey.shade600,
@@ -351,7 +369,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                _getCategoryLabel(place['category'] as String),
+                                _t(_getCategoryLabel(place['category'] as String)),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.primary,
@@ -473,6 +491,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
 
         places.add({
           'id': doc.id,
+          'sourceData': data,
           'name': (data['name'] ?? 'مرفق صحي').toString(),
           'address': (data['address'] ?? data['area'] ?? 'الموقع المحفوظ').toString(),
           'phone': (data['phone'] ?? '').toString(),
