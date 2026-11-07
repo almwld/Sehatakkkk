@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
@@ -7,6 +8,7 @@ import 'pharmacy_products_screen.dart';
 
 class PharmaciesListScreen extends StatelessWidget {
   String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
+  String _field(BuildContext context, Map<String, dynamic> data, String key, {String fallback = ''}) => localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
   const PharmaciesListScreen({super.key});
 
   @override
@@ -31,8 +33,8 @@ class PharmaciesListScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final doc = pharmacies[index];
                 final pharmacy = doc.data();
-                final name = pharmacy['name']?.toString() ?? _t(context, 'صيدلية');
-                final address = pharmacy['address']?.toString() ?? pharmacy['location']?.toString() ?? '';
+                final name = _field(context, pharmacy, 'name', fallback: _t(context, 'صيدلية'));
+                final address = _field(context, pharmacy, 'address', fallback: _field(context, pharmacy, 'location'));
                 final isOpen = pharmacy['isOpen'] == true || pharmacy['openNow'] == true;
                 final rating = pharmacy['rating'];
                 return GestureDetector(
