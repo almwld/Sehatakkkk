@@ -71,7 +71,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   ) async {
     await ChatNavigation.openChat(
       context,
-      doctorName: doctor.name,
+      doctorName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
       doctorId: doctor.userId ?? '',
       doctorImage: doctor.photoUrl,
     );
@@ -114,7 +114,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
       MaterialPageRoute(
         builder: (_) => CallScreen(
           chatId: chatId,
-          doctorName: doctor.name,
+          doctorName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
           doctorId: doctorUid,
           isVideo: isVideo,
           isOutgoing: true,
@@ -410,7 +410,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        doctor.name,
+                        doctor.localized('name', AppStrings.of(context).locale.languageCode),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -421,7 +421,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       ),
                       const SizedBox(height: 1),
                       Text(
-                        AppStrings.of(context).translate(doctor.specialty),
+                        AppStrings.of(context).translate(doctor.localized('specialty', AppStrings.of(context).locale.languageCode)),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -453,10 +453,10 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
-                      if ((doctor.hospital ?? '').trim().isNotEmpty) ...[
+                      if (doctor.localized('hospital', AppStrings.of(context).locale.languageCode).trim().isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
-                          doctor.hospital!,
+                          doctor.localized('hospital', AppStrings.of(context).locale.languageCode),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 9, color: isDark ? Colors.white54 : Colors.black45),

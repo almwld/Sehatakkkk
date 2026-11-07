@@ -156,7 +156,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
     return _chatService.createChat(
       doctorId: doctorUid,
-      doctorName: doctor.name,
+      doctorName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
       patientName: user.displayName ?? _t('مريض'),
       doctorImage: doctor.photoUrl,
     );
@@ -170,7 +170,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     try {
       await ChatNavigation.openChat(
         context,
-        doctorName: doctor.name,
+        doctorName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
         doctorId: doctor.userId ?? '',
         doctorImage: doctor.photoUrl,
       );
@@ -210,7 +210,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
       final call = await _callService.initiateCall(
         receiverId: doctorUid,
-        receiverName: doctor.name,
+        receiverName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
         receiverPhotoUrl: doctor.photoUrl,
         type: video ? CallType.video : CallType.audio,
         chatId: chatId,
@@ -226,7 +226,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         MaterialPageRoute(
           builder: (_) => CallScreen(
             chatId: chatId,
-            doctorName: doctor.name,
+            doctorName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
             doctorId: doctorUid,
             isVideo: video,
             callId: call.id,
@@ -361,12 +361,12 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(doctor.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: dark ? Colors.white : const Color(0xFF263238)))),
+                    Expanded(child: Text(doctor.localized('name', AppStrings.of(context).locale.languageCode), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: dark ? Colors.white : const Color(0xFF263238)))),
                     if (doctor.isVerified == true) const Padding(padding: EdgeInsetsDirectional.only(start: 5), child: Icon(Icons.verified_rounded, color: AppColors.primary, size: 19)),
                   ],
                 ),
                 const SizedBox(height: 5),
-                Text(AppStrings.of(context).translate(doctor.specialty), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w600)),
+                Text(AppStrings.of(context).translate(doctor.localized('specialty', AppStrings.of(context).locale.languageCode)), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: dark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 9),
                 Wrap(
                   spacing: 8,
@@ -497,18 +497,18 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if ((doctor.about ?? '').trim().isNotEmpty) ...[
+          if ((doctor.localized('about', AppStrings.of(context).locale.languageCode)).trim().isNotEmpty) ...[
             _sectionTitle(AppStrings.of(context).translate('نبذة عن الطبيب'), Icons.person_outline_rounded, dark),
-            _card(dark, Padding(padding: const EdgeInsets.all(16), child: Text(doctor.about!, style: TextStyle(height: 1.65, fontSize: 13, color: dark ? Colors.white70 : Colors.black54)))),
+            _card(dark, Padding(padding: const EdgeInsets.all(16), child: Text(doctor.localized('about', AppStrings.of(context).locale.languageCode), style: TextStyle(height: 1.65, fontSize: 13, color: dark ? Colors.white70 : Colors.black54)))),
             const SizedBox(height: 14),
           ],
           _sectionTitle(AppStrings.of(context).translate('المعلومات المهنية'), Icons.badge_outlined, dark),
           _card(dark, Column(children: [
-            _infoRow(Icons.medical_services_outlined, _t('التخصص'), AppStrings.of(context).translate(doctor.specialty), dark),
+            _infoRow(Icons.medical_services_outlined, _t('التخصص'), AppStrings.of(context).translate(doctor.localized('specialty', AppStrings.of(context).locale.languageCode)), dark),
             _infoRow(Icons.workspace_premium_outlined, _t('الخبرة'), '${doctor.experienceYears ?? 0} ${_t('سنة')}', dark),
             _infoRow(Icons.payments_outlined, _t('رسوم الكشف'), AppStrings.of(context).formatCurrency(doctor.consultationFee ?? 0), dark),
-            if ((doctor.hospital ?? '').isNotEmpty) _infoRow(Icons.local_hospital_outlined, _t('المستشفى'), doctor.hospital!, dark),
-            if ((doctor.clinicAddress ?? '').isNotEmpty) _infoRow(Icons.location_on_outlined, _t('العنوان'), doctor.clinicAddress!, dark),
+            if (doctor.localized('hospital', AppStrings.of(context).locale.languageCode).isNotEmpty) _infoRow(Icons.local_hospital_outlined, _t('المستشفى'), doctor.localized('hospital', AppStrings.of(context).locale.languageCode), dark),
+            if (doctor.localized('clinicAddress', AppStrings.of(context).locale.languageCode).isNotEmpty) _infoRow(Icons.location_on_outlined, _t('العنوان'), doctor.localized('clinicAddress', AppStrings.of(context).locale.languageCode), dark),
           ])),
           const SizedBox(height: 14),
           if (doctor.workingHours != null && doctor.workingHours!.isNotEmpty) ...[
@@ -523,7 +523,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           ],
           if (doctor.services != null && doctor.services!.isNotEmpty) ...[
             _sectionTitle(AppStrings.of(context).translate('الخدمات التي يقدمها الطبيب'), Icons.medical_services_outlined, dark),
-            _card(dark, Padding(padding: const EdgeInsets.all(14), child: Wrap(spacing: 7, runSpacing: 7, children: doctor.services!.map((s) => Chip(label: Text(s), visualDensity: VisualDensity.compact)).toList()))),
+            _card(dark, Padding(padding: const EdgeInsets.all(14), child: Wrap(spacing: 7, runSpacing: 7, children: doctor.services!.map((s) => Chip(label: Text(AppStrings.of(context).translate(s)), visualDensity: VisualDensity.compact)).toList()))),
             const SizedBox(height: 14),
           ],
           _sectionTitle(AppStrings.of(context).translate('إجراءات سريعة'), Icons.flash_on_rounded, dark),

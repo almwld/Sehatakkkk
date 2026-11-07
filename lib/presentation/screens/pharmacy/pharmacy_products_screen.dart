@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../presentation/widgets/common/app_image.dart';
 import '../../../core/constants/app_dimensions.dart';
@@ -18,6 +19,7 @@ class PharmacyProductsScreen extends StatefulWidget {
 
 class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _field(Map<String, dynamic> data, String key, {String fallback = ''}) => localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
   final _cart = UnifiedCartService.instance;
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
@@ -60,14 +62,14 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
   void _addToCart(Map<String, dynamic> product) {
     _cart.add(
       productId: product['id'].toString(), // Firestore offer document ID used by trusted checkout.
-      name: (product['name'] ?? _t('منتج')).toString(),
+      name: _field(product, 'name', fallback: _t('منتج')),
       unitPrice: (product['price'] as num?)?.toDouble() ?? 0,
       requiresPrescription: product['requiresPrescription'] == true,
       pharmacyId: widget.pharmacyId,
       providerName: (product['pharmacyName'] ?? product['sellerName'] ?? '').toString(),
     );
     setState(() {});
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_t('تمت إضافة')} ${product['name']} ${_t('إلى السلة')}')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_t('تمت إضافة')} ${_field(product, 'name', fallback: _t('منتج'))} ${_t('إلى السلة')}')));
   }
 
   @override
@@ -104,9 +106,9 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
           final imageUrl = ImageKit.productImage(
             imageUrl: product['imageUrl']?.toString(),
             productId: (product['id'] ?? product['productId'])?.toString(),
-            dosageForm: product['dosageForm']?.toString(),
+            dosageForm: _field(product, 'dosageForm'),
             category: product['category']?.toString(),
-            genericName: product['genericName']?.toString(),
+            genericName: _field(product, 'genericName'),
           );
           return Container(
             padding: const EdgeInsets.all(12),
@@ -129,9 +131,9 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
                       ),
               ),
               const SizedBox(height: 12),
-              Text(_t((product['name'] ?? _t('منتج')).toString()), style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+              Text(_field(product, 'name', fallback: _t('منتج')), style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 4),
-              Text(_t((product['category'] ?? '').toString()), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+              Text(_field(product, 'category'), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
               const Spacer(),
               if (product['requiresPrescription'] == true) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(_t('يتطلب وصفة'), style: TextStyle(fontSize: 10, color: AppColors.warning))),
               const SizedBox(height: 8),
