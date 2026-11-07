@@ -663,9 +663,21 @@ service cloud.firestore {
     // A delivery record is visible only to the owner of its linked order.
     // Status and courier details are written by trusted operational flows.
     match /deliveries/{orderId} {
-      allow read: if isSignedIn()
-        && exists(/databases/$(database)/documents/orders/$(orderId))
-        && get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid;
+      function isAssignedDeliveryCompanyOwner() {
+        return isSignedIn()
+          && resource.data.get('companyId', null) is string
+          && exists(/databases/$(database)/documents/delivery_companies/$(resource.data.companyId))
+          && (
+            get(/databases/$(database)/documents/delivery_companies/$(resource.data.companyId)).data.get('ownerId', '') == request.auth.uid
+            || get(/databases/$(database)/documents/delivery_companies/$(resource.data.companyId)).data.get('userId', '') == request.auth.uid
+            || resource.data.companyId == request.auth.uid
+          );
+      }
+      allow read: if isAdmin()
+        || (isSignedIn()
+            && exists(/databases/$(database)/documents/orders/$(orderId))
+            && get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid)
+        || isAssignedDeliveryCompanyOwner();
       allow write: if isAdmin();
     }
 
