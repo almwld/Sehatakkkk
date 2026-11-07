@@ -85,14 +85,28 @@ class BotService {
 
   Future<void> clearConversation() => _storage.clearConversation(_sessionId);
 
-  String? getDrugInfo(String drugName) => _chatBot.getMedicineInfo(drugName);
+  String? getDrugInfo(String drugName, {String languageCode = 'ar'}) =>
+      _chatBot.getMedicineInfo(drugName, languageCode: languageCode);
 
-  String? getDiseaseInfo(String diseaseName) => _chatBot.getDiseaseInfo(diseaseName);
+  String? getDiseaseInfo(String diseaseName, {String languageCode = 'ar'}) =>
+      _chatBot.getDiseaseInfo(diseaseName, languageCode: languageCode);
 
-  String getRandomTip() {
-    final answer = MedicalKnowledgeCatalog.answer('النشاط البدني', 'ar');
-    if (answer == null) return 'ابدأ بنشاط بدني خفيف يناسب قدرتك، وزد المدة تدريجياً.';
-    return '${answer['response']}\n\nالمصدر: ${answer['source']}\n${answer['source_url']}\nالمراجعة السريرية المحلية ما زالت مطلوبة.';
+  String getRandomTip({String languageCode = 'ar'}) {
+    final lang = languageCode == 'fr' || languageCode == 'en' ? languageCode : 'ar';
+    final answer = MedicalKnowledgeCatalog.answer(
+      lang == 'fr' ? 'activité physique' : (lang == 'en' ? 'physical activity' : 'النشاط البدني'),
+      lang,
+    );
+    if (answer == null) {
+      return lang == 'fr'
+          ? 'Commencez par une activité douce adaptée à vos capacités et augmentez progressivement.'
+          : (lang == 'en'
+              ? 'Start with gentle activity suited to your ability and increase gradually.'
+              : 'ابدأ بنشاط بدني خفيف يناسب قدرتك، وزد المدة تدريجياً.');
+    }
+    final sourceLabel = lang == 'ar' ? 'المصدر' : 'Source';
+    final review = lang == 'fr' ? 'Validation clinique locale en attente.' : (lang == 'en' ? 'Local clinician review is pending.' : 'المراجعة السريرية المحلية ما زالت مطلوبة.');
+    return '${answer['response']}\\n\\n$sourceLabel: ${answer['source']}\\n${answer['source_url']}\\n$review';
   }
 
   Map<String, dynamic> getStatistics() => {
