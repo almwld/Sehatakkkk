@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 
@@ -6,8 +7,14 @@ class DoctorModel extends Equatable {
   final String id;
   final String? userId;
   final String name;
+  final String? nameEn;
+  final String? nameFr;
   final String specialty;
+  final String? specialtyEn;
+  final String? specialtyFr;
   final String? subspecialty;
+  final String? subspecialtyEn;
+  final String? subspecialtyFr;
   final String? photoUrl;
   final double? rating;
   final int? reviewsCount;
@@ -16,8 +23,14 @@ class DoctorModel extends Equatable {
   final bool isOnline;
   final int? experienceYears;
   final String? hospital;
+  final String? hospitalEn;
+  final String? hospitalFr;
   final String? clinicAddress;
+  final String? clinicAddressEn;
+  final String? clinicAddressFr;
   final String? about;
+  final String? aboutEn;
+  final String? aboutFr;
   final List<String>? languages;
   final List<String>? services;
   final Map<String, dynamic>? workingHours;
@@ -35,8 +48,14 @@ class DoctorModel extends Equatable {
     required this.id,
     this.userId,
     required this.name,
+    this.nameEn,
+    this.nameFr,
     required this.specialty,
+    this.specialtyEn,
+    this.specialtyFr,
     this.subspecialty,
+    this.subspecialtyEn,
+    this.subspecialtyFr,
     this.photoUrl,
     this.rating,
     this.reviewsCount,
@@ -45,8 +64,14 @@ class DoctorModel extends Equatable {
     this.isOnline = false,
     this.experienceYears,
     this.hospital,
+    this.hospitalEn,
+    this.hospitalFr,
     this.clinicAddress,
+    this.clinicAddressEn,
+    this.clinicAddressFr,
     this.about,
+    this.aboutEn,
+    this.aboutFr,
     this.languages,
     this.services,
     this.workingHours,
@@ -111,8 +136,14 @@ class DoctorModel extends Equatable {
       id: id,
       userId: resolvedUserId.isEmpty ? null : resolvedUserId,
       name: data['name']?.toString() ?? '',
+      nameEn: data['nameEn']?.toString(),
+      nameFr: data['nameFr']?.toString(),
       specialty: data['specialty']?.toString() ?? '',
+      specialtyEn: data['specialtyEn']?.toString(),
+      specialtyFr: data['specialtyFr']?.toString(),
       subspecialty: data['subspecialty']?.toString(),
+      subspecialtyEn: data['subspecialtyEn']?.toString(),
+      subspecialtyFr: data['subspecialtyFr']?.toString(),
       photoUrl: resolvedPhotoUrl,
       rating: parseDouble(data['rating']),
       reviewsCount: parseInt(rawReviewsCount),
@@ -121,8 +152,14 @@ class DoctorModel extends Equatable {
       isOnline: parseBool(data['isOnline']),
       experienceYears: parseInt(rawExperience),
       hospital: data['hospital']?.toString(),
+      hospitalEn: data['hospitalEn']?.toString(),
+      hospitalFr: data['hospitalFr']?.toString(),
       clinicAddress: data['clinicAddress']?.toString(),
+      clinicAddressEn: data['clinicAddressEn']?.toString(),
+      clinicAddressFr: data['clinicAddressFr']?.toString(),
       about: data['about']?.toString(),
+      aboutEn: data['aboutEn']?.toString(),
+      aboutFr: data['aboutFr']?.toString(),
       languages: data.containsKey('languages') ? parseStringList(data['languages']) : null,
       services: parseStringList(data['services']),
       workingHours: data['workingHours'] is Map ? Map<String, dynamic>.from(data['workingHours']) : null,
@@ -141,8 +178,14 @@ class DoctorModel extends Equatable {
   Map<String, dynamic> toFirestore() => {
         'userId': userId,
         'name': name,
+        'nameEn': nameEn,
+        'nameFr': nameFr,
         'specialty': specialty,
+        'specialtyEn': specialtyEn,
+        'specialtyFr': specialtyFr,
         'subspecialty': subspecialty,
+        'subspecialtyEn': subspecialtyEn,
+        'subspecialtyFr': subspecialtyFr,
         'photoUrl': photoUrl,
         'rating': rating,
         'reviewsCount': reviewsCount,
@@ -151,8 +194,14 @@ class DoctorModel extends Equatable {
         'isOnline': isOnline,
         'experienceYears': experienceYears,
         'hospital': hospital,
+        'hospitalEn': hospitalEn,
+        'hospitalFr': hospitalFr,
         'clinicAddress': clinicAddress,
+        'clinicAddressEn': clinicAddressEn,
+        'clinicAddressFr': clinicAddressFr,
         'about': about,
+        'aboutEn': aboutEn,
+        'aboutFr': aboutFr,
         'languages': languages,
         'services': services,
         'workingHours': workingHours,
@@ -167,12 +216,28 @@ class DoctorModel extends Equatable {
         'createdAt': createdAt ?? FieldValue.serverTimestamp(),
       };
 
+  String localized(String field, String languageCode) {
+    final language = languageCode.toLowerCase();
+    final value = language == 'en'
+        ? {'name': nameEn, 'specialty': specialtyEn, 'subspecialty': subspecialtyEn, 'hospital': hospitalEn, 'clinicAddress': clinicAddressEn, 'about': aboutEn}[field]
+        : language == 'fr'
+            ? {'name': nameFr, 'specialty': specialtyFr, 'subspecialty': subspecialtyFr, 'hospital': hospitalFr, 'clinicAddress': clinicAddressFr, 'about': aboutFr}[field]
+            : null;
+    final fallback = {'name': name, 'specialty': specialty, 'subspecialty': subspecialty, 'hospital': hospital, 'clinicAddress': clinicAddress, 'about': about}[field];
+    final selected = value?.toString().trim() ?? '';
+    return selected.isNotEmpty ? selected : (fallback ?? '').toString();
+  }
+
   @override
   List<Object?> get props => [
         id,
         userId,
         name,
+        nameEn,
+        nameFr,
         specialty,
+        specialtyEn,
+        specialtyFr,
         photoUrl,
         rating,
         reviewsCount,
