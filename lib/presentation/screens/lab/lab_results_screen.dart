@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/lab/lab_booking_model.dart';
 import 'package:sehatak/core/services/lab_service.dart';
@@ -35,7 +36,7 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
     }
   }
 
-  String _value(dynamic value) => value?.toString().trim() ?? '';
+  String _value(dynamic value) => localizedValue(value, AppStrings.of(context).locale);
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +94,7 @@ class _LabResultsScreenState extends State<LabResultsScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(booking.labName, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
+            Text(AppStrings.of(context).locale.languageCode == 'en' ? (booking.labName) : booking.labName, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
             const SizedBox(height: 6),
             Text('${_t('رقم الحجز: ')}${booking.id}', style: TextStyle(color: dark ? Colors.grey[300] : Colors.grey[700])),
             const SizedBox(height: 4),
