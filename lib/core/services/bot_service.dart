@@ -32,8 +32,13 @@ class BotService {
     );
 
     final response = _chatBot.respond(message, languageCode: languageCode);
-    final reply = response['response']?.toString() ?? '';
+    var reply = response['response']?.toString() ?? '';
     final type = response['type']?.toString() ?? 'assistant';
+    if (response['source'] != null) {
+      reply += '\\n\\n${languageCode == 'fr' ? 'Source' : (languageCode == 'en' ? 'Source' : 'المصدر')}: ${response['source']}';
+      if (response['source_url'] != null) reply += '\\n${response['source_url']}';
+      reply += '\\n${languageCode == 'fr' ? 'Validation clinique locale en attente.' : (languageCode == 'en' ? 'Local clinician review is pending.' : 'المراجعة السريرية المحلية ما زالت مطلوبة.')}';
+    }
 
     await _storage.saveMessage(
       sessionId: _sessionId,
@@ -96,5 +101,7 @@ class BotService {
         'clinical_review_pending': true,
       };
 
-  void dispose() => _storage.dispose();
+  // LocalStorageService is shared across the app; do not close its database
+  // when a provider is disposed while another screen may still be using it.
+  void dispose() {}
 }
