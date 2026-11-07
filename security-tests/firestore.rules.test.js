@@ -315,6 +315,42 @@ test('delivery tracking is readable only by the owner of its linked order', asyn
   await assertSucceeds(updateDoc(doc(admin, 'deliveries/order-1'), { status: 'delivered' }));
 });
 
+test('pharmacy order reads are scoped to patient and assigned pharmacy owner; clients cannot fulfil orders', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'pharmacies/pharmacy-1'), { ownerId: 'pharmacy-owner', status: 'approved', isActive: true });
+    await setDoc(doc(db, 'orders/order-1'), { userId: 'patient-b', pharmacyId: 'pharmacy-1', providerId: 'pharmacy-owner', type: 'pharmacy', status: 'pending', total: 500 });
+  });
+  const patient = env.authenticatedContext('patient-b').firestore();
+  const owner = env.authenticatedContext('pharmacy-owner').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  const admin = env.authenticatedContext('platform-admin').firestore();
+  await assertSucceeds(getDoc(doc(patient, 'orders/order-1')));
+  await assertSucceeds(getDoc(doc(owner, 'orders/order-1')));
+  await assertFails(getDoc(doc(outsider, 'orders/order-1')));
+  await assertFails(updateDoc(doc(owner, 'orders/order-1'), { status: 'confirmed' }));
+  await assertFails(updateDoc(doc(patient, 'orders/order-1'), { status: 'confirmed' }));
+  await assertSucceeds(updateDoc(doc(patient, 'orders/order-1'), { status: 'cancelled' }));
+  await assertSucceeds(updateDoc(doc(admin, 'orders/order-1'), { status: 'confirmed' }));
+});
+
+test('prescription review is private to patient and linked pharmacy and cannot be forged by patient', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'pharmacies/pharmacy-1'), { ownerId: 'pharmacy-owner', status: 'approved', isActive: true });
+    await setDoc(doc(db, 'prescriptions/prescription-1'), { userId: 'patient-b', patientId: 'patient-b', pharmacyId: 'pharmacy-1', status: 'pending', fileRemotePath: 'Sehatak/prescriptions_patient-b/prescription-1/file.pdf' });
+  });
+  const patient = env.authenticatedContext('patient-b').firestore();
+  const owner = env.authenticatedContext('pharmacy-owner').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(patient, 'prescriptions/prescription-1')));
+  await assertSucceeds(getDoc(doc(owner, 'prescriptions/prescription-1')));
+  await assertFails(getDoc(doc(outsider, 'prescriptions/prescription-1')));
+  await assertFails(updateDoc(doc(owner, 'prescriptions/prescription-1'), { status: 'approved' }));
+  await assertFails(setDoc(doc(patient, 'prescriptions/forged-approved'), { userId: 'patient-b', patientId: 'patient-b', pharmacyId: 'pharmacy-1', status: 'approved' }));
+  await assertSucceeds(setDoc(doc(patient, 'prescriptions/prescription-2'), { userId: 'patient-b', patientId: 'patient-b', pharmacyId: 'pharmacy-1', status: 'pending' }));
+});
+
 test('blood donor registration is tied to the signed-in account', async () => {
   const owner = env.authenticatedContext('patient-b').firestore();
   const other = env.authenticatedContext('patient-a').firestore();
