@@ -34,7 +34,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
   @override void dispose(){_typingController.dispose();_controller.dispose();_scroll.dispose();super.dispose();}
 
   Future<void> _send(String value) async {
-    final text=value.trim(); if(text.isEmpty||_loading)return;
+    final text=value.trim(); if(text.isEmpty||_loading||!_historyReady)return;
     final userTime=DateTime.now();
     setState((){_messages.add({'text':text,'user':true,'time':userTime});_controller.clear();_loading=true;}); _scrollToEnd();
     try { await _historyStore.saveMessage(sessionId:_sessionId,message:text,isUser:true,type:'user'); } catch (_) {}
@@ -44,7 +44,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
     if(safety.emergency){result={'response':safety.response,'type':'emergency'};}else if(knowledge!=null){result=knowledge;}else if(symptom!=null){result={'response':symptom['response'],'type':'symptom'};}else if(intent.intent==LocalAiIntent.greeting){result={'response':_t('أهلاً بك. اكتب سؤالك كما تتحدث عادةً، بالفصحى أو باللهجة اليمنية، وسأفهم المقصود وأوجّهك إلى المعلومة أو الشاشة المناسبة.'),'type':'greeting'};}else{try{result=_bot.respond(text);}catch(_){result={'response':_t('اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.'),'type':'clarification'};}}
     var reply=(result['response']??_t('ما الذي تريد معرفته تحديداً؟')).toString();
     if(result['source']!=null){reply+='\n\n${_t('المصدر')}: ${result['source']}';}
-    if(services.isNotEmpty&&symptom==null){reply+='\n\n📍 ${_t('داخل صحتك')}\n${services.map((s)=>'• ${_t(s['title'] as String)}: ${_t(s['help'] as String)}').join('\n')}\n\n${_t('اختر الخدمة المناسبة من الأزرار أسفل الرد.')}';}
+    if(services.isNotEmpty&&symptom==null&&knowledge==null){reply+='\n\n📍 ${_t('داخل صحتك')}\n${services.map((s)=>'• ${_t(s['title'] as String)}: ${_t(s['help'] as String)}').join('\n')}\n\n${_t('اختر الخدمة المناسبة من الأزرار أسفل الرد.')}';}
     if(!mounted)return; final responseTime=DateTime.now(); setState((){_messages.add({'text':reply,'user':false,'time':responseTime,'service':service,'services':services});_loading=false;});
     try { await _historyStore.saveMessage(sessionId:_sessionId,message:reply,isUser:false,type:result['type']?.toString()??'assistant'); } catch (_) {}
     _scrollToEnd();
