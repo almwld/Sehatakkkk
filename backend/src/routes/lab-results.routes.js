@@ -21,7 +21,7 @@ function validBookingId(value) {
 }
 
 function safeDownloadName(value) {
-  return path.basename(String(value || 'lab-result.pdf')).replace(/[^\\x20-\\x7E]|[\r\n"\\\\]/g, '_');
+  return path.basename(String(value || 'lab-result.pdf')).replace(/[^\x20-\x7E]|[\r\n"\\]/g, '_');
 }
 
 function detectMime(buffer) {
