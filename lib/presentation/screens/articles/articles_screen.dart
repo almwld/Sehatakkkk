@@ -504,7 +504,7 @@ class ArticleReaderScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  article.timeAgo,
+                  article.timeAgoFor(AppStrings.of(context).locale),
                   style: TextStyle(color: body.withOpacity(.65), fontSize: 11),
                 ),
               ],
@@ -520,7 +520,7 @@ class ArticleReaderScreen extends StatelessWidget {
               child: SelectableText(
                 (_articleText(article, 'content').trim().isEmpty && _articleText(article, 'summary').trim().isEmpty)
                     ? AppStrings.of(context).translate('لا يوجد محتوى متاح لهذا المقال حالياً.')
-                    : (article.content ?? article.summary!).trim(),
+                    : (_articleText(article, 'content').trim().isNotEmpty ? _articleText(article, 'content').trim() : _articleText(article, 'summary').trim()),
                 style: TextStyle(color: body, fontSize: 15, height: 1.85),
               ),
             ),
