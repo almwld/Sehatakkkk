@@ -203,7 +203,7 @@ class NextcloudService {
   }
 
   async downloadBuffer(remotePath) {
-    const cleanPath = String(remotePath || '').replace(/^\\/+/, '');
+    const cleanPath = String(remotePath || '').replace(/^\/+/, '');
     if (!cleanPath || cleanPath.split('/').some((part) => !part || part === '.' || part === '..')) {
       throw new Error('Invalid Nextcloud remote path');
     }
