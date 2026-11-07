@@ -35,9 +35,9 @@ class BotService {
     var reply = response['response']?.toString() ?? '';
     final type = response['type']?.toString() ?? 'assistant';
     if (response['source'] != null) {
-      reply += '\\n\\n${languageCode == 'fr' ? 'Source' : (languageCode == 'en' ? 'Source' : 'المصدر')}: ${response['source']}';
-      if (response['source_url'] != null) reply += '\\n${response['source_url']}';
-      reply += '\\n${languageCode == 'fr' ? 'Validation clinique locale en attente.' : (languageCode == 'en' ? 'Local clinician review is pending.' : 'المراجعة السريرية المحلية ما زالت مطلوبة.')}';
+      reply += '\n\n${languageCode == 'fr' ? 'Source' : (languageCode == 'en' ? 'Source' : 'المصدر')}: ${response['source']}';
+      if (response['source_url'] != null) reply += '\n${response['source_url']}';
+      reply += '\n${languageCode == 'fr' ? 'Validation clinique locale en attente.' : (languageCode == 'en' ? 'Local clinician review is pending.' : 'المراجعة السريرية المحلية ما زالت مطلوبة.')}';
     }
 
     await _storage.saveMessage(
