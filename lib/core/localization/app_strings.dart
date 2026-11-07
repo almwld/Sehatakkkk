@@ -5227,6 +5227,10 @@ class AppStrings {
       'وارفارين': ['Warfarin', 'Warfarine'],
       'كلوبيدوجريل': ['Clopidogrel', 'Clopidogrel'],
 
+      'تمارين': ['Exercise', 'Exercice'],
+      'متابعة صحية': ['Health tracking', 'Suivi de santé'],
+      'حدث': ['Event', 'Événement'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
