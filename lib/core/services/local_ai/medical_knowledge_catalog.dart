@@ -102,9 +102,9 @@ class MedicalKnowledgeCatalog {
       'en': 'I’m sorry you’re going through this. If you may hurt yourself now, move away from anything you could use, stay with someone you trust, and contact local emergency help immediately. Just tell me: are you in immediate danger right now?',
       'fr': 'Je suis désolé que vous traversiez cela. Si vous risquez de vous faire du mal maintenant, éloignez-vous de tout moyen dangereux, restez avec une personne de confiance et contactez immédiatement les secours locaux. Dites-moi simplement : êtes-vous en danger immédiat ?',
       'source': 'WHO — Suicide: questions and answers',
-      'url': 'https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/first-aid-guidelines',
+      'url': 'https://www.who.int/news-room/questions-and-answers/item/suicide',
       'review': 'editorial_source_checked_clinician_review_pending'
-    }
+    },
     {
       'id': 'diabetes',
       'aliases': ['السكري','سكر الدم','عندي سكر','diabetes','blood sugar','diabète','glycémie'],
