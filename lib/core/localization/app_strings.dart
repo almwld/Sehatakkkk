@@ -5062,10 +5062,7 @@ class AppStrings {
       'مقابلة عبر الفيديو مع اللجنة الطبية': ['Video interview with the medical committee', 'Entretien vidéo avec le comité médical'],
       'توقيع اتفاقية مزود الخدمة إلكترونياً': ['Sign the provider agreement electronically', 'Signer électroniquement l’accord du prestataire'],
       'تفعيل الحساب وبدء استقبال الاستشارات': ['Activate the account and start receiving consultations', 'Activer le compte et commencer à recevoir des consultations'],
-      '💰 رسوم التوثيق: 5,000 ريال يمني (غير قابلة للاسترداد)
-⏱️ مدة المعالجة: 5-7 أيام عمل': ['💰 Verification fee: 5,000 YER (non-refundable)
-⏱️ Processing time: 5–7 business days', '💰 Frais de vérification : 5 000 YER (non remboursables)
-⏱️ Délai de traitement : 5 à 7 jours ouvrés'],
+      '💰 رسوم التوثيق: 5,000 ريال يمني (غير قابلة للاسترداد)\n⏱️ مدة المعالجة: 5-7 أيام عمل': ['💰 Verification fee: 5,000 YER (non-refundable)\n⏱️ Processing time: 5–7 business days', '💰 Frais de vérification : 5 000 YER (non remboursables)\n⏱️ Délai de traitement : 5 à 7 jours ouvrés'],
       'توثيق حساب الصيدلي': ['Pharmacist account verification', 'Vérification du compte pharmacien'],
       'للتسجيل كصيدلي معتمد في منصة صحتك، يجب تقديم المستندات التالية لإثبات الأهلية المهنية.': ['To register as a verified pharmacist on Sehatak, submit the following documents to confirm your professional eligibility.', 'Pour vous inscrire comme pharmacien agréé sur Sehatak, fournissez les documents suivants afin de confirmer votre admissibilité professionnelle.'],
       'شهادة البكالوريوس في الصيدلة (B.Pharm أو Pharm.D)': ['Bachelor of Pharmacy degree (B.Pharm or Pharm.D)', 'Diplôme de pharmacie (B.Pharm ou Pharm.D)'],
@@ -5085,10 +5082,7 @@ class AppStrings {
       'تعبئة نموذج التسجيل': ['Complete the registration form', 'Remplir le formulaire d’inscription'],
       'مراجعة من فريق التحقق (2-3 أيام عمل)': ['Review by the verification team (2–3 business days)', 'Examen par l’équipe de vérification (2 à 3 jours ouvrés)'],
       'تفعيل الحساب وبدء استقبال الطلبات': ['Activate the account and start receiving orders', 'Activer le compte et commencer à recevoir des commandes'],
-      '💰 رسوم التوثيق: 3,000 ريال يمني
-⏱️ مدة المعالجة: 3-5 أيام عمل': ['💰 Verification fee: 3,000 YER
-⏱️ Processing time: 3–5 business days', '💰 Frais de vérification : 3 000 YER
-⏱️ Délai de traitement : 3 à 5 jours ouvrés'],
+      '💰 رسوم التوثيق: 3,000 ريال يمني\n⏱️ مدة المعالجة: 3-5 أيام عمل': ['💰 Verification fee: 3,000 YER\n⏱️ Processing time: 3–5 business days', '💰 Frais de vérification : 3 000 YER\n⏱️ Délai de traitement : 3 à 5 jours ouvrés'],
       'توثيق حساب المسعف': ['Paramedic account verification', 'Vérification du compte ambulancier'],
       'للتسجيل كمسعف معتمد في منصة صحتك، يجب تقديم المستندات التالية لإثبات الأهلية.': ['To register as a verified paramedic on Sehatak, submit the following documents to confirm your eligibility.', 'Pour vous inscrire comme ambulancier agréé sur Sehatak, fournissez les documents suivants afin de confirmer votre admissibilité.'],
       'شهادة دورة الإسعافات الأولية المتقدمة': ['Advanced first-aid course certificate', 'Certificat de formation avancée aux premiers secours'],
@@ -5111,10 +5105,7 @@ class AppStrings {
       'اختبار عملي للإسعافات الأولية': ['Practical first-aid assessment', 'Évaluation pratique des premiers secours'],
       'تدريب على استخدام تطبيق المنصة للطوارئ': ['Training on using the platform’s emergency app', 'Formation à l’utilisation de l’application d’urgence de la plateforme'],
       'تفعيل الحساب والاستعداد للاستجابة': ['Activate the account and prepare to respond', 'Activer le compte et se préparer à intervenir'],
-      '💰 رسوم التوثيق: 2,000 ريال يمني
-⏱️ مدة المعالجة: 3-5 أيام عمل': ['💰 Verification fee: 2,000 YER
-⏱️ Processing time: 3–5 business days', '💰 Frais de vérification : 2 000 YER
-⏱️ Délai de traitement : 3 à 5 jours ouvrés'],
+      '💰 رسوم التوثيق: 2,000 ريال يمني\n⏱️ مدة المعالجة: 3-5 أيام عمل': ['💰 Verification fee: 2,000 YER\n⏱️ Processing time: 3–5 business days', '💰 Frais de vérification : 2 000 YER\n⏱️ Délai de traitement : 3 à 5 jours ouvrés'],
       'توثيق حساب المستشفى': ['Hospital account verification', 'Vérification du compte établissement hospitalier'],
       'لتسجيل مستشفى في منصة صحتك، يجب تقديم المستندات التالية لإثبات الاعتماد.': ['To register a hospital on Sehatak, submit the following documents to verify its accreditation.', 'Pour inscrire un hôpital sur Sehatak, fournissez les documents suivants afin de vérifier son agrément.'],
       'ترخيص المستشفى من وزارة الصحة': ['Hospital license issued by the Ministry of Health', 'Autorisation de l’hôpital délivrée par le ministère de la Santé'],
@@ -5144,13 +5135,7 @@ class AppStrings {
       'توقيع اتفاقية الشراكة': ['Sign the partnership agreement', 'Signer l’accord de partenariat'],
       'تدريب الموظفين على نظام المنصة': ['Train staff to use the platform system', 'Former le personnel à l’utilisation de la plateforme'],
       'تفعيل الحساب وبدء استقبال المرضى': ['Activate the account and start receiving patients', 'Activer le compte et commencer à accueillir des patients'],
-      '💰 رسوم التوثيق: 25,000 ريال يمني
-⏱️ مدة المعالجة: 7-14 يوم عمل
-📋 تتضمن الزيارة التفتيشية': ['💰 Verification fee: 25,000 YER
-⏱️ Processing time: 7–14 business days
-📋 Includes the inspection visit', '💰 Frais de vérification : 25 000 YER
-⏱️ Délai de traitement : 7 à 14 jours ouvrés
-📋 Visite d’inspection incluse'],
+      '💰 رسوم التوثيق: 25,000 ريال يمني\n⏱️ مدة المعالجة: 7-14 يوم عمل\n📋 تتضمن الزيارة التفتيشية': ['💰 Verification fee: 25,000 YER\n⏱️ Processing time: 7–14 business days\n📋 Includes the inspection visit', '💰 Frais de vérification : 25 000 YER\n⏱️ Délai de traitement : 7 à 14 jours ouvrés\n📋 Visite d’inspection incluse'],
       'توثيق حساب المخبري': ['Laboratory account verification', 'Vérification du compte laboratoire'],
       'للتسجيل كمختبر أو فني تحاليل معتمد في منصة صحتك، يجب تقديم المستندات التالية.': ['To register a laboratory or verified lab technician on Sehatak, submit the following documents.', 'Pour inscrire un laboratoire ou un technicien de laboratoire agréé sur Sehatak, fournissez les documents suivants.'],
       'شهادة البكالوريوس في التحاليل الطبية أو المختبرات': ['Bachelor’s degree in medical laboratory sciences or laboratory technology', 'Licence en analyses biomédicales ou en sciences de laboratoire'],
@@ -5173,10 +5158,7 @@ class AppStrings {
       'الالتزام بمعايير الجودة والمكافحة': ['Comply with quality and infection-control standards', 'Respecter les normes de qualité et de prévention des infections'],
       'توفير خدمة سحب عينات منزلية (اختياري)': ['Offer home sample collection (optional)', 'Proposer le prélèvement à domicile (facultatif)'],
       'فحص عينات مراقبة الجودة': ['Quality-control sample testing', 'Analyse d’échantillons de contrôle qualité'],
-      '💰 رسوم التوثيق: 5,000 ريال يمني
-⏱️ مدة المعالجة: 5-7 أيام عمل': ['💰 Verification fee: 5,000 YER
-⏱️ Processing time: 5–7 business days', '💰 Frais de vérification : 5 000 YER
-⏱️ Délai de traitement : 5 à 7 jours ouvrés'],
+      '💰 رسوم التوثيق: 5,000 ريال يمني\n⏱️ مدة المعالجة: 5-7 أيام عمل': ['💰 Verification fee: 5,000 YER\n⏱️ Processing time: 5–7 business days', '💰 Frais de vérification : 5 000 YER\n⏱️ Délai de traitement : 5 à 7 jours ouvrés'],
 
     final entry = translations[value];
     if (entry == null) return value;
