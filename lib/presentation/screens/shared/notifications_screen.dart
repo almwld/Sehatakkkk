@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
@@ -16,6 +17,7 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _notificationText(Map<String, dynamic> data, String field, {String fallback = ''}) => localizedField(data, field, AppStrings.of(context).locale, fallback: fallback);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _watchNotifications(String uid) {
@@ -323,9 +325,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(data['title']?.toString() ?? _t('صحتك'), style: TextStyle(fontWeight: isRead ? FontWeight.w500 : FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+                                  Text(_notificationText(data, 'title', fallback: _t('صحتك')), style: TextStyle(fontWeight: isRead ? FontWeight.w500 : FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
                                   const SizedBox(height: 3),
-                                  Text(data['body']?.toString() ?? '', maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                                  Text(_notificationText(data, 'body'), maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                                   const SizedBox(height: 4),
                                   Text(_formatTime(data['createdAt']), style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[500] : Colors.grey[500])),
                                 ],
