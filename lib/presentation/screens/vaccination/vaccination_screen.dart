@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -13,6 +14,9 @@ class VaccinationScreen extends StatefulWidget {
 
 class _VaccinationScreenState extends State<VaccinationScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
+
+  String _localizedField(Map<String, dynamic> data, String field, {String fallback = ''}) =>
+      localizedField(data, field, AppStrings.of(context).locale, fallback: fallback);
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
@@ -303,7 +307,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                       child: Icon(beneficiaryType == 'child' ? Icons.child_care : beneficiaryType == 'woman' ? Icons.female : Icons.vaccines_outlined),
                     ),
                     title: Text(
-                      data['name']?.toString() ?? 'تطعيم',
+                      _localizedField(data, 'name', fallback: _t('تطعيم')),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Column(
@@ -315,7 +319,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                         if (next != null)
                           Text('${_t('الجرعة القادمة: ')}' + _fmt(next)),
                         if ((data['location']?.toString() ?? '').trim().isNotEmpty)
-                          Text(data['location'].toString()),
+                          Text(_localizedField(data, 'location')),
                       ],
                     ),
                     trailing: Chip(
