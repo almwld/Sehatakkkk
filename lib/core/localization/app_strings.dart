@@ -5160,6 +5160,11 @@ class AppStrings {
       'فحص عينات مراقبة الجودة': ['Quality-control sample testing', 'Analyse d’échantillons de contrôle qualité'],
       '💰 رسوم التوثيق: 5,000 ريال يمني\n⏱️ مدة المعالجة: 5-7 أيام عمل': ['💰 Verification fee: 5,000 YER\n⏱️ Processing time: 5–7 business days', '💰 Frais de vérification : 5 000 YER\n⏱️ Délai de traitement : 5 à 7 jours ouvrés'],
 
+      'قس حرارتك. اشرب سوائل. خذ باراسيتامول فوق 38.5.': ['Check your temperature, drink fluids, and consider paracetamol if it is above 38.5°C.', 'Prenez votre température, buvez des liquides et envisagez du paracétamol si elle dépasse 38,5 °C.'],
+      'إضافة ملاحظة': ['Add note', 'Ajouter une note'],
+      'تمت إضافة الملاحظة': ['Note added', 'Note ajoutée'],
+      'قادمة': ['Upcoming', 'À venir'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
