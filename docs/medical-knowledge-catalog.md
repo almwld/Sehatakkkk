@@ -4,7 +4,7 @@
 
 The local assistant uses a curated, offline, multilingual reference catalog in
 `lib/core/services/local_ai/medical_knowledge_catalog.dart`. It contains
-20 topic records. Every record has Arabic, English, and French content,
+26 topic records. Every record has Arabic, English, and French content,
 matching phrases, a source URL, and an explicit review-state marker.
 
 This is public-health education and first-aid orientation only. It is not a
@@ -36,7 +36,7 @@ emergency services rather than displaying an unverified country-specific number.
 19. Seasonal influenza
 20. Severe headache warning signs
 
-## Source register
+21. Cholera and severe dehydration\n22. Dengue and severe dengue warning signs\n23. Newborn danger signs\n24. Pregnancy and postpartum danger signs, including pre-eclampsia\n25. Heatstroke\n26. Sepsis\n\n## Source register
 
 - American Heart Association and American Red Cross, 2024 First Aid Guidelines:
   https://cpr.heart.org/en/resuscitation-science/2024-first-aid-guidelines
@@ -66,6 +66,18 @@ emergency services rather than displaying an unverified country-specific number.
   https://www.who.int/news-room/questions-and-answers/item/suicide
 - NHS, Headaches:
   https://www.nhs.uk/symptoms/headaches/
+- World Health Organization, Cholera:
+  https://www.who.int/news-room/fact-sheets/detail/cholera
+- World Health Organization, Dengue and severe dengue:
+  https://www.who.int/news-room/fact-sheets/detail/dengue-and-severe-dengue
+- World Health Organization, Newborns: improving survival and well-being:
+  https://www.who.int/news-room/fact-sheets/detail/newborns-reducing-mortality/
+- World Health Organization, Pregnancy health services and danger signs:
+  https://www.who.int/tools/your-life-your-health/life-phase/pregnancy--birth-and-after-childbirth/getting-the-health-services-you-need-during-pregnancy
+- World Health Organization, Heatwaves: how to stay cool:
+  https://www.who.int/ar/news-room/questions-and-answers/item/heatwaves-how-to-stay-cool
+- World Health Organization, Sepsis:
+  https://www.who.int/news-room/fact-sheets/detail/sepsis
 
 ## Review status — do not misrepresent
 
