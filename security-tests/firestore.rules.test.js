@@ -281,3 +281,36 @@ test('private medication subcollections are owner-only', async () => {
   await assertSucceeds(getDoc(doc(owner, 'users/patient-b/medications/rx-1')));
   await assertFails(getDoc(doc(outsider, 'users/patient-b/medications/rx-1')));
 });
+
+test('delivery companies are publicly readable but only admins can manage them', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'delivery_companies/company-1'), {
+      name: 'Synthetic delivery provider',
+      isActive: true,
+      coveredAreas: ['Sanaa'],
+    });
+  });
+  const publicDb = env.unauthenticatedContext().firestore();
+  const patientDb = env.authenticatedContext('patient-b').firestore();
+  const adminDb = env.authenticatedContext('platform-admin').firestore();
+  await assertSucceeds(getDoc(doc(publicDb, 'delivery_companies/company-1')));
+  await assertFails(updateDoc(doc(patientDb, 'delivery_companies/company-1'), { isActive: false }));
+  await assertSucceeds(updateDoc(doc(adminDb, 'delivery_companies/company-1'), { isActive: false }));
+});
+
+test('delivery tracking is readable only by the owner of its linked order', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'orders/order-1'), { userId: 'patient-b', total: 5000 });
+    await setDoc(doc(db, 'deliveries/order-1'), { status: 'shipping', currentStep: 2 });
+  });
+  const owner = env.authenticatedContext('patient-b').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  const admin = env.authenticatedContext('platform-admin').firestore();
+  const anonymous = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(owner, 'deliveries/order-1')));
+  await assertFails(getDoc(doc(outsider, 'deliveries/order-1')));
+  await assertFails(getDoc(doc(anonymous, 'deliveries/order-1')));
+  await assertFails(updateDoc(doc(owner, 'deliveries/order-1'), { status: 'delivered' }));
+  await assertSucceeds(updateDoc(doc(admin, 'deliveries/order-1'), { status: 'delivered' }));
+});
