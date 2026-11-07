@@ -5182,19 +5182,12 @@ class AppStrings {
 
       'تم طلب الاستشارة بنجاح': ['Consultation requested successfully', 'Consultation demandée avec succès'],
 
-      'المنطقة غير محددة': ['Area not specified', 'Zone non précisée'],
 
-      'مركبة إسعاف/استجابة': ['Ambulance / response vehicle', 'Ambulance / véhicule d’intervention'],
 
-      'تشريح': ['Anatomy', 'Anatomie'],
 
-      'أمراض': ['Diseases', 'Maladies'],
 
-      'إسعافات': ['First aid', 'Premiers secours'],
 
-      'صحة نفسية': ['Mental health', 'Santé mentale'],
 
-      'تعليمي': ['Educational', 'Éducatif'],
 
       'جاري تشغيل الفيديو...': ['Playing video…', 'Lecture de la vidéo…'],
 
