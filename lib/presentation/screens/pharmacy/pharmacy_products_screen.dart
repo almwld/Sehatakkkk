@@ -59,7 +59,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
 
   void _addToCart(Map<String, dynamic> product) {
     _cart.add(
-      productId: (product['productId'] ?? product['id']).toString(),
+      productId: product['id'].toString(), // Firestore offer document ID used by trusted checkout.
       name: (product['name'] ?? _t('منتج')).toString(),
       unitPrice: (product['price'] as num?)?.toDouble() ?? 0,
       requiresPrescription: product['requiresPrescription'] == true,
