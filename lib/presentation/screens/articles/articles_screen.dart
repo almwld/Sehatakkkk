@@ -332,7 +332,7 @@ class _ArticleCard extends StatelessWidget {
                         ),
                       const Spacer(),
                       Text(
-                        article.timeAgo,
+                        article.timeAgoFor(AppStrings.of(context).locale),
                         style: TextStyle(
                           color: secondary,
                           fontSize: 10,
