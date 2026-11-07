@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/create_post_sheet.dart';
 
@@ -69,7 +70,7 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
   Future<void> _openCreatePost() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ToastService.showInfo('سجل الدخول أولاً لإضافة منشور');
+      ToastService.showInfo(AppStrings.of(context).translate('سجل الدخول أولاً لإضافة منشور'));
       return;
     }
 
@@ -83,7 +84,7 @@ class _HomeCreatePostFabState extends State<HomeCreatePostFab>
 
     if (!mounted) return;
     if (!verified) {
-      ToastService.showInfo('إضافة المنشورات متاحة للأطباء الموثقين فقط');
+      ToastService.showInfo(AppStrings.of(context).translate('إضافة المنشورات متاحة للأطباء الموثقين فقط'));
       return;
     }
 

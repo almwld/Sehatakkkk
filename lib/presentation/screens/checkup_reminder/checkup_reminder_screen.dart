@@ -35,8 +35,8 @@ class _CheckupReminderScreenState extends State<CheckupReminderScreen> {
           return Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), child: Row(children: [
             Container(width: 40, height: 40, decoration: BoxDecoration(color: (ch['color'] as Color).withOpacity(0.08), shape: BoxShape.circle), child: Icon(ch['icon'], color: ch['color'], size: 20)),
             const SizedBox(width: 10),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ch['name'], style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)), Text('${ch['freq']} • القادم: ${ch['next']}', style: const TextStyle(fontSize: 9, color: AppColors.grey))])),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: ch['done'] ? AppColors.success.withOpacity(0.1) : AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(ch['done'] ? 'تم' : 'قادم', style: TextStyle(fontSize: 9, color: ch['done'] ? AppColors.success : AppColors.warning))),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_localizedUiText(context, ch['name'] as String), style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)), Text('${_localizedUiText(context, ch['freq'] as String)} • ${_localizedUiText(context, 'القادم: ')}${_localizedUiText(context, ch['next'] as String)}', style: const TextStyle(fontSize: 9, color: AppColors.grey))])),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: ch['done'] ? AppColors.success.withOpacity(0.1) : AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(_localizedUiText(context, ch['done'] == true ? 'تم' : 'قادم'), style: TextStyle(fontSize: 9, color: ch['done'] ? AppColors.success : AppColors.warning))),
           ]));
         })),
       ]),

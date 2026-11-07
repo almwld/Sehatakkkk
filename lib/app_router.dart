@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/routes/payment_routes.dart';
 import 'package:sehatak/core/navigation/duplicate_navigation_observer.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
@@ -159,7 +160,7 @@ class AppRouter {
     }
 
     _backPressedOnce = true;
-    ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');
+    ToastService.showInfo(AppStrings.of(context).translate('اضغط مرة أخرى للخروج من التطبيق'));
     _backExitTimer?.cancel();
     _backExitTimer = Timer(const Duration(seconds: 2), () {
       _backPressedOnce = false;
@@ -242,7 +243,7 @@ class AppRouter {
             return ChatRoomScreen(
                 chatId: '${e['chatId'] ?? ''}',
                 otherUserId: '${e['otherUserId'] ?? ''}',
-                otherUserName: '${e['otherUserName'] ?? 'مستخدم'}',
+                otherUserName: '${e['otherUserName'] ?? AppStrings.of(context).translate('مستخدم')}',
                 otherUserImage: e['otherUserImage'] as String?,
                 groupImage: e['groupImage'] as String?,
                 isGroup: e['isGroup'] == true);
@@ -402,7 +403,7 @@ class AppRouter {
             builder: (_) => const ChatRoomScreen(
                 chatId: '',
                 otherUserId: '',
-                otherUserName: 'مستخدم',
+                otherUserName: AppStrings.of(context).translate('مستخدم'),
                 isGroup: false),
             settings: routeSettings);
       case addStatus:

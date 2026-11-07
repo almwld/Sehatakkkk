@@ -21,7 +21,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
   @override void initState(){super.initState();_loadDoctors();}
   Future<void> _loadDoctors() async { try {
     final snap=await FirebaseFirestore.instance.collection('doctors').where('isActive',isEqualTo:true).limit(50).get();
-    if(!mounted)return; setState((){_doctors=snap.docs.map((d){final x=d.data();return {...x,'id':d.id,'name':x['name']??x['displayName']??'طبيب','specialty':x['specialty']??x['specialization']??'عام','rating':(x['rating'] as num?)?.toDouble()??0.0,'reviews':(x['reviews'] as num?)?.toInt()??0,'price':'${x['consultationPrice']??x['price']??0}','available':x['available']==true,'online':x['online']==true,'image':_firstImageUrl(x),'nextAvailable':x['nextAvailable']??'غير محدد'};}).toList();_isLoading=false;});
+    if(!mounted)return; setState((){_doctors=snap.docs.map((d){final x=d.data();return {...x,'id':d.id,'name':x['name']??x['displayName']??'','specialty':x['specialty']??x['specialization']??'عام','rating':(x['rating'] as num?)?.toDouble()??0.0,'reviews':(x['reviews'] as num?)?.toInt()??0,'price':'${x['consultationPrice']??x['price']??0}','available':x['available']==true,'online':x['online']==true,'image':_firstImageUrl(x),'nextAvailable':x['nextAvailable']??'غير محدد'};}).toList();_isLoading=false;});
   } catch(_){if(mounted)setState((){_doctors=[];_isLoading=false;});}}
   List<Map<String,dynamic>> get _filteredDoctors {final l=List<Map<String,dynamic>>.from(_doctors);switch(_selectedFilter){case'متاح الآن':l.retainWhere((d)=>d['online']==true);break;case'الأعلى تقييماً':l.sort((a,b)=>(b['rating'] as double).compareTo(a['rating'] as double));break;case'الأقل سعراً':l.sort((a,b)=>(double.tryParse(a['price'].toString())??double.maxFinite).compareTo(double.tryParse(b['price'].toString())??double.maxFinite));}return l;}
   void _startConsultation(Map<String,dynamic> doctor){showDialog(context:context,builder:(c)=>AlertDialog(title:Text('${_localizedUiText(context, 'استشارة مع ')}${doctor['name']}'),content:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${_localizedUiText(context, 'التخصص: ')}${_localizedUiText(context, doctor['specialty']?.toString() ?? 'عام')}'),const SizedBox(height:8),Text('${_localizedUiText(context, 'التقييم: ')}${doctor['rating']} (${doctor['reviews']} ${_localizedUiText(context, 'تقييم')})'),const SizedBox(height:8),Text('${_localizedUiText(context, 'السعر: ')}${doctor['price']} ${_localizedUiText(context, 'ر.ي')}')]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(_localizedUiText(context, 'إلغاء'))),ElevatedButton.icon(onPressed:(){Navigator.pop(c);_chooseCallType(doctor);},icon:const Icon(Icons.call),label:Text(_localizedUiText(context, 'الاتصال')),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white))]));}
@@ -36,7 +36,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'نوع الاستشارة مع ${doctor['name']}',
+                '${_localizedUiText(context, 'نوع الاستشارة مع ')}${_doctorName(doctor)}',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
@@ -74,7 +74,74 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
     );
   }
 
-  Future<void> _startRealCall(Map<String,dynamic> doctor,bool video) async {final me=FirebaseAuth.instance.currentUser;final doctorId=(doctor['userId']??doctor['id']??'').toString();if(me==null||doctorId.isEmpty||doctorId==me.uid){ToastService.showError('حساب الطبيب غير صالح للمكالمة');return;}try{final data=await FirebaseFirestore.instance.collection('users').doc(me.uid).get();final chatId=await ChatService().createChat(doctorId:doctorId,doctorName:doctor['name'].toString(),patientName:(data.data()?['name']??me.displayName??'مستخدم').toString(),doctorImage:doctor['image']?.toString(),patientImage:me.photoURL);final call=await CallService().initiateCall(receiverId:doctorId,receiverName:doctor['name'].toString(),receiverPhotoUrl:doctor['image']?.toString(),type:video?CallType.video:CallType.audio,chatId:chatId);if(!mounted||call==null)return;await Navigator.push(context,MaterialPageRoute(builder:(_)=>CallScreen(chatId:chatId,doctorName:doctor['name'].toString(),doctorId:doctorId,doctorImage:doctor['image']?.toString(),isVideo:video,isOutgoing:true)));}catch(e){if(mounted)ToastService.showError('تعذر بدء المكالمة: $e');}}
+  Future<void> _startRealCall(
+    Map<String, dynamic> doctor,
+    bool video,
+  ) async {
+    final me = FirebaseAuth.instance.currentUser;
+    final doctorId = (doctor['userId'] ?? doctor['id'] ?? '').toString();
+    final doctorName = _doctorName(doctor);
+
+    if (me == null || doctorId.isEmpty || doctorId == me.uid) {
+      if (mounted) {
+        ToastService.showError(
+          _localizedUiText(context, 'حساب الطبيب غير صالح للمكالمة'),
+        );
+      }
+      return;
+    }
+
+    try {
+      final data = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(me.uid)
+          .get();
+      if (!mounted) return;
+
+      final rawPatientName =
+          (data.data()?['name'] ?? me.displayName)?.toString().trim();
+      final patientName = rawPatientName == null || rawPatientName.isEmpty
+          ? _localizedUiText(context, 'مستخدم')
+          : rawPatientName;
+
+      final chatId = await ChatService().createChat(
+        doctorId: doctorId,
+        doctorName: doctorName,
+        patientName: patientName,
+        doctorImage: doctor['image']?.toString(),
+        patientImage: me.photoURL,
+      );
+      final call = await CallService().initiateCall(
+        receiverId: doctorId,
+        receiverName: doctorName,
+        receiverPhotoUrl: doctor['image']?.toString(),
+        type: video ? CallType.video : CallType.audio,
+        chatId: chatId,
+      );
+      if (!mounted || call == null) return;
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CallScreen(
+            chatId: chatId,
+            doctorName: doctorName,
+            doctorId: doctorId,
+            doctorImage: doctor['image']?.toString(),
+            isVideo: video,
+            isOutgoing: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Video consultation call failed: $e');
+      if (mounted) {
+        ToastService.showError(
+          _localizedUiText(context, 'تعذر بدء المكالمة. حاول مرة أخرى.'),
+        );
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
@@ -112,7 +179,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              f,
+                              _localizedUiText(context, f),
                               style: TextStyle(
                                 color: selected
                                     ? Colors.white
@@ -143,7 +210,12 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
     );
   }
 
-  Widget _doctorCard(Map<String,dynamic> d,bool dark){final image=d['image']?.toString()??'';final name=d['name']?.toString()??_localizedUiText(context, 'طبيب');return Container(margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Row(children:[CircleAvatar(radius:28,backgroundImage:image.isNotEmpty?NetworkImage(image):null,child:image.isEmpty?Text(name.isNotEmpty?name[0]:'ط'):null),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)),Text(_localizedUiText(context, d['specialty']?.toString()??'عام'),style:TextStyle(fontSize:12,color:dark?Colors.grey.shade400:Colors.grey.shade600)),const SizedBox(height:4),Text('${d['price']} ${_localizedUiText(context, 'ر.ي')}',style:TextStyle(fontSize:11,color:dark?Colors.white:Colors.black87))])),ElevatedButton(onPressed:d['available']==true?()=>_startConsultation(d):null,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:Text(_localizedUiText(context, 'ابدأ')))]));}
+  String _doctorName(Map<String, dynamic> doctor) {
+    final name = doctor['name']?.toString().trim() ?? '';
+    return name.isEmpty ? _localizedUiText(context, 'طبيب') : name;
+  }
+
+  Widget _doctorCard(Map<String,dynamic> d,bool dark){final image=d['image']?.toString()??'';final name=_doctorName(d);return Container(margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Row(children:[CircleAvatar(radius:28,backgroundImage:image.isNotEmpty?NetworkImage(image):null,child:image.isEmpty?Text(name[0]):null),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)),Text(_localizedUiText(context, d['specialty']?.toString()??'عام'),style:TextStyle(fontSize:12,color:dark?Colors.grey.shade400:Colors.grey.shade600)),const SizedBox(height:4),Text('${d['price']} ${_localizedUiText(context, 'ر.ي')}',style:TextStyle(fontSize:11,color:dark?Colors.white:Colors.black87))])),ElevatedButton(onPressed:d['available']==true?()=>_startConsultation(d):null,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:Text(_localizedUiText(context, 'ابدأ')))]));}
 }
 
 String _localizedUiText(BuildContext context, String value) =>
