@@ -1,5 +1,4 @@
 import 'package:sehatak/core/services/local_ai/local_intent_engine.dart';
-import 'package:sehatak/core/services/local_ai/medical_safety_engine.dart';
 
 /// Conservative natural-language symptom interpreter. It identifies symptoms
 /// and urgency; it does not diagnose or recommend medication.
