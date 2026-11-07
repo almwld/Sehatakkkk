@@ -170,7 +170,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     try {
       await ChatNavigation.openChat(
         context,
-        doctorName: doctor.name,
+        doctorName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
         doctorId: doctor.userId ?? '',
         doctorImage: doctor.photoUrl,
       );
@@ -210,7 +210,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
       final call = await _callService.initiateCall(
         receiverId: doctorUid,
-        receiverName: doctor.name,
+        receiverName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
         receiverPhotoUrl: doctor.photoUrl,
         type: video ? CallType.video : CallType.audio,
         chatId: chatId,
@@ -226,7 +226,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         MaterialPageRoute(
           builder: (_) => CallScreen(
             chatId: chatId,
-            doctorName: doctor.name,
+            doctorName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
             doctorId: doctorUid,
             isVideo: video,
             callId: call.id,
@@ -361,7 +361,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(doctor.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: dark ? Colors.white : const Color(0xFF263238)))),
+                    Expanded(child: Text(doctor.localized('name', AppStrings.of(context).locale.languageCode), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: dark ? Colors.white : const Color(0xFF263238)))),
                     if (doctor.isVerified == true) const Padding(padding: EdgeInsetsDirectional.only(start: 5), child: Icon(Icons.verified_rounded, color: AppColors.primary, size: 19)),
                   ],
                 ),
@@ -504,7 +504,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           ],
           _sectionTitle(AppStrings.of(context).translate('المعلومات المهنية'), Icons.badge_outlined, dark),
           _card(dark, Column(children: [
-            _infoRow(Icons.medical_services_outlined, _t('التخصص'), AppStrings.of(context).translate(doctor.specialty), dark),
+            _infoRow(Icons.medical_services_outlined, _t('التخصص'), AppStrings.of(context).translate(doctor.localized('specialty', AppStrings.of(context).locale.languageCode)), dark),
             _infoRow(Icons.workspace_premium_outlined, _t('الخبرة'), '${doctor.experienceYears ?? 0} ${_t('سنة')}', dark),
             _infoRow(Icons.payments_outlined, _t('رسوم الكشف'), AppStrings.of(context).formatCurrency(doctor.consultationFee ?? 0), dark),
             if (doctor.localized('hospital', AppStrings.of(context).locale.languageCode).isNotEmpty) _infoRow(Icons.local_hospital_outlined, _t('المستشفى'), doctor.localized('hospital', AppStrings.of(context).locale.languageCode), dark),
