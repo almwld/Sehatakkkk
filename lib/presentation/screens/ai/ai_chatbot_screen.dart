@@ -25,12 +25,12 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
   final LocalStorageService _historyStore=LocalStorageService();
   String _sessionId='assistant_guest_v1'; bool _historyReady=false; bool _historyLoading=false;
   static const _quick=<Map<String,String>>[
-    {'title':'أعراضي','prompt_ar':'اشعر ب حمى وعندي غثيان','prompt_en':'I have a fever and nausea','prompt_fr':'J’ai de la fièvre et des nausées'},
-    {'title':'طبيب','prompt_ar':'أريد طبيباً مناسباً','prompt_en':'I want to find a suitable doctor','prompt_fr':'Je veux trouver un médecin adapté'},
-    {'title':'دواء','prompt_ar':'أريد معلومات آمنة عن دواء','prompt_en':'I need safe information about a medicine','prompt_fr':'Je veux des informations fiables sur un médicament'},
-    {'title':'تحاليل','prompt_ar':'أين أجد التحاليل؟','prompt_en':'Where can I find laboratory tests?','prompt_fr':'Où puis-je trouver un laboratoire ?'},
-    {'title':'خدمات التطبيق','prompt_ar':'عرفني بخدمات صحتك','prompt_en':'Show me Sehatak services','prompt_fr':'Présentez-moi les services de Sehatak'},
-    {'title':'مساعدة','prompt_ar':'أحتاج مساعدة من داخل التطبيق','prompt_en':'I need help using the app','prompt_fr':'J’ai besoin d’aide pour utiliser l’application'},
+    {'title':'أعراضي','title_en':'My symptoms','title_fr':'Mes symptômes','prompt_ar':'اشعر ب حمى وعندي غثيان','prompt_en':'I have a fever and nausea','prompt_fr':'J’ai de la fièvre et des nausées'},
+    {'title':'طبيب','title_en':'Doctor','title_fr':'Médecin','prompt_ar':'أريد طبيباً مناسباً','prompt_en':'I want to find a suitable doctor','prompt_fr':'Je veux trouver un médecin adapté'},
+    {'title':'دواء','title_en':'Medicine','title_fr':'Médicament','prompt_ar':'أريد معلومات آمنة عن دواء','prompt_en':'I need safe information about a medicine','prompt_fr':'Je veux des informations fiables sur un médicament'},
+    {'title':'تحاليل','title_en':'Lab tests','title_fr':'Analyses','prompt_ar':'أين أجد التحاليل؟','prompt_en':'Where can I find laboratory tests?','prompt_fr':'Où puis-je trouver un laboratoire ?'},
+    {'title':'خدمات التطبيق','title_en':'App services','title_fr':'Services de l’application','prompt_ar':'عرفني بخدمات صحتك','prompt_en':'Show me Sehatak services','prompt_fr':'Présentez-moi les services de Sehatak'},
+    {'title':'مساعدة','title_en':'Help','title_fr':'Aide','prompt_ar':'أحتاج مساعدة من داخل التطبيق','prompt_en':'I need help using the app','prompt_fr':'J’ai besoin d’aide pour utiliser l’application'},
   ];
 
   @override void initState(){super.initState();_restoreHistory();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
@@ -78,7 +78,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
       boxShadow:const[BoxShadow(blurRadius:5,color:Color(0x11000000))],
     ),
     child:Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisSize:MainAxisSize.min,children:[
-      Text(_t('أسئلة مقترحة'),style:TextStyle(fontWeight:FontWeight.w600,fontSize:12,color:dark?Colors.white70:Colors.black54)),
+      Text(AppStrings.of(context).locale.languageCode=='fr'?'Questions suggérées':(AppStrings.of(context).locale.languageCode=='en'?'Suggested questions':'أسئلة مقترحة'),style:TextStyle(fontWeight:FontWeight.w600,fontSize:12,color:dark?Colors.white70:Colors.black54)),
       const SizedBox(height:5),
       SizedBox(height:36,child:ListView.separated(
         scrollDirection:Axis.horizontal,
@@ -87,7 +87,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
         itemBuilder:(_,i)=>ActionChip(
           visualDensity:VisualDensity.compact,
           avatar:const Icon(Icons.chat_bubble_outline,size:14),
-          label:Text(_t(_quick[i]['title']!),style:const TextStyle(fontSize:11)),
+          label:Text(AppStrings.of(context).locale.languageCode=='fr'?_quick[i]['title_fr']!:(AppStrings.of(context).locale.languageCode=='en'?_quick[i]['title_en']!:_quick[i]['title']!),style:const TextStyle(fontSize:11)),
           onPressed:()=>_send(_quick[i][AppStrings.of(context).locale.languageCode=='fr'?'prompt_fr':(AppStrings.of(context).locale.languageCode=='en'?'prompt_en':'prompt_ar')]!),
         ),
       )),
