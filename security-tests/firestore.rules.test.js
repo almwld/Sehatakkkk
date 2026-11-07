@@ -325,3 +325,37 @@ test('blood donor registration is tied to the signed-in account', async () => {
   await assertFails(updateDoc(doc(other, 'blood_donors/owned'), { phone: '111' }));
   await assertSucceeds(getDoc(doc(other, 'blood_donors/owned')));
 });
+
+test('community publishing is restricted to verified doctors', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/doctor-1'), { uid: 'doctor-1', role: 'doctor', isVerified: true });
+    await setDoc(doc(db, 'users/patient-b'), { uid: 'patient-b', role: 'patient', isVerified: false });
+  });
+  const doctor = env.authenticatedContext('doctor-1').firestore();
+  const patient = env.authenticatedContext('patient-b').firestore();
+  await assertSucceeds(setDoc(doc(doctor, 'community_posts/doctor-post'), { userId: 'doctor-1', title: 'Health note', content: 'Educational content', isPublished: true, likes: 0, comments: 0, shares: 0 }));
+  await assertFails(setDoc(doc(patient, 'community_posts/patient-post'), { userId: 'patient-b', title: 'Post', content: 'Not authorized', isPublished: true }));
+});
+
+test('community likes require an atomic owned liked-post edge and counters only increment by one', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'community_posts/post-1'), { userId: 'doctor-1', title: 'Post', likes: 0, comments: 0, shares: 0 });
+  });
+  const patient = env.authenticatedContext('patient-b').firestore();
+  const other = env.authenticatedContext('patient-a').firestore();
+  const postRef = doc(patient, 'community_posts/post-1');
+  const likeRef = doc(patient, 'users/patient-b/liked_posts/post-1');
+  await assertFails(updateDoc(postRef, { likes: 1 }));
+  const likeBatch = writeBatch(patient);
+  likeBatch.set(likeRef, { postId: 'post-1' });
+  likeBatch.update(postRef, { likes: 1 });
+  await assertSucceeds(likeBatch.commit());
+  const unlikeBatch = writeBatch(patient);
+  unlikeBatch.delete(likeRef);
+  unlikeBatch.update(postRef, { likes: 0 });
+  await assertSucceeds(unlikeBatch.commit());
+  await assertFails(updateDoc(doc(other, 'community_posts/post-1'), { shares: 50 }));
+  await assertSucceeds(updateDoc(doc(other, 'community_posts/post-1'), { shares: 1 }));
+  await assertSucceeds(updateDoc(doc(other, 'community_posts/post-1'), { comments: 1 }));
+});
