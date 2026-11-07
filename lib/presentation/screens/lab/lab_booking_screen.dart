@@ -111,7 +111,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(_s(_lab!['name']), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
+          Text(_field(_lab!, 'name'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)),
           const SizedBox(height: 16),
           ..._tests.map((test) {
             final id = _s(test['id']);
