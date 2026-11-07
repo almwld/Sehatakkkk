@@ -10,6 +10,7 @@ import 'package:sehatak/core/models/status_model.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/screens/edit_profile/edit_profile_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
+import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/favorites/favorite_doctors_screen.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
@@ -143,6 +144,7 @@ class _PatientProfileState extends State<PatientProfile> {
 
   void _favoriteDoctors() => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteDoctorsScreen()));
   void _settings() => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+  void _verification() => Navigator.push(context, MaterialPageRoute(builder: (_) => const VerificationScreen()));
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +162,7 @@ class _PatientProfileState extends State<PatientProfile> {
         elevation: 0,
         actions: [
           if (_isOwnProfile) IconButton(icon: LocalAssetIcon(AppImages.uiEditButton, color: Colors.white, size: 22), onPressed: _edit),
-          if (_isOwnProfile) IconButton(icon: LocalAssetIcon(AppImages.uiSettingsGear, color: Colors.white, size: 22), onPressed: _settings),
+          if (_isOwnProfile) IconButton(tooltip: AppStrings.of(context).translate('توثيق الحساب'), icon: const Icon(Icons.verified_user_rounded, size: 23), onPressed: _verification),
         ],
       ),
       body: _loading
