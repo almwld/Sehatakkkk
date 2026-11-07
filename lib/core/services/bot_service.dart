@@ -1,6 +1,8 @@
-import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/services/local_ai/local_medical_ai.dart';
+import 'package:sehatak/core/services/local_ai/local_medical_ai.dart';
+import 'package:sehatak/core/services/local_ai/medical_knowledge_catalog.dart';
+import 'package:sehatak/core/services/local_ai/medical_safety_engine.dart';
+import 'package:sehatak/core/services/local_ai/symptom_interpreter.dart';
 import 'package:sehatak/core/services/local_storage_service.dart';
 
 class BotService {
@@ -18,12 +20,10 @@ class BotService {
     await _storage.initialize();
   }
 
-  // ============================================================
-  // 💬 معالجة الرسائل
-  // ============================================================
-
-  Future<Map<String, dynamic>> processMessage(String message) async {
-    // ✅ حفظ رسالة المستخدم
+  Future<Map<String, dynamic>> processMessage(
+    String message, {
+    String languageCode = 'ar',
+  }) async {
     await _storage.saveMessage(
       sessionId: _sessionId,
       message: message,
@@ -31,12 +31,10 @@ class BotService {
       type: 'user',
     );
 
-    // ✅ معالجة الرسالة
-    final response = _chatBot.respond(message);
-    final reply = response['response'] as String;
-    final type = response['type'] as String;
+    final response = _chatBot.respond(message, languageCode: languageCode);
+    final reply = response['response']?.toString() ?? '';
+    final type = response['type']?.toString() ?? 'assistant';
 
-    // ✅ حفظ رد البوت
     await _storage.saveMessage(
       sessionId: _sessionId,
       message: reply,
@@ -45,74 +43,58 @@ class BotService {
     );
 
     return {
+      ...response,
       'response': reply,
       'type': type,
       'timestamp': DateTime.now().toIso8601String(),
     };
   }
 
-  // ============================================================
-  // 📊 تحليل الأعراض
-  // ============================================================
-
-  Map<String, dynamic> analyzeSymptoms(String symptoms) {
-    final triageEngine = TriageEngine();
-    return triageEngine.predict(symptoms);
+  Map<String, dynamic> analyzeSymptoms(
+    String symptoms, {
+    String languageCode = 'ar',
+  }) {
+    final safety = MedicalSafetyEngine.assess(
+      symptoms,
+      languageCode: languageCode,
+    );
+    if (safety.emergency) {
+      return {'response': safety.response, 'type': 'emergency'};
+    }
+    return SymptomInterpreter.analyze(
+          symptoms,
+          languageCode: languageCode,
+        ) ??
+        {
+          'response': languageCode == 'fr'
+              ? 'Décrivez les symptômes, leur durée et leur intensité.'
+              : (languageCode == 'en'
+                  ? 'Describe the symptoms, how long they have lasted, and their severity.'
+                  : 'اذكر الأعراض ومدتها وشدتها.');
+          'type': 'clarification',
+        };
   }
 
-  // ============================================================
-  // 📋 الحصول على المحادثة
-  // ============================================================
+  Future<List<Map<String, dynamic>>> getConversation() =>
+      _storage.getConversation(_sessionId);
 
-  Future<List<Map<String, dynamic>>> getConversation() async {
-    return await _storage.getConversation(_sessionId);
-  }
+  Future<void> clearConversation() => _storage.clearConversation(_sessionId);
 
-  // ============================================================
-  // 🗑️ مسح المحادثة
-  // ============================================================
+  String? getDrugInfo(String drugName) => _chatBot.getMedicineInfo(drugName);
 
-  Future<void> clearConversation() async {
-    await _storage.clearConversation(_sessionId);
-  }
-
-  // ============================================================
-  // 💊 معلومات الدواء
-  // ============================================================
-
-  String? getDrugInfo(String drugName) {
-    return _chatBot.getDrugInfoByName(drugName);
-  }
-
-  // ============================================================
-  // 🩺 معلومات المرض
-  // ============================================================
-
-  String? getDiseaseInfo(String diseaseName) {
-    return _chatBot.getDiseaseInfoByName(diseaseName);
-  }
-
-  // ============================================================
-  // 💡 نصيحة عشوائية
-  // ============================================================
+  String? getDiseaseInfo(String diseaseName) => _chatBot.getDiseaseInfo(diseaseName);
 
   String getRandomTip() {
-    return _chatBot.getRandomTip();
+    final answer = MedicalKnowledgeCatalog.answer('النشاط البدني', 'ar');
+    return answer?['response'] ??
+        'ابدأ بنشاط بدني خفيف يناسب قدرتك، وزد المدة تدريجياً.';
   }
 
-  // ============================================================
-  // 📊 إحصائيات
-  // ============================================================
+  Map<String, dynamic> getStatistics() => {
+        'catalog_topics': MedicalKnowledgeCatalog.entries.length,
+        'languages': const ['ar', 'en', 'fr'],
+        'clinical_review_pending': true,
+      };
 
-  Map<String, dynamic> getStatistics() {
-    return _chatBot.getStatistics();
-  }
-
-  // ============================================================
-  // 🗑️ تنظيف
-  // ============================================================
-
-  void dispose() {
-    _storage.dispose();
-  }
+  void dispose() => _storage.dispose();
 }
