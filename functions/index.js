@@ -450,10 +450,13 @@ exports.updateDeliveryTracking = onCall(async (request) => {
     const companySnap = await tx.get(companyRef);
     if (!companySnap.exists) throw new HttpsError('not-found', 'شركة التوصيل غير موجودة');
     const company = companySnap.data() || {};
+    if (String(order.deliveryCompanyId || '') !== companyId || String(order.userId || '') !== String(delivery.userId || '')) throw new HttpsError('failed-precondition', 'سجل التوصيل غير مرتبط بالطلب المحدد');
     const adminUser = await isAdmin(uid);
     if (!adminUser && !isDeliveryCompanyOwner(company, uid, companyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية تحديث هذا التوصيل');
     if (company.isActive !== true && !adminUser) throw new HttpsError('failed-precondition', 'شركة التوصيل غير نشطة');
     if (!canDeliveryTransition(String(delivery.status || ''), nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال إلى حالة التوصيل المطلوبة');
+    if (nextStatus === 'picked_up' && order.status !== 'ready') throw new HttpsError('failed-precondition', 'يجب أن يكون الطلب جاهزاً قبل استلامه');
+    if (['in_transit', 'delivered'].includes(nextStatus) && order.status !== 'delivering') throw new HttpsError('failed-precondition', 'حالة الطلب لا تسمح بتحديث مرحلة التوصيل');
     const now = FieldValue.serverTimestamp();
     const step = nextStatus === 'picked_up' ? 2 : nextStatus === 'in_transit' ? 3 : 4;
     tx.update(deliveryRef, {
