@@ -294,18 +294,29 @@ class MedicalKnowledgeCatalog {
   static Map<String, String>? answer(String input, String languageCode) {
     final query = normalize(input);
     if (query.isEmpty) return null;
+
+    Map<String, dynamic>? bestEntry;
+    var bestAliasLength = 0;
     for (final entry in entries) {
       final aliases = (entry['aliases'] as List).cast<String>();
-      if (!aliases.any((alias) => query.contains(normalize(alias)))) continue;
-      final language = languageCode == 'fr' ? 'fr' : (languageCode == 'en' ? 'en' : 'ar');
-      return {
-        'response': entry[language] as String,
-        'type': entry['id'] as String,
-        'source': entry['source'] as String,
-        'source_url': entry['url'] as String,
-        'review_status': entry['review'] as String,
-      };
+      for (final alias in aliases) {
+        final normalizedAlias = normalize(alias);
+        if (normalizedAlias.isEmpty || !query.contains(normalizedAlias)) continue;
+        if (normalizedAlias.length > bestAliasLength) {
+          bestEntry = entry;
+          bestAliasLength = normalizedAlias.length;
+        }
+      }
     }
-    return null;
+
+    if (bestEntry == null) return null;
+    final language = languageCode == 'fr' ? 'fr' : (languageCode == 'en' ? 'en' : 'ar');
+    return {
+      'response': bestEntry[language] as String,
+      'type': bestEntry['id'] as String,
+      'source': bestEntry['source'] as String,
+      'source_url': bestEntry['url'] as String,
+      'review_status': bestEntry['review'] as String,
+    };
   }
 }
