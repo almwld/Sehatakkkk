@@ -3,6 +3,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/call_service.dart';
@@ -125,7 +126,7 @@ class _CallScreenState extends State<CallScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  widget.isOutgoing ? 'جاري الاتصال...' : 'يتصل بك...',
+                  AppStrings.of(context).translate(widget.isOutgoing ? 'جاري الاتصال...' : 'يتصل بك...'),
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[400],
@@ -138,7 +139,7 @@ class _CallScreenState extends State<CallScreen>
                   children: [
                     _buildControlButton(
                       icon: _isMuted ? Icons.mic_off : Icons.mic,
-                      label: _isMuted ? 'كتم' : 'ميكروفون',
+                      label: AppStrings.of(context).translate(_isMuted ? 'كتم' : 'ميكروفون'),
                       color: _isMuted ? Colors.red : Colors.blue,
                       onTap: () {
                         setState(() => _isMuted = !_isMuted);
@@ -165,7 +166,7 @@ class _CallScreenState extends State<CallScreen>
                     if (!widget.isVideo)
                       _buildControlButton(
                         icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
-                        label: _isSpeakerOn ? 'مكبر' : 'سماعة',
+                        label: AppStrings.of(context).translate(_isSpeakerOn ? 'مكبر' : 'سماعة'),
                         color: _isSpeakerOn ? Colors.blue : Colors.grey,
                         onTap: () {
                           setState(() => _isSpeakerOn = !_isSpeakerOn);
