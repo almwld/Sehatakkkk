@@ -4895,6 +4895,9 @@ class AppStrings {
       'تعذر تحميل الأدوية حالياً': ['Could not load medicines right now', 'Impossible de charger les médicaments pour le moment'],
       'ابحث عن دواء...': ['Search for a medicine...', 'Rechercher un médicament...'],
       'لا توجد أدوية متاحة حالياً': ['No medicines are currently available', 'Aucun médicament n’est disponible pour le moment'],
+      'اضغط مرة أخرى للخروج من التطبيق': ['Press back again to exit the app', 'Appuyez de nouveau pour quitter l’application'],
+      'هل تريد بدء هذه العملية مع جهة الاتصال؟': ['Do you want to start this action with the contact?', 'Voulez-vous lancer cette action avec le contact ?'],
+      'جاري تنفيذ: ': ['Executing: ', 'Exécution de : '],
     };
 
 
