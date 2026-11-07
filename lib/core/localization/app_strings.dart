@@ -5010,6 +5010,8 @@ class AppStrings {
 
       'تحليل شامل لمكونات الدم': ['Comprehensive blood count test', 'Hémogramme complet'],
 
+      'يجب تسجيل الدخول لعرض تقاريرك الصحية': ['You must sign in to view your health reports', 'Vous devez vous connecter pour consulter vos rapports de santé'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
