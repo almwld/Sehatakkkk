@@ -99,6 +99,13 @@ service cloud.firestore {
         allow update: if false;
       }
 
+      match /liked_posts/{postId} {
+        allow read: if isSelf(userId);
+        allow create: if isSelf(userId) && request.resource.data.postId == postId;
+        allow delete: if isSelf(userId);
+        allow update: if false;
+      }
+
       // Public social graph used by the canonical profile screen.
       // Each user can only mutate their own following edge; the target
       // follower edge is writable only by the follower who owns that edge.
@@ -551,10 +558,29 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════
     match /community_posts/{postId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow delete: if isAdmin() 
-        || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "doctor"
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isVerified == true;
+      allow update: if isAdmin() || (isSignedIn() && (
+        resource.data.userId == request.auth.uid
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likes"])
+          && resource.data.likes is int && request.resource.data.likes is int
+          && request.resource.data.likes >= 0
+          && (
+            (request.resource.data.likes == resource.data.likes + 1
+              && !exists(/databases/$(database)/documents/users/$(request.auth.uid)/liked_posts/$(postId))
+              && existsAfter(/databases/$(database)/documents/users/$(request.auth.uid)/liked_posts/$(postId)))
+            || (request.resource.data.likes == resource.data.likes - 1
+              && exists(/databases/$(database)/documents/users/$(request.auth.uid)/liked_posts/$(postId))
+              && !existsAfter(/databases/$(database)/documents/users/$(request.auth.uid)/liked_posts/$(postId)))
+          ))
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["shares"])
+          && resource.data.shares is int && request.resource.data.shares == resource.data.shares + 1)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["comments"])
+          && resource.data.comments is int && request.resource.data.comments == resource.data.comments + 1)
+      ));
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
     match /comments/{commentId} {
