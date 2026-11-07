@@ -42,7 +42,7 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
       },
       onError: (error) {
         setState(() {
-          _text = 'حدث خطأ: $error';
+          _text = '${AppStrings.of(context).translate('حدث خطأ:')} $error';
           _isListening = false;
         });
       },
