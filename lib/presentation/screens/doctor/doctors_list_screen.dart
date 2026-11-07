@@ -114,7 +114,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
       MaterialPageRoute(
         builder: (_) => CallScreen(
           chatId: chatId,
-          doctorName: doctor.name,
+          doctorName: doctor.localized('name', AppStrings.of(context).locale.languageCode),
           doctorId: doctorUid,
           isVideo: isVideo,
           isOutgoing: true,
@@ -410,7 +410,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        doctor.name,
+                        doctor.localized('name', AppStrings.of(context).locale.languageCode),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -453,7 +453,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
-                      if ((doctor.hospital ?? '').trim().isNotEmpty) ...[
+                      if (doctor.localized('hospital', AppStrings.of(context).locale.languageCode).trim().isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
                           doctor.localized('hospital', AppStrings.of(context).locale.languageCode),
