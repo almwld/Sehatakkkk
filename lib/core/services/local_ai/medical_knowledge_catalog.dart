@@ -147,16 +147,6 @@ class MedicalKnowledgeCatalog {
     },,
 
     {
-      'id': 'hypertension',
-      'aliases': ['ارتفاع ضغط الدم','ضغط مرتفع','الضغط عالي','ضغطي مرتفع','ضغط الدم','hypertension','high blood pressure','tension arterielle','tension élevée'],
-      'ar': 'قد لا يسبب ارتفاع ضغط الدم أعراضاً؛ القياس المتكرر لدى مختص هو الطريقة لمعرفة ذلك. قد تزيد المخاطر مع كثرة الملح، وقلة الحركة، والتدخين، وزيادة الوزن. قلّل الملح، وتحرك بانتظام، ولا توقف دواءً موصوفاً دون مراجعة الطبيب. التشخيص وخطة العلاج يحددهما مختص صحي.',
-      'en': 'High blood pressure often causes no symptoms; repeated measurement by a health professional is how it is detected. Risk can increase with excess salt, inactivity, tobacco and excess weight. Limit salt, stay active, and do not stop prescribed medicine without medical advice. A health professional must confirm the diagnosis and care plan.',
-      'fr': 'L’hypertension ne provoque souvent aucun symptôme ; des mesures répétées par un professionnel permettent de la détecter. Le risque augmente notamment avec l’excès de sel, l’inactivité, le tabac et le surpoids. Limitez le sel, restez actif et n’arrêtez pas un traitement prescrit sans avis médical. Le diagnostic et le suivi relèvent d’un professionnel.',
-      'source': 'WHO — Hypertension fact sheet',
-      'url': 'https://www.who.int/news-room/fact-sheets/detail/hypertension',
-      'review': 'editorial_source_checked_clinician_review_pending'
-    },
-    {
       'id': 'diabetes',
       'aliases': ['السكري','مرض السكر','داء السكري','سكر الدم','عندي سكر','diabetes','blood sugar','diabete','glycemie'],
       'ar': 'قد تشمل أعراض السكري العطش الشديد، وكثرة التبول، والتعب، وتشوش الرؤية، أو فقدان الوزن دون قصد. وقد تكون أعراض النوع الثاني خفيفة أو غير ملحوظة في البداية. لا تكفي الأعراض للتشخيص؛ يلزم فحص وتقييم طبي. اتبع خطة الرعاية المقررة ولا تغيّر الأدوية أو جرعاتها بنفسك.',
