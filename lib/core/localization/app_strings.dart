@@ -5266,6 +5266,8 @@ class AppStrings {
       'منظمة الصحة العالمية': ['World Health Organization', 'Organisation mondiale de la Santé'],
       'نيتشر': ['Nature', 'Nature'],
 
+      'رقم المريض غير متاح حالياً': ['Patient number is currently unavailable', 'Le numéro de patient est actuellement indisponible'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
