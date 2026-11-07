@@ -275,7 +275,17 @@ class _HomeTabState extends State<HomeTab>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Center(child: AppImage(imageUrl: imageUrl, height: 100, width: 100, fit: BoxFit.contain)),
+                          Center(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: AppImage(
+                                imageUrl: imageUrl,
+                                height: 100,
+                                width: 100,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 6),
                           Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
                           const Spacer(),
