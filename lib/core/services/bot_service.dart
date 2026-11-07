@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/services/local_ai/local_medical_ai.dart';
 import 'package:sehatak/core/services/local_storage_service.dart';
 
@@ -12,7 +13,8 @@ class BotService {
   String _sessionId = '';
 
   Future<void> initialize({String? sessionId}) async {
-    _sessionId = sessionId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    _sessionId = sessionId ?? (uid == null ? 'bot_guest_v1' : 'bot_user_$uid');
     await _storage.initialize();
   }
 
