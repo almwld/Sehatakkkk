@@ -151,7 +151,7 @@ exports.checkoutCart = onCall(async (request) => {
 
     for (const [pharmacyId, rows] of orderGroups) {
       const pharmacy = pharmacies.get(pharmacyId).data() || {};
-      const ownerId = String(pharmacy.ownerId || pharmacy.userId || '');
+      const ownerId = String(pharmacy.ownerId || pharmacy.userId || pharmacyId);
       if (!ownerId) throw new HttpsError('failed-precondition', 'لا يوجد مالك موثق للصيدلية');
       const orderId = 'ord_' + digest(uid + '|' + keyDigest + '|' + pharmacyId).slice(0, 24);
       orderIds.push(orderId);
