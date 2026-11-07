@@ -426,6 +426,12 @@ class LocalStorageService {
       final diseaseCount = Sqflite.firstIntValue(
         await _database.rawQuery('SELECT COUNT(*) FROM diseases')
       ) ?? 0;
+      final firstAidCount = Sqflite.firstIntValue(
+        await _database.rawQuery('SELECT COUNT(*) FROM first_aid')
+      ) ?? 0;
+      final healthTipCount = Sqflite.firstIntValue(
+        await _database.rawQuery('SELECT COUNT(*) FROM health_tips')
+      ) ?? 0;
       final conversationCount = Sqflite.firstIntValue(
         await _database.rawQuery('SELECT COUNT(*) FROM conversations')
       ) ?? 0;
@@ -433,6 +439,8 @@ class LocalStorageService {
       return {
         'drugs': drugCount,
         'diseases': diseaseCount,
+        'first_aid': firstAidCount,
+        'health_tips': healthTipCount,
         'conversations': conversationCount,
       };
     } catch (e) {
