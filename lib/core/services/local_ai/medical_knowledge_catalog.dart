@@ -268,6 +268,87 @@ class MedicalKnowledgeCatalog {
       'url': 'https://www.who.int/news-room/fact-sheets/detail/sepsis',
       'review': 'editorial_source_checked_clinician_review_pending'
     },
+
+    {
+      'id': 'tuberculosis',
+      'aliases': ['السل','مرض السل','كحة مستمرة','سعال مستمر مع دم','تعرق ليلي مع سعال','tuberculosis','tb','persistent cough with blood','night sweats and weight loss','tuberculose','toux persistante avec sang'],
+      'ar': 'قد يسبب السل سعالا مطولاً، وأحياناً دماً مع السعال، وألم الصدر، والحمى، والتعرق الليلي، والتعب أو نقص الوزن. هذه العلامات لا تؤكد التشخيص؛ يلزم تقييم وفحص مناسب. اطلب الفحص سريعاً إذا استمر السعال أو ظهرت هذه الأعراض، وغطِّ الفم عند السعال وحافظ على تهوية المكان.',
+      'en': 'Tuberculosis may cause a prolonged cough, sometimes with blood, chest pain, fever, night sweats, fatigue or weight loss. These signs do not confirm TB; appropriate assessment and testing are needed. Seek testing promptly for a persistent cough or these symptoms, cover coughs and keep rooms well ventilated.',
+      'fr': 'La tuberculose peut provoquer une toux prolongée, parfois avec du sang, des douleurs thoraciques, de la fièvre, des sueurs nocturnes, de la fatigue ou une perte de poids. Ces signes ne confirment pas le diagnostic ; une évaluation et des tests sont nécessaires. Faites-vous dépister rapidement en cas de toux persistante, couvrez-vous la bouche en toussant et aérez les pièces.',
+      'source': 'WHO — Tuberculosis fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/tuberculosis',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'anaemia',
+      'aliases': ['فقر الدم','انيميا','أنيميا','نقص الهيموجلوبين','شحوب وتعب ودوخة','anaemia','anemia','low haemoglobin','low hemoglobin','anémie'],
+      'ar': 'قد يسبب فقر الدم التعب والدوخة وبرودة اليدين والقدمين والصداع وضيق النفس، لكن هذه الأعراض لها أسباب متعددة. تأكيد فقر الدم وتحديد سببه يحتاجان فحوص دم وتقييماً صحياً. لا تبدأ مكملات الحديد أو جرعات علاجية من نفسك؛ فليست كل أنواع فقر الدم بسبب نقص الحديد.',
+      'en': 'Anaemia may cause tiredness, dizziness, cold hands and feet, headache and shortness of breath, but these symptoms have many possible causes. Confirming anaemia and identifying its cause require blood tests and clinical assessment. Do not start iron supplements or treatment doses on your own; not all anaemia is caused by iron deficiency.',
+      'fr': 'L’anémie peut provoquer fatigue, vertiges, mains et pieds froids, maux de tête et essoufflement, mais ces symptômes ont de nombreuses causes possibles. La confirmation de l’anémie et l’identification de sa cause nécessitent des analyses sanguines et une évaluation médicale. Ne commencez pas de supplémentation en fer ni de dose thérapeutique sans avis médical ; toutes les anémies ne sont pas dues à une carence en fer.',
+      'source': 'WHO — Anaemia fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/ANAEMIA',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'kidney_disease',
+      'aliases': ['مرض الكلى','الكلى','قصور كلوي','فشل كلوي','تورم الساقين مع تعب','kidney disease','chronic kidney disease','kidney failure','maladie rénale','maladie rénale chronique','insuffisance rénale'],
+      'ar': 'قد لا يسبب مرض الكلى أعراضاً في مراحله المبكرة. يزداد الخطر مع السكري وارتفاع ضغط الدم وبعض أمراض القلب. قد تشمل العلامات المتأخرة تورم الساقين والتعب والحكة والغثيان أو ضيق النفس. يحتاج التقييم إلى فحوص يحددها الطبيب؛ لا توقف دواءً موصوفاً ولا تستخدم مسكنات أو أعشاباً بانتظام دون استشارة.',
+      'en': 'Kidney disease may cause no symptoms in its early stages. Risk is higher with diabetes, high blood pressure and some heart conditions. Later signs may include leg swelling, fatigue, itching, nausea or breathlessness. Assessment requires tests chosen by a clinician; do not stop prescribed medicines or regularly use painkillers or herbal products without advice.',
+      'fr': 'La maladie rénale peut ne provoquer aucun symptôme à ses débuts. Le risque est plus élevé en cas de diabète, d’hypertension ou de certaines maladies cardiaques. À un stade avancé, des signes peuvent inclure gonflement des jambes, fatigue, démangeaisons, nausées ou essoufflement. L’évaluation nécessite des examens prescrits par un professionnel ; n’arrêtez pas un traitement et n’utilisez pas régulièrement des antalgiques ou des plantes sans avis médical.',
+      'source': 'WHO — Kidney disease fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/kidney-disease',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'hepatitis_b',
+      'aliases': ['التهاب الكبد ب','التهاب الكبد الوبائي ب','فيروس الكبد ب','hepatitis b','hbv','hépatite b','hepatite b'],
+      'ar': 'التهاب الكبد B عدوى فيروسية تصيب الكبد وقد تصبح مزمنة من دون أعراض واضحة. لا يمكن تأكيدها بالأعراض؛ يلزم فحص دم. الوقاية تشمل التطعيم، وسلامة الدم والأدوات الحادة، وعدم مشاركة الإبر أو شفرات الحلاقة. الحوامل أو من خالطوا شخصاً مصاباً ينبغي أن يسألوا مقدم الرعاية عن الفحص والوقاية المناسبة.',
+      'en': 'Hepatitis B is a viral infection of the liver and can become chronic without obvious symptoms. Symptoms cannot confirm it; a blood test is needed. Prevention includes vaccination, safe blood and sharp-instrument practices, and never sharing needles or razors. Pregnant people or close contacts of someone with hepatitis B should ask a health professional about testing and appropriate prevention.',
+      'fr': 'L’hépatite B est une infection virale du foie qui peut devenir chronique sans symptômes évidents. Les symptômes ne suffisent pas au diagnostic ; une analyse sanguine est nécessaire. La prévention comprend la vaccination, la sécurité du sang et des instruments tranchants, et l’absence de partage d’aiguilles ou de rasoirs. Les femmes enceintes et les proches d’une personne infectée doivent demander conseil pour le dépistage et la prévention.',
+      'source': 'WHO — Hepatitis B fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/hepatitis-B/',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'hiv',
+      'aliases': ['فيروس نقص المناعة','الايدز','الإيدز','فحص hiv','hiv','aids','hiv test','dépistage vih','vih'],
+      'ar': 'فيروس نقص المناعة البشرية يؤثر في جهاز المناعة، وقد لا تظهر أعراض واضحة في البداية. لا يمكن معرفة الحالة من المظهر أو الأعراض؛ الفحص هو الطريق لمعرفة ذلك. لا ينتقل الفيروس بالمصافحة أو العناق أو مشاركة الطعام. توجد وسائل فعالة للوقاية والعلاج؛ اطلب معلومات سرية من مقدم رعاية موثوق ولا توقف علاجاً موصوفاً.',
+      'en': 'HIV affects the immune system and may cause no obvious early symptoms. A person’s status cannot be known from appearance or symptoms; testing is the way to know. HIV is not spread by handshakes, hugs or sharing food. Effective prevention and treatment are available; seek confidential advice from a trusted health service and do not stop prescribed treatment.',
+      'fr': 'Le VIH affecte le système immunitaire et peut ne provoquer aucun symptôme évident au début. Le statut ne peut pas être déterminé par l’apparence ou les symptômes ; seul le dépistage permet de le connaître. Le VIH ne se transmet pas par une poignée de main, une accolade ou le partage de nourriture. Des moyens efficaces de prévention et de traitement existent ; demandez conseil en toute confidentialité à un service de santé fiable et n’interrompez pas un traitement prescrit.',
+      'source': 'WHO — HIV and AIDS fact sheet',
+      'url': 'https://www.who.int/en/news-room/fact-sheets/detail/hiv-aids',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'depression',
+      'aliases': ['اكتئاب','مكتئب','حزن مستمر','فقدان الرغبة','ما عاد استمتع بشي','depression','depressed mood','loss of interest','dépression','perte d’intérêt'],
+      'ar': 'قد يظهر الاكتئاب في صورة مزاج منخفض أو فقدان الاهتمام والمتعة معظم الأيام لمدة أسبوعين أو أكثر، مع اضطراب النوم أو الشهية أو التركيز أو الشعور باليأس. لا يمكن تشخيصه من رسالة واحدة، لكنه قابل للعلاج. تحدث مع مختص صحي أو شخص تثق به. إذا راودتك أفكار لإيذاء نفسك أو كنت في خطر مباشر، اطلب مساعدة الطوارئ المحلية الآن وابقَ مع شخص تثق به.',
+      'en': 'Depression may involve low mood or loss of interest or pleasure most days for two weeks or more, alongside changes in sleep, appetite or concentration, or hopelessness. One message cannot diagnose it, but effective care is available. Speak with a health professional or someone you trust. If you may harm yourself or are in immediate danger, contact local emergency services now and stay with someone you trust.',
+      'fr': 'La dépression peut se manifester par une humeur basse ou une perte d’intérêt ou de plaisir presque chaque jour pendant au moins deux semaines, avec des changements du sommeil, de l’appétit ou de la concentration, ou un sentiment de désespoir. Un message ne permet pas de poser un diagnostic, mais des soins efficaces existent. Parlez à un professionnel de santé ou à une personne de confiance. Si vous risquez de vous faire du mal ou êtes en danger immédiat, contactez les secours locaux maintenant et restez avec une personne de confiance.',
+      'source': 'WHO — Depressive disorder (depression) fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/depression',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'oral_health',
+      'aliases': ['صحة الفم','وجع الاسنان','وجع الأسنان','الم ضرس','ألم ضرس','نزيف اللثة','oral health','toothache','tooth pain','santé bucco-dentaire','mal de dents'],
+      'ar': 'للعناية بصحة الفم، نظّف الأسنان مرتين يومياً بمعجون يحتوي على الفلورايد، وقلّل السكريات، وراجع طبيب الأسنان بانتظام. ألم الأسنان أو تورم اللثة يحتاج تقييماً لدى طبيب أسنان. تورم الوجه أو الرقبة المصحوب بصعوبة التنفس أو البلع حالة طارئة.',
+      'en': 'For oral health, brush twice daily with fluoride toothpaste, limit free sugars and attend regular dental checks. Toothache or gum swelling needs dental assessment. Facial or neck swelling with difficulty breathing or swallowing is an emergency.',
+      'fr': 'Pour préserver la santé bucco-dentaire, brossez-vous les dents deux fois par jour avec un dentifrice fluoré, limitez les sucres libres et consultez régulièrement un dentiste. Une douleur dentaire ou un gonflement des gencives nécessite un examen dentaire. Un gonflement du visage ou du cou accompagné de difficultés à respirer ou à avaler est une urgence.',
+      'source': 'WHO — Oral health fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/oral-health',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'child_malnutrition',
+      'aliases': ['سوء تغذية الطفل','هزال الطفل','طفل نحيف جدا','تورم قدمي الطفل','سوء التغذية','child malnutrition','child wasting','nutritional oedema','malnutrition infantile','malnutrition de l’enfant'],
+      'ar': 'قد يشير الهزال الواضح أو ضعف زيادة الوزن أو تورم القدمين لدى الطفل إلى سوء تغذية يحتاج تقييماً سريعاً. لا تعتمد على الشكل وحده ولا تبدأ حمية أو مكملات علاجية من نفسك. اطلب فحصاً لدى مرفق صحي، وبشكل عاجل إذا كان الطفل لا يستطيع الأكل أو الشرب، أو خاملاً بشدة، أو يعاني صعوبة التنفس أو الجفاف.',
+      'en': 'Visible wasting, poor weight gain or swelling of a child’s feet may indicate malnutrition and needs prompt assessment. Appearance alone cannot establish the diagnosis; do not start a restrictive diet or therapeutic supplements yourself. Seek assessment at a health facility, urgently if the child cannot eat or drink, is very lethargic, has breathing difficulty or dehydration.',
+      'fr': 'Un amaigrissement visible, une faible prise de poids ou un gonflement des pieds chez un enfant peuvent signaler une malnutrition nécessitant une évaluation rapide. L’apparence seule ne permet pas de poser le diagnostic ; ne commencez pas de régime restrictif ni de supplément thérapeutique sans avis. Consultez un établissement de santé, en urgence si l’enfant ne peut ni manger ni boire, est très léthargique, respire difficilement ou présente une déshydratation.',
+      'source': 'WHO — Malnutrition fact sheet; WHO/UNICEF 2026 wasting and nutritional oedema guidance',
+      'url': 'https://www.who.int/en/news-room/fact-sheets/detail/malnutrition',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
   ];
 
   static String normalize(String value) => value
