@@ -54,6 +54,11 @@ router.post('/', upload.single('file'), async (req, res) => {
     if (String(product.pharmacyId || '') !== pharmacyId || product.requiresPrescription !== true && product.prescriptionRequired !== true) {
       return res.status(400).json({ success: false, message: 'This product is not linked to this pharmacy or does not require a prescription.' });
     }
+    const sellerId = String(product.sellerId || '');
+    const authorizedSellers = [pharmacy.ownerId, pharmacy.userId, pharmacyId].map(value => String(value || '')).filter(Boolean);
+    if (sellerId && !authorizedSellers.includes(sellerId) && !(sellerId === 'sehatak' && product.sellerType === 'platform')) {
+      return res.status(403).json({ success: false, message: 'The product seller is not authorized by this pharmacy.' });
+    }
     if (product.approvalStatus !== 'approved' || product.isPublished !== true || product.isActive !== true || pharmacy.status !== 'approved' || pharmacy.isActive === false) {
       return res.status(409).json({ success: false, message: 'The product or pharmacy is not currently available.' });
     }
