@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -20,6 +21,9 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
   final _searchCtrl = TextEditingController();
   String _filterType = 'الكل';
   String _t(String value) => AppStrings.of(context).translate(value);
+
+  String _localizedField(Map<String, dynamic> data, String field, {String fallback = ''}) =>
+      localizedField(data, field, AppStrings.of(context).locale, fallback: fallback);
   final _types = const ['الكل', 'تحاليل', 'أشعة', 'تقارير', 'وصفات'];
 
   @override
@@ -57,7 +61,7 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
             final docs = (snapshot.data?.docs ?? []).where((doc) {
               final d = doc.data();
               final typeOk = _filterType == 'الكل' || d['type']?.toString() == _filterType;
-              final text = '${d['title'] ?? ''} ${d['doctorName'] ?? ''}'.toLowerCase();
+              final text = '${_localizedField(d, 'title')} ${_localizedField(d, 'doctorName')}'.toLowerCase();
               return typeOk && (query.isEmpty || text.contains(query));
             }).toList();
             if (docs.isEmpty) return Center(child: Text(AppStrings.of(context).translate('لا توجد تقارير')));
@@ -73,9 +77,9 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
     final date = rawDate is Timestamp ? rawDate.toDate() : DateTime.now();
     return Card(margin: const EdgeInsets.only(bottom: 10), child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [Text(_t(data['type']?.toString() ?? 'تقرير'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), const Spacer(), Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 11, color: Colors.grey))]),
-      const SizedBox(height: 6), Text(data['title']?.toString() ?? _t('تقرير طبي'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 4), Text(data['doctorName']?.toString() ?? _t('طبيب'), style: const TextStyle(color: Colors.grey)),
-      if (data['notes'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(data['notes'].toString(), maxLines: 2, overflow: TextOverflow.ellipsis)),
+      const SizedBox(height: 6), Text(_localizedField(data, 'title', fallback: _t('تقرير طبي')), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 4), Text(_localizedField(data, 'doctorName', fallback: _t('طبيب')), style: const TextStyle(color: Colors.grey)),
+      if (data['notes'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(_localizedField(data, 'notes'), maxLines: 2, overflow: TextOverflow.ellipsis)),
       const SizedBox(height: 8), Text('${data['attachments'] ?? 0} ${_t('مرفق')}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
     ])));
   }
