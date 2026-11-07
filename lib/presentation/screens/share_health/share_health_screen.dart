@@ -77,7 +77,7 @@ class _ShareHealthScreenState extends State<ShareHealthScreen> {
               }).toList();
           _familyMembers = results[1].docs.map((d) => {
                 'id': d.id,
-                'name': (d.data()['name'] ?? d.data()['displayName'] ?? 'فرد من العائلة').toString(),
+                'name': (d.data()['name'] ?? d.data()['displayName'] ?? AppStrings.of(context).translate('فرد من العائلة')).toString(),
               }).toList();
           _hospitals = results[2].docs.map((d) => {
                 'id': d.id,

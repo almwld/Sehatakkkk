@@ -5012,6 +5012,23 @@ class AppStrings {
 
       'يجب تسجيل الدخول لعرض تقاريرك الصحية': ['You must sign in to view your health reports', 'Vous devez vous connecter pour consulter vos rapports de santé'],
 
+      'عندي صداع وحرارة': ['I have a headache and fever', 'J’ai mal à la tête et j’ai de la fièvre'],
+      'كم سعر الباقة': ['How much does the package cost?', 'Combien coûte le forfait ?'],
+      'كيف احجز موعد': ['How do I book an appointment?', 'Comment prendre un rendez-vous ?'],
+      'تحليل سريع:': ['Quick triage:', 'Évaluation rapide :'],
+      'الطب العصبي': ['Neurology', 'Neurologie'],
+      'الصدرية والقلب': ['Respiratory and cardiology', 'Pneumologie et cardiologie'],
+      'الجهاز الهضمي': ['Gastroenterology', 'Gastro-entérologie'],
+      'الجلدية': ['Dermatology', 'Dermatologie'],
+      'العظام والمفاصل': ['Orthopedics and joints', 'Orthopédie et articulations'],
+      'طب الأطفال': ['Pediatrics', 'Pédiatrie'],
+      'الطب العام': ['General practice', 'Médecine générale'],
+      '🚨 استشارة فورية أو زيارة مستشفى': ['Seek immediate medical advice or visit a hospital', 'Consultez immédiatement ou rendez-vous à l’hôpital'],
+      '📅 استشارة طبية خلال 24-48 ساعة': ['Medical consultation within 24–48 hours', 'Consultation médicale sous 24 à 48 heures'],
+      '🏠 مراقبة منزلية، راجع إذا استمرت': ['Monitor at home; seek care if symptoms persist', 'Surveillez à domicile ; consultez si les symptômes persistent'],
+      'فرد من العائلة': ['Family member', 'Membre de la famille'],
+      'حدث خطأ:': ['An error occurred:', 'Une erreur s’est produite :'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
