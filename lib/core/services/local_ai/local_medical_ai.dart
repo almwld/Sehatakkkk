@@ -4,7 +4,7 @@
 // 📊 إجمالي الأسطر: 4000+
 // ============================================================
 
-import 'package:sehatak/core/services/local_ai/curated_medical_knowledge.dart';
+import 'package:sehatak/core/services/local_ai/medical_knowledge_catalog.dart';
 import 'package:sehatak/core/services/local_ai/medical_safety_engine.dart';
 
 class ChatBot {
@@ -377,7 +377,7 @@ class ChatBot {
   // 🤖 استجابة ChatBot
   // ============================================================
   Map<String, dynamic> respond(String message, {String languageCode = 'ar'}) {
-    final curated = CuratedMedicalKnowledge.answerFor(message, languageCode);
+    final curated = MedicalKnowledgeCatalog.answer(message, languageCode);
     if (curated != null) return curated;
     final lowerMessage = _normalizeArabic(message);
     
@@ -484,6 +484,8 @@ class ChatBot {
   }
 
   String getDiseaseInfo(String diseaseName) {
+    final curated = MedicalKnowledgeCatalog.answer(diseaseName, 'ar');
+    if (curated != null) return curated['response'] ?? '';
     final lowerName = diseaseName.toLowerCase();
     for (final entry in _knowledgeBase.entries) {
       if (entry.key.toLowerCase() == lowerName) {
