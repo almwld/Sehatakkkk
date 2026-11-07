@@ -473,7 +473,6 @@ exports.updatePharmacyOrderStatus = onCall(async (request) => {
   const allowedStatuses = ['confirmed', 'preparing', 'ready', 'cancelled'];
   if (!allowedStatuses.includes(nextStatus)) throw new HttpsError('invalid-argument', 'حالة الطلب غير مسموحة من لوحة الصيدلية');
   const orderRef = db.collection('orders').doc(orderId);
-  let patientId = '';
   await db.runTransaction(async (tx) => {
     const orderSnap = await tx.get(orderRef);
     if (!orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
@@ -489,7 +488,6 @@ exports.updatePharmacyOrderStatus = onCall(async (request) => {
     const current = String(order.status || 'pending');
     if (!(PHARMACY_ORDER_TRANSITIONS[current] || []).includes(nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال من الحالة الحالية إلى الحالة المطلوبة');
     if (nextStatus === 'cancelled' && order.paymentStatus === 'paid') throw new HttpsError('failed-precondition', 'الطلب المدفوع يحتاج إلى إجراء استرداد موثق قبل الإلغاء');
-    patientId = String(order.userId || '');
     const now = FieldValue.serverTimestamp();
     const updates = {status: nextStatus, updatedAt: now, statusHistory: FieldValue.arrayUnion({status: nextStatus, actorId: uid, at: new Date().toISOString()})};
     if (nextStatus === 'confirmed') updates.confirmedAt = now;
