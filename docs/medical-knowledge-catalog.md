@@ -42,7 +42,8 @@ emergency services rather than displaying an unverified country-specific number.
 24. Pregnancy and postpartum danger signs, including pre-eclampsia
 25. Heatstroke
 26. Sepsis
-\n## Source register
+
+## Source register
 
 - American Heart Association and American Red Cross, 2024 First Aid Guidelines:
   https://cpr.heart.org/en/resuscitation-science/2024-first-aid-guidelines
