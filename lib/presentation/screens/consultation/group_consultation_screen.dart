@@ -111,7 +111,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  status,
+                  _t(status),
                   style: TextStyle(
                     fontSize: 9,
                     color: status == 'مفتوحة' ? AppColors.success : Colors.grey,
