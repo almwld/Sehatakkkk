@@ -207,6 +207,67 @@ class MedicalKnowledgeCatalog {
       'source': 'NHS — Headaches',
       'url': 'https://www.nhs.uk/symptoms/headaches/',
       'review': 'editorial_source_checked_clinician_review_pending'
+
+    {
+      'id': 'cholera',
+      'aliases': ['كوليرا','الكوليرا','اسهال مائي شديد','إسهال مائي شديد','براز مثل ماء الارز','براز مثل ماء الأرز','قيء واسهال شديد','cholera','severe watery diarrhoea','severe watery diarrhea','choléra','diarrhée aqueuse sévère'],
+      'ar': 'قد تسبب الكوليرا إسهالاً مائياً غزيراً وقيئاً وتجفافاً سريعاً. ابدأ محلول الإماهة الفموية الجاهز وفق تعليمات العبوة، واذهب إلى أقرب مرفق صحي أو مركز إماهة بسرعة. اطلب مساعدة طارئة إذا تعذّر الشرب، أو ظهر خمول أو ارتباك أو ضعف شديد أو علامات تجفاف. لا تستخدم مضاداً حيوياً من نفسك.',
+      'en': 'Cholera can cause profuse watery diarrhoea, vomiting and rapid dehydration. Start a correctly prepared oral rehydration solution sachet according to its instructions and go promptly to a health facility or rehydration point. Seek emergency help if the person cannot drink, becomes drowsy or confused, is very weak, or shows dehydration. Do not self-start antibiotics.',
+      'fr': 'Le choléra peut provoquer une diarrhée aqueuse abondante, des vomissements et une déshydratation rapide. Commencez une solution de réhydratation orale préparée exactement selon la notice du sachet et rendez-vous rapidement dans un centre de santé ou un point de réhydratation. Demandez une aide urgente si la personne ne peut pas boire, devient somnolente ou confuse, est très faible ou présente des signes de déshydratation. Ne prenez pas d’antibiotiques sans avis médical.',
+      'source': 'WHO — Cholera fact sheet and outbreak Q&A',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/cholera',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'dengue',
+      'aliases': ['حمى الضنك','حمى دنجي','الضنك','dengue','dengue fever','dengue sévère','dengue severe'],
+      'ar': 'قد تسبب حمى الضنك حمى وصداعاً وآلاماً بالجسم وغثياناً وطفحاً، ولا يمكن تأكيدها بالأعراض وحدها. اطلب الرعاية فوراً عند ألم شديد بالبطن أو قيء مستمر أو نزيف أو تنفس سريع أو خمول أو جلد شاحب وبارد، حتى لو انخفضت الحمى. لا تتناول الأسبرين أو الإيبوبروفين عند الاشتباه بالضنك إلا بتوجيه طبي؛ اطلب من مختص تحديد المسكن الآمن.',
+      'en': 'Dengue may cause fever, headache, body aches, nausea and rash; symptoms alone cannot confirm it. Seek care immediately for severe abdominal pain, persistent vomiting, bleeding, rapid breathing, marked fatigue or pale, cold skin—even if the fever has fallen. If dengue is suspected, do not take aspirin or ibuprofen unless specifically directed by a clinician; ask a health professional about safe pain relief.',
+      'fr': 'La dengue peut provoquer fièvre, maux de tête, douleurs corporelles, nausées et éruption ; les symptômes seuls ne suffisent pas à confirmer le diagnostic. Consultez immédiatement en cas de forte douleur abdominale, vomissements persistants, saignement, respiration rapide, grande fatigue ou peau pâle et froide, même si la fièvre a baissé. En cas de suspicion de dengue, ne prenez pas d’aspirine ni d’ibuprofène sauf indication médicale explicite ; demandez conseil à un professionnel pour un antalgique adapté.',
+      'source': 'WHO — Dengue and severe dengue fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/dengue-and-severe-dengue',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'newborn_danger_signs',
+      'aliases': ['علامات الخطر عند حديث الولادة','الطفل حديث الولادة لا يرضع','رضيع لا يرضع','حرارة الرضيع','برودة الرضيع','newborn danger signs','newborn not feeding','newborn fever','signes de danger nouveau né','nouveau-né ne tète pas'],
+      'ar': 'عند حديث الولادة، عدم الرضاعة أو ضعفها، صعوبة التنفس، التشنجات، الخمول أو قلة الحركة، الحمى أو برودة الجسم، أو اليرقان خلال أول 24 ساعة أو اصفرار الكفين والقدمين علامات خطر. توجّه إلى أقرب مرفق صحي أو طوارئ فوراً؛ لا تنتظر موعد المتابعة.',
+      'en': 'In a newborn, poor or absent feeding, difficult breathing, convulsions, unusual sleepiness or reduced movement, fever or feeling cold, jaundice in the first 24 hours, or yellow palms and soles are danger signs. Go to the nearest health facility or emergency department immediately; do not wait for a routine appointment.',
+      'fr': 'Chez un nouveau-né, une alimentation faible ou absente, une difficulté respiratoire, des convulsions, une somnolence inhabituelle ou une diminution des mouvements, de la fièvre ou un corps froid, une jaunisse dans les premières 24 heures ou des paumes et plantes jaunes sont des signes de danger. Rendez-vous immédiatement dans un établissement de santé ou aux urgences ; n’attendez pas le prochain rendez-vous.',
+      'source': 'WHO — Newborns: improving survival and well-being; WHO postnatal care recommendations',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/newborns-reducing-mortality/',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'pregnancy_danger_signs',
+      'aliases': ['نزيف اثناء الحمل','نزيف بعد الولادة','صداع شديد للحامل','زغللة للحامل','تسمم الحمل','تشنجات الحامل','قلة حركة الجنين','pregnancy danger signs','bleeding during pregnancy','pre-eclampsia','preeclampsia','signes de danger grossesse','prééclampsie'],
+      'ar': 'أثناء الحمل أو بعد الولادة، النزيف المهبلي أو التشنجات أو الصداع الشديد مع تشوش الرؤية أو ألم البطن الشديد أو صعوبة التنفس أو نقص حركة الجنين يستدعي تقييماً عاجلاً فوراً. لا تنتظر تحسن الأعراض ولا تعتمد على قياس منزلي وحده.',
+      'en': 'During pregnancy or after birth, vaginal bleeding, seizures, severe headache with blurred vision, severe abdominal pain, breathing difficulty, or reduced fetal movement needs urgent medical assessment now. Do not wait for symptoms to improve or rely on a home reading alone.',
+      'fr': 'Pendant la grossesse ou après l’accouchement, des saignements vaginaux, des convulsions, de forts maux de tête avec vision trouble, une douleur abdominale intense, une difficulté respiratoire ou une diminution des mouvements du bébé nécessitent une évaluation médicale urgente. N’attendez pas une amélioration et ne vous fiez pas uniquement à une mesure à domicile.',
+      'source': 'WHO — Getting health services during pregnancy; WHO — Pre-eclampsia fact sheet',
+      'url': 'https://www.who.int/tools/your-life-your-health/life-phase/pregnancy--birth-and-after-childbirth/getting-the-health-services-you-need-during-pregnancy',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'heatstroke',
+      'aliases': ['ضربة شمس','ضربة حر','ضربة حرارة','حر شديد ودوخة','heatstroke','heat stroke','coup de chaleur','insolation'],
+      'ar': 'ضربة الشمس طارئ طبي. اتصل بخدمات الطوارئ المحلية فوراً، وانقل المصاب إلى مكان بارد أو مظلل وابدأ تبريده بسرعة بقطعة قماش أو مناشف باردة ومبللة مع إزالة الملابس الزائدة. راقبه حتى وصول المساعدة. لا تعطِ فاقد الوعي شيئاً عن طريق الفم.',
+      'en': 'Heatstroke is a medical emergency. Call local emergency services immediately, move the person to a cool or shaded place, and start rapid cooling with cold wet cloths or towels while removing excess clothing. Monitor them until help arrives. Do not give anything by mouth to an unconscious person.',
+      'fr': 'Le coup de chaleur est une urgence médicale. Appelez immédiatement les secours locaux, placez la personne dans un endroit frais ou ombragé et commencez à la refroidir rapidement avec des linges froids et humides en retirant les vêtements superflus. Surveillez-la jusqu’à l’arrivée des secours. Ne donnez rien par la bouche à une personne inconsciente.',
+      'source': 'WHO — Heatwaves: how to stay cool',
+      'url': 'https://www.who.int/ar/news-room/questions-and-answers/item/heatwaves-how-to-stay-cool',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'sepsis',
+      'aliases': ['تعفن الدم','تسمم الدم','انتان','إنتان','عدوى شديدة مع ارتباك','sepsis','blood poisoning','septicémie','sepsis infection'],
+      'ar': 'الإنتان تفاعل خطير قد يحدث بسبب عدوى ويُعد حالة طبية طارئة. تشمل العلامات المحتملة الارتباك أو صعوبة التنفس أو الجلد البارد المتعرق أو الألم الشديد أو ضعف النبض أو قلة التبول أو الحمى أو انخفاض الحرارة. اطلب تقييماً طبياً فورياً ولا تنتظر اجتماع كل العلامات.',
+      'en': 'Sepsis is a dangerous response to infection and a medical emergency. Possible signs include confusion, difficulty breathing, cold clammy skin, severe pain, a weak pulse, reduced urination, fever or low temperature. Seek immediate medical care; do not wait for all signs to appear.',
+      'fr': 'Le sepsis est une réaction dangereuse à une infection et constitue une urgence médicale. Les signes possibles comprennent confusion, difficulté respiratoire, peau froide et moite, douleur intense, pouls faible, diminution des urines, fièvre ou température basse. Demandez immédiatement des soins médicaux ; n’attendez pas l’apparition de tous les signes.',
+      'source': 'WHO — Sepsis fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/sepsis',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
     },
   ];
 
