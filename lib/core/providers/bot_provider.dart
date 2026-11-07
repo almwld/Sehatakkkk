@@ -62,24 +62,24 @@ class BotProvider extends ChangeNotifier {
   // 💊 معلومات الدواء
   // ============================================================
 
-  String? getDrugInfo(String drugName) {
-    return _botService.getDrugInfo(drugName);
+  String? getDrugInfo(String drugName, {String languageCode = 'ar'}) {
+    return _botService.getDrugInfo(drugName, languageCode: languageCode);
   }
 
   // ============================================================
   // 🩺 معلومات المرض
   // ============================================================
 
-  String? getDiseaseInfo(String diseaseName) {
-    return _botService.getDiseaseInfo(diseaseName);
+  String? getDiseaseInfo(String diseaseName, {String languageCode = 'ar'}) {
+    return _botService.getDiseaseInfo(diseaseName, languageCode: languageCode);
   }
 
   // ============================================================
   // 💡 نصيحة عشوائية
   // ============================================================
 
-  String getRandomTip() {
-    return _botService.getRandomTip();
+  String getRandomTip({String languageCode = 'ar'}) {
+    return _botService.getRandomTip(languageCode: languageCode);
   }
 
   // ============================================================
