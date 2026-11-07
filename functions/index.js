@@ -496,7 +496,6 @@ exports.updatePharmacyOrderStatus = onCall(async (request) => {
     if (nextStatus === 'preparing') updates.preparingAt = now;
     if (nextStatus === 'ready') updates.readyAt = now;
     tx.update(orderRef, updates);
-    if (patientId) tx.set(db.collection('notifications').doc(), {userId: patientId, type: 'pharmacy_order_status', title: 'تحديث طلب الصيدلية', body: 'تم تحديث حالة طلبك إلى: ' + nextStatus, data: {orderId, status: nextStatus}, orderId, isRead: false, createdAt: now});
   });
   return {success: true, orderId, status: nextStatus};
 });
