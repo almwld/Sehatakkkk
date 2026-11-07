@@ -25,7 +25,7 @@ class LocalStorageService {
 
       _database = await openDatabase(
         path,
-        version: 1,
+        version: 2,
         onCreate: _createTables,
         onUpgrade: _upgradeTables,
       );
@@ -132,8 +132,34 @@ class LocalStorageService {
   }
 
   Future<void> _upgradeTables(Database db, int oldVersion, int newVersion) async {
-    // ✅ تحديث الجداول عند تغيير الإصدار
-    print('🔄 Upgrading database from $oldVersion to $newVersion');
+    if (oldVersion < 2) {
+      // Remove legacy medical seed values that lacked source/review metadata.
+      await db.update('drugs', {
+        'dose_adult': '',
+        'dose_child': '',
+        'max_daily': '',
+        'pregnancy': '',
+        'breastfeeding': '',
+        'side_effects': '',
+        'interactions': '',
+        'contraindications': '',
+        'notes': 'راجع النشرة المعتمدة أو الطبيب/الصيدلي؛ لا توجد جرعة موثقة داخل التطبيق.',
+        'overdose': '',
+      });
+      await db.update('diseases', {
+        'symptoms': '',
+        'causes': '',
+        'treatment': '',
+        'complications': '',
+        'prevention': '',
+        'normal_range': '',
+        'when_to_see_doctor': '',
+        'emergency_warning': '',
+      });
+      await db.delete('first_aid');
+      await db.delete('health_tips');
+    }
+    print('Database upgraded from $oldVersion to $newVersion');
   }
 
   Future<void> _initSharedPreferences() async {
@@ -310,10 +336,10 @@ class LocalStorageService {
         'conversations',
         where: 'session_id = ?',
         whereArgs: [sessionId],
-        orderBy: 'timestamp ASC',
+        orderBy: 'timestamp DESC, id DESC',
         limit: 100,
       );
-      return result;
+      return result.reversed.toList();
     } catch (e) {
       print('❌ Error getting conversation: $e');
       return [];
