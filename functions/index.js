@@ -3,6 +3,7 @@ const {setGlobalOptions} = require('firebase-functions/v2/options');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { canTransition, isPharmacyOwner } = require('./pharmacy_order_workflow');
+const { canDeliveryTransition, isDeliveryCompanyOwner } = require('./delivery_workflow');
 const {appointmentInstantFromDateMarker} = require('./appointment-date');
 
 admin.initializeApp();
@@ -382,6 +383,94 @@ exports.reviewPharmacyPrescription = onCall(async (request) => {
     });
   });
   return {success: true, prescriptionId, status: decision === 'approve' ? 'approved' : 'rejected'};
+});
+
+exports.assignDeliveryCompany = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const orderId = validId(request.data.orderId, 'orderId');
+  const companyId = validId(request.data.companyId, 'companyId');
+  const orderRef = db.collection('orders').doc(orderId);
+  const companyRef = db.collection('delivery_companies').doc(companyId);
+  await db.runTransaction(async (tx) => {
+    const [orderSnap, companySnap] = await Promise.all([tx.get(orderRef), tx.get(companyRef)]);
+    if (!orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
+    if (!companySnap.exists) throw new HttpsError('not-found', 'شركة التوصيل غير موجودة');
+    const order = orderSnap.data() || {};
+    const company = companySnap.data() || {};
+    if (order.type !== 'pharmacy') throw new HttpsError('failed-precondition', 'هذا ليس طلب صيدلية');
+    const pharmacyId = validId(order.pharmacyId, 'pharmacyId');
+    const pharmacyRef = db.collection('pharmacies').doc(pharmacyId);
+    const pharmacySnap = await tx.get(pharmacyRef);
+    if (!pharmacySnap.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة');
+    const pharmacy = pharmacySnap.data() || {};
+    if (!isPharmacyOwner(pharmacy, uid, pharmacyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية تعيين شركة لهذا الطلب');
+    if (pharmacy.status !== 'approved' || pharmacy.isActive === false) throw new HttpsError('failed-precondition', 'حساب الصيدلية غير معتمد أو موقوف');
+    if (order.status !== 'ready') throw new HttpsError('failed-precondition', 'يجب تجهيز الطلب قبل تعيين شركة التوصيل');
+    if (order.deliveryRequired === false || !String(order.deliveryAddress || '').trim()) throw new HttpsError('failed-precondition', 'عنوان التوصيل غير مكتمل');
+    if (company.isActive !== true) throw new HttpsError('failed-precondition', 'شركة التوصيل غير نشطة');
+    const coveredAreas = Array.isArray(company.coveredAreas) ? company.coveredAreas.map(value => String(value).trim().toLowerCase()).filter(Boolean) : [];
+    const deliveryArea = String(order.deliveryArea || '').trim().toLowerCase();
+    if (coveredAreas.length && (!deliveryArea || !coveredAreas.includes(deliveryArea))) throw new HttpsError('failed-precondition', 'منطقة التوصيل غير موجودة ضمن تغطية الشركة');
+    const deliveryRef = db.collection('deliveries').doc(orderId);
+    const deliverySnap = await tx.get(deliveryRef);
+    if (deliverySnap.exists && deliverySnap.data().status !== 'cancelled') throw new HttpsError('already-exists', 'تم تعيين شركة توصيل لهذا الطلب مسبقاً');
+    const now = FieldValue.serverTimestamp();
+    tx.set(deliveryRef, {
+      orderId, userId: order.userId, companyId, companyName: String(company.name || ''),
+      pharmacyId, patientName: String(order.patientName || ''), patientPhone: String(order.patientPhone || order.phoneNumber || ''),
+      address: String(order.deliveryAddress || ''), deliveryAddress: String(order.deliveryAddress || ''),
+      deliveryArea: String(order.deliveryArea || ''), status: 'assigned', currentStep: 1,
+      estimatedTime: 'غير محدد', courier: null,
+      history: [{status: 'assigned', description: 'تم تعيين شركة التوصيل للطلب', time: new Date().toISOString()}],
+      createdAt: now, updatedAt: now,
+    });
+    tx.update(orderRef, {
+      deliveryCompanyId: companyId, deliveryCompanyName: String(company.name || ''),
+      deliveryAssignedAt: now, updatedAt: now,
+      'delivery.status': 'assigned', 'delivery.companyId': companyId, 'delivery.companyName': String(company.name || ''),
+    });
+  });
+  return {success: true, orderId, companyId, status: 'assigned'};
+});
+
+exports.updateDeliveryTracking = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const orderId = validId(request.data.orderId, 'orderId');
+  const nextStatus = text(request.data.status, 'status', 30);
+  if (!['picked_up', 'in_transit', 'delivered'].includes(nextStatus)) throw new HttpsError('invalid-argument', 'حالة التوصيل غير مسموحة');
+  const deliveryRef = db.collection('deliveries').doc(orderId);
+  const orderRef = db.collection('orders').doc(orderId);
+  await db.runTransaction(async (tx) => {
+    const [deliverySnap, orderSnap] = await Promise.all([tx.get(deliveryRef), tx.get(orderRef)]);
+    if (!deliverySnap.exists || !orderSnap.exists) throw new HttpsError('not-found', 'سجل التوصيل أو الطلب غير موجود');
+    const delivery = deliverySnap.data() || {};
+    const order = orderSnap.data() || {};
+    const companyId = validId(delivery.companyId, 'companyId');
+    const companyRef = db.collection('delivery_companies').doc(companyId);
+    const companySnap = await tx.get(companyRef);
+    if (!companySnap.exists) throw new HttpsError('not-found', 'شركة التوصيل غير موجودة');
+    const company = companySnap.data() || {};
+    const adminUser = await isAdmin(uid);
+    if (!adminUser && !isDeliveryCompanyOwner(company, uid, companyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية تحديث هذا التوصيل');
+    if (company.isActive !== true && !adminUser) throw new HttpsError('failed-precondition', 'شركة التوصيل غير نشطة');
+    if (!canDeliveryTransition(String(delivery.status || ''), nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال إلى حالة التوصيل المطلوبة');
+    const now = FieldValue.serverTimestamp();
+    const step = nextStatus === 'picked_up' ? 2 : nextStatus === 'in_transit' ? 3 : 4;
+    tx.update(deliveryRef, {
+      status: nextStatus, currentStep: step, updatedAt: now,
+      history: FieldValue.arrayUnion({status: nextStatus, description: nextStatus, time: new Date().toISOString(), actorId: uid}),
+      ...(nextStatus === 'delivered' ? {deliveredAt: now} : {}),
+    });
+    const orderStatus = nextStatus === 'delivered' ? 'delivered' : 'delivering';
+    if (order.status !== orderStatus) {
+      tx.update(orderRef, {
+        status: orderStatus, updatedAt: now,
+        statusHistory: FieldValue.arrayUnion({status: orderStatus, actorId: uid, at: new Date().toISOString()}),
+        ...(nextStatus === 'delivered' ? {deliveredAt: now} : {}),
+      });
+    }
+  });
+  return {success: true, orderId, status: nextStatus};
 });
 
 exports.updatePharmacyOrderStatus = onCall(async (request) => {
