@@ -13,7 +13,16 @@ String localizedValue(
     if (direct != null) return direct;
     final alias = _nonEmpty(value[language == 'en' ? 'english' : language == 'fr' ? 'french' : 'arabic']);
     if (alias != null) return alias;
-    final name = _nonEmpty(value['name']);
+    final fieldAliases = language == 'en'
+        ? ['nameEn', 'labelEn', 'titleEn', 'valueEn']
+        : language == 'fr'
+            ? ['nameFr', 'labelFr', 'titleFr', 'valueFr']
+            : ['nameAr', 'labelAr', 'titleAr', 'valueAr'];
+    for (final key in fieldAliases) {
+      final candidate = _nonEmpty(value[key]);
+      if (candidate != null) return candidate;
+    }
+    final name = _nonEmpty(value['name'] ?? value['label'] ?? value['title']);
     if (name != null) return name;
     return fallback;
   }
