@@ -474,7 +474,7 @@ class LocalStorageService {
   }
 
   void dispose() {
-    if (_isInitialized) {
+    if (_isInitialized && !_usingPreferencesFallback) {
       _database.close();
     }
   }
