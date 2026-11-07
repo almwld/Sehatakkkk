@@ -386,14 +386,14 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['name'],
+                  AppStrings.of(context).translate(item['name'].toString()),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  item['description'],
+                  AppStrings.of(context).translate(item['description'].toString()),
                   style: const TextStyle(fontSize: 9, color: AppColors.grey),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -430,7 +430,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                     const SizedBox(width: 2),
                     Expanded(
                       child: Text(
-                        item['pharmacy'] ?? 'صيدلية',
+                        AppStrings.of(context).translate((item['pharmacy'] ?? 'صيدلية').toString()),
                         style: const TextStyle(fontSize: 7, color: AppColors.grey),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -444,7 +444,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                   height: 28,
                   child: ElevatedButton(
                     onPressed: () {
-                      ToastService.showSuccess(context, '✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم إضافة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Ajouté' : 'Added'} ${item['name']} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'إلى السلة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'au panier' : 'to cart'}');
+                      ToastService.showSuccess(context, '✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم إضافة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Ajouté' : 'Added'} ${AppStrings.of(context).translate(item['name'].toString())} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'إلى السلة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'au panier' : 'to cart'}');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -501,7 +501,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          ph['name'],
+                          AppStrings.of(context).translate(ph['name'].toString()),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         const SizedBox(height: 2),
@@ -555,7 +555,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        branch,
+                        AppStrings.of(context).translate(branch.toString()),
                         style: const TextStyle(fontSize: 11, color: AppColors.grey),
                       ),
                     ),
