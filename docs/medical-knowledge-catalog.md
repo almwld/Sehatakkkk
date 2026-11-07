@@ -30,6 +30,12 @@ emergency services rather than displaying an unverified country-specific number.
 - Asthma
 - Healthy diet
 - Physical activity
+- Diarrhoeal disease
+- Malaria
+- Pneumonia in children
+- Seasonal influenza
+- Severe headache red flags
+- Physical activity
 - Diarrhoeal disease and dehydration warnings
 - Malaria warning signs and need for prompt testing
 - Pneumonia warning signs in children
@@ -64,6 +70,18 @@ emergency services rather than displaying an unverified country-specific number.
   https://www.who.int/news-room/questions-and-answers/item/suicide
 - World Health Organization, Healthy diet:
   https://www.who.int/en/news-room/fact-sheets/detail/healthy-diet
+- World Health Organization, Physical activity:
+  https://www.who.int/initiatives/behealthy/physical-activity/
+- World Health Organization, Diarrhoeal disease:
+  https://www.who.int/news-room/fact-sheets/detail/diarrhoeal-disease
+- World Health Organization, Malaria questions and answers:
+  https://www.who.int/news-room/questions-and-answers/item/malaria
+- World Health Organization, Pneumonia:
+  https://www.who.int/news-room/fact-sheets/detail/pneumonia
+- World Health Organization, Seasonal influenza:
+  https://www.who.int/news-room/fact-sheets/detail/influenza-(seasonal)
+- NHS, Headaches:
+  https://www.nhs.uk/symptoms/headaches/
 - World Health Organization, Asthma:
   https://www.who.int/news-room/fact-sheets/detail/asthma
 
