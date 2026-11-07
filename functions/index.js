@@ -425,6 +425,14 @@ exports.checkoutCart = onCall(async (request) => {
       if (!snap?.exists) throw new HttpsError('failed-precondition', 'الصيدلية المرتبطة بأحد المنتجات غير موجودة');
       const pharmacy = snap.data() || {};
       if (pharmacy.status !== 'approved' || pharmacy.isActive === false || pharmacy.acceptingOrders === false) throw new HttpsError('failed-precondition', 'إحدى الصيدليات لا تستقبل الطلبات حالياً');
+      const rows = prepared.filter(row => row.pharmacyId === id);
+      for (const row of rows) {
+        const sellerId = String(row.product.sellerId || '');
+        const authorizedSellers = [pharmacy.ownerId, pharmacy.userId, id].map(value => String(value || '')).filter(Boolean);
+        if (sellerId && !authorizedSellers.includes(sellerId) && row.product.sellerType !== 'platform') {
+          throw new HttpsError('permission-denied', 'أحد المنتجات غير معتمد من مالك الصيدلية');
+        }
+      }
     }
     const subtotal = prepared.reduce((sum, row) => sum + row.lineTotal, 0);
     const total = Math.round(subtotal * 100) / 100;
