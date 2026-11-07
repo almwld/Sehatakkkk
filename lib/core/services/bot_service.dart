@@ -91,8 +91,8 @@ class BotService {
 
   String getRandomTip() {
     final answer = MedicalKnowledgeCatalog.answer('النشاط البدني', 'ar');
-    return answer?['response'] ??
-        'ابدأ بنشاط بدني خفيف يناسب قدرتك، وزد المدة تدريجياً.';
+    if (answer == null) return 'ابدأ بنشاط بدني خفيف يناسب قدرتك، وزد المدة تدريجياً.';
+    return '${answer['response']}\n\nالمصدر: ${answer['source']}\n${answer['source_url']}\nالمراجعة السريرية المحلية ما زالت مطلوبة.';
   }
 
   Map<String, dynamic> getStatistics() => {
