@@ -172,6 +172,22 @@ exports.notifyDeliveryAssigned = onDocumentCreated('deliveries/{orderId}', async
   await sendToUser(uid, payload);
 });
 
+exports.notifyDeliveryInTransit=onDocumentUpdated('deliveries/{orderId}', async event => {
+  const before = event.data?.before?.data() || {};
+  const after = event.data?.after?.data() || {};
+  if (before.status === after.status || after.status !== 'in_transit') return;
+  const uid = String(after.userId || '');
+  if (!uid) return;
+  const payload = notificationPayload(
+    'delivery_in_transit',
+    'طلبك في الطريق',
+    'بدأت شركة التوصيل نقل طلبك إليك.',
+    {orderId: event.params.orderId, deliveryId: event.params.orderId, companyId: after.companyId || '', recipientId: uid},
+  );
+  await archiveNotification(uid, payload);
+  await sendToUser(uid, payload);
+});
+
 exports.notifyOrderLifecycle = onDocumentUpdated('orders/{orderId}', async event => {
   const before = event.data?.before?.data() || {};
   const after = event.data?.after?.data() || {};
