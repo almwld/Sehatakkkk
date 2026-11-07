@@ -5,6 +5,7 @@
 
 import 'dart:math';
 import 'dart:convert';
+import 'package:sehatak/core/services/local_ai/medical_knowledge_catalog.dart';
 import 'package:flutter/material.dart';
 
 // ============================================================
@@ -300,7 +301,7 @@ class MedicalKnowledgeBase {
     'اين اجد نتائج تحاليلي': '🔬 نتائج التحاليل في:\n• الملف الصحي > التقارير الطبية 📄\n• قسم التحاليل > نتائجي',
     'كيف اغير كلمة المرور': '🔐 لتغيير كلمة المرور:\nالإعدادات ⚙️ > الحساب > تغيير كلمة المرور',
     'هل بياناتي آمنة': '🔒 نعم! جميع بياناتك مشفرة بأعلى معايير الأمان (AES-256).',
-    'ماذا افعل في الطوارئ': '🚨 في الطوارئ:\n1. اتصل على 1122 فوراً\n2. اذهب لأقرب مستشفى 🏥\n3. استخدم زر SOS في التطبيق 🆘',
+    'ماذا افعل في الطوارئ': '🚨 في الطوارئ:\n1. اتصل على خدمات الطوارئ المحلية فوراً\n2. اذهب لأقرب مستشفى 🏥\n3. استخدم زر SOS في التطبيق 🆘',
   };
 
   // ===== الإسعافات الأولية =====
@@ -358,7 +359,7 @@ class TriageEngine {
     String action;
     String timeframe;
     if (urgency == 'high') {
-      action = '🚨 حالة طارئة - اتصل على 1122 أو اذهب لأقرب مستشفى فوراً';
+      action = '🚨 حالة طارئة - اتصل على خدمات الطوارئ المحلية أو اذهب لأقرب مستشفى فوراً';
       timeframe = 'فوري - الآن';
     } else if (urgency == 'medium') {
       action = '📅 استشارة طبية خلال 24 ساعة';
@@ -449,12 +450,22 @@ class ChatBot {
       };
     }
 
+    final curated = MedicalKnowledgeCatalog.answer(message, 'ar');
+    if (curated != null) {
+      return {
+        'response': '${curated['response']}\\n\\nالمصدر: ${curated['source']}',
+        'type': curated['type'],
+        'create_ticket': false,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+    }
+
     final msgLower = message.toLowerCase();
 
     // ✅ التحقق من الطوارئ
     if (_isEmergency(msgLower)) {
       return {
-        'response': '🚨 حالة طارئة!\n\n• اتصل فوراً على 1122 📞\n• اذهب لأقرب مستشفى 🏥\n• استخدم زر SOS في التطبيق 🆘\n\n⚠️ لا تنتظر! الطوارئ الطبية تحتاج استجابة فورية.',
+        'response': '🚨 حالة طارئة!\n\n• اتصل فوراً على خدمات الطوارئ المحلية 📞\n• اذهب لأقرب مستشفى 🏥\n• استخدم زر SOS في التطبيق 🆘\n\n⚠️ لا تنتظر! الطوارئ الطبية تحتاج استجابة فورية.',
         'type': 'urgent',
         'create_ticket': true,
         'timestamp': DateTime.now().toIso8601String(),
@@ -526,7 +537,7 @@ class ChatBot {
     // ✅ رد افتراضي
     final tip = _kb.healthTips[_random.nextInt(_kb.healthTips.length)];
     return {
-      'response': 'شكراً لتواصلك! 🙏\n\nلم أتمكن من فهم سؤالك بشكل كامل.\n\n💡 نصيحة اليوم:\n$tip\n\n👨‍⚕️ للاستشارة الطبية الحقيقية، يرجى حجز موعد مع طبيب متخصص.\n🆘 في الحالات الطارئة، اتصل على 1122 فوراً.',
+      'response': 'شكراً لتواصلك! 🙏\n\nلم أتمكن من فهم سؤالك بشكل كامل.\n\n💡 نصيحة اليوم:\n$tip\n\n👨‍⚕️ للاستشارة الطبية الحقيقية، يرجى حجز موعد مع طبيب متخصص.\n🆘 في الحالات الطارئة، اتصل على خدمات الطوارئ المحلية فوراً.',
       'type': 'general',
       'create_ticket': true,
       'timestamp': DateTime.now().toIso8601String(),
@@ -548,23 +559,10 @@ class ChatBot {
   }
 
   String? _getDrugInfo(String msg) {
-    for (var entry in _kb.drugsDb.entries) {
-      final drugName = entry.key;
-      final info = entry.value;
-      if (msg.contains(drugName) || msg.contains((info['name_en'] as String).toLowerCase())) {
-        return '''
-💊 $drugName (${info['name_en']})
-
-📋 التصنيف: ${info['category']}
-💊 الجرعة للبالغين: ${info['dose_adult']}
-👶 الجرعة للأطفال: ${info['dose_child']}
-⚠️ الآثار الجانبية: ${info['side_effects']}
-🔄 التداخلات: ${info['interactions']}
-🚫 موانع الاستعمال: ${info['contraindications']}
-📝 ملاحظات: ${info['notes']}
-
-⚠️ هذه معلومات عامة - استشر طبيبك قبل تناول أي دواء
-''';
+    for (final entry in _kb.drugsDb.entries) {
+      final englishName = (entry.value['name_en'] as String? ?? '').toLowerCase();
+      if (msg.contains(entry.key) || (englishName.isNotEmpty && msg.contains(englishName))) {
+        return 'الدواء: ${entry.key}. لا تتوفر في قاعدة المعرفة الحالية نشرة دوائية موثقة ومراجعة سريرياً، لذلك لا أعرض جرعات أو تعليمات استعمال. راجع النشرة الرسمية واسأل الطبيب أو الصيدلي، ولا تبدأ الدواء أو توقفه أو تغيّر جرعته اعتماداً على هذه المحادثة.';
       }
     }
     return null;
@@ -619,16 +617,12 @@ class ChatBot {
   }
 
   String? getDrugInfoByName(String drugName) {
-    final msg = drugName.toLowerCase();
-    for (var entry in _kb.drugsDb.entries) {
-      if (msg.contains(entry.key) || msg.contains((entry.value['name_en'] as String).toLowerCase())) {
-        return '''
-💊 ${entry.key} (${entry.value['name_en']})
-
-📋 التصنيف: ${entry.value['category']}
-💊 الجرعة: ${entry.value['dose_adult']}
-⚠️ الآثار: ${entry.value['side_effects']}
-''';
+    final normalized = MedicalKnowledgeCatalog.normalize(drugName);
+    for (final entry in _kb.drugsDb.entries) {
+      final englishName = (entry.value['name_en'] as String? ?? '');
+      if (normalized.contains(MedicalKnowledgeCatalog.normalize(entry.key)) ||
+          (englishName.isNotEmpty && normalized.contains(MedicalKnowledgeCatalog.normalize(englishName)))) {
+        return 'الدواء: ${entry.key}. لا تتوفر حالياً معلومات دوائية مراجعة سريرياً تكفي لتحديد الجرعة أو الملاءمة. راجع النشرة الرسمية والطبيب أو الصيدلي.';
       }
     }
     return null;
