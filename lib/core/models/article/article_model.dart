@@ -4,6 +4,7 @@
 // ============================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 import 'package:equatable/equatable.dart';
 
 class ArticleModel extends Equatable {
@@ -160,6 +161,39 @@ class ArticleModel extends Equatable {
     return 'منذ ${(diff.inDays / 7).floor()} أسبوع';
   }
 
+
+  String timeAgoFor(Locale locale) {
+    final date = publishedAt ?? createdAt;
+    final language = locale.languageCode.toLowerCase();
+    String nowLabel() => language == 'fr' ? 'À l’instant' : language == 'en' ? 'Just now' : 'الآن';
+    if (date == null) return nowLabel();
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 1) return nowLabel();
+    final value = diff.inMinutes < 60
+        ? diff.inMinutes
+        : diff.inHours < 24
+            ? diff.inHours
+            : diff.inDays < 7
+                ? diff.inDays
+                : (diff.inDays / 7).floor();
+    if (language == 'fr') {
+      if (diff.inMinutes < 60) return 'Il y a $value min';
+      if (diff.inHours < 24) return 'Il y a $value h';
+      if (diff.inDays < 7) return 'Il y a $value j';
+      return 'Il y a $value sem.';
+    }
+    if (language == 'en') {
+      if (diff.inMinutes < 60) return '$value min ago';
+      if (diff.inHours < 24) return '$value hr ago';
+      if (diff.inDays < 7) return '$value d ago';
+      return '$value wk ago';
+    }
+    if (diff.inMinutes < 60) return 'منذ $value دقيقة';
+    if (diff.inHours < 24) return 'منذ $value ساعة';
+    if (diff.inDays < 7) return 'منذ $value يوم';
+    return 'منذ $value أسبوع';
+  }
+
   @override
-  List<Object?> get props => [id, title];
+  List<Object?> get props => [id, title, titleEn, titleFr];
 }
