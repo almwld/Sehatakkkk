@@ -192,6 +192,8 @@ class SymptomInterpreter {
     final patterns = [
       RegExp(r'(منذ|لي|صار لي|لي حوالي)\s*(\d+)\s*(يوم|ايام|اسبوع|اسابيع|شهر|اشهر)'),
       RegExp(r'(من يومين|من يوم|من اسبوع|من شهر)'),
+      RegExp(r'(for|since)\s*(\d+)\s*(days?|weeks?|months?)'),
+      RegExp(r'(depuis)\s*(\d+)\s*(jours?|semaines?|mois)'),
     ];
     for (final pattern in patterns) {
       final match = pattern.firstMatch(text);
