@@ -226,6 +226,15 @@ class MedicalSafetyIntent {
     'nouveau-ne ne s’alimente pas',
     'coup de chaleur',
     'confusion liee a une infection',
+    'فقدان النظر فجأة',
+    'ألم شديد في العين',
+    'مادة كيميائية في العين',
+    'sudden vision loss',
+    'severe eye pain',
+    'chemical in eye',
+    'perte soudaine de vision',
+    'douleur oculaire intense',
+    'produit chimique dans l’oeil',
   ];
 
   static bool isEmergencyText(String text) {
