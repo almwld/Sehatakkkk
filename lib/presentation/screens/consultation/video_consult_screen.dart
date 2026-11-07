@@ -294,7 +294,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
         'doctorName': 'طبيب', // يمكن جلب اسم الطبيب من Firestore
       });
 
-      ToastService.showSuccess(context, AppStrings.of(context).locale.languageCode == 'ar' ? '✅ تم طلب الاستشارة بنجاح' : AppStrings.of(context).locale.languageCode == 'fr' ? '✅ Consultation demandée avec succès' : '✅ Consultation requested successfully');
+      ToastService.showSuccess(context, '✅ ${AppStrings.of(context).translate('تم طلب الاستشارة بنجاح')}');
       setState(() {
         _selectedDoctor = '';
         _selectedTime = null;
