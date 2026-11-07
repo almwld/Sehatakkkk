@@ -127,8 +127,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                     _selected.add(id);
                   }
                 }),
-                title: Text(_s(test['name']).isEmpty ? _t('فحص') : _s(test['name'])),
-                subtitle: Text(_s(test['description'])),
+                title: Text(_field(test, 'name', fallback: _t('فحص'))),
+                subtitle: Text(_field(test, 'description')),
                 secondary: Text(_money(_n(test['price'])), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
               ),
             );
