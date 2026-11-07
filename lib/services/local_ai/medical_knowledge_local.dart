@@ -15,33 +15,24 @@ class MedicalKnowledgeLocal {
   Future<void> initializeOfflineData() async {
     await _storage.initialize();
 
-    // ✅ التحقق من وجود بيانات
     final stats = await _storage.getStats();
-    if (stats['drugs'] == 0) {
-      print('📦 Loading offline data...');
-      await _loadInitialData();
+    if ((stats['drugs'] ?? 0) == 0) {
+      await _storage.insertDrugs(_getInitialDrugs());
+    }
+    if ((stats['diseases'] ?? 0) == 0) {
+      await _storage.insertDiseases(_getInitialDiseases());
+    }
+    if ((stats['first_aid'] ?? 0) == 0) {
+      await _storage.insertFirstAid(_getInitialFirstAid());
+    }
+    if ((stats['health_tips'] ?? 0) == 0) {
+      await _storage.insertHealthTips(_getInitialTips());
     }
   }
 
   // ============================================================
   // 📥 تحميل البيانات الأولية
   // ============================================================
-
-  Future<void> _loadInitialData() async {
-    // ✅ تحميل الأدوية
-    await _storage.insertDrugs(_getInitialDrugs());
-
-    // ✅ تحميل الأمراض
-    await _storage.insertDiseases(_getInitialDiseases());
-
-    // ✅ تحميل الإسعافات الأولية
-    await _storage.insertFirstAid(_getInitialFirstAid());
-
-    // ✅ تحميل النصائح الصحية
-    await _storage.insertHealthTips(_getInitialTips());
-
-    print('✅ Offline data loaded successfully');
-  }
 
   // ============================================================
   // 🔍 البحث والاستعلام
@@ -150,7 +141,6 @@ class MedicalKnowledgeLocal {
         'forms': jsonEncode(['أقراص', 'كبسولات', 'شراب', 'حقن']),
         'brands': jsonEncode(['أموكسيل', 'هيكسيل']),
       },
-      // ... المزيد من الأدوية
     ];
   }
 
@@ -180,7 +170,6 @@ class MedicalKnowledgeLocal {
         'when_to_see_doctor': 'سكر صائم ≥126 أو تراكمي ≥6.5%',
         'emergency_warning': 'غيبوبة، تنفس كيتوني، عطش شديد',
       },
-      // ... المزيد من الأمراض
     ];
   }
 
@@ -196,7 +185,6 @@ class MedicalKnowledgeLocal {
         'steps': '1. ضع المنطقة المصابة تحت ماء بارد جارٍ لمدة 10-15 دقيقة\n2. لا تضع ثلجاً مباشرة على الحرق\n3. غطِ الجرح بضمادة معقمة\n4. لا تفرقع الفقاعات',
         'warnings': '⚠️ للحروق الكبيرة أو في الوجه - اتصل بالطوارئ فوراً',
       },
-      // ... المزيد من الإسعافات
     ];
   }
 
@@ -212,7 +200,6 @@ class MedicalKnowledgeLocal {
       'تجنب التدخين والكحول 🚭',
       'افحص ضغط الدم شهرياً 🩺',
       'افحص السكر سنوياً 🧪',
-      // ... المزيد من النصائح
     ];
   }
 
