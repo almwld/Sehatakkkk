@@ -10,15 +10,26 @@ class ArticleModel extends Equatable {
   final String id;
   final String title;
   final String? titleEn;
+  final String? titleFr;
   final String? subtitle;
+  final String? subtitleEn;
+  final String? subtitleFr;
   final String? content;
+  final String? contentEn;
+  final String? contentFr;
   final String? summary;
+  final String? summaryEn;
+  final String? summaryFr;
   final String? imageUrl;
   final List<String>? images;
   final String? category;
+  final String? categoryEn;
+  final String? categoryFr;
   final List<String>? tags;
   final String? authorId;
   final String? authorName;
+  final String? authorNameEn;
+  final String? authorNameFr;
   final int views;
   final int likes;
   final int shares;
@@ -33,15 +44,26 @@ class ArticleModel extends Equatable {
     required this.id,
     required this.title,
     this.titleEn,
+    this.titleFr,
     this.subtitle,
+    this.subtitleEn,
+    this.subtitleFr,
     this.content,
+    this.contentEn,
+    this.contentFr,
     this.summary,
+    this.summaryEn,
+    this.summaryFr,
     this.imageUrl,
     this.images,
     this.category,
+    this.categoryEn,
+    this.categoryFr,
     this.tags,
     this.authorId,
     this.authorName,
+    this.authorNameEn,
+    this.authorNameFr,
     this.views = 0,
     this.likes = 0,
     this.shares = 0,
@@ -59,15 +81,26 @@ class ArticleModel extends Equatable {
       id: doc.id,
       title: data['title'] ?? '',
       titleEn: data['titleEn'],
+      titleFr: data['titleFr'],
       subtitle: data['subtitle'],
+      subtitleEn: data['subtitleEn'],
+      subtitleFr: data['subtitleFr'],
       content: data['content'],
+      contentEn: data['contentEn'],
+      contentFr: data['contentFr'],
       summary: data['summary'],
+      summaryEn: data['summaryEn'],
+      summaryFr: data['summaryFr'],
       imageUrl: data['imageUrl'],
       images: List<String>.from(data['images'] ?? []),
       category: data['category'],
+      categoryEn: data['categoryEn'],
+      categoryFr: data['categoryFr'],
       tags: List<String>.from(data['tags'] ?? []),
       authorId: data['authorId'],
       authorName: data['authorName'],
+      authorNameEn: data['authorNameEn'],
+      authorNameFr: data['authorNameFr'],
       views: data['views'] ?? 0,
       likes: data['likes'] ?? 0,
       shares: data['shares'] ?? 0,
@@ -84,15 +117,26 @@ class ArticleModel extends Equatable {
     return {
       'title': title,
       'titleEn': titleEn,
+      'titleFr': titleFr,
       'subtitle': subtitle,
+      'subtitleEn': subtitleEn,
+      'subtitleFr': subtitleFr,
       'content': content,
+      'contentEn': contentEn,
+      'contentFr': contentFr,
       'summary': summary,
+      'summaryEn': summaryEn,
+      'summaryFr': summaryFr,
       'imageUrl': imageUrl,
       'images': images,
       'category': category,
+      'categoryEn': categoryEn,
+      'categoryFr': categoryFr,
       'tags': tags,
       'authorId': authorId,
       'authorName': authorName,
+      'authorNameEn': authorNameEn,
+      'authorNameFr': authorNameFr,
       'views': views,
       'likes': likes,
       'shares': shares,
