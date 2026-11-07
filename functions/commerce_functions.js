@@ -25,7 +25,7 @@ exports.checkoutCart = onCall(async (request) => {
   if (!rawItems.length || rawItems.length > 50) throw new HttpsError('invalid-argument', 'السلة فارغة أو تحتوي عدداً غير مسموح من المنتجات');
   const idempotencyKey = text(request.data.idempotencyKey || `cart|${uid}|${Date.now()}`, 'idempotencyKey', 180);
   const deliveryRequired = request.data.deliveryRequired !== false;
-  const deliveryAddress = deliveryRequired ? text(request.data.deliveryAddress, 'deliveryAddress', 1000) : '';
+  const deliveryAddress = deliveryRequired ? String(request.data.deliveryAddress || '').trim().slice(0, 1000) : '';
   const normalized = new Map();
   for (const item of rawItems) {
     const productId = validOrderId(item.productId, 'productId');
