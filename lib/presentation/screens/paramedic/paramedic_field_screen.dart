@@ -184,8 +184,8 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
   }
 
   Widget _paramedicCard(String id,Map<String,dynamic> d){
-    final area=(d['serviceArea']??d['area']??'المنطقة غير محددة').toString();
-    final vehicle=(d['vehicleType']??'مركبة إسعاف/استجابة').toString();
+    final area=AppStrings.of(context).translate((d['serviceArea']??d['area']??'المنطقة غير محددة').toString());
+    final vehicle=AppStrings.of(context).translate((d['vehicleType']??'مركبة إسعاف/استجابة').toString());
     final skills=d['skills'] is List?(d['skills'] as List).join('، '):(d['skills']??'').toString();
     return Card(margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(14),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
       Row(children:[const CircleAvatar(child:Icon(Icons.emergency)),const SizedBox(width:10),Expanded(child:Text((d['name']??_t('مسعف ميداني')).toString(),style:const TextStyle(fontWeight:FontWeight.bold,fontSize:16))),_availableBadge()]),
