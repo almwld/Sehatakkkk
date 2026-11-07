@@ -131,6 +131,8 @@ class LocalAiIntentEngine {
         .replaceAll('ç', 'c')
         .replaceAll('œ', 'oe')
         .replaceAll('æ', 'ae')
+        .replaceAll('’', ' ')
+        .replaceAll("'", ' ')
         .replaceAll('أ', 'ا')
         .replaceAll('إ', 'ا')
         .replaceAll('آ', 'ا')
