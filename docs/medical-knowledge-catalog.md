@@ -4,7 +4,7 @@
 
 The local assistant uses a curated, offline, multilingual reference catalog in
 `lib/core/services/local_ai/medical_knowledge_catalog.dart`. It contains
-26 topic records. Every record has Arabic, English, and French content,
+34 topic records. Every record has Arabic, English, and French content,
 matching phrases, a source URL, and an explicit review-state marker.
 
 This is public-health education and first-aid orientation only. It is not a
@@ -42,6 +42,14 @@ emergency services rather than displaying an unverified country-specific number.
 24. Pregnancy and postpartum danger signs, including pre-eclampsia
 25. Heatstroke
 26. Sepsis
+27. Tuberculosis warning signs and testing
+28. Anaemia symptoms and blood-test confirmation
+29. Chronic kidney disease awareness
+30. Hepatitis B testing and prevention
+31. HIV testing, prevention and stigma-free information
+32. Depression awareness and support
+33. Oral health and dental warning signs
+34. Child malnutrition warning signs
 
 ## Source register
 
@@ -85,6 +93,24 @@ emergency services rather than displaying an unverified country-specific number.
   https://www.who.int/ar/news-room/questions-and-answers/item/heatwaves-how-to-stay-cool
 - World Health Organization, Sepsis:
   https://www.who.int/news-room/fact-sheets/detail/sepsis
+- World Health Organization, Tuberculosis:
+  https://www.who.int/news-room/fact-sheets/detail/tuberculosis
+- World Health Organization, Anaemia:
+  https://www.who.int/news-room/fact-sheets/detail/ANAEMIA
+- World Health Organization, Kidney disease:
+  https://www.who.int/news-room/fact-sheets/detail/kidney-disease
+- World Health Organization, Hepatitis B:
+  https://www.who.int/news-room/fact-sheets/detail/hepatitis-B/
+- World Health Organization, HIV and AIDS:
+  https://www.who.int/en/news-room/fact-sheets/detail/hiv-aids
+- World Health Organization, Depression:
+  https://www.who.int/news-room/fact-sheets/detail/depression
+- World Health Organization, Oral health:
+  https://www.who.int/news-room/fact-sheets/detail/oral-health
+- World Health Organization, Malnutrition:
+  https://www.who.int/en/news-room/fact-sheets/detail/malnutrition
+- World Health Organization and UNICEF, 2026 wasting and nutritional oedema guidance:
+  https://www.who.int/publications/i/item/9789240122840
 
 ## Review status — do not misrepresent
 
