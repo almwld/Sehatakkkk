@@ -528,9 +528,31 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || resource.data.pharmacyId == request.auth.uid || (resource.data.pharmacyId is string && exists(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)) && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.ownerId == request.auth.uid));
     }
     match /prescriptions/{id} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.patientId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      function isAssignedPharmacyOwner() {
+        return isSignedIn()
+          && resource.data.get('pharmacyId', null) is string
+          && exists(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId))
+          && (
+            get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('ownerId', '') == request.auth.uid
+            || get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('userId', '') == request.auth.uid
+            || resource.data.pharmacyId == request.auth.uid
+          );
+      }
+      allow read: if isAdmin()
+        || (isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.patientId == request.auth.uid))
+        || isAssignedPharmacyOwner();
+      // A patient may submit only an unreviewed prescription. Review authority
+      // and approval fields are server-owned and cannot be forged by clients.
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.patientId == request.auth.uid
+        && request.resource.data.get('status', 'pending') == 'pending'
+        && !request.resource.data.keys().hasAny(['reviewedBy', 'reviewedAt', 'reviewNote', 'linkedOrderIds']);
+      allow update: if isAdmin();
+      allow delete: if isAdmin()
+        || (isSignedIn()
+            && resource.data.userId == request.auth.uid
+            && resource.data.get('status', 'pending') == 'pending');
     }
     match /lab_categories/{id} { allow read: if true; allow write: if isAdmin(); }
     match /articles/{id} { allow read: if true; allow write: if isAdmin(); }
