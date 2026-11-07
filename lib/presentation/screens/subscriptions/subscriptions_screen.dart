@@ -27,14 +27,25 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen>{
     final uid=FirebaseAuth.instance.currentUser?.uid;
     if(uid==null)return null;
     final q=await FirebaseFirestore.instance.collection('subscriptions').where('userId',isEqualTo:uid).where('status',whereIn:['active','trial']).limit(1).get();
-    return q.docs.isEmpty?null:q.docs.first.data()['planName']?.toString();
+    if (q.docs.isEmpty) return null;
+    final data = q.docs.first.data();
+    // Prefer the stable plan code; retain compatibility with older records.
+    return data['plan']?.toString() ?? data['planName']?.toString();
+  }
+
+  String _localizedPlanName(String value) {
+    for (final plan in plans) {
+      if (plan.$2 == value || plan.$1 == value) return _t(plan.$1);
+    }
+    // Do not expose an untranslated Firestore value in English/French UI.
+    return _t('اشتراك نشط');
   }
 
   Future<void> _subscribe((String,String,int,int,String,List<String>) p) async {
     final price=_annual?p.$4:p.$3;
     if(price==0){ToastService.showInfo(_t('أنت على الباقة المجانية.'));return;}
     final active=await _activePlan();
-    if(active!=null){ToastService.showInfo('${_t('لديك اشتراك نشط: ')}$active');return;}
+    if(active!=null){ToastService.showInfo('${_t('لديك اشتراك نشط: ')}${_localizedPlanName(active)}');return;}
     if(!mounted)return;
     final ok=await Navigator.push<bool>(context,MaterialPageRoute(builder:(_)=>SubscriptionPaymentScreen(planName:p.$1,planCode:p.$2,price:price,annual:_annual,features:p.$6)));
     if(ok==true&&mounted)setState((){});
