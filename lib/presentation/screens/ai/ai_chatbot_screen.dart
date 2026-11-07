@@ -21,7 +21,7 @@ class AiChatbotScreen extends StatefulWidget {
 class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProviderStateMixin {
   String _t(String value) => AppStrings.of(context).translate(value);
   final _controller=TextEditingController(); final _scroll=ScrollController(); final _bot=ChatBot();
-  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; late final AnimationController _typingController; final LocalDialogueState _dialogue=LocalDialogueState();
+  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; late final AnimationController _typingController; late LocalDialogueState _dialogue;
   final LocalStorageService _historyStore=LocalStorageService();
   String _sessionId='assistant_guest_v1'; bool _historyReady=false; bool _historyLoading=false;
   static const _quick=<Map<String,String>>[
@@ -30,7 +30,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
     {'title':'خدمات التطبيق','prompt':'عرفني بخدمات صحتك'},{'title':'مساعدة','prompt':'أحتاج مساعدة من داخل التطبيق'},
   ];
 
-  @override void initState(){super.initState();_dialogue.load();_restoreHistory();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
+  @override void initState(){super.initState();_restoreHistory();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
   @override void dispose(){_typingController.dispose();_controller.dispose();_scroll.dispose();super.dispose();}
 
   Future<void> _send(String value) async {
@@ -99,6 +99,8 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
     try {
       final uid=FirebaseAuth.instance.currentUser?.uid;
       _sessionId=uid==null?'assistant_guest_v1':'assistant_user_$uid';
+      _dialogue=LocalDialogueState(storageKey:'local_ai_dialogue_$_sessionId');
+      await _dialogue.load();
       await _historyStore.initialize();
       final rows=await _historyStore.getConversation(_sessionId);
       if(!mounted)return;
