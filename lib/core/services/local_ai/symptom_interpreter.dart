@@ -5,69 +5,69 @@ import 'package:sehatak/core/services/local_ai/local_intent_engine.dart';
 class SymptomInterpreter {
   static const Map<String, List<String>> _lexicon = {
     'حمى / حرارة': [
-      'حمى', 'حراره', 'حرارة', 'سخونه', 'سخونة', 'حار جسمي', 'جسمي حار',
+      'حمى', 'حراره', 'حرارة', 'سخونه', 'سخونة', 'fever', 'high temperature', 'fièvre', 'fievre', 'حار جسمي', 'جسمي حار',
       'في حرارة', 'عندي حرارة', 'حرارتي مرتفعه', 'حرارتي مرتفعة',
       'جسمي مولع', 'بدني حار', 'حرارتي طالعه', 'حرارتي عالية',
       'عندي سخونية', 'جسمي سخن',
     ],
     'غثيان': [
-      'غثيان', 'غثيانه', 'احس بغثيان', 'احس بالغثيان', 'قلبي يموج',
+      'غثيان', 'غثيانه', 'احس بغثيان', 'nausea', 'feeling sick', 'nausée', 'nausee', 'احس بالغثيان', 'قلبي يموج',
       'نفسي تقلب', 'نفسي مقلوبه', 'نفسي مقلوبة', 'اشعر بالغثيان',
       'نفسي تعبانة', 'نفسي تعبان', 'اشتي استفرغ', 'عايز ارجع',
       'نفسي ارجع', 'حاسس اني هرجع',
     ],
     'قيء': [
-      'استفراغ', 'استفرغ', 'ترجيع', 'ارجع', 'تقيؤ', 'قيء', 'اقياء',
+      'استفراغ', 'استفرغ', 'ترجيع', 'ارجع', 'تقيؤ', 'قيء', 'اقياء', 'vomiting', 'vomit', 'vomissements',
       'برجع', 'برجع كل شيء',
     ],
     'صداع': [
-      'صداع', 'راسي يوجعني', 'راسي يوجع', 'راسي يؤلمني', 'وجع راس',
+      'صداع', 'راسي يوجعني', 'headache', 'migraine', 'mal de tête', 'mal de tete', 'راسي يوجع', 'راسي يؤلمني', 'وجع راس',
       'الم راس', 'ألم رأس', 'راسي يفجر', 'راسي بينشق', 'دماغي يوجعني',
       'راسي مصدع',
     ],
     'سعال / كحة': [
-      'سعال', 'كحه', 'كحة', 'اكح', 'اكح كثير', 'كحة تاعبني',
+      'سعال', 'كحه', 'كحة', 'اكح', 'cough', 'coughing', 'toux', 'اكح كثير', 'كحة تاعبني',
       'اكح طول الوقت', 'كحتي ما توقف', 'عندي كحه', 'بسعل',
     ],
     'التهاب الحلق': [
-      'حلقي يوجع', 'حلقي يؤلمني', 'الم حلق', 'ألم حلق', 'حلق ناشف',
+      'حلقي يوجع', 'حلقي يؤلمني', 'sore throat', 'throat pain', 'mal de gorge', 'الم حلق', 'ألم حلق', 'حلق ناشف',
       'حلقي ملتهب', 'بلعومي يوجعني', 'وجع في الزور',
     ],
     'ضيق التنفس': [
-      'ضيق نفس', 'ضيق تنفس', 'نفسي ضيق', 'ما اقدر اتنفس',
+      'ضيق نفس', 'ضيق تنفس', 'shortness of breath', 'difficulty breathing', 'essoufflement', 'difficulté à respirer', 'نفسي ضيق', 'ما اقدر اتنفس',
       'ما اقدر أتنفس', 'مش قادر اتنفس', 'مش قادر اتنفس كويس',
       'اختناق', 'مخنوق', 'كتمة نفس', 'نهجان شديد',
     ],
     'ألم الصدر': [
-      'الم صدر', 'ألم صدر', 'صدري يوجعني', 'صدري يوجع',
+      'الم صدر', 'ألم صدر', 'chest pain', 'douleur thoracique', 'صدري يوجعني', 'صدري يوجع',
       'وجع صدر', 'ضغط في صدري', 'قلبي يوجعني', 'وجع بالقفص الصدري',
     ],
     'دوخة': [
-      'دوخه', 'دوخة', 'دايخ', 'دايخه', 'احس بدوخه',
+      'دوخه', 'دوخة', 'dizziness', 'dizzy', 'vertige', 'étourdissement', 'دايخ', 'دايخه', 'احس بدوخه',
       'احس اني بدوخ', 'الدنيا تلف بي', 'راسي يدور',
       'الدنيا بتلف', 'احس بدوار',
     ],
     'تعب / إرهاق': [
-      'تعبان', 'تعبانه', 'تعب', 'مرهق', 'مرهقه', 'ارهاق',
+      'تعبان', 'تعبانه', 'تعب', 'fatigue', 'tiredness', 'fatigue', 'مرهق', 'مرهقه', 'ارهاق',
       'إرهاق', 'مالي خلق', 'ضعف', 'جسمي مكسر', 'مهدود',
     ],
     'ألم البطن': [
-      'بطني يوجعني', 'بطني يوجع', 'الم بطن', 'ألم بطن', 'وجع بطن',
+      'بطني يوجعني', 'بطني يوجع', 'abdominal pain', 'stomach ache', 'douleur abdominale', 'mal au ventre', 'الم بطن', 'ألم بطن', 'وجع بطن',
       'معدتي توجعني', 'معدتي يوجعني', 'بطني يعورني', 'مغص',
       'بطني يعصرني', 'بطني يقطعني', 'معدتي بتوجعني',
     ],
-    'إسهال': ['اسهال', 'إسهال', 'بطني يلعب', 'بطن يلعب معاي', 'براز مائي', 'عندي اسهال'],
-    'إمساك': ['امساك', 'إمساك', 'ما اقدر ادخل الحمام', 'ما اخرج', 'صعوبة التبرز'],
+    'إسهال': ['اسهال', 'إسهال', 'diarrhea', 'diarrhoea', 'diarrhée', 'بطني يلعب', 'بطن يلعب معاي', 'براز مائي', 'عندي اسهال'],
+    'إمساك': ['امساك', 'إمساك', 'constipation', 'ما اقدر ادخل الحمام', 'ما اخرج', 'صعوبة التبرز'],
     'ألم عضلي / مفاصل': [
-      'عضلاتي توجعني', 'عضلاتي تؤلمني', 'مفاصلي توجعني',
+      'عضلاتي توجعني', 'عضلاتي تؤلمني', 'muscle pain', 'joint pain', 'douleur musculaire', 'douleur articulaire', 'مفاصلي توجعني',
       'مفاصلي تؤلمني', 'الم مفاصل', 'ألم مفاصل', 'وجع جسم',
       'جسمي كله يوجعني', 'عظامي توجعني',
     ],
-    'ألم الظهر': ['ظهري يوجعني', 'ظهري يؤلمني', 'الم ظهر', 'ألم ظهر', 'وجع ظهر', 'اسفل ظهري يوجعني'],
-    'طفح / حكة': ['طفح', 'حكه', 'حكة', 'جلدي يحكني', 'جلدي يحك', 'احمرار في الجلد', 'طلع لي طفح'],
-    'خفقان': ['خفقان', 'قلبي يدق بسرعة', 'قلبي سريع', 'دقات قلبي سريعه', 'دقات قلبي سريعة', 'قلبي يخفق'],
+    'ألم الظهر': ['ظهري يوجعني', 'ظهري يؤلمني', 'back pain', 'mal de dos', 'الم ظهر', 'ألم ظهر', 'وجع ظهر', 'اسفل ظهري يوجعني'],
+    'طفح / حكة': ['طفح', 'حكه', 'حكة', 'rash', 'itchy skin', 'éruption cutanée', 'eruption cutanee', 'جلدي يحكني', 'جلدي يحك', 'احمرار في الجلد', 'طلع لي طفح'],
+    'خفقان': ['خفقان', 'قلبي يدق بسرعة', 'palpitations', 'racing heart', 'palpitations cardiaques', 'قلبي سريع', 'دقات قلبي سريعه', 'دقات قلبي سريعة', 'قلبي يخفق'],
     'رشح / احتقان': [
-      'رشح', 'زكام', 'انفي مسدود', 'أنفي مسدود', 'احتقان',
+      'رشح', 'زكام', 'runny nose', 'stuffy nose', 'common cold', 'rhume', 'nez qui coule', 'انفي مسدود', 'أنفي مسدود', 'احتقان',
       'سيلان الانف', 'سيلان الأنف', 'اعطس', 'عطس', 'مناخيري مسدودة',
     ],
   };
@@ -87,7 +87,7 @@ class SymptomInterpreter {
     'حمى / حرارة': 'طبيب عام',
   };
 
-  static Map<String, dynamic>? analyze(String input) {
+  static Map<String, dynamic>? analyze(String input, {String languageCode = 'ar'}) {
     final text = _normalize(input);
     if (text.isEmpty) return null;
 
@@ -110,28 +110,81 @@ class SymptomInterpreter {
 
     return {
       'symptoms': found,
-      'urgency': emergency ? 'عاجل' : (found.length >= 3 ? 'يحتاج متابعة' : 'غير طارئ غالباً'),
+      'urgency': emergency ? (languageCode == 'fr' ? 'Urgent' : languageCode == 'en' ? 'Urgent' : 'عاجل') : (found.length >= 3 ? (languageCode == 'fr' ? 'À surveiller' : languageCode == 'en' ? 'Needs follow-up' : 'يحتاج متابعة') : (languageCode == 'fr' ? 'Probablement non urgent' : languageCode == 'en' ? 'Usually non-urgent' : 'غير طارئ غالباً')),
       'emergency': emergency,
       'specialties': specialties,
       'duration': duration,
-      'response': _buildResponse(found, emergency, specialties, duration),
+      'response': _buildResponse(found, emergency, specialties, duration, languageCode),
     };
   }
+
+  static const Map<String, Map<String, String>> _symptomLabels = {
+    'حمى / حرارة': {'en': 'fever', 'fr': 'fièvre'},
+    'غثيان': {'en': 'nausea', 'fr': 'nausée'},
+    'قيء': {'en': 'vomiting', 'fr': 'vomissements'},
+    'صداع': {'en': 'headache', 'fr': 'mal de tête'},
+    'سعال / كحة': {'en': 'cough', 'fr': 'toux'},
+    'التهاب الحلق': {'en': 'sore throat', 'fr': 'mal de gorge'},
+    'ضيق التنفس': {'en': 'shortness of breath', 'fr': 'essoufflement'},
+    'ألم الصدر': {'en': 'chest pain', 'fr': 'douleur thoracique'},
+    'دوخة': {'en': 'dizziness', 'fr': 'vertiges'},
+    'تعب / إرهاق': {'en': 'fatigue', 'fr': 'fatigue'},
+    'ألم البطن': {'en': 'abdominal pain', 'fr': 'douleur abdominale'},
+    'إسهال': {'en': 'diarrhea', 'fr': 'diarrhée'},
+    'إمساك': {'en': 'constipation', 'fr': 'constipation'},
+    'ألم عضلي / مفاصل': {'en': 'muscle or joint pain', 'fr': 'douleur musculaire ou articulaire'},
+    'ألم الظهر': {'en': 'back pain', 'fr': 'mal de dos'},
+    'طفح / حكة': {'en': 'rash or itching', 'fr': 'éruption ou démangeaisons'},
+    'خفقان': {'en': 'palpitations', 'fr': 'palpitations'},
+    'رشح / احتقان': {'en': 'runny or blocked nose', 'fr': 'nez qui coule ou bouché'},
+  };
+
+  static const Map<String, Map<String, String>> _specialtyLabels = {
+    'الطوارئ / طبيب صدرية': {'en': 'emergency care / respiratory doctor', 'fr': 'urgences / pneumologue'},
+    'الطوارئ / طبيب قلب': {'en': 'emergency care / cardiologist', 'fr': 'urgences / cardiologue'},
+    'طبيب قلب': {'en': 'cardiologist', 'fr': 'cardiologue'},
+    'طبيب باطنية / جهاز هضمي': {'en': 'internal medicine / gastroenterology', 'fr': 'médecine interne / gastro-entérologie'},
+    'طبيب جلدية': {'en': 'dermatologist', 'fr': 'dermatologue'},
+    'طبيب عظام ومفاصل': {'en': 'orthopedist', 'fr': 'orthopédiste'},
+    'طبيب عام / أنف وأذن وحنجرة': {'en': 'general practitioner / ENT', 'fr': 'médecin généraliste / ORL'},
+    'طبيب عام / أعصاب': {'en': 'general practitioner / neurologist', 'fr': 'médecin généraliste / neurologue'},
+    'طبيب عام': {'en': 'general practitioner', 'fr': 'médecin généraliste'},
+  };
 
   static String _buildResponse(
     List<String> symptoms,
     bool emergency,
     List<String> specialties,
     String? duration,
+    String languageCode,
   ) {
     if (emergency) {
+      if (languageCode == 'fr') {
+        return 'Les symptômes décrits peuvent être urgents. Rendez-vous immédiatement aux urgences ou appelez les services d’urgence locaux.';
+      }
+      if (languageCode == 'en') {
+        return 'These symptoms may be an emergency. Go to the nearest emergency department now or call local emergency services.';
+      }
       return 'الأعراض التي ذكرتها قد تكون طارئة. توجّه إلى أقرب طوارئ الآن أو اتصل بخدمات الطوارئ المحلية.';
     }
-    final summary = symptoms.join('، ');
+    final language = languageCode == 'fr' ? 'fr' : (languageCode == 'en' ? 'en' : 'ar');
+    final summary = symptoms.map((s) => language == 'ar' ? s : (_symptomLabels[s]?[language] ?? s)).join(language == 'ar' ? '، ' : ', ');
     final specialty = specialties.isEmpty
         ? ''
-        : ' التخصص المناسب مبدئياً: ${specialties.first}.';
-    final since = duration == null ? '' : ' منذ $duration.';
+        : language == 'ar'
+            ? ' التخصص المناسب مبدئياً: ${specialties.first}.'
+            : language == 'fr'
+                ? ' Spécialité à envisager : ${_specialtyLabels[specialties.first]?['fr'] ?? specialties.first}.'
+                : ' Suggested specialty: ${_specialtyLabels[specialties.first]?['en'] ?? specialties.first}.';
+    final since = duration == null
+        ? ''
+        : language == 'fr'
+            ? ' depuis $duration.'
+            : language == 'en'
+                ? ' for $duration.'
+                : ' منذ $duration.';
+    if (language == 'fr') return 'Symptômes compris : $summary.$since$specialty Depuis quand ont-ils commencé ?';
+    if (language == 'en') return 'Symptoms understood: $summary.$since$specialty When did they start?';
     return 'الأعراض التي فهمتها: $summary.$since$specialty متى بدأت؟';
   }
 
