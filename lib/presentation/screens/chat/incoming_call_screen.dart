@@ -276,7 +276,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           _swipeDirection = 0;
           _swipeLocked = false;
         });
-        ToastService.showError('تعذر قبول المكالمة: $e');
+        ToastService.showError('${AppStrings.of(context).translate('تعذر قبول المكالمة:')} $e');
       }
       return;
     }
