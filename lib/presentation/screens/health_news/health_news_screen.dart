@@ -239,7 +239,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
             Row(
               children: [
                 Text(
-                  news['source'],
+                  AppStrings.of(context).translate(news['source'] as String),
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.primary,

@@ -126,7 +126,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        challenge['title'],
+                        _localizedUiText(context, challenge['title'] as String),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -150,7 +150,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    challenge['reward'],
+                    _localizedUiText(context, challenge['reward'] as String),
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.amber,
@@ -164,7 +164,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
             const Divider(),
             const SizedBox(height: 12),
             Text(
-              challenge['description'],
+              _localizedUiText(context, challenge['description'] as String),
               style: const TextStyle(fontSize: 14, height: 1.6),
             ),
             const SizedBox(height: 16),
@@ -206,7 +206,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                 _statItem('👥', '${challenge['participants']}', 'مشارك'),
                 _statItem('📅', '${challenge['daysLeft']}', 'يوم متبقي'),
                 if (challenge['status'] != 'مكتملة') ...[
-                  _statItem('🏆', challenge['reward'], 'المكافأة'),
+                  _statItem('🏆', _localizedUiText(context, challenge['reward'] as String), 'المكافأة'),
                 ],
               ],
             ),
@@ -217,7 +217,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    ToastService.showSuccess(context, '✅ انضممت إلى تحدي ${challenge['title']}');
+                    ToastService.showSuccess(context, '✅ ${_localizedUiText(context, 'انضممت إلى تحدي')} ${_localizedUiText(context, challenge['title'] as String)}');
                   },
                   icon: const Icon(Icons.play_arrow_rounded),
                   label: Text(_localizedUiText(context, 'انضم إلى التحدي')),
@@ -273,7 +273,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             Text(
-              label,
+              _localizedUiText(context, label),
               style: const TextStyle(fontSize: 9, color: AppColors.grey),
             ),
           ],
@@ -503,14 +503,14 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        challenge['title'],
+                        _localizedUiText(context, challenge['title'] as String),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
                       ),
                       Text(
-                        challenge['description'],
+                        _localizedUiText(context, challenge['description'] as String),
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.grey,
@@ -573,7 +573,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                 Icon(Icons.emoji_events_rounded, size: 14, color: AppColors.amber),
                 const SizedBox(width: 4),
                 Text(
-                  challenge['reward'],
+                  _localizedUiText(context, challenge['reward'] as String),
                   style: TextStyle(fontSize: 10, color: AppColors.amber),
                 ),
                 if (challenge['daysLeft'] > 0) ...[

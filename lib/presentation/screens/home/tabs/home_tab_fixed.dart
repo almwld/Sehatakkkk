@@ -327,7 +327,7 @@ class _HomeTabState extends State<HomeTab> {
                             child: Text(_userName[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 16)),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: Text('${AppStrings.of(context).translate(_getGreeting())}، $greetingName 👋', style: const TextStyle(color: Colors.white, fontSize: 16))),
+                          Expanded(child: Text('${AppStrings.of(context).translate(_getGreeting())}, $greetingName 👋', style: const TextStyle(color: Colors.white, fontSize: 16))),
                           IconButton(icon: const Icon(Icons.notifications, color: Colors.white), onPressed: () {}),
                         ],
                       ),
