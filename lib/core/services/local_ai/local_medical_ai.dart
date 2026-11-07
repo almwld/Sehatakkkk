@@ -75,12 +75,19 @@ class ChatBot {
   String getDiseaseInfo(String diseaseName, {String languageCode = 'ar'}) {
     final lang = _language(languageCode);
     final result = MedicalKnowledgeCatalog.answer(diseaseName, lang);
-    return result?['response'] ?? _text(
-      lang,
-      'لا توجد حالياً مادة موثقة لهذا الموضوع. لا تعتمد على التخمين أو التشخيص الذاتي؛ استشر مختصاً صحياً.',
-      'There is no sourced entry for this topic yet. Do not guess or self-diagnose; consult a qualified health professional.',
-      'Aucune fiche sourcée n’est disponible pour ce sujet. Ne faites pas de suppositions ni d’autodiagnostic ; consultez un professionnel de santé qualifié.',
-    );
+    if (result == null) {
+      return _text(
+        lang,
+        'لا توجد حالياً مادة موثقة لهذا الموضوع. لا تعتمد على التخمين أو التشخيص الذاتي؛ استشر مختصاً صحياً.',
+        'There is no sourced entry for this topic yet. Do not guess or self-diagnose; consult a qualified health professional.',
+        'Aucune fiche sourcée n’est disponible pour ce sujet. Ne faites pas de suppositions ni d’autodiagnostic ; consultez un professionnel de santé qualifié.',
+      );
+    }
+    final sourceLabel = lang == 'ar' ? 'المصدر' : 'Source';
+    final review = lang == 'fr'
+        ? 'Validation clinique locale en attente.'
+        : (lang == 'en' ? 'Local clinician review is pending.' : 'المراجعة السريرية المحلية ما زالت مطلوبة.');
+    return '${result['response']}\\n\\n$sourceLabel: ${result['source']}\\n${result['source_url']}\\n$review';
   }
 
   String analyzeSymptoms(String symptoms, {String languageCode = 'ar'}) {
