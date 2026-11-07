@@ -25,20 +25,20 @@ class LocalAiIntentResult {
   });
 }
 
-/// Offline Arabic intent engine. It uses normalization, synonyms and common
-/// Yemeni/Arabic wording; it never calls a network service.
+/// Offline Arabic intent engine with shared Arabic normalization and common
+/// regional wording. It never calls a network service.
 class LocalAiIntentEngine {
   static const Map<String, List<String>> _aliases = {
-    'طبيب': ['دكتور', 'دكتوره', 'دكتورة', 'طبيبة', 'طبيب'],
-    'صيدلية': ['صيدليه', 'دواء', 'ادويه', 'أدوية', 'صيدلي'],
-    'مختبر': ['مختبرات', 'مختبر', 'تحليل', 'تحاليل', 'فحص', 'فحوصات'],
-    'مستشفى': ['مستشفي', 'مشفى', 'مركز صحي'],
-    'استشارة': ['استشاره', 'كشف', 'موعد طبي', 'حجز طبيب'],
-    'طوارئ': ['اسعاف', 'إسعاف', 'طوارئ', 'طارئ', 'نجده'],
-    'ملفي': ['حسابي', 'بروفايل', 'الملف الشخصي', 'الملف الصحي'],
-    'نوم': ['منام', 'نومي', 'ساعات النوم', 'ارق', 'أرق'],
-    'تغذية': ['غذاء', 'اكل', 'أكل', 'رجيم', 'حمية', 'سعرات', 'وجبات'],
-    'خريطة': ['موقع', 'وين اقرب', 'اين اقرب', 'قريب مني', 'بالقرب مني'],
+    'طبيب': ['دكتور', 'دكتوره', 'دكتورة', 'طبيبة', 'طبيب', 'اكشف عند دكتور', 'ابغى دكتور', 'عايز دكتور', 'بدي دكتور'],
+    'صيدلية': ['صيدليه', 'دواء', 'دوا', 'دواي', 'ادويه', 'أدوية', 'صيدلي', 'علاج', 'حبوب', 'روشته', 'روشتة'],
+    'مختبر': ['مختبرات', 'مختبر', 'معمل', 'تحليل', 'تحاليل', 'فحص', 'فحوصات', 'اعمل تحليل', 'اسوي تحليل'],
+    'مستشفى': ['مستشفي', 'مشفى', 'مركز صحي', 'مستوصف', 'مستشفى قريب'],
+    'استشارة': ['استشاره', 'كشف', 'كشف طبي', 'موعد طبي', 'حجز طبيب', 'اكلم دكتور', 'اتكلم مع طبيب', 'استشير طبيب'],
+    'طوارئ': ['اسعاف', 'إسعاف', 'طوارئ', 'طارئ', 'نجده', 'الحقوني', 'انقذوني', 'حالة حرجة'],
+    'ملفي': ['حسابي', 'بروفايل', 'الملف الشخصي', 'الملف الصحي', 'بياناتي الصحية'],
+    'نوم': ['منام', 'نومي', 'ساعات النوم', 'ارق', 'أرق', 'ما اقدر انام', 'مش عارف انام'],
+    'تغذية': ['غذاء', 'اكل', 'أكل', 'رجيم', 'حمية', 'سعرات', 'وجبات', 'دايت'],
+    'خريطة': ['موقع', 'وين اقرب', 'اين اقرب', 'قريب مني', 'بالقرب مني', 'فين اقرب', 'اقرب مستشفى', 'اقرب صيدلية'],
   };
 
   static LocalAiIntentResult classify(String input) {
@@ -47,7 +47,7 @@ class LocalAiIntentEngine {
       return const LocalAiIntentResult(intent: LocalAiIntent.unknown);
     }
 
-    if (_matchesAny(text, ['سلام', 'اهلا', 'مرحبا', 'هلا', 'صباح الخير', 'مساء الخير'])) {
+    if (_matchesAny(text, ['سلام', 'اهلا', 'مرحبا', 'هلا', 'صباح الخير', 'مساء الخير', 'السلام عليكم'])) {
       return const LocalAiIntentResult(intent: LocalAiIntent.greeting, confidence: .99);
     }
 
@@ -69,17 +69,21 @@ class LocalAiIntentEngine {
       );
     }
 
-    if (_matchesAny(text, ['مساعده', 'مساعدة', 'كيف استخدم', 'كيف استعمل', 'ما اقدر', 'لا استطيع']) &&
+    if (_matchesAny(text, ['مساعده', 'مساعدة', 'كيف استخدم', 'كيف استعمل', 'ما اقدر', 'لا استطيع', 'مش فاهم', 'مش عارف']) &&
         merged.isEmpty) {
       return const LocalAiIntentResult(intent: LocalAiIntent.help, confidence: .9);
     }
 
-    if (_matchesAny(text, ['دواء', 'دواءي', 'جرعه', 'جرعة', 'حبوب', 'علاج دوائي', 'مضاد حيوي'])) {
+    if (_matchesAny(text, ['دواء', 'دوا', 'دواءي', 'جرعه', 'جرعة', 'حبوب', 'علاج دوائي', 'مضاد حيوي', 'اسم الدواء'])) {
       return LocalAiIntentResult(intent: LocalAiIntent.medicine, services: merged, confidence: .92);
     }
 
-    if (_matchesAny(text, ['اشعر', 'احس', 'الم', 'وجع', 'حراره', 'حمى', 'سعال', 'كحه', 'غثيان',
-      'استفراغ', 'دوخه', 'تعب', 'ضيق نفس', 'خفقان', 'طفح', 'اسهال', 'امساك'])) {
+    if (_matchesAny(text, [
+      'اشعر', 'احس', 'حاسس', 'حاسة', 'عندي', 'الم', 'وجع', 'حراره', 'حمى',
+      'سعال', 'كحه', 'غثيان', 'استفراغ', 'دوخه', 'تعب', 'ضيق نفس',
+      'خفقان', 'طفح', 'اسهال', 'امساك', 'راسي', 'بطني', 'صدري',
+      'مش قادر اتنفس', 'نفسي ضيق',
+    ])) {
       return LocalAiIntentResult(intent: LocalAiIntent.symptom, services: merged, confidence: .94);
     }
 
@@ -116,6 +120,7 @@ class LocalAiIntentEngine {
     return result;
   }
 
+  /// Canonical normalization shared by intent, symptom and safety matching.
   static String normalize(String value) {
     return value.toLowerCase()
         .replaceAll('أ', 'ا')
@@ -126,9 +131,11 @@ class LocalAiIntentEngine {
         .replaceAll('ى', 'ي')
         .replaceAll('ؤ', 'و')
         .replaceAll('ئ', 'ي')
-        .replaceAll('ـ', '')
-        .replaceAll(RegExp(r'[ًٌٍَُِّْ]'), '')
-        .replaceAll(RegExp(r'\\s+'), ' ')
+        .replaceAll('ک', 'ك')
+        .replaceAll('ی', 'ي')
+        .replaceAll(RegExp(r'[\u064B-\u065F\u0670\u0640]'), '')
+        .replaceAll(RegExp(r'[،,؛;.!؟?]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }
 }
@@ -138,6 +145,7 @@ class MedicalSafetyIntent {
   static const List<String> redFlags = [
     'اختناق',
     'ما اقدر اتنفس',
+    'مش قادر اتنفس',
     'لا استطيع التنفس',
     'ضيق تنفس شديد',
     'الم صدر شديد',
