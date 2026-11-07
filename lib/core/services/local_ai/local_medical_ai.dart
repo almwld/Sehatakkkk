@@ -70,20 +70,26 @@ class ChatBot {
     };
   }
 
-  String getMedicineInfo(String medicineName) => _medicineSafetyReply('ar');
+  String getMedicineInfo(String medicineName, {String languageCode = 'ar'}) => _medicineSafetyReply(_language(languageCode));
 
-  String getDiseaseInfo(String diseaseName) {
-    final result = MedicalKnowledgeCatalog.answer(diseaseName, 'ar');
-    return result?['response'] ??
-        'لا توجد حالياً مادة موثقة لهذا الموضوع. لا تعتمد على التخمين أو التشخيص الذاتي؛ استشر مختصاً صحياً.';
+  String getDiseaseInfo(String diseaseName, {String languageCode = 'ar'}) {
+    final lang = _language(languageCode);
+    final result = MedicalKnowledgeCatalog.answer(diseaseName, lang);
+    return result?['response'] ?? _text(
+      lang,
+      'لا توجد حالياً مادة موثقة لهذا الموضوع. لا تعتمد على التخمين أو التشخيص الذاتي؛ استشر مختصاً صحياً.',
+      'There is no sourced entry for this topic yet. Do not guess or self-diagnose; consult a qualified health professional.',
+      'Aucune fiche sourcée n’est disponible pour ce sujet. Ne faites pas de suppositions ni d’autodiagnostic ; consultez un professionnel de santé qualifié.',
+    );
   }
 
-  String analyzeSymptoms(String symptoms) {
-    final safety = MedicalSafetyEngine.assess(symptoms);
+  String analyzeSymptoms(String symptoms, {String languageCode = 'ar'}) {
+    final lang = _language(languageCode);
+    final safety = MedicalSafetyEngine.assess(symptoms, languageCode: lang);
     if (safety.emergency) return safety.response;
-    final result = SymptomInterpreter.analyze(symptoms);
+    final result = SymptomInterpreter.analyze(symptoms, languageCode: lang);
     return result?['response']?.toString() ??
-        'اذكر الأعراض ومدتها وشدتها وأي أعراض مصاحبة. لا يمكن تشخيص الحالة من رسالة واحدة.';
+        _text(lang, 'اذكر الأعراض ومدتها وشدتها وأي أعراض مصاحبة. لا يمكن تشخيص الحالة من رسالة واحدة.', 'Describe the symptoms, duration and severity, including any associated symptoms. One message cannot establish a diagnosis.', 'Décrivez les symptômes, leur durée et leur intensité, ainsi que les symptômes associés. Un seul message ne permet pas d’établir un diagnostic.');
   }
 
   List<String> searchKnowledge(String query) {
