@@ -403,13 +403,19 @@ exports.checkoutCart = onCall(async (request) => {
       const stockField = Object.prototype.hasOwnProperty.call(product, 'stock') ? 'stock' : 'quantity';
       const stock = Number(product[stockField]);
       if (!Number.isInteger(stock) || stock < item.quantity) throw new HttpsError('failed-precondition', 'المخزون غير كافٍ لأحد المنتجات');
-      if (product.requiresPrescription === true) {
-        if (!item.prescriptionId) throw new HttpsError('failed-precondition', 'هذا المنتج يتطلب وصفة طبية');
-        const prescriptionRef = db.collection('prescriptions').doc(item.prescriptionId);
+      const requiresPrescription = product.requiresPrescription === true || product.prescriptionRequired === true;
+      let prescriptionRef = null;
+      if (requiresPrescription) {
+        if (!item.prescriptionId) throw new HttpsError('failed-precondition', 'هذا المنتج يتطلب وصفة طبية معتمدة');
+        prescriptionRef = db.collection('prescriptions').doc(item.prescriptionId);
         const prescriptionSnap = await tx.get(prescriptionRef);
-        if (!prescriptionSnap.exists || ![prescriptionSnap.data().userId, prescriptionSnap.data().patientId].includes(uid)) throw new HttpsError('permission-denied', 'الوصفة غير موجودة أو لا تخص هذا الحساب');
+        if (!prescriptionSnap.exists) throw new HttpsError('not-found', 'الوصفة الطبية غير موجودة');
+        const prescription = prescriptionSnap.data() || {};
+        if (String(prescription.userId || prescription.patientId || '') !== uid) throw new HttpsError('permission-denied', 'الوصفة لا تخص هذا الحساب');
+        if (String(prescription.pharmacyId || '') !== pharmacyId || (prescription.productId && String(prescription.productId) !== item.productId)) throw new HttpsError('failed-precondition', 'الوصفة غير مرتبطة بهذا المنتج أو الصيدلية');
+        if (prescription.status !== 'approved') throw new HttpsError('failed-precondition', 'الوصفة لم تعتمدها الصيدلية بعد');
       }
-      prepared.push({item, product, productRef: productRefs.find(ref => ref.id === item.productId), pharmacyId, unitPrice: Math.round(rawPrice * 100) / 100, lineTotal: Math.round(rawPrice * item.quantity * 100) / 100, stockField, stock});
+      prepared.push({item, product, productRef: productRefs.find(ref => ref.id === item.productId), pharmacyId, unitPrice: Math.round(rawPrice * 100) / 100, lineTotal: Math.round(rawPrice * item.quantity * 100) / 100, stockField, stock, prescriptionRef});
     }
     const pharmacyRefsById = new Map([...actualPharmacyIds].map(id => [id, db.collection('pharmacies').doc(id)]));
     const pharmacySnaps = await Promise.all([...pharmacyRefsById.values()].map(ref => tx.get(ref)));
@@ -446,12 +452,15 @@ exports.checkoutCart = onCall(async (request) => {
       tx.create(db.collection('orders').doc(orderId), {
         id: orderId, type: 'pharmacy', userId: uid, patientName, patientPhone, phoneNumber: patientPhone, pharmacyId, providerId: ownerId,
         pharmacyName: String(pharmacy.name || pharmacy.pharmacyName || ''),
-        items: rows.map(row => ({productId: row.item.productId, name: String(row.product.name || ''), quantity: row.item.quantity, unitPrice: row.unitPrice, price: row.unitPrice, total: row.lineTotal, requiresPrescription: row.product.requiresPrescription === true, prescriptionId: row.item.prescriptionId || null})),
+        items: rows.map(row => ({productId: row.item.productId, name: String(row.product.name || ''), quantity: row.item.quantity, unitPrice: row.unitPrice, price: row.unitPrice, total: row.lineTotal, requiresPrescription: row.product.requiresPrescription === true || row.product.prescriptionRequired === true, prescriptionId: row.item.prescriptionId || null})),
         subtotal: groupSubtotal, discount: 0, deliveryFee: 0, deliveryFeePendingQuote: deliveryRequired,
         total: groupSubtotal, currency: 'YER', status: 'pending', paymentStatus: 'paid', paymentMethod: 'wallet',
         transactionId, invoiceId, deliveryRequired, deliveryAddress: deliveryAddress || null,
         createdAt: now, updatedAt: now, statusHistory: [{status: 'pending', at: new Date().toISOString(), actorId: uid}],
       });
+      for (const row of rows) {
+        if (row.prescriptionRef) tx.update(row.prescriptionRef, {linkedOrderIds: FieldValue.arrayUnion(orderId), updatedAt: now});
+      }
       tx.set(db.collection('notifications').doc(), {userId: ownerId, type: 'pharmacy_order_created', title: 'طلب صيدلية جديد', body: 'لديك طلب جديد يحتاج إلى التأكيد.', data: {orderId, pharmacyId, invoiceId}, orderId, isRead: false, createdAt: now});
     }
     for (const row of prepared) {
@@ -464,6 +473,36 @@ exports.checkoutCart = onCall(async (request) => {
     return response;
   });
   return result;
+});
+
+exports.reviewPharmacyPrescription = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const prescriptionId = validId(request.data.prescriptionId, 'prescriptionId');
+  const decision = text(request.data.decision, 'decision', 20);
+  if (!['approve', 'reject'].includes(decision)) throw new HttpsError('invalid-argument', 'قرار مراجعة الوصفة غير صالح');
+  const note = String(request.data.note || '').trim().slice(0, 1000);
+  const prescriptionRef = db.collection('prescriptions').doc(prescriptionId);
+  await db.runTransaction(async (tx) => {
+    const prescriptionSnap = await tx.get(prescriptionRef);
+    if (!prescriptionSnap.exists) throw new HttpsError('not-found', 'الوصفة غير موجودة');
+    const prescription = prescriptionSnap.data() || {};
+    const pharmacyId = validId(prescription.pharmacyId, 'pharmacyId');
+    const pharmacyRef = db.collection('pharmacies').doc(pharmacyId);
+    const pharmacySnap = await tx.get(pharmacyRef);
+    if (!pharmacySnap.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة');
+    const pharmacy = pharmacySnap.data() || {};
+    if (!isPharmacyOwner(pharmacy, uid, pharmacyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية مراجعة وصفات هذه الصيدلية');
+    if (pharmacy.status !== 'approved' || pharmacy.isActive === false) throw new HttpsError('failed-precondition', 'حساب الصيدلية غير معتمد أو موقوف');
+    if (String(prescription.status || 'pending') !== 'pending') throw new HttpsError('failed-precondition', 'تمت مراجعة هذه الوصفة مسبقاً');
+    tx.update(prescriptionRef, {
+      status: decision === 'approve' ? 'approved' : 'rejected',
+      reviewedBy: uid,
+      reviewedAt: FieldValue.serverTimestamp(),
+      reviewNote: note,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+  return {success: true, prescriptionId, status: decision === 'approve' ? 'approved' : 'rejected'};
 });
 
 exports.updatePharmacyOrderStatus = onCall(async (request) => {
