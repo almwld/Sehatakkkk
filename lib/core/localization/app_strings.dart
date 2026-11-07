@@ -31,6 +31,16 @@ class AppStrings {
   String get done => _pick('تم', 'Done', 'Terminé');
   String get retry => _pick('إعادة المحاولة', 'Try again', 'Réessayer');
   String get noResults => _pick('لا توجد نتائج', 'No results found', 'Aucun résultat');
+  String get noMedicalRecords => _pick(
+        'لا توجد سجلات طبية حتى الآن',
+        'No medical records yet',
+        'Aucun dossier médical pour le moment',
+      );
+  String get noMedicalRecordsDescription => _pick(
+        'ستظهر هنا نتائج التحاليل والأشعة والسجلات الطبية المرتبطة بحسابك عند توفرها.',
+        'Your lab results, imaging reports, and medical records will appear here when available.',
+        'Vos résultats d’analyses, comptes rendus d’imagerie et dossiers médicaux apparaîtront ici lorsqu’ils seront disponibles.',
+      );
 
 
   String get appearance => _pick('المظهر', 'Appearance', 'Apparence');
