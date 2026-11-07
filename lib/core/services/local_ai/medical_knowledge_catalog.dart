@@ -273,6 +273,15 @@ class MedicalKnowledgeCatalog {
 
   static String normalize(String value) => value
       .toLowerCase()
+      .replaceAll(RegExp(r'[àáâäãå]'), 'a')
+      .replaceAll(RegExp(r'[èéêë]'), 'e')
+      .replaceAll(RegExp(r'[ìíîï]'), 'i')
+      .replaceAll(RegExp(r'[òóôöõ]'), 'o')
+      .replaceAll(RegExp(r'[ùúûü]'), 'u')
+      .replaceAll('ç', 'c')
+      .replaceAll('œ', 'oe')
+      .replaceAll('æ', 'ae')
+      .replaceAll(RegExp(r'[’' + "'" + '`´]'), ' ')
       .replaceAll(RegExp(r'[ًٌٍَُِّْـ]'), '')
       .replaceAll(RegExp(r'[أإآٱ]'), 'ا')
       .replaceAll('ى', 'ي')
