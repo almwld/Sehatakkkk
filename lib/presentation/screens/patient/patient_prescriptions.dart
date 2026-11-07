@@ -2,11 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 
 class PatientPrescriptions extends StatelessWidget {
+  String _localizedField(BuildContext context, Map<String, dynamic> data, String field, {String fallback = ''}) =>
+      localizedField(data, field, AppStrings.of(context).locale, fallback: fallback);
+
   const PatientPrescriptions({super.key});
 
   @override
@@ -111,9 +115,9 @@ class PatientPrescriptions extends StatelessWidget {
                             child: Icon(Icons.medication, color: AppColors.primary),
                           ),
                           title: Text(
-                            (medicine['name'] ?? medicine['medicine'] ?? '').toString(),
+                            _localizedField(context, medicine, 'name', fallback: _localizedField(context, medicine, 'medicine')),
                           ),
-                          subtitle: Text(_details(medicine)),
+                          subtitle: Text(_details(context, medicine)),
                         ),
                       if ((data['medicineInstructions'] ?? '').toString().isNotEmpty) ...[
                         const SizedBox(height: 6),
@@ -149,9 +153,10 @@ class PatientPrescriptions extends StatelessWidget {
     );
   }
 
-  static String _details(Map<String, dynamic> medicine) {
-    final dose = (medicine['dose'] ?? medicine['dosage'] ?? '').toString();
-    final frequency = (medicine['frequency'] ?? '').toString();
+  String _details(BuildContext context, Map<String, dynamic> medicine) {
+    final dose = _localizedField(context, medicine, 'dose',
+        fallback: _localizedField(context, medicine, 'dosage'));
+    final frequency = _localizedField(context, medicine, 'frequency');
     final times = medicine['times'] is List
         ? (medicine['times'] as List).join('، ')
         : (medicine['time'] ?? '').toString();
