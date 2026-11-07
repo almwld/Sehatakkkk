@@ -74,6 +74,18 @@ class PatientPrescriptions extends StatelessWidget {
                       .toList()
                   : <Map<String, dynamic>>[];
               final date = _date(data['prescriptionDate'] ?? data['createdAt']);
+              final doctorName = _localizedField(
+                context,
+                data,
+                'doctorName',
+                fallback: AppStrings.of(context).translate('الطبيب'),
+              );
+              final diagnosis = _localizedField(context, data, 'diagnosis');
+              final medicineInstructions = _localizedField(
+                context,
+                data,
+                'medicineInstructions',
+              );
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 14),
@@ -88,7 +100,7 @@ class PatientPrescriptions extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              '${AppStrings.of(context).translate('وصفة من')} ${data['doctorName'] ?? AppStrings.of(context).translate('الطبيب')}',
+                              '${AppStrings.of(context).translate('وصفة من')} $doctorName',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -102,9 +114,9 @@ class PatientPrescriptions extends StatelessWidget {
                             ),
                         ],
                       ),
-                      if ((data['diagnosis'] ?? '').toString().isNotEmpty) ...[
+                      if (diagnosis.isNotEmpty) ...[
                         const SizedBox(height: 10),
-                        Text('${AppStrings.of(context).translate('التشخيص')}: ${data['diagnosis']}'),
+                        Text('${AppStrings.of(context).translate('التشخيص')}: $diagnosis'),
                       ],
                       const Divider(height: 24),
                       for (final medicine in items)
@@ -119,10 +131,10 @@ class PatientPrescriptions extends StatelessWidget {
                           ),
                           subtitle: Text(_details(context, medicine)),
                         ),
-                      if ((data['medicineInstructions'] ?? '').toString().isNotEmpty) ...[
+                      if (medicineInstructions.isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Text(
-                          '${AppStrings.of(context).translate('تعليمات الطبيب:')} ${data['medicineInstructions']}',
+                          '${AppStrings.of(context).translate('تعليمات الطبيب:')} $medicineInstructions',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ],
