@@ -3,6 +3,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class BloodDonationScreen extends StatefulWidget {
@@ -263,8 +264,14 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
   }
 
   Future<void> _registerDonor() async {
-    if (_nameController.text.isEmpty || _phoneController.text.isEmpty || _ageController.text.isEmpty) {
-      ToastService.showError(_t('الرجاء ملء جميع الحقول'));
+    final user = FirebaseAuth.instance.currentUser;
+    final age = int.tryParse(_ageController.text.trim());
+    if (user == null) {
+      ToastService.showError(_t('يجب تسجيل الدخول أولاً'));
+      return;
+    }
+    if (_nameController.text.trim().isEmpty || _phoneController.text.trim().isEmpty || _ageController.text.trim().isEmpty || age == null || age < 18 || age > 65) {
+      ToastService.showError(_t('أدخل الاسم والهاتف وعمراً صحيحاً بين 18 و65 عاماً'));
       return;
     }
 
@@ -272,9 +279,10 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
 
     try {
       await FirebaseFirestore.instance.collection('blood_donors').add({
-        'name': _nameController.text,
-        'phone': _phoneController.text,
-        'age': int.tryParse(_ageController.text) ?? 0,
+        'userId': user.uid,
+        'name': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'age': age,
         'bloodType': _bloodType,
         'city': _city,
         'createdAt': FieldValue.serverTimestamp(),
