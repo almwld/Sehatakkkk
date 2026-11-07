@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/services/local_ai/chat_bot_offline.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
@@ -27,7 +28,8 @@ class _AIChatbotOfflineScreenState extends State<AIChatbotOfflineScreen> {
   @override
   void initState() {
     super.initState();
-    _chatBot = ChatBotOffline(sessionId: 'offline_${DateTime.now().millisecondsSinceEpoch}');
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    _chatBot = ChatBotOffline(sessionId: uid == null ? 'offline_guest_v1' : 'offline_user_$uid');
     _initialize();
   }
 
