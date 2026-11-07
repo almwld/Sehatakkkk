@@ -202,6 +202,24 @@ class NextcloudService {
     }
   }
 
+  async downloadBuffer(remotePath) {
+    const cleanPath = String(remotePath || '').replace(/^\\/+/, '');
+    if (!cleanPath || cleanPath.split('/').some((part) => !part || part === '.' || part === '..')) {
+      throw new Error('Invalid Nextcloud remote path');
+    }
+    const response = await axios.get(this.getDavUrl(cleanPath), {
+      headers: this.getAuthHeader(),
+      responseType: 'arraybuffer',
+      maxContentLength: 25 * 1024 * 1024,
+      maxBodyLength: 25 * 1024 * 1024,
+      validateStatus: () => true,
+    });
+    if (response.status !== 200) {
+      throw new Error(`Nextcloud download failed: HTTP ${response.status}`);
+    }
+    return Buffer.from(response.data);
+  }
+
   async deleteFile(remotePath) {
     const url = this.getDavUrl(remotePath);
 
