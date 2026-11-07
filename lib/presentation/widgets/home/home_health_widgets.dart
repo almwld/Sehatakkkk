@@ -38,7 +38,7 @@ class HomeHealthWidgets extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-              color: Colors.transparent,
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
               borderRadius: BorderRadius.circular(22)),
           child: Row(children: [
             SizedBox(
@@ -153,10 +153,6 @@ class HomeHealthWidgets extends StatelessWidget {
       case 'الخطوات': return AppRouter.stepTracker;
       case 'النوم': return AppRouter.sleepTracker;
       case 'النبض': return AppRouter.heartRate;
-      case 'السعرات': return AppRouter.nutrition;
-      case 'الخطوات': return AppRouter.stepTracker;
-      case 'النوم': return AppRouter.sleepTracker;
-      case 'النبض': return AppRouter.heartRate;
       default: return null;
     }
   }
@@ -208,7 +204,7 @@ class HomeHealthWidgets extends StatelessWidget {
     return SizedBox(
       width: 126,
       child: Material(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: () {
