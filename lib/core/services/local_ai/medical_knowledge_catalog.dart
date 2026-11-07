@@ -207,7 +207,7 @@ class MedicalKnowledgeCatalog {
       'source': 'NHS — Headaches',
       'url': 'https://www.nhs.uk/symptoms/headaches/',
       'review': 'editorial_source_checked_clinician_review_pending'
-
+    },
     {
       'id': 'cholera',
       'aliases': ['كوليرا','الكوليرا','اسهال مائي شديد','إسهال مائي شديد','براز مثل ماء الارز','براز مثل ماء الأرز','قيء واسهال شديد','cholera','severe watery diarrhoea','severe watery diarrhea','choléra','diarrhée aqueuse sévère'],
