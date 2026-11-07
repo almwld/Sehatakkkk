@@ -5193,6 +5193,8 @@ class AppStrings {
 
       'لا توجد نتائج مطابقة.': ['No matching results found.', 'Aucun résultat correspondant.'],
 
+      "صداع في الجانب الأيمن يستمر 2-3 ساعات. يحدث عادة في المساء بعد العمل. لاحظت أنه يزداد مع التوتر وقلة النوم.": ["A headache on the right side lasting 2–3 hours. It usually occurs in the evening after work. I noticed it gets worse with stress and lack of sleep.", "Mal de tête du côté droit durant 2 à 3 heures. Il survient généralement le soir après le travail. J’ai remarqué qu’il s’aggrave avec le stress et le manque de sommeil."],
+      "حجزت موعد تحليل دم شامل يوم 15 مايو الساعة 8 صباحاً في مختبر الثقة. يجب الصيام 8 ساعات قبل التحليل.": ["I booked a complete blood test for May 15 at 8:00 AM at Al-Thiqa Laboratory. I must fast for 8 hours before the test.", "J’ai pris rendez-vous pour une analyse sanguine complète le 15 mai à 8 h au laboratoire Al-Thiqa. Je dois jeûner pendant 8 heures avant l’analyse."],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
