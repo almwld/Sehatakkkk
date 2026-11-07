@@ -60,7 +60,7 @@ class _CartScreenState extends State<CartScreen> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_t('تم إزالة ') + item.name + _t(' من السلة')),
+        content: Text(_t('تم إزالة المنتج من السلة')),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 2),
       ),
