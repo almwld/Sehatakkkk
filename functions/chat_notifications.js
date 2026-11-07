@@ -158,6 +158,20 @@ function notificationPayload(type, title, body, extra = {}) {
   };
 }
 
+exports.notifyDeliveryAssigned = onDocumentCreated('deliveries/{orderId}', async event => {
+  const delivery = event.data?.data() || {};
+  const uid = String(delivery.userId || '');
+  if (!uid) return;
+  const payload = notificationPayload(
+    'delivery_assigned',
+    'تم تعيين شركة التوصيل',
+    'تم ربط طلبك بشركة التوصيل وسيتم تحديثك عند استلام الشحنة.',
+    {orderId: event.params.orderId, deliveryId: event.params.orderId, companyId: delivery.companyId || '', companyName: delivery.companyName || '', recipientId: uid},
+  );
+  await archiveNotification(uid, payload);
+  await sendToUser(uid, payload);
+});
+
 exports.notifyOrderLifecycle = onDocumentUpdated('orders/{orderId}', async event => {
   const before = event.data?.before?.data() || {};
   const after = event.data?.after?.data() || {};
