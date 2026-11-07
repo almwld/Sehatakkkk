@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { PHARMACY_ORDER_TRANSITIONS, isPharmacyOwner } = require('../pharmacy_order_workflow');
+const { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner } = require('../pharmacy_order_workflow');
 
 test('pharmacy workflow permits only the expected forward transitions', () => {
   assert.deepEqual(PHARMACY_ORDER_TRANSITIONS.pending, ['confirmed', 'cancelled']);
@@ -10,6 +10,14 @@ test('pharmacy workflow permits only the expected forward transitions', () => {
   assert.deepEqual(PHARMACY_ORDER_TRANSITIONS.preparing, ['ready']);
   assert.deepEqual(PHARMACY_ORDER_TRANSITIONS.ready, ['delivering']);
   assert.deepEqual(PHARMACY_ORDER_TRANSITIONS.delivering, ['delivered']);
+});
+
+test('transition validator rejects skipped, reversed and unknown states', () => {
+  assert.equal(canTransition('pending', 'confirmed'), true);
+  assert.equal(canTransition('pending', 'ready'), false);
+  assert.equal(canTransition('ready', 'preparing'), false);
+  assert.equal(canTransition('delivered', 'cancelled'), false);
+  assert.equal(canTransition('unknown', 'confirmed'), false);
 });
 
 test('terminal order states cannot transition again', () => {
