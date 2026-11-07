@@ -10,6 +10,7 @@ class LocalStorageService {
 
   late Database _database;
   bool _isInitialized = false;
+  bool _usingPreferencesFallback = false;
 
   // ============================================================
   // 📁 تهيئة قاعدة البيانات المحلية
@@ -35,6 +36,8 @@ class LocalStorageService {
       print('❌ Database initialization error: $e');
       // ✅ في حالة الفشل، استخدام SharedPreferences كبديل
       await _initSharedPreferences();
+      _usingPreferencesFallback = true;
+      _isInitialized = true;
     }
   }
 
@@ -271,6 +274,15 @@ class LocalStorageService {
   }) async {
     if (!_isInitialized) await initialize();
 
+    if (_usingPreferencesFallback) {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'sehatak_ai_conversation_${Uri.encodeComponent(sessionId)}';
+      final rows = (jsonDecode(prefs.getString(key) ?? '[]') as List).cast<Map<String, dynamic>>();
+      rows.add({'message': message, 'is_user': isUser ? 1 : 0, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'type': type ?? ''});
+      if (rows.length > 200) rows.removeRange(0, rows.length - 200);
+      await prefs.setString(key, jsonEncode(rows));
+      return;
+    }
     try {
       await _database.insert('conversations', {
         'session_id': sessionId,
@@ -287,6 +299,12 @@ class LocalStorageService {
   Future<List<Map<String, dynamic>>> getConversation(String sessionId) async {
     if (!_isInitialized) await initialize();
 
+    if (_usingPreferencesFallback) {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'sehatak_ai_conversation_${Uri.encodeComponent(sessionId)}';
+      final rows = (jsonDecode(prefs.getString(key) ?? '[]') as List).cast<Map<String, dynamic>>();
+      return rows;
+    }
     try {
       final result = await _database.query(
         'conversations',
@@ -305,6 +323,12 @@ class LocalStorageService {
   Future<void> clearConversation(String sessionId) async {
     if (!_isInitialized) await initialize();
 
+    if (_usingPreferencesFallback) {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'sehatak_ai_conversation_${Uri.encodeComponent(sessionId)}';
+      await prefs.remove(key);
+      return;
+    }
     try {
       await _database.delete(
         'conversations',
