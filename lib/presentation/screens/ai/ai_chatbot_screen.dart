@@ -10,7 +10,6 @@ import 'package:sehatak/core/services/local_ai/symptom_interpreter.dart';
 import 'package:sehatak/core/services/local_ai/local_intent_engine.dart';
 import 'package:sehatak/core/services/local_ai/dialogue_state.dart';
 import 'package:sehatak/core/services/local_ai/medical_safety_engine.dart';
-import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
 
 class AiChatbotScreen extends StatefulWidget {
   const AiChatbotScreen({super.key});
