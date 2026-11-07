@@ -45,6 +45,13 @@ jobs:
       - name: Validate Cloud Functions syntax
         run: |
           node --check functions/index.js
+          node --check functions/main.js
+          node --check functions/commerce_functions.js
+          node --check functions/lab_functions.js
+          node --check functions/subscription_functions.js
+          node --check functions/pharmacy_marketplace_functions.js
+          node --check functions/livekit_functions.js
+          node --check functions/chat_notifications.js
           node --check functions/public_profile_sync.js
           node --check functions/public_profile_projection.js
           node --check functions/notification_triggers.js
