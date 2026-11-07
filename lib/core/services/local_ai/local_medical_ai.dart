@@ -381,16 +381,14 @@ class ChatBot {
     if (curated != null) return curated;
     final lowerMessage = _normalizeArabic(message);
     
-    // ✅ البحث في قاعدة المعرفة
+    // Only legacy medicine names are retained as lookup aliases. Their
+    // unverified clinical details and dosing are never returned.
     for (final entry in _knowledgeBase.entries) {
-      if (lowerMessage.contains(entry.key)) {
-        final type = entry.value['type'] as String;
+      if (lowerMessage.contains(entry.key) && entry.value['type'] == 'medicine') {
         return {
-          'response': type == 'medicine'
-              ? _medicineSafetyReply(entry.key)
-              : entry.value['response'] as String,
-          'type': type,
-          'category': entry.value['category'] ?? 'عام',
+          'response': _medicineSafetyReply(entry.key),
+          'type': 'medicine_safety',
+          'category': 'medication_information',
         };
       }
     }
@@ -486,13 +484,7 @@ class ChatBot {
   String getDiseaseInfo(String diseaseName) {
     final curated = MedicalKnowledgeCatalog.answer(diseaseName, 'ar');
     if (curated != null) return curated['response'] ?? '';
-    final lowerName = diseaseName.toLowerCase();
-    for (final entry in _knowledgeBase.entries) {
-      if (entry.key.toLowerCase() == lowerName) {
-        return entry.value['response'] as String;
-      }
-    }
-    return '🏥 لم أجد معلومات عن "$diseaseName".\n\n📌 **نصائح:**\n• استشر طبيبك للحصول على تشخيص دقيق\n• ابحث عن المعلومات من مصادر موثوقة\n• لا تعتمد على التشخيص الذاتي';
+    return 'لا تتوفر حالياً مادة موثقة لهذا الموضوع في قاعدة المعرفة. يمكنني مساعدتك في الوصول إلى طبيب أو مختص، ولا أقدّم تشخيصاً أو خطة علاج غير موثقة.';
   }
 
   // ============================================================
