@@ -391,9 +391,12 @@ class ChatBot {
     // ✅ البحث في قاعدة المعرفة
     for (final entry in _knowledgeBase.entries) {
       if (lowerMessage.contains(entry.key)) {
+        final type = entry.value['type'] as String;
         return {
-          'response': entry.value['response'] as String,
-          'type': entry.value['type'] as String,
+          'response': type == 'medicine'
+              ? _medicineSafetyReply(entry.key)
+              : entry.value['response'] as String,
+          'type': type,
           'category': entry.value['category'] ?? 'عام',
         };
       }
@@ -401,7 +404,7 @@ class ChatBot {
 
     // ✅ كلمات مفتاحية للبحث
     final keywords = {
-      'دواء': '💊 هل تبحث عن معلومات عن دواء معين؟ أخبرني باسم الدواء وسأقدم لك معلومات شاملة عن استخداماته وجرعته وتحذيراته.',
+      'دواء': '💊 اكتب اسم الدواء. أستطيع توضيح معلومات عامة، لكن تحديد الجرعة أو ملاءمة الدواء يحتاج مراجعة طبيب أو صيدلي.',
       'علاج': '🩺 العلاج يعتمد على الحالة. هل يمكنك وصف الأعراض بدقة؟ سأساعدك في فهم حالتك وتوجيهك.',
       'ألم': '🩺 الألم قد يكون مؤشراً على حالة صحية. هل يمكنك وصف مكان الألم وشدته ومتى بدأ؟',
       'حرارة': '🩺 الحرارة المرتفعة قد تكون علامة على التهاب أو عدوى. كم تبلغ الحرارة ومتى بدأت؟ هل هناك أعراض أخرى؟',
@@ -452,6 +455,18 @@ class ChatBot {
         .replaceAll('راس', 'رأس').replaceAll('مغص', 'الم');
   }
 
+  /// The bundled medicine notes have no verified source metadata.
+  /// Never expose their unreviewed dosing instructions to end users.
+  String _medicineSafetyReply(String medicineName) {
+    final entry = _knowledgeBase[medicineName];
+    final category = entry?['category']?.toString();
+    final isAntibiotic = category?.contains('مضاد حيوي') == true;
+    final antibioticNote = isAntibiotic
+        ? ' لا تستخدم المضاد الحيوي دون وصفة طبية.'
+        : '';
+    return 'الدواء: $medicineName. المعلومات المتاحة حالياً غير موثقة بمصدر سريري داخل التطبيق، لذلك لا أعرض جرعة أو طريقة استعمال قد تكون غير مناسبة. تختلف الملاءمة والجرعة حسب العمر والوزن والحالة الصحية والحمل والأدوية الأخرى. راجع النشرة المعتمدة أو الطبيب/الصيدلي قبل الاستخدام.$antibioticNote';
+  }
+
   // ============================================================
   // 💊 الحصول على معلومات عن دواء محدد
   // ============================================================
@@ -459,7 +474,9 @@ class ChatBot {
     final lowerName = medicineName.toLowerCase();
     for (final entry in _knowledgeBase.entries) {
       if (entry.key.toLowerCase() == lowerName) {
-        return entry.value['response'] as String;
+        return entry.value['type'] == 'medicine'
+            ? _medicineSafetyReply(entry.key)
+            : entry.value['response'] as String;
       }
     }
     return '💊 لم أجد معلومات عن "$medicineName".\n\n📌 **نصائح:**\n• تحقق من تهجئة الاسم\n• استشر طبيبك أو الصيدلي\n• ابحث عن الاسم العلمي للدواء\n\nيمكنك محاولة البحث عن:\n• باراسيتامول\n• ايبوبروفين\n• اسبرين\n• ميتفورمين\n• اوميبرازول';
