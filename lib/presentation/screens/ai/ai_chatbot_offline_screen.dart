@@ -66,7 +66,7 @@ class _AIChatbotOfflineScreenState extends State<AIChatbotOfflineScreen> {
     _controller.clear();
     setState(() { _messages.add({'text': text, 'isUser': true, 'timestamp': DateTime.now()}); _loading = true; });
     try {
-      final result = _chatBot.respond(text);
+      final result = _chatBot.respond(text, languageCode: AppStrings.of(context).locale.languageCode);
       if (!mounted) return;
       setState(() {
         _messages.add({'text': result['response']?.toString() ?? '', 'isUser': false, 'type': result['type']?.toString(), 'timestamp': DateTime.now()});
