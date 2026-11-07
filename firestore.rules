@@ -498,7 +498,26 @@ service cloud.firestore {
     match /lab_bookings/{bookingId} {
       allow read: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.labId == request.auth.uid || isAdmin());
       allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
-      allow update: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.labId == request.auth.uid || isAdmin());
+      // Keep booking ownership immutable. Patients may only cancel their own booking;
+      // the assigned lab may update workflow/result fields, never patientId or labId.
+      allow update: if isAdmin()
+        || (isSignedIn()
+            && resource.data.patientId == request.auth.uid
+            && request.resource.data.patientId == resource.data.patientId
+            && request.resource.data.labId == resource.data.labId
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['status', 'notes', 'updatedAt']))
+        || (isSignedIn()
+            && resource.data.labId == request.auth.uid
+            && request.resource.data.patientId == resource.data.patientId
+            && request.resource.data.labId == resource.data.labId
+            && request.resource.data.status in ['pending', 'confirmed', 'sampleTaken', 'processing', 'completed', 'cancelled']
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'notes', 'updatedAt', 'sampleDate', 'resultDate',
+              'results', 'resultFile', 'resultUrl', 'resultRemotePath',
+              'resultFileName', 'resultMimeType', 'resultSize', 'completedAt'
+            ]));
       allow delete: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid);
     }
     match /pharmacies/{id} { allow read: if true; allow write: if isAdmin(); }
