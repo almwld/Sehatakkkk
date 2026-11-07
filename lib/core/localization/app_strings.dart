@@ -5198,6 +5198,8 @@ class AppStrings {
 
       'جاري تشغيل الفيديو...': ['Playing video…', 'Lecture de la vidéo…'],
 
+      'لا توجد نتائج مطابقة.': ['No matching results found.', 'Aucun résultat correspondant.'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
