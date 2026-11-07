@@ -752,7 +752,26 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  Widget _buildSystem(Map<String, dynamic> m) => Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Center(child: Text(m['text']?.toString() ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF49615E)))));
+  String _systemMessageText(String value) {
+    const durationPrefix = 'انتهت المكالمة • ';
+    if (value.startsWith(durationPrefix) && value.endsWith('s')) {
+      final seconds = value.substring(durationPrefix.length, value.length - 1);
+      if (int.tryParse(seconds) != null) {
+        return _t('انتهت المكالمة') + ' • ' + seconds + 's';
+      }
+    }
+    return _t(value);
+  }
+
+  Widget _buildSystem(Map<String, dynamic> m) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Center(
+          child: Text(
+            _systemMessageText(m['text']?.toString() ?? ''),
+            style: const TextStyle(fontSize: 11, color: Color(0xFF49615E)),
+          ),
+        ),
+      );
 
   void _options() {
     showModalBottomSheet<void>(

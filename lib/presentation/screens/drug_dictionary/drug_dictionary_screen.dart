@@ -50,7 +50,7 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
                 const SizedBox(width: 10),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(d['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  Text(d['cat']!, style: TextStyle(fontSize: 10, color: AppColors.primary)),
+                  Text(_localizedUiText(context, d['cat']!), style: TextStyle(fontSize: 10, color: AppColors.primary)),
                   Text('${_localizedUiText(context, 'الجرعة: ')}${_localizedUiText(context, d['dose']?.toString() ?? '')}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
                   Text('${_localizedUiText(context, 'الحمل: ')}${_localizedUiText(context, d['preg']?.toString() ?? '')}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
                 ])),

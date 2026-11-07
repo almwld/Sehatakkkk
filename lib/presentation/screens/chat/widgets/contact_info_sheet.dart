@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -33,6 +34,8 @@ class ContactInfoSheet extends StatefulWidget {
 }
 
 class _ContactInfoSheetState extends State<ContactInfoSheet> {
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   bool _isFavorite = false;
   bool _savingContact = false;
 
@@ -44,8 +47,8 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
       final raw = prefs.getStringList('saved_chat_contacts') ?? <String>[];
       final contact = jsonEncode({'name': widget.name ?? '', 'phone': widget.phone ?? '', 'imageUrl': widget.imageUrl ?? '', 'specialty': widget.specialty ?? ''});
       if (!raw.contains(contact)) { raw.add(contact); await prefs.setStringList('saved_chat_contacts', raw); }
-      if (mounted) ToastService.showSuccess('تم حفظ جهة الاتصال على هذا الجهاز');
-    } catch (_) { if (mounted) ToastService.showError('تعذر حفظ جهة الاتصال'); }
+      if (mounted) ToastService.showSuccess(_t('تم حفظ جهة الاتصال على هذا الجهاز'));
+    } catch (_) { if (mounted) ToastService.showError(_t('تعذر حفظ جهة الاتصال')); }
     finally { if (mounted) setState(() => _savingContact = false); }
   }
 
@@ -126,7 +129,9 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              widget.specialty!,
+                              widget.specialty == 'استشاري باطنية وأطفال'
+                                  ? _t(widget.specialty!)
+                                  : widget.specialty!,
                               style: TextStyle(
                                 color: isDark ? Colors.grey[400] : Colors.grey[600],
                                 fontSize: 14,
@@ -144,13 +149,15 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
                                 const SizedBox(width: 8),
                                 _buildInfoChip(
                                   icon: Icons.work,
-                                  label: widget.experience!,
+                                  label: widget.experience == '20+ سنة'
+                                      ? _t(widget.experience!)
+                                      : widget.experience!,
                                   color: Colors.blue,
                                 ),
                                 const SizedBox(width: 8),
                                 _buildInfoChip(
                                   icon: widget.isAvailable == true ? Icons.check_circle : Icons.cancel,
-                                  label: widget.isAvailable == true ? 'متاح' : 'غير متاح',
+                                  label: _t(widget.isAvailable == true ? 'متاح' : 'غير متاح'),
                                   color: widget.isAvailable == true ? Colors.green : Colors.red,
                                 ),
                               ],
@@ -169,7 +176,7 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
                             Colors.green,
                             () {
                               Navigator.pop(context);
-                              ToastService.showInfo('📞 جاري الاتصال...');
+                              ToastService.showInfo('📞 ${_t('جاري الاتصال...')}');
                             },
                           ),
                           _buildActionButton(
@@ -179,7 +186,7 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
                             Colors.blue,
                             () {
                               Navigator.pop(context);
-                              ToastService.showInfo('📹 جاري مكالمة الفيديو...');
+                              ToastService.showInfo('📹 ${_t('جاري مكالمة الفيديو...')}');
                             },
                           ),
                           _buildActionButton(
@@ -189,7 +196,7 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
                             AppColors.primary,
                             () {
                               Navigator.pop(context);
-                              ToastService.showInfo('💬 جاري فتح الدردشة...');
+                              ToastService.showInfo('💬 ${_t('جاري فتح الدردشة...')}');
                             },
                           ),
                           _buildActionButton(
@@ -200,7 +207,7 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
                             () {
                               setState(() => _isFavorite = !_isFavorite);
                               ToastService.showSuccess(
-                                _isFavorite ? '❤️ تمت الإضافة إلى المفضلة' : '💔 تمت الإزالة من المفضلة'
+                                _isFavorite ? '❤️ ${_t('تمت الإضافة إلى المفضلة')}' : '💔 ${_t('تمت الإزالة من المفضلة')}'
                               );
                             },
                           ),
@@ -217,19 +224,19 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
                         context,
                         Icons.edit_note,
                         'إضافة ملاحظات',
-                        () => ToastService.showInfo('📝 فتح الملاحظات...'),
+                        () => ToastService.showInfo('📝 ${_t('فتح الملاحظات...')}'),
                       ),
                       _buildMenuItem(
                         context,
                         Icons.notifications_off_outlined,
                         'كتم الإشعارات',
-                        () => ToastService.showSuccess('🔇 تم كتم الإشعارات'),
+                        () => ToastService.showSuccess('🔇 ${_t('تم كتم الإشعارات')}'),
                       ),
                       _buildMenuItem(
                         context,
                         Icons.photo_library_outlined,
                         'عرض الوسائط',
-                        () => ToastService.showInfo('🖼️ جاري عرض الوسائط...'),
+                        () => ToastService.showInfo('🖼️ ${_t('عرض الوسائط...')}'),
                       ),
                       const SizedBox(height: 30),
                     ],
@@ -288,7 +295,7 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
             ),
             const SizedBox(height: 4),
             Text(
-              label,
+              _t(label),
               style: TextStyle(
                 color: color,
                 fontSize: 12,
@@ -308,7 +315,7 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: isDark ? Colors.white54 : Colors.grey[600]),
       title: Text(
-        title,
+        _t(title),
         style: TextStyle(
           color: isDark ? Colors.white : Colors.black87,
           fontSize: 14,
@@ -316,7 +323,7 @@ class _ContactInfoSheetState extends State<ContactInfoSheet> {
       ),
       subtitle: subtitle != null
           ? Text(
-              subtitle,
+              _t(subtitle),
               style: TextStyle(
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
                 fontSize: 11,
