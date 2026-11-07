@@ -221,6 +221,27 @@ exports.notifyAppointmentCreated = onDocumentCreated('appointments/{appointmentI
   await sendToUser(uid, payload);
 });
 
+exports.notifyPrescriptionReview=onDocumentUpdated('prescriptions/{prescriptionId}', async event => {
+  const before = event.data?.before?.data() || {};
+  const after = event.data?.after?.data() || {};
+  if (!statusChanged(before, after)) return;
+  const uid = String(after.userId || after.patientId || '');
+  if (!uid) return;
+  const status = String(after.status || '');
+  let item = null;
+  if (status === 'approved') item = ['prescription_approved', 'تم اعتماد الوصفة', 'اعتمدت الصيدلية الوصفة الطبية ويمكنك متابعة طلب الدواء.'];
+  else if (status === 'rejected') item = ['prescription_rejected', 'تحتاج الوصفة إلى مراجعة', 'لم تعتمد الصيدلية الوصفة. راجع الملاحظة أو تواصل مع الصيدلية.'];
+  if (!item) return;
+  const payload = notificationPayload(item[0], item[1], item[2], {
+    prescriptionId: event.params.prescriptionId,
+    pharmacyId: after.pharmacyId || '',
+    productId: after.productId || '',
+    recipientId: uid,
+  });
+  await archiveNotification(uid, payload);
+  await sendToUser(uid, payload);
+});
+
 exports.notifyLabBookingLifecycle = onDocumentUpdated('lab_bookings/{bookingId}', async event => {
   const before = event.data?.before?.data() || {};
   const after = event.data?.after?.data() || {};
