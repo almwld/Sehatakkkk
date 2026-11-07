@@ -22,36 +22,6 @@ class HomeHealthWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stats = <Map<String, dynamic>>[
-      {
-        'name': 'السعرات',
-        'value': state.calories,
-        'unit': 'kcal',
-        'color': Colors.orange,
-        'icon': 'assets/images/tracking/calories.png'
-      },
-      {
-        'name': 'الخطوات',
-        'value': state.steps,
-        'unit': 'خطوة',
-        'color': Colors.green,
-        'icon': 'assets/icons/health/step_tracking.webp'
-      },
-      {
-        'name': 'النوم',
-        'value': state.sleep,
-        'unit': 'ساعة',
-        'color': Colors.purple,
-        'icon': 'assets/icons/health/sleep/sleep_tracking.webp'
-      },
-      {
-        'name': 'النبض',
-        'value': state.heartRate,
-        'unit': 'bpm',
-        'color': Colors.red,
-        'icon': 'assets/icons/health/heart_rate.webp'
-      },
-    ];
     final vitals = <Map<String, dynamic>>[
       {'label': 'ضغط الدم', 'display': 'غير متوفر', 'color': const Color(0xFF0A8F83), 'icon': 'assets/images/tracking/blood_pressure.webp'},
       {'label': 'سكر الدم', 'display': 'غير متوفر', 'color': const Color(0xFF12AFA0), 'icon': 'assets/images/tracking/blood_sugar.webp'},
@@ -101,20 +71,40 @@ class HomeHealthWidgets extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 10),
-      SizedBox(
-          height: 92,
-          child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: stats.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, i) => _stat(context, stats[i]))),
       _header(context, 'المؤشرات الحيوية'),
       FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         future: _healthMetricsFuture(),
         builder: (context, snapshot) {
           final data = snapshot.data?.data() ?? const <String, dynamic>{};
           final unified = [
+            {
+              'label': 'السعرات',
+              'display': state.calories > 0 ? '${_number(state.calories)} kcal' : 'غير متوفر',
+              'color': AppColors.primary,
+              'icon': 'assets/images/tracking/calories.png',
+              'progress': (state.calories / 2000).clamp(0.0, 1.0).toDouble(),
+            },
+            {
+              'label': 'الخطوات',
+              'display': state.steps > 0 ? '${_number(state.steps)} خطوة' : 'غير متوفر',
+              'color': Colors.green,
+              'icon': 'assets/icons/health/step_tracking.webp',
+              'progress': (state.steps / 10000).clamp(0.0, 1.0).toDouble(),
+            },
+            {
+              'label': 'النوم',
+              'display': state.sleep > 0 ? '${_number(state.sleep)} ساعة' : 'غير متوفر',
+              'color': Colors.purple,
+              'icon': 'assets/icons/health/sleep/sleep_tracking.webp',
+              'progress': (state.sleep / 8).clamp(0.0, 1.0).toDouble(),
+            },
+            {
+              'label': 'النبض',
+              'display': state.heartRate > 0 ? '${_number(state.heartRate)} bpm' : 'غير متوفر',
+              'color': Colors.red,
+              'icon': 'assets/icons/health/heart_rate.webp',
+              'progress': state.heartRate > 0 ? 1.0 : 0.0,
+            },
             {...vitals[0], 'display': data['systolic'] != null && data['diastolic'] != null ? '${data['systolic']}/${data['diastolic']}' : 'غير متوفر'},
             {...vitals[1], 'display': data['blood_sugar'] != null ? '${data['blood_sugar']}' : 'غير متوفر'},
             {...vitals[2], 'display': data['steps'] != null ? '${data['steps']} خطوة' : 'غير متوفر'},
@@ -167,41 +157,6 @@ class HomeHealthWidgets extends StatelessWidget {
     }
   }
 
-  Widget _stat(BuildContext context, Map<String, dynamic> item) {
-    final color = item['color'] as Color;
-    final value = (item['value'] as num).toDouble();
-    return SizedBox(
-      width: 112,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          onTap: () {
-            final route = _trackerRoute(item['name'] as String);
-            onNavigate(route ?? AppRouter.dashboard);
-          },
-          borderRadius: BorderRadius.circular(10),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(item['icon'] as String,
-                  width: 23,
-                  height: 23,
-                  errorBuilder: (_, __, ___) =>
-                      Icon(Icons.insights_outlined, color: color, size: 22)),
-              const SizedBox(height: 2),
-              Text(value <= 0 ? '—' : _number(value),
-                  style: TextStyle(
-                      color: color, fontSize: 13, fontWeight: FontWeight.bold)),
-              Text(_t(context, item['name'] as String),
-                  style: TextStyle(color: color.withOpacity(.8), fontSize: 9)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<DocumentSnapshot<Map<String, dynamic>>> _healthMetricsFuture() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return Future.error('not_authenticated');
@@ -209,6 +164,10 @@ class HomeHealthWidgets extends StatelessWidget {
   }
 
   double _vitalProgress(Map<String, dynamic> item, Map<String, dynamic> data) {
+    final suppliedProgress = item['progress'];
+    if (suppliedProgress is num) {
+      return suppliedProgress.toDouble().clamp(0.0, 1.0);
+    }
     final label = item['label'] as String;
     num? number(String key) => data[key] is num ? data[key] as num : null;
     switch (label) {
@@ -245,7 +204,7 @@ class HomeHealthWidgets extends StatelessWidget {
     return SizedBox(
       width: 126,
       child: Material(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: () {
