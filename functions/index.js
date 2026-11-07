@@ -429,7 +429,7 @@ exports.checkoutCart = onCall(async (request) => {
       for (const row of rows) {
         const sellerId = String(row.product.sellerId || '');
         const authorizedSellers = [pharmacy.ownerId, pharmacy.userId, id].map(value => String(value || '')).filter(Boolean);
-        if (sellerId && !authorizedSellers.includes(sellerId) && row.product.sellerType !== 'platform') {
+        if (sellerId && !authorizedSellers.includes(sellerId) && !(sellerId === 'sehatak' && row.product.sellerType === 'platform')) {
           throw new HttpsError('permission-denied', 'أحد المنتجات غير معتمد من مالك الصيدلية');
         }
       }
