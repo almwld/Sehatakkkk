@@ -48,9 +48,9 @@ class SymptomInterpreter {
       return 'الأعراض التي ذكرتها قد تكون طارئة. توجّه إلى أقرب طوارئ الآن أو اتصل بخدمات الطوارئ المحلية.';
     }
     final summary = symptoms.join('، ');
-    final specialty = specialties.isEmpty ? '' : ' التخصص المناسب مبدئياً: \${specialties.first}.';
-    final since = duration == null ? '' : ' منذ \$duration.';
-    return 'الأعراض التي فهمتها: \$summary.\$since\$specialty متى بدأت؟';
+    final specialty = specialties.isEmpty ? '' : ' التخصص المناسب مبدئياً: ${specialties.first}.';
+    final since = duration == null ? '' : ' منذ $duration.';
+    return 'الأعراض التي فهمتها: $summary.$since$specialty متى بدأت؟';
   }
   static String? _extractDuration(String text) {
     for (final p in [RegExp(r'(منذ|لي|صار لي|لي حوالي)\s*(\d+)\s*(يوم|ايام|أيام|اسبوع|اسابيع|أسابيع|شهر|اشهر|أشهر)'), RegExp(r'(من يومين|من يوم|من اسبوع|من أسبوع|من شهر)')]) { final m = p.firstMatch(text); if (m != null) return m.group(0); } return null;
