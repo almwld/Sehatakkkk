@@ -1,38 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
-class InsuranceCompanies extends StatefulWidget {
+class InsuranceCompanies extends StatelessWidget {
   const InsuranceCompanies({super.key});
-  @override State<InsuranceCompanies> createState() => _InsuranceCompaniesState();
-}
-class _InsuranceCompaniesState extends State<InsuranceCompanies> {
-  String _t(String value) => AppStrings.of(context).translate(value);
-  String get _currency => AppStrings.of(context).locale.languageCode == 'ar' ? 'ر.ي' : 'YER';
-  String _coverage(String value) => value.replaceFirst('حتى', _t('حتى')).replaceAll('ر.ي', _currency);
-  String _premium(String value) => value.replaceFirst('من', _t('من')).replaceAll('ر.ي', _currency).replaceAll('/شهر', '/${_t('شهر')}');
 
-  String _type='الكل';
-  final _types=const ['الكل','صحي','عائلي','سفر'];
-  final _companies=const [
-    {'name':'جوبيلي للتأمين الصحي','type':'صحي','coverage':'حتى 1,000,000 ر.ي','hospitals':'500+','premium':'من 2,500 ر.ي/شهر','rating':'4.7'},
-    {'name':'أدامجي للتأمين','type':'صحي','coverage':'حتى 800,000 ر.ي','hospitals':'400+','premium':'من 2,000 ر.ي/شهر','rating':'4.5'},
-    {'name':'أليانز إي إف يو','type':'عائلي','coverage':'حتى 2,000,000 ر.ي','hospitals':'700+','premium':'من 3,500 ر.ي/شهر','rating':'4.8'},
-    {'name':'آي جي آي للتأمين','type':'سفر','coverage':'حتى 500,000 ر.ي','hospitals':'200+','premium':'من 1,500 ر.ي/شهر','rating':'4.3'},
-    {'name':'تي بي إل','type':'صحي','coverage':'حتى 1,500,000 ر.ي','hospitals':'600+','premium':'من 3,000 ر.ي/شهر','rating':'4.6'},
-    {'name':'ستيت لايف','type':'عائلي','coverage':'حتى 5,000,000 ر.ي','hospitals':'1000+','premium':'من 5,000 ر.ي/شهر','rating':'4.9'},
-  ];
-  @override Widget build(BuildContext context){
-    final dark=Theme.of(context).brightness==Brightness.dark;
-    final items=_type=='الكل'?_companies:_companies.where((x)=>x['type']==_type).toList();
-    return Scaffold(backgroundColor:dark?const Color(0xFF0B1121):const Color(0xFFF5F8F8),appBar:AppBar(title:Text(_t('التأمينات الصحية')),backgroundColor:AppColors.primary,foregroundColor:Colors.white,elevation:0,actions:[IconButton(tooltip: _t('خططي'),icon:const Icon(Icons.folder_shared_outlined),onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const SubscriptionsScreen()))) ]),body:ListView(padding:const EdgeInsets.fromLTRB(16,16,16,100),children:[
-      Container(padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:AppColors.primary,borderRadius:BorderRadius.circular(24)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Icon(Icons.health_and_safety_outlined,color:Colors.white,size:38),const SizedBox(height:12),Text(_t('اختر التغطية المناسبة لك'),style:TextStyle(color:Colors.white,fontSize:21,fontWeight:FontWeight.w800)),const SizedBox(height:6),Text(_t('استعرض الخطط، قارن التغطية، واحفظ خطتك للرجوع إليها.'),style:TextStyle(color:Colors.white70,fontSize:13)),const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton.icon(onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const SubscriptionsScreen())),icon:const Icon(Icons.compare_arrows),label:Text(_t('مقارنة الخطط')),style:ElevatedButton.styleFrom(backgroundColor:Colors.white,foregroundColor:AppColors.primary,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))))) ])),
-      const SizedBox(height:16),SizedBox(height:42,child:ListView.separated(scrollDirection:Axis.horizontal,itemCount:_types.length,separatorBuilder:(_,__)=>const SizedBox(width:8),itemBuilder:(_,i){final selected=_type==_types[i];return ChoiceChip(label:Text(_t(_types[i])),selected:selected,selectedColor:AppColors.primary,labelStyle:TextStyle(color:selected?Colors.white:(dark?Colors.white70:AppColors.primary),fontWeight:FontWeight.w700),backgroundColor:dark?const Color(0xFF162039):Colors.white,onSelected:(_)=>setState(()=>_type=_types[i]));})),
-      const SizedBox(height:14),...items.map((c)=>_card(context,c,dark)),
-    ]));
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor:
+          isDark ? const Color(0xFF0B1121) : const Color(0xFFF5F8F8),
+      appBar: AppBar(
+        title: Text(strings.translate('التأمينات الصحية')),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.health_and_safety_outlined,
+                size: 64,
+                color: isDark ? Colors.grey[500] : Colors.grey[400],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                strings.noInsuranceProviders,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                strings.noInsuranceProvidersDescription,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
-  Widget _card(BuildContext context,Map<String,String> c,bool dark)=>Card(elevation:0,color:dark?const Color(0xFF162039):Colors.white,margin:const EdgeInsets.only(bottom:12),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(20)),child:Padding(padding:const EdgeInsets.all(15),child:Column(children:[Row(children:[Container(width:48,height:48,decoration:BoxDecoration(color:AppColors.primary.withOpacity(.10),borderRadius:BorderRadius.circular(14)),child:const Icon(Icons.shield_outlined,color:AppColors.primary,size:27)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(c['name']!,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w800)),const SizedBox(height:3),Text(_t(c['type']!),style:const TextStyle(color:AppColors.primary,fontSize:12,fontWeight:FontWeight.w600))])),Row(children:[const Icon(Icons.star_rounded,color:Colors.amber,size:18),Text(c['rating']!,style:const TextStyle(fontWeight:FontWeight.w700))])]),const Divider(height:22),Row(children:[Expanded(child:_stat(_t('التغطية'),_coverage(c['coverage']!))),Expanded(child:_stat(_t('المرافق'),c['hospitals']!)),Expanded(child:_stat(_t('القسط'),_premium(c['premium']!)))]),const SizedBox(height:12),Row(children:[Expanded(child:OutlinedButton(onPressed:()=>_details(context,c),child:Text(_t('التفاصيل')))),const SizedBox(width:8),Expanded(child:ElevatedButton(onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const SubscriptionsScreen())),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:Text(_t('اختيار الخطة'))))])])));
-  Widget _stat(String label,String value)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(label,style:const TextStyle(fontSize:10,color:AppColors.grey)),const SizedBox(height:3),Text(value,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:11,fontWeight:FontWeight.w700))]);
-  void _details(BuildContext context,Map<String,String> c)=>showModalBottomSheet(context:context,showDragHandle:true,builder:(_)=>SafeArea(child:Padding(padding:const EdgeInsets.fromLTRB(20,8,20,24),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text(c['name']!,style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800)),const SizedBox(height:12),Text('${_t('نوع الخطة: ')}${_t(c['type']!)}'),Text('${_t('التغطية: ')}${_coverage(c['coverage']!)}'),Text('${_t('المرافق: ')}${c['hospitals']}'),Text('${_t('القسط: ')}${_premium(c['premium']!)}'),const SizedBox(height:16),SizedBox(width:double.infinity,child:ElevatedButton(onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const SubscriptionsScreen())),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:Text(_t('متابعة إلى الخطط'))))]))));
 }

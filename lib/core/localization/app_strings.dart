@@ -41,6 +41,16 @@ class AppStrings {
         'Your lab results, imaging reports, and medical records will appear here when available.',
         'Vos résultats d’analyses, comptes rendus d’imagerie et dossiers médicaux apparaîtront ici lorsqu’ils seront disponibles.',
       );
+  String get noInsuranceProviders => _pick(
+        'لا توجد جهات تأمين صحي موثقة متاحة حالياً',
+        'No verified health insurance providers are currently available',
+        'Aucun organisme d’assurance maladie vérifié n’est disponible actuellement',
+      );
+  String get noInsuranceProvidersDescription => _pick(
+        'لن نعرض شركات أو أسعاراً غير مؤكدة. ستظهر الجهات وخطط التغطية هنا بعد اعتماد بياناتها وإضافتها إلى المنصة.',
+        'We do not display unverified companies or prices. Providers and coverage plans will appear here once their details are verified and added to the platform.',
+        'Nous n’affichons pas d’organismes ni de tarifs non vérifiés. Les prestataires et leurs garanties apparaîtront ici lorsque leurs informations auront été vérifiées et ajoutées à la plateforme.',
+      );
 
 
   String get appearance => _pick('المظهر', 'Appearance', 'Apparence');
