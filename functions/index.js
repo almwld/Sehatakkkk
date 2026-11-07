@@ -2,6 +2,7 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {setGlobalOptions} = require('firebase-functions/v2/options');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+const { PHARMACY_ORDER_TRANSITIONS, isPharmacyOwner } = require('./pharmacy_order_workflow');
 const {appointmentInstantFromDateMarker} = require('./appointment-date');
 
 admin.initializeApp();
@@ -351,15 +352,6 @@ function validId(value, field, max = 150) {
   return result;
 }
 
-const PHARMACY_ORDER_TRANSITIONS = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['preparing', 'cancelled'],
-  preparing: ['ready'],
-  ready: ['delivering'],
-  delivering: ['delivered'],
-  delivered: [],
-  cancelled: [],
-};
 
 exports.checkoutCart = onCall(async (request) => {
   const uid = requireAuth(request);
@@ -488,7 +480,7 @@ exports.updatePharmacyOrderStatus = onCall(async (request) => {
     const pharmacySnap = await tx.get(pharmacyRef);
     if (!pharmacySnap.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة');
     const pharmacy = pharmacySnap.data() || {};
-    if (![pharmacy.ownerId, pharmacy.userId, pharmacyId].map(String).includes(uid)) throw new HttpsError('permission-denied', 'لا تملك صلاحية إدارة طلبات هذه الصيدلية');
+    if (!isPharmacyOwner(pharmacy, uid, pharmacyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية إدارة طلبات هذه الصيدلية');
     const current = String(order.status || 'pending');
     if (!(PHARMACY_ORDER_TRANSITIONS[current] || []).includes(nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال من الحالة الحالية إلى الحالة المطلوبة');
     if (nextStatus === 'cancelled' && order.paymentStatus === 'paid') throw new HttpsError('failed-precondition', 'الطلب المدفوع يحتاج إلى إجراء استرداد موثق قبل الإلغاء');
