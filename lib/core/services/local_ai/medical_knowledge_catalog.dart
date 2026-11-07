@@ -147,16 +147,6 @@ class MedicalKnowledgeCatalog {
     },,
 
     {
-      'id': 'diabetes',
-      'aliases': ['السكري','مرض السكر','داء السكري','سكر الدم','عندي سكر','diabetes','blood sugar','diabete','glycemie'],
-      'ar': 'قد تشمل أعراض السكري العطش الشديد، وكثرة التبول، والتعب، وتشوش الرؤية، أو فقدان الوزن دون قصد. وقد تكون أعراض النوع الثاني خفيفة أو غير ملحوظة في البداية. لا تكفي الأعراض للتشخيص؛ يلزم فحص وتقييم طبي. اتبع خطة الرعاية المقررة ولا تغيّر الأدوية أو جرعاتها بنفسك.',
-      'en': 'Possible diabetes symptoms include unusual thirst, frequent urination, tiredness, blurred vision, or unintended weight loss. Type 2 symptoms may be mild or unnoticed early on. Symptoms alone cannot confirm diabetes; testing and clinical assessment are needed. Follow your care plan and do not change medicines or doses yourself.',
-      'fr': 'Les signes possibles du diabète comprennent une soif inhabituelle, des urines fréquentes, de la fatigue, une vision trouble ou une perte de poids involontaire. Les symptômes du type 2 peuvent être légers ou passer inaperçus au début. Les symptômes seuls ne suffisent pas au diagnostic ; des examens et une évaluation médicale sont nécessaires. Suivez votre plan de soins sans modifier vous-même vos médicaments ou leurs doses.',
-      'source': 'WHO — Diabetes fact sheet',
-      'url': 'https://www.who.int/news-room/fact-sheets/detail/diabetes',
-      'review': 'editorial_source_checked_clinician_review_pending'
-    },
-    {
       'id': 'physical_activity',
       'aliases': ['النشاط البدني','الرياضة الصحية','كم امشي','الوقاية الصحية','المشي للصحة','physical activity','exercise','activite physique','exercice physique'],
       'ar': 'للبالغين، توصي منظمة الصحة العالمية عادةً بما لا يقل عن 150 دقيقة أسبوعياً من النشاط الهوائي المعتدل، أو 75 دقيقة من النشاط الشديد، مع تمارين تقوية العضلات يومين أو أكثر أسبوعياً. بعض النشاط أفضل من عدمه؛ ابدأ تدريجياً بما يناسب قدرتك. إذا كان لديك مرض مزمن أو أعراض مقلقة، استشر مختصاً بشأن النشاط المناسب.',
