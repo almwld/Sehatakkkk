@@ -139,7 +139,7 @@ class _CallScreenState extends State<CallScreen> {
       return 'انتهت مهلة الاتصال. تحقق من جودة الإنترنت وحاول مرة أخرى.';
     }
     if (raw.contains('permission') || raw.contains('إذن')) {
-      return 'يلزم السماح بالميكروفون${widget.isVideo ? ' والكاميرا' : ''} لإجراء المكالمة.';
+      return _localizedUiText(context, widget.isVideo ? 'يلزم السماح بالميكروفون والكاميرا لإجراء المكالمة.' : 'يلزم السماح بالميكروفون لإجراء المكالمة.');
     }
     if (raw.contains('network') || raw.contains('socket')) {
       return 'تعذر الاتصال بالشبكة. تحقق من الإنترنت وحاول مرة أخرى.';
