@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/lab/lab_booking_screen.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -21,6 +22,8 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
   @override void initState() { super.initState(); _tabs = TabController(length: 2, vsync: this); _load(); }
   @override void dispose() { _tabs.dispose(); super.dispose(); }
   String _s(dynamic v) => v?.toString().trim() ?? '';
+  String _field(Map<String, dynamic> data, String key, {String fallback = ''}) => localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
+  String _dynamic(dynamic value) => localizedValue(value, AppStrings.of(context).locale);
   double _n(dynamic v) => v is num ? v.toDouble() : double.tryParse(_s(v)) ?? 0;
   List<dynamic> _list(dynamic v) => v is List ? v : const [];
 
@@ -44,7 +47,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     final verified = l['isVerified'] == true;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(title: Text(_s(l['name']).isEmpty ? AppStrings.of(context).translate('المختبر') : _s(l['name'])), backgroundColor: AppColors.primary, foregroundColor: Colors.white, bottom: TabBar(controller: _tabs, tabs: [Tab(text: AppStrings.of(context).translate('نبذة')), Tab(text: AppStrings.of(context).translate('الفحوصات'))], indicatorColor: Colors.white, labelColor: Colors.white, unselectedLabelColor: Colors.white70)),
+      appBar: AppBar(title: Text(_field(l, 'name', fallback: AppStrings.of(context).translate('المختبر'))), backgroundColor: AppColors.primary, foregroundColor: Colors.white, bottom: TabBar(controller: _tabs, tabs: [Tab(text: AppStrings.of(context).translate('نبذة')), Tab(text: AppStrings.of(context).translate('الفحوصات'))], indicatorColor: Colors.white, labelColor: Colors.white, unselectedLabelColor: Colors.white70)),
       body: TabBarView(controller: _tabs, children: [_overview(l, image, verified, dark), StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:_db.collection('lab_tests').where('labId',isEqualTo:widget.labId).where('isActive',isEqualTo:true).snapshots(),builder:(context,snap)=>_tests(l,snap.data?.docs.map((x)=>{'id':x.id,...x.data()}).toList()??const [],dark))]),
     );
   }
@@ -53,18 +56,18 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     if (image.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(18), child: SizedBox(height: 190, width: double.infinity, child: AppImage(imageUrl: image, fit: BoxFit.cover))),
     const SizedBox(height: 12),
     _card(dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [Expanded(child: Text(_s(l['name']), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87))), if (verified) const Icon(Icons.verified, color: AppColors.primary)]),
+      Row(children: [Expanded(child: Text(_field(l, 'name'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87))), if (verified) const Icon(Icons.verified, color: AppColors.primary)]),
       const SizedBox(height: 8),
-      if (_s(l['description']).isNotEmpty) Text(_s(l['description']), style: TextStyle(height: 1.6, color: dark ? Colors.grey[300] : Colors.grey[700])),
+      if (_field(l, 'description').isNotEmpty) Text(_field(l, 'description'), style: TextStyle(height: 1.6, color: dark ? Colors.grey[300] : Colors.grey[700])),
       const SizedBox(height: 12),
-      _row(Icons.location_on, AppStrings.of(context).translate('العنوان'), _s(l['address'] ?? AppStrings.of(context).translate('غير محدد')), dark),
+      _row(Icons.location_on, AppStrings.of(context).translate('العنوان'), _field(l, 'address', fallback: AppStrings.of(context).translate('غير محدد')), dark),
       _row(Icons.phone, AppStrings.of(context).translate('الهاتف'), _s(l['phone']).isEmpty ? AppStrings.of(context).translate('غير متوفر') : _s(l['phone']), dark),
       _row(Icons.email, AppStrings.of(context).translate('البريد'), _s(l['email']).isEmpty ? AppStrings.of(context).translate('غير متوفر') : _s(l['email']), dark),
       _row(Icons.star, AppStrings.of(context).translate('التقييم'), '${_n(l['rating']).toStringAsFixed(1)} (${_n(l['reviews'] ?? l['reviewsCount']).toInt()} ${AppStrings.of(context).translate('تقييم')})', dark),
       _row(Icons.home_work, AppStrings.of(context).translate('السحب المنزلي'), (l['homeService'] == true || l['homeCollection'] == true || l['hasHomeService'] == true) ? AppStrings.of(context).translate('متاح') : AppStrings.of(context).translate('غير متاح'), dark),
     ])),
     const SizedBox(height: 16),
-    _card(dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AppStrings.of(context).translate('الخدمات والتخصصات'), style: TextStyle(fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)), const SizedBox(height: 10), Wrap(spacing: 8, runSpacing: 8, children: _list(l['specialties']).map((x) => Chip(label: Text(_s(x)))).toList())])),
+    _card(dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AppStrings.of(context).translate('الخدمات والتخصصات'), style: TextStyle(fontWeight: FontWeight.bold, color: dark ? Colors.white : Colors.black87)), const SizedBox(height: 10), Wrap(spacing: 8, runSpacing: 8, children: _list(l['specialties']).map((x) => Chip(label: Text(_dynamic(x)))).toList())])),
     const SizedBox(height: 24),
   ]));
 
@@ -73,7 +76,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
       final t = tests[i] is Map ? Map<String, dynamic>.from(tests[i]) : {'name': tests[i], 'id': 'test_$i'};
       final testId = _s(t['id']).isEmpty ? 'test_$i' : _s(t['id']);
       final price = _n(t['price']);
-      return Card(color: dark ? const Color(0xFF1A2540) : Colors.white, child: ListTile(leading: const CircleAvatar(backgroundColor: Color(0x1A0A8F83), child: Icon(Icons.science, color: AppColors.primary)), title: Text(_s(t['name']).isEmpty ? AppStrings.of(context).translate('فحص') : _s(t['name']), style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600)), subtitle: Text(_s(t['description']), style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])), trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(AppStrings.of(context).formatCurrency(price), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), TextButton(onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id']), testId: testId))), child: Text(AppStrings.of(context).translate('حجز')))])));
+      return Card(color: dark ? const Color(0xFF1A2540) : Colors.white, child: ListTile(leading: const CircleAvatar(backgroundColor: Color(0x1A0A8F83), child: Icon(Icons.science, color: AppColors.primary)), title: Text(localizedField(t, 'name', AppStrings.of(context).locale, fallback: AppStrings.of(context).translate('فحص')), style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600)), subtitle: Text(localizedField(t, 'description', AppStrings.of(context).locale)), style: TextStyle(color: dark ? Colors.grey[400] : Colors.grey[600])), trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(AppStrings.of(context).formatCurrency(price), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), TextButton(onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id']), testId: testId))), child: Text(AppStrings.of(context).translate('حجز')))])));
     })),
     Container(padding: const EdgeInsets.all(16), color: dark ? const Color(0xFF1A2540) : Colors.white, child: SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: tests.isEmpty ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => LabBookingScreen(labId: _s(l['id'])))), icon: const Icon(Icons.calendar_today), label: Text(AppStrings.of(context).translate('حجز فحص')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))))
   ]);
