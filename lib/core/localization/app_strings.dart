@@ -4868,6 +4868,23 @@ class AppStrings {
       '2/5 حصص': ['2 of 5 servings', '2 sur 5 portions'],
       '02:00 م': ['02:00 PM', '14:00'],
       '09:30 ص': ['09:30 AM', '09:30'],
+      'اشعر ب حمى وعندي غثيان': ['I have a fever and nausea', 'J’ai de la fièvre et des nausées'],
+      'أريد طبيباً مناسباً': ['Help me find a suitable doctor', 'Aidez-moi à trouver un médecin adapté'],
+      'أريد معلومات آمنة عن دواء': ['I want reliable information about a medicine', 'Je souhaite des informations fiables sur un médicament'],
+      'أين أجد التحاليل؟': ['Where can I find lab tests?', 'Où trouver les analyses ?'],
+      'عرفني بخدمات صحتك': ['Tell me about Sehatak services', 'Présentez-moi les services de Sehatak'],
+      'أحتاج مساعدة من داخل التطبيق': ['I need help using the app', 'J’ai besoin d’aide pour utiliser l’application'],
+      'أهلاً بك. اكتب سؤالك بطريقتك المعتادة وسأساعدك أو أوجّهك إلى الخدمة المناسبة.': ['Welcome. Ask in your own words; I’ll help or direct you to the right service.', 'Bienvenue. Posez votre question avec vos propres mots ; je vous aiderai ou vous orienterai vers le service adapté.'],
+      'اذكر ما تحتاجه أو الأعراض التي تشعر بها.': ['Describe what you need or the symptoms you’re experiencing.', 'Décrivez votre besoin ou les symptômes que vous ressentez.'],
+      'ما الذي تريد معرفته؟': ['What would you like to know?', 'Que souhaitez-vous savoir ?'],
+      'ما زالت المراجعة السريرية المحلية مطلوبة.': ['Local clinical review is still required.', 'Une validation clinique locale reste nécessaire.'],
+      'تعذر حفظ سجل المحادثة بالكامل على هذا الجهاز.': ['The full chat history could not be saved on this device.', 'L’historique complet de la conversation n’a pas pu être enregistré sur cet appareil.'],
+      'محادثة جديدة': ['New chat', 'Nouvelle discussion'],
+      'أسئلة مقترحة': ['Suggested questions', 'Questions suggérées'],
+      'مرحباً، كيف أساعدك اليوم؟': ['Hello, how can I help you today?', 'Bonjour, comment puis-je vous aider aujourd’hui ?'],
+      'تعذر استعادة سجل المحادثة المحلي.': ['Could not restore the local chat history.', 'Impossible de restaurer l’historique local de la conversation.'],
+      'مرحباً، كيف أساعدك؟': ['Hello, how can I help?', 'Bonjour, comment puis-je vous aider ?'],
+      'تعذر مسح سجل المحادثة بالكامل.': ['Could not clear the full chat history.', 'Impossible d’effacer tout l’historique de la conversation.'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
