@@ -26,6 +26,7 @@ exports.checkoutCart = onCall(async (request) => {
   const idempotencyKey = text(request.data.idempotencyKey || `cart|${uid}|${Date.now()}`, 'idempotencyKey', 180);
   const deliveryRequired = request.data.deliveryRequired !== false;
   const deliveryAddress = deliveryRequired ? String(request.data.deliveryAddress || '').trim().slice(0, 1000) : '';
+  const deliveryArea = deliveryRequired ? String(request.data.deliveryArea || '').trim().slice(0, 150) : '';
   const normalized = new Map();
   for (const item of rawItems) {
     const productId = validOrderId(item.productId, 'productId');
@@ -169,8 +170,8 @@ exports.checkoutCart = onCall(async (request) => {
         })),
         subtotal: groupSubtotal, discount: 0, deliveryFee: 0, deliveryFeePendingQuote: deliveryRequired,
         total: groupSubtotal, currency: 'YER', status: 'pending', paymentStatus: 'paid', paymentMethod: 'wallet',
-        transactionId, invoiceId, deliveryRequired, deliveryAddress: deliveryAddress || null,
-        delivery: {required: deliveryRequired, address: deliveryAddress || null, status: deliveryRequired ? 'pending' : 'not_required'},
+        transactionId, invoiceId, deliveryRequired, deliveryAddress: deliveryAddress || null, deliveryArea: deliveryArea || null,
+        delivery: {required: deliveryRequired, address: deliveryAddress || null, area: deliveryArea || null, status: deliveryRequired ? 'pending' : 'not_required'},
         createdAt: now, updatedAt: now, statusHistory: [{status: 'pending', at: new Date().toISOString(), actorId: uid}],
       });
       tx.set(db.collection('notifications').doc(), {
