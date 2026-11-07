@@ -421,7 +421,7 @@ exports.assignDeliveryCompany = onCall(async (request) => {
       address: String(order.deliveryAddress || ''), deliveryAddress: String(order.deliveryAddress || ''),
       deliveryArea: String(order.deliveryArea || ''), status: 'assigned', currentStep: 0,
       estimatedTime: 'غير محدد', courier: null,
-      history: [{status: 'assigned', description: 'تم تعيين شركة التوصيل للطلب', time: new Date().toISOString()}],
+      history: [{status: 'assigned', description: 'assigned', time: new Date().toISOString()}],
       createdAt: now, updatedAt: now,
     });
     tx.update(orderRef, {
