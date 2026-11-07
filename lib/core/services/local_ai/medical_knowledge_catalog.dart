@@ -268,7 +268,6 @@ class MedicalKnowledgeCatalog {
       'url': 'https://www.who.int/news-room/fact-sheets/detail/sepsis',
       'review': 'editorial_source_checked_clinician_review_pending'
     },
-    },
   ];
 
   static String normalize(String value) => value
