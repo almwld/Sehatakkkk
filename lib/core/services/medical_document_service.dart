@@ -42,12 +42,12 @@ class MedicalDocumentService {
     final id = _db.collection('medical_documents').doc().id;
     final now = DateTime.now();
     final formTitle = {
-      'rx':'وصفة طبية | Prescription / RX',
-      'labs':'طلب فحوصات مخبرية | Laboratory Request',
-      'report':'تقرير طبي | Medical Report',
-      'sick_leave':'إجازة مرضية | Sick Leave Certificate',
-      'referral':'إحالة طبية | Medical Referral',
-    }[formType] ?? 'مستند طبي | Medical Document';
+      'rx':'وصفة طبية | Prescription / RX | Ordonnance / RX',
+      'labs':'طلب فحوصات مخبرية | Laboratory Request | Demande d’analyses',
+      'report':'تقرير طبي | Medical Report | Rapport médical',
+      'sick_leave':'إجازة مرضية | Sick Leave Certificate | Certificat d’arrêt de travail',
+      'referral':'إحالة طبية | Medical Referral | Lettre d’orientation médicale',
+    }[formType] ?? 'مستند طبي | Medical Document | Document médical';
 
     pw.Widget line(String ar, String en, {bool strong=false}) => pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 3),
@@ -85,7 +85,7 @@ class MedicalDocumentService {
             pw.Expanded(child: pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.end,children:[
               pw.Text(patientName, style: pw.TextStyle(font:bold,fontSize:13)),
               pw.Text(patientEn,textDirection:pw.TextDirection.ltr,style:pw.TextStyle(font:regular,fontSize:9)),
-              pw.Text('التاريخ / Date: ${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}',style:pw.TextStyle(font:regular,fontSize:8)),
+              pw.Text('التاريخ / Date / Date : ${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}',style:pw.TextStyle(font:regular,fontSize:8)),
             ])),
           ]),
           pw.SizedBox(height:10), pw.Divider(color:PdfColors.teal,thickness:1.5),
@@ -93,34 +93,34 @@ class MedicalDocumentService {
           pw.SizedBox(height:12),
           if (formType=='rx') ...[
             pw.TableHelper.fromTextArray(
-              headers:['ملاحظات | Notes','التعليمات | Directions','الجرعة | Dose','الدواء | Medication','م'],
+              headers:['ملاحظات / Notes / Remarques','التعليمات / Directions / Instructions','الجرعة / Dose / Posologie','الدواء / Medication / Médicament','م / No. / N°'],
               data:((values['medications'] as List?)??[]).map((e){final m=Map<String,dynamic>.from(e as Map);return ['${m['notes']??''}','${m['directions']??''}','${m['dose']??''}','${m['name']??''}','${m['index']??''}'];}).toList(),
               headerStyle:pw.TextStyle(font:bold,fontSize:8,color:PdfColors.white),headerDecoration:const pw.BoxDecoration(color:PdfColors.teal),
               cellStyle:pw.TextStyle(font:regular,fontSize:7),cellAlignment:pw.Alignment.center,border:pw.TableBorder.all(color:PdfColors.grey400)),
-            pw.SizedBox(height:10),line('تعليمات عامة: ${values['general']??''}','General instructions: ${values['generalEn']??values['general']??''}'),
+            pw.SizedBox(height:10),line('تعليمات عامة: ${values['general']??''}','General instructions / Instructions générales: ${values['generalEn']??values['general']??''}'),
           ] else if (formType=='labs') ...[
-            pw.Text('الفحوصات المطلوبة / Requested Tests',style:pw.TextStyle(font:bold,fontSize:11)),pw.SizedBox(height:6),
+            pw.Text('الفحوصات المطلوبة / Requested Tests / Analyses demandées',style:pw.TextStyle(font:bold,fontSize:11)),pw.SizedBox(height:6),
             pw.Wrap(spacing:8,runSpacing:5,children:((values['tests'] as List?)??[]).map((e)=>pw.Container(padding:const pw.EdgeInsets.symmetric(horizontal:7,vertical:4),decoration:pw.BoxDecoration(border:pw.Border.all(color:PdfColors.teal),borderRadius:pw.BorderRadius.circular(4)),child:pw.Text('✓ $e',style:pw.TextStyle(font:regular,fontSize:8)))).toList()),
-            pw.SizedBox(height:10),line('ملاحظات المختبر: ${values['notes']??''}','Lab notes: ${values['notesEn']??values['notes']??''}'),
+            pw.SizedBox(height:10),line('ملاحظات المختبر: ${values['notes']??''}','Lab notes / Notes du laboratoire: ${values['notesEn']??values['notes']??''}'),
           ] else if (formType=='report') ...[
-            line('التشخيص: ${values['diagnosis']??''}','Diagnosis: ${values['diagnosisEn']??values['diagnosis']??''}',strong:true),
-            line('التاريخ المرضي: ${values['history']??''}','Clinical history: ${values['historyEn']??values['history']??''}'),
-            line('الفحص والنتائج: ${values['findings']??''}','Findings: ${values['findingsEn']??values['findings']??''}'),
-            line('الخطة العلاجية: ${values['plan']??''}','Treatment plan: ${values['planEn']??values['plan']??''}'),
+            line('التشخيص: ${values['diagnosis']??''}','Diagnosis / Diagnostic: ${values['diagnosisEn']??values['diagnosis']??''}',strong:true),
+            line('التاريخ المرضي: ${values['history']??''}','Clinical history / Antécédents médicaux: ${values['historyEn']??values['history']??''}'),
+            line('الفحص والنتائج: ${values['findings']??''}','Findings / Résultats: ${values['findingsEn']??values['findings']??''}'),
+            line('الخطة العلاجية: ${values['plan']??''}','Treatment plan / Plan de traitement: ${values['planEn']??values['plan']??''}'),
           ] else if (formType=='sick_leave') ...[
-            line('سبب الإجازة: ${values['reason']??''}','Reason: ${values['reasonEn']??values['reason']??''}',strong:true),
-            line('من: ${values['from']??''} إلى: ${values['to']??''}','From: ${values['from']??''} To: ${values['to']??''}'),
-            line('عدد الأيام: ${values['days']??''}','Days: ${values['days']??''}'),
-            line('ملاحظات: ${values['notes']??''}','Notes: ${values['notesEn']??values['notes']??''}'),
+            line('سبب الإجازة: ${values['reason']??''}','Reason / Motif: ${values['reasonEn']??values['reason']??''}',strong:true),
+            line('من: ${values['from']??''} إلى: ${values['to']??''}','From / Du: ${values['from']??''} To / Au: ${values['to']??''}'),
+            line('عدد الأيام: ${values['days']??''}','Days / Nombre de jours: ${values['days']??''}'),
+            line('ملاحظات: ${values['notes']??''}','Notes / Remarques: ${values['notesEn']??values['notes']??''}'),
           ] else ...[
-            line('الجهة المحال إليها: ${values['destination']??''}','Referred to: ${values['destinationEn']??values['destination']??''}',strong:true),
-            line('سبب الإحالة: ${values['reason']??''}','Reason: ${values['reasonEn']??values['reason']??''}'),
-            line('التفاصيل: ${values['details']??''}','Details: ${values['detailsEn']??values['details']??''}'),
+            line('الجهة المحال إليها: ${values['destination']??''}','Referred to / Orienté vers: ${values['destinationEn']??values['destination']??''}',strong:true),
+            line('سبب الإحالة: ${values['reason']??''}','Reason / Motif: ${values['reasonEn']??values['reason']??''}'),
+            line('التفاصيل: ${values['details']??''}','Details / Détails: ${values['detailsEn']??values['details']??''}'),
           ],
           pw.Spacer(),pw.Divider(color:PdfColors.grey400),
           pw.Row(mainAxisAlignment:pw.MainAxisAlignment.spaceBetween,children:[
-            pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.start,children:[pw.Text('توقيع الطبيب / Doctor signature',style:pw.TextStyle(font:regular,fontSize:9)),pw.SizedBox(height:25),pw.Text(doctorEn,textDirection:pw.TextDirection.ltr,style:pw.TextStyle(font:regular,fontSize:9))]),
-            pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.end,children:[pw.Text('رقم المستند / Document ID',style:pw.TextStyle(font:regular,fontSize:8)),pw.Text(id,textDirection:pw.TextDirection.ltr,style:pw.TextStyle(font:regular,fontSize:7))]),
+            pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.start,children:[pw.Text('توقيع الطبيب / Doctor signature / Signature du médecin',style:pw.TextStyle(font:regular,fontSize:9)),pw.SizedBox(height:25),pw.Text(doctorEn,textDirection:pw.TextDirection.ltr,style:pw.TextStyle(font:regular,fontSize:9))]),
+            pw.Column(crossAxisAlignment:pw.CrossAxisAlignment.end,children:[pw.Text('رقم المستند / Document ID / Numéro du document',style:pw.TextStyle(font:regular,fontSize:8)),pw.Text(id,textDirection:pw.TextDirection.ltr,style:pw.TextStyle(font:regular,fontSize:7))]),
           ]),
         ])
       ),
