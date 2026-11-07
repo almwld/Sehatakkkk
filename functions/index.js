@@ -372,17 +372,21 @@ exports.checkoutCart = onCall(async (request) => {
   const keyDigest = digest(`${uid}|pharmacy_checkout|${idempotencyKey}`);
   const idempotencyRef = db.collection('checkout_idempotency').doc(keyDigest);
   const walletRef = db.collection('wallets').doc(uid);
+  const userRef = db.collection('users').doc(uid);
   const productRefs = [...normalized.values()].map(x => db.collection('products').doc(x.productId));
   const pharmacyIds = [...new Set([...normalized.values()].map(x => x.requestedPharmacyId).filter(Boolean))];
   const pharmacyRefs = pharmacyIds.map(id => db.collection('pharmacies').doc(id));
 
   const result = await db.runTransaction(async (tx) => {
-    const [idempotencySnap, walletSnap, ...productSnaps] = await Promise.all([
-      tx.get(idempotencyRef), tx.get(walletRef), ...productRefs.map(ref => tx.get(ref)),
+    const [idempotencySnap, walletSnap, userSnap, ...productSnaps] = await Promise.all([
+      tx.get(idempotencyRef), tx.get(walletRef), tx.get(userRef), ...productRefs.map(ref => tx.get(ref)),
     ]);
     if (idempotencySnap.exists) return idempotencySnap.data();
     if (!walletSnap.exists || walletSnap.data().isActive === false) throw new HttpsError('failed-precondition', 'محفظة صحتك غير مفعلة');
     const wallet = walletSnap.data();
+    const patient = userSnap.exists ? (userSnap.data() || {}) : {};
+    const patientName = String(patient.name || patient.displayName || patient.fullName || '');
+    const patientPhone = String(patient.phoneNumber || patient.phone || '');
     const productsById = new Map(productSnaps.map((snap, index) => [productRefs[index].id, snap]));
     const actualPharmacyIds = new Set();
     const prepared = [];
@@ -440,7 +444,7 @@ exports.checkoutCart = onCall(async (request) => {
       orderIds.push(orderId);
       const groupSubtotal = rows.reduce((sum, row) => sum + row.lineTotal, 0);
       tx.create(db.collection('orders').doc(orderId), {
-        id: orderId, type: 'pharmacy', userId: uid, pharmacyId, providerId: ownerId,
+        id: orderId, type: 'pharmacy', userId: uid, patientName, patientPhone, phoneNumber: patientPhone, pharmacyId, providerId: ownerId,
         pharmacyName: String(pharmacy.name || pharmacy.pharmacyName || ''),
         items: rows.map(row => ({productId: row.item.productId, name: String(row.product.name || ''), quantity: row.item.quantity, unitPrice: row.unitPrice, price: row.unitPrice, total: row.lineTotal, requiresPrescription: row.product.requiresPrescription === true, prescriptionId: row.item.prescriptionId || null})),
         subtotal: groupSubtotal, discount: 0, deliveryFee: 0, deliveryFeePendingQuote: deliveryRequired,
