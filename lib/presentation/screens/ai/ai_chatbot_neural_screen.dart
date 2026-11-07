@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/services/local_ai/neural_medical_ai.dart';
 import 'package:sehatak/services/local_ai/chat_bot_offline.dart';
@@ -24,7 +25,8 @@ class _AIChatbotNeuralScreenState extends State<AIChatbotNeuralScreen> {
   @override
   void initState() {
     super.initState();
-    _userId = 'neural_${DateTime.now().millisecondsSinceEpoch}';
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    _userId = uid == null ? 'neural_guest_v1' : 'neural_user_$uid';
     _neuralAI = NeuralMedicalAI();
     _chatBot = ChatBotOffline(sessionId: _userId);
     _initialize();
