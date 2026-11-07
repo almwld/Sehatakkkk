@@ -88,7 +88,7 @@ class _CallScreenState extends State<CallScreen> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           Navigator.of(context).pop();
-          ToastService.showError('مشغول في مكالمة أخرى');
+          ToastService.showError(_localizedUiText(context, 'مشغول في مكالمة أخرى'));
         });
         return;
       }
@@ -148,7 +148,7 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Future<void> connect() async {
-    if (widget.isOutgoing) ToastService.showInfo('جاري الاتصال...');
+    if (widget.isOutgoing) ToastService.showInfo(_localizedUiText(context, 'جاري الاتصال...'));
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw StateError('يجب تسجيل الدخول');
@@ -249,7 +249,7 @@ class _CallScreenState extends State<CallScreen> {
           connecting = false;
           error = friendly;
         });
-        ToastService.showError(friendly);
+        ToastService.showError(_localizedUiText(context, friendly));
       }
     }
   }
@@ -357,7 +357,7 @@ class _CallScreenState extends State<CallScreen> {
           connecting = false;
           error = friendly;
         });
-        ToastService.showError(friendly);
+        ToastService.showError(_localizedUiText(context, friendly));
       }
     }
   }
@@ -556,7 +556,7 @@ class _CallScreenState extends State<CallScreen> {
                             const SizedBox(height: 16),
                             Text(_localizedUiText(context, 'تعذر الاتصال'), style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 10),
-                            Text(error!, style: const TextStyle(color: Colors.white70, fontSize: 15, height: 1.5), textAlign: TextAlign.center),
+                            Text(_localizedUiText(context, error!), style: const TextStyle(color: Colors.white70, fontSize: 15, height: 1.5), textAlign: TextAlign.center),
                             const SizedBox(height: 10),
                             Text(_localizedUiText(context, 'تحقق من اتصال الإنترنت، ثم أعد المحاولة.'), style: TextStyle(color: Colors.white54, fontSize: 13), textAlign: TextAlign.center),
                             const SizedBox(height: 24),
@@ -627,7 +627,7 @@ class _CallScreenState extends State<CallScreen> {
       Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w700)),
       if (s.isNotEmpty) ...[
         const SizedBox(height: 12),
-        Text(s, style: const TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w600)),
+        Text(_localizedUiText(context, s), style: const TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w600)),
       ],
       const SizedBox(height: 22),
       Text(fmt(seconds), style: const TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.w300)),
@@ -667,7 +667,7 @@ class _CallScreenState extends State<CallScreen> {
     child: Row(mainAxisSize: MainAxisSize.min, children: [
       Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: joined ? Colors.greenAccent : cyan)),
       const SizedBox(width: 7),
-      Text(s, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+      Text(_localizedUiText(context, s), style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
     ]),
   );
 
@@ -723,7 +723,7 @@ class _CallScreenState extends State<CallScreen> {
         ),
       ),
       const SizedBox(height: 5),
-      Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+      Text(_localizedUiText(context, label), style: const TextStyle(color: Colors.white70, fontSize: 10)),
     ],
   );
 
