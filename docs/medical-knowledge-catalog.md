@@ -1,0 +1,147 @@
+# Sehatak Medical Knowledge Catalog
+
+## Purpose and safety boundary
+
+The local assistant uses a curated, offline, multilingual reference catalog in
+`lib/core/services/local_ai/medical_knowledge_catalog.dart`. It contains
+39 topic records. Every record has Arabic, English, and French content,
+matching phrases, a source URL, and an explicit review-state marker.
+
+This is public-health education and first-aid orientation only. It is not a
+diagnostic engine, prescribing system, or substitute for an examination.
+Medication doses and treatment changes are deliberately not supplied from
+unreviewed bundled data. Emergency instructions direct users to local
+emergency services rather than displaying an unverified country-specific number.
+
+## Current topics
+
+1. Stroke warning signs
+2. New or severe chest pain
+3. Severe bleeding
+4. Burns
+5. Seizures
+6. Anaphylaxis
+7. Choking
+8. Suspected poisoning or overdose
+9. Severe breathing difficulty
+10. Suicidal thoughts or immediate self-harm risk
+11. Diabetes
+12. Hypertension
+13. Asthma
+14. Healthy diet
+15. Physical activity
+16. Diarrhoeal disease and dehydration warnings
+17. Malaria warning signs and need for prompt testing
+18. Pneumonia warning signs in children
+19. Seasonal influenza
+20. Severe headache warning signs
+
+21. Cholera and severe dehydration
+22. Dengue and severe dengue warning signs
+23. Newborn danger signs
+24. Pregnancy and postpartum danger signs, including pre-eclampsia
+25. Heatstroke
+26. Sepsis
+27. Tuberculosis warning signs and testing
+28. Anaemia symptoms and blood-test confirmation
+29. Chronic kidney disease awareness
+30. Hepatitis B testing and prevention
+31. HIV testing, prevention and stigma-free information
+32. Depression awareness and support
+33. Oral health and dental warning signs
+34. Child malnutrition warning signs
+35. Urinary tract infection and kidney infection warning signs
+36. Eye injury and sudden vision-loss emergencies
+37. Sleep health
+38. Tobacco risks and quitting support
+39. Vaccination and national immunization schedules
+
+## Source register
+
+- American Heart Association and American Red Cross, 2024 First Aid Guidelines:
+  https://cpr.heart.org/en/resuscitation-science/2024-first-aid-guidelines
+- Resuscitation Council UK, 2025 First Aid Guidelines:
+  https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/first-aid-guidelines
+- U.S. National Library of Medicine, MedlinePlus, Recognizing Medical Emergencies:
+  https://medlineplus.gov/ency/article/001927.htm
+- World Health Organization, Diabetes:
+  https://www.who.int/news-room/fact-sheets/detail/diabetes
+- World Health Organization, Hypertension:
+  https://www.who.int/news-room/fact-sheets/detail/hypertension
+- World Health Organization, Asthma:
+  https://www.who.int/news-room/fact-sheets/detail/asthma
+- World Health Organization, Healthy diet:
+  https://www.who.int/en/news-room/fact-sheets/detail/healthy-diet
+- World Health Organization, Physical activity:
+  https://www.who.int/initiatives/behealthy/physical-activity/
+- World Health Organization, Diarrhoeal disease:
+  https://www.who.int/news-room/fact-sheets/detail/diarrhoeal-disease
+- World Health Organization, Malaria questions and answers:
+  https://www.who.int/news-room/questions-and-answers/item/malaria
+- World Health Organization, Pneumonia:
+  https://www.who.int/news-room/fact-sheets/detail/pneumonia
+- World Health Organization, Seasonal influenza:
+  https://www.who.int/news-room/fact-sheets/detail/influenza-(seasonal)
+- World Health Organization, Suicide questions and answers:
+  https://www.who.int/news-room/questions-and-answers/item/suicide
+- NHS, Headaches:
+  https://www.nhs.uk/symptoms/headaches/
+- World Health Organization, Cholera:
+  https://www.who.int/news-room/fact-sheets/detail/cholera
+- World Health Organization, Dengue and severe dengue:
+  https://www.who.int/news-room/fact-sheets/detail/dengue-and-severe-dengue
+- World Health Organization, Newborns: improving survival and well-being:
+  https://www.who.int/news-room/fact-sheets/detail/newborns-reducing-mortality/
+- World Health Organization, Pregnancy health services and danger signs:
+  https://www.who.int/tools/your-life-your-health/life-phase/pregnancy--birth-and-after-childbirth/getting-the-health-services-you-need-during-pregnancy
+- World Health Organization, Heatwaves: how to stay cool:
+  https://www.who.int/ar/news-room/questions-and-answers/item/heatwaves-how-to-stay-cool
+- World Health Organization, Sepsis:
+  https://www.who.int/news-room/fact-sheets/detail/sepsis
+- World Health Organization, Tuberculosis:
+  https://www.who.int/news-room/fact-sheets/detail/tuberculosis
+- World Health Organization, Anaemia:
+  https://www.who.int/news-room/fact-sheets/detail/ANAEMIA
+- World Health Organization, Kidney disease:
+  https://www.who.int/news-room/fact-sheets/detail/kidney-disease
+- World Health Organization, Hepatitis B:
+  https://www.who.int/news-room/fact-sheets/detail/hepatitis-B/
+- World Health Organization, HIV and AIDS:
+  https://www.who.int/en/news-room/fact-sheets/detail/hiv-aids
+- World Health Organization, Depression:
+  https://www.who.int/news-room/fact-sheets/detail/depression
+- World Health Organization, Oral health:
+  https://www.who.int/news-room/fact-sheets/detail/oral-health
+- World Health Organization, Malnutrition:
+  https://www.who.int/en/news-room/fact-sheets/detail/malnutrition
+- World Health Organization and UNICEF, 2026 wasting and nutritional oedema guidance:
+  https://www.who.int/publications/i/item/9789240122840
+- NHS, Urinary tract infections:
+  https://www.nhs.uk/conditions/urinary-tract-infections-utis/
+- NHS, Eye injuries:
+  https://www.nhs.uk/conditions/eye-injuries/
+- Centers for Disease Control and Prevention, About Sleep:
+  https://www.cdc.gov/sleep/about/index.html
+- World Health Organization, Tobacco and nicotine:
+  https://www.who.int/en/news-room/fact-sheets/detail/tobacco
+- World Health Organization, Immunization coverage:
+  https://www.who.int/news-room/fact-sheets/detail/immunization-coverage
+
+## Review status — do not misrepresent
+
+Source pages were checked during implementation and summaries were written
+against them. This is not equivalent to clinical validation. Every entry is
+marked `editorial_source_checked_clinician_review_pending`. A licensed
+clinician/pharmacist must review the Arabic, English, and French wording,
+local emergency pathways, and applicability to children, pregnancy, chronic
+illness, and local care availability before production use.
+
+## Next clinical-review workflow
+
+1. Assign a clinician reviewer and a pharmacist for medication-related work.
+2. Review each language independently; editorial translation is not clinical approval.
+3. Add reviewer identity/role, review date, source version, and expiry/review date.
+4. Require evidence and approval before adding doses, diagnostic thresholds,
+   or treatment recommendations.
+5. Add automated checks for missing language variants, missing sources,
+   expired reviews, and accidental medication dosing text.

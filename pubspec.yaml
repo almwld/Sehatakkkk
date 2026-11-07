@@ -89,7 +89,6 @@ dependencies:
   pointycastle: 3.7.3
   crypto: 3.0.3
   dart_jsonwebtoken: 2.4.0
-  google_generative_ai: 0.4.0
   speech_to_text: 6.6.0
   flutter_tts: 3.8.2
   pdf: 3.10.7

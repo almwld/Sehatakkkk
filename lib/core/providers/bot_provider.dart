@@ -29,7 +29,7 @@ class BotProvider extends ChangeNotifier {
   // 💬 إرسال رسالة
   // ============================================================
 
-  Future<void> sendMessage(String message) async {
+  Future<void> sendMessage(String message, {String languageCode = 'ar'}) async {
     if (message.trim().isEmpty) return;
 
     _isLoading = true;
@@ -37,7 +37,7 @@ class BotProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _botService.processMessage(message);
+      await _botService.processMessage(message, languageCode: languageCode);
       _messages = await _botService.getConversation();
       _isLoading = false;
       notifyListeners();
@@ -62,24 +62,24 @@ class BotProvider extends ChangeNotifier {
   // 💊 معلومات الدواء
   // ============================================================
 
-  String? getDrugInfo(String drugName) {
-    return _botService.getDrugInfo(drugName);
+  String? getDrugInfo(String drugName, {String languageCode = 'ar'}) {
+    return _botService.getDrugInfo(drugName, languageCode: languageCode);
   }
 
   // ============================================================
   // 🩺 معلومات المرض
   // ============================================================
 
-  String? getDiseaseInfo(String diseaseName) {
-    return _botService.getDiseaseInfo(diseaseName);
+  String? getDiseaseInfo(String diseaseName, {String languageCode = 'ar'}) {
+    return _botService.getDiseaseInfo(diseaseName, languageCode: languageCode);
   }
 
   // ============================================================
   // 💡 نصيحة عشوائية
   // ============================================================
 
-  String getRandomTip() {
-    return _botService.getRandomTip();
+  String getRandomTip({String languageCode = 'ar'}) {
+    return _botService.getRandomTip(languageCode: languageCode);
   }
 
   // ============================================================

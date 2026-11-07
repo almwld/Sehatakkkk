@@ -10,6 +10,7 @@ class LocalStorageService {
 
   late Database _database;
   bool _isInitialized = false;
+  bool _usingPreferencesFallback = false;
 
   // ============================================================
   // 📁 تهيئة قاعدة البيانات المحلية
@@ -24,7 +25,7 @@ class LocalStorageService {
 
       _database = await openDatabase(
         path,
-        version: 1,
+        version: 2,
         onCreate: _createTables,
         onUpgrade: _upgradeTables,
       );
@@ -35,6 +36,8 @@ class LocalStorageService {
       print('❌ Database initialization error: $e');
       // ✅ في حالة الفشل، استخدام SharedPreferences كبديل
       await _initSharedPreferences();
+      _usingPreferencesFallback = true;
+      _isInitialized = true;
     }
   }
 
@@ -129,8 +132,34 @@ class LocalStorageService {
   }
 
   Future<void> _upgradeTables(Database db, int oldVersion, int newVersion) async {
-    // ✅ تحديث الجداول عند تغيير الإصدار
-    print('🔄 Upgrading database from $oldVersion to $newVersion');
+    if (oldVersion < 2) {
+      // Remove legacy medical seed values that lacked source/review metadata.
+      await db.update('drugs', {
+        'dose_adult': '',
+        'dose_child': '',
+        'max_daily': '',
+        'pregnancy': '',
+        'breastfeeding': '',
+        'side_effects': '',
+        'interactions': '',
+        'contraindications': '',
+        'notes': 'راجع النشرة المعتمدة أو الطبيب/الصيدلي؛ لا توجد جرعة موثقة داخل التطبيق.',
+        'overdose': '',
+      });
+      await db.update('diseases', {
+        'symptoms': '',
+        'causes': '',
+        'treatment': '',
+        'complications': '',
+        'prevention': '',
+        'normal_range': '',
+        'when_to_see_doctor': '',
+        'emergency_warning': '',
+      });
+      await db.delete('first_aid');
+      await db.delete('health_tips');
+    }
+    print('Database upgraded from $oldVersion to $newVersion');
   }
 
   Future<void> _initSharedPreferences() async {
@@ -271,6 +300,15 @@ class LocalStorageService {
   }) async {
     if (!_isInitialized) await initialize();
 
+    if (_usingPreferencesFallback) {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'sehatak_ai_conversation_${Uri.encodeComponent(sessionId)}';
+      final rows = (jsonDecode(prefs.getString(key) ?? '[]') as List).cast<Map<String, dynamic>>();
+      rows.add({'message': message, 'is_user': isUser ? 1 : 0, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'type': type ?? ''});
+      if (rows.length > 200) rows.removeRange(0, rows.length - 200);
+      await prefs.setString(key, jsonEncode(rows));
+      return;
+    }
     try {
       await _database.insert('conversations', {
         'session_id': sessionId,
@@ -281,30 +319,43 @@ class LocalStorageService {
       });
     } catch (e) {
       print('❌ Error saving message: $e');
+      rethrow;
     }
   }
 
   Future<List<Map<String, dynamic>>> getConversation(String sessionId) async {
     if (!_isInitialized) await initialize();
 
+    if (_usingPreferencesFallback) {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'sehatak_ai_conversation_${Uri.encodeComponent(sessionId)}';
+      final rows = (jsonDecode(prefs.getString(key) ?? '[]') as List).cast<Map<String, dynamic>>();
+      return rows.length > 100 ? rows.sublist(rows.length - 100) : rows;
+    }
     try {
       final result = await _database.query(
         'conversations',
         where: 'session_id = ?',
         whereArgs: [sessionId],
-        orderBy: 'timestamp ASC',
+        orderBy: 'timestamp DESC, id DESC',
         limit: 100,
       );
-      return result;
+      return result.reversed.toList();
     } catch (e) {
       print('❌ Error getting conversation: $e');
-      return [];
+      rethrow;
     }
   }
 
   Future<void> clearConversation(String sessionId) async {
     if (!_isInitialized) await initialize();
 
+    if (_usingPreferencesFallback) {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'sehatak_ai_conversation_${Uri.encodeComponent(sessionId)}';
+      await prefs.remove(key);
+      return;
+    }
     try {
       await _database.delete(
         'conversations',
@@ -313,6 +364,7 @@ class LocalStorageService {
       );
     } catch (e) {
       print('❌ Error clearing conversation: $e');
+      rethrow;
     }
   }
 
@@ -426,6 +478,12 @@ class LocalStorageService {
       final diseaseCount = Sqflite.firstIntValue(
         await _database.rawQuery('SELECT COUNT(*) FROM diseases')
       ) ?? 0;
+      final firstAidCount = Sqflite.firstIntValue(
+        await _database.rawQuery('SELECT COUNT(*) FROM first_aid')
+      ) ?? 0;
+      final healthTipCount = Sqflite.firstIntValue(
+        await _database.rawQuery('SELECT COUNT(*) FROM health_tips')
+      ) ?? 0;
       final conversationCount = Sqflite.firstIntValue(
         await _database.rawQuery('SELECT COUNT(*) FROM conversations')
       ) ?? 0;
@@ -433,6 +491,8 @@ class LocalStorageService {
       return {
         'drugs': drugCount,
         'diseases': diseaseCount,
+        'first_aid': firstAidCount,
+        'health_tips': healthTipCount,
         'conversations': conversationCount,
       };
     } catch (e) {
@@ -442,7 +502,7 @@ class LocalStorageService {
   }
 
   void dispose() {
-    if (_isInitialized) {
+    if (_isInitialized && !_usingPreferencesFallback) {
       _database.close();
     }
   }

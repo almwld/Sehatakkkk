@@ -25,20 +25,20 @@ class LocalAiIntentResult {
   });
 }
 
-/// Offline Arabic intent engine. It uses normalization, synonyms and common
-/// Yemeni/Arabic wording; it never calls a network service.
+/// Offline Arabic intent engine with shared Arabic normalization and common
+/// regional wording. It never calls a network service.
 class LocalAiIntentEngine {
   static const Map<String, List<String>> _aliases = {
-    'طبيب': ['دكتور', 'دكتوره', 'دكتورة', 'طبيبة', 'طبيب'],
-    'صيدلية': ['صيدليه', 'دواء', 'ادويه', 'أدوية', 'صيدلي'],
-    'مختبر': ['مختبرات', 'مختبر', 'تحليل', 'تحاليل', 'فحص', 'فحوصات'],
-    'مستشفى': ['مستشفي', 'مشفى', 'مركز صحي'],
-    'استشارة': ['استشاره', 'كشف', 'موعد طبي', 'حجز طبيب'],
-    'طوارئ': ['اسعاف', 'إسعاف', 'طوارئ', 'طارئ', 'نجده'],
-    'ملفي': ['حسابي', 'بروفايل', 'الملف الشخصي', 'الملف الصحي'],
-    'نوم': ['منام', 'نومي', 'ساعات النوم', 'ارق', 'أرق'],
-    'تغذية': ['غذاء', 'اكل', 'أكل', 'رجيم', 'حمية', 'سعرات', 'وجبات'],
-    'خريطة': ['موقع', 'وين اقرب', 'اين اقرب', 'قريب مني', 'بالقرب مني'],
+    'طبيب': ['دكتور', 'دكتوره', 'دكتورة', 'طبيبة', 'طبيب', 'اكشف عند دكتور', 'ابغى دكتور', 'عايز دكتور', 'بدي دكتور', 'وين الاقي دكتور', 'فين دكتور', 'دكتور قريب', 'ابغى اكشف', 'عايز احجز دكتور', 'بدي احجز عند دكتور'],
+    'صيدلية': ['صيدليه', 'دواء', 'دوا', 'دواي', 'ادويه', 'أدوية', 'صيدلي', 'علاج', 'حبوب', 'روشته', 'روشتة', 'فين صيدلية', 'وين الصيدلية', 'صيدلية قريبة', 'عايز دواء', 'بدي دواء', 'ابغى علاج'],
+    'مختبر': ['مختبرات', 'مختبر', 'معمل', 'تحليل', 'تحاليل', 'فحص', 'فحوصات', 'اعمل تحليل', 'اسوي تحليل', 'بدي تحليل', 'عايز تحليل', 'اعمل فحص', 'اسوي فحص', 'فين معمل', 'مختبر قريب'],
+    'مستشفى': ['مستشفي', 'مشفى', 'مركز صحي', 'مستوصف', 'مستشفى قريب', 'وين المستشفى', 'فين المستشفى', 'مستشفى قريب مني', 'فين اقرب مستشفى'],
+    'استشارة': ['استشاره', 'كشف', 'كشف طبي', 'موعد طبي', 'حجز طبيب', 'اكلم دكتور', 'اتكلم مع طبيب', 'استشير طبيب', 'ابغى استشارة', 'عايز استشارة', 'بدي استشارة', 'عايز اكلم دكتور', 'بدي احكي مع طبيب'],
+    'طوارئ': ['اسعاف', 'إسعاف', 'طوارئ', 'طارئ', 'نجده', 'الحقوني', 'انقذوني', 'حالة حرجة', 'الحقني', 'اسعاف بسرعة', 'عايز اسعاف', 'بدي اسعاف'],
+    'ملفي': ['حسابي', 'بروفايل', 'الملف الشخصي', 'الملف الصحي', 'بياناتي الصحية'],
+    'نوم': ['منام', 'نومي', 'ساعات النوم', 'ارق', 'أرق', 'ما اقدر انام', 'مش عارف انام'],
+    'تغذية': ['غذاء', 'اكل', 'أكل', 'رجيم', 'حمية', 'سعرات', 'وجبات', 'دايت'],
+    'خريطة': ['موقع', 'وين اقرب', 'اين اقرب', 'قريب مني', 'بالقرب مني', 'فين اقرب', 'اقرب مستشفى', 'اقرب صيدلية', 'وين اقرب صيدلية', 'فين اقرب صيدلية', 'اقرب مركز صحي'],
   };
 
   static LocalAiIntentResult classify(String input) {
@@ -47,7 +47,7 @@ class LocalAiIntentEngine {
       return const LocalAiIntentResult(intent: LocalAiIntent.unknown);
     }
 
-    if (_matchesAny(text, ['سلام', 'اهلا', 'مرحبا', 'هلا', 'صباح الخير', 'مساء الخير'])) {
+    if (_matchesAny(text, ['سلام', 'اهلا', 'مرحبا', 'هلا', 'صباح الخير', 'مساء الخير', 'السلام عليكم'])) {
       return const LocalAiIntentResult(intent: LocalAiIntent.greeting, confidence: .99);
     }
 
@@ -69,17 +69,21 @@ class LocalAiIntentEngine {
       );
     }
 
-    if (_matchesAny(text, ['مساعده', 'مساعدة', 'كيف استخدم', 'كيف استعمل', 'ما اقدر', 'لا استطيع']) &&
+    if (_matchesAny(text, ['مساعده', 'مساعدة', 'كيف استخدم', 'كيف استعمل', 'ما اقدر', 'لا استطيع', 'مش فاهم', 'مش عارف']) &&
         merged.isEmpty) {
       return const LocalAiIntentResult(intent: LocalAiIntent.help, confidence: .9);
     }
 
-    if (_matchesAny(text, ['دواء', 'دواءي', 'جرعه', 'جرعة', 'حبوب', 'علاج دوائي', 'مضاد حيوي'])) {
+    if (_matchesAny(text, ['دواء', 'دوا', 'دواءي', 'جرعه', 'جرعة', 'حبوب', 'علاج دوائي', 'مضاد حيوي', 'اسم الدواء'])) {
       return LocalAiIntentResult(intent: LocalAiIntent.medicine, services: merged, confidence: .92);
     }
 
-    if (_matchesAny(text, ['اشعر', 'احس', 'الم', 'وجع', 'حراره', 'حمى', 'سعال', 'كحه', 'غثيان',
-      'استفراغ', 'دوخه', 'تعب', 'ضيق نفس', 'خفقان', 'طفح', 'اسهال', 'امساك'])) {
+    if (_matchesAny(text, [
+      'اشعر', 'احس', 'حاسس', 'حاسة', 'عندي', 'الم', 'وجع', 'حراره', 'حمى',
+      'سعال', 'كحه', 'غثيان', 'استفراغ', 'دوخه', 'تعب', 'ضيق نفس',
+      'خفقان', 'طفح', 'اسهال', 'امساك', 'راسي', 'بطني', 'صدري',
+      'مش قادر اتنفس', 'نفسي ضيق',
+    ])) {
       return LocalAiIntentResult(intent: LocalAiIntent.symptom, services: merged, confidence: .94);
     }
 
@@ -116,8 +120,19 @@ class LocalAiIntentEngine {
     return result;
   }
 
+  /// Canonical normalization shared by intent, symptom and safety matching.
   static String normalize(String value) {
     return value.toLowerCase()
+        .replaceAll(RegExp(r'[àáâäãå]'), 'a')
+        .replaceAll(RegExp(r'[èéêë]'), 'e')
+        .replaceAll(RegExp(r'[ìíîï]'), 'i')
+        .replaceAll(RegExp(r'[òóôöõ]'), 'o')
+        .replaceAll(RegExp(r'[ùúûü]'), 'u')
+        .replaceAll('ç', 'c')
+        .replaceAll('œ', 'oe')
+        .replaceAll('æ', 'ae')
+        .replaceAll('’', ' ')
+        .replaceAll("'", ' ')
         .replaceAll('أ', 'ا')
         .replaceAll('إ', 'ا')
         .replaceAll('آ', 'ا')
@@ -126,9 +141,11 @@ class LocalAiIntentEngine {
         .replaceAll('ى', 'ي')
         .replaceAll('ؤ', 'و')
         .replaceAll('ئ', 'ي')
-        .replaceAll('ـ', '')
-        .replaceAll(RegExp(r'[ًٌٍَُِّْ]'), '')
-        .replaceAll(RegExp(r'\\s+'), ' ')
+        .replaceAll('ک', 'ك')
+        .replaceAll('ی', 'ي')
+        .replaceAll(RegExp(r'[\u064B-\u065F\u0670\u0640]'), '')
+        .replaceAll(RegExp(r'[،,؛;.!؟?]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }
 }
@@ -138,6 +155,7 @@ class MedicalSafetyIntent {
   static const List<String> redFlags = [
     'اختناق',
     'ما اقدر اتنفس',
+    'مش قادر اتنفس',
     'لا استطيع التنفس',
     'ضيق تنفس شديد',
     'الم صدر شديد',
@@ -156,6 +174,67 @@ class MedicalSafetyIntent {
     'تسمم شديد',
     'جرعه زائده',
     'جرعة زائدة',
+    'cannot breathe',
+    "can't breathe",
+    'severe shortness of breath',
+    'severe chest pain',
+    'heavy bleeding',
+    'uncontrolled bleeding',
+    'unconscious',
+    'loss of consciousness',
+    'seizure',
+    'sudden paralysis',
+    'sudden weakness',
+    'speech difficulty',
+    'blue lips',
+    'severe poisoning',
+    'overdose',
+    'étouffement',
+    'difficulté à respirer',
+    'douleur thoracique intense',
+    'hémorragie',
+    'perte de connaissance',
+    'convulsions',
+    'paralysie soudaine',
+    'lèvres bleues',
+    'surdose',
+    'نزيف اثناء الحمل',
+    'نزيف بعد الولادة',
+    'صداع شديد للحامل',
+    'زغللة للحامل',
+    'تشنجات الحامل',
+    'قلة حركة الجنين',
+    'نزيف اللثة',
+    'قيء مستمر',
+    'حرارة الرضيع',
+    'الطفل حديث الولادة لا يرضع',
+    'ضربة شمس',
+    'ضربة حر',
+    'ارتباك مع عدوى',
+    'قلة التبول مع عدوى',
+    'vaginal bleeding during pregnancy',
+    'severe headache with blurred vision pregnancy',
+    'reduced fetal movement',
+    'newborn not feeding',
+    'newborn convulsions',
+    'heatstroke',
+    'confusion with infection',
+    'low urine output with infection',
+    'saignement pendant la grossesse',
+    'fort mal de tete avec vision trouble',
+    'diminution des mouvements du bebe',
+    'nouveau-ne ne s’alimente pas',
+    'coup de chaleur',
+    'confusion liee a une infection',
+    'فقدان النظر فجأة',
+    'ألم شديد في العين',
+    'مادة كيميائية في العين',
+    'sudden vision loss',
+    'severe eye pain',
+    'chemical in eye',
+    'perte soudaine de vision',
+    'douleur oculaire intense',
+    'produit chimique dans l’oeil',
   ];
 
   static bool isEmergencyText(String text) {
