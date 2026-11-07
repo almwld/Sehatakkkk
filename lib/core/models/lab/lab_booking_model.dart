@@ -10,6 +10,8 @@ class LabBookingModel {
   final String? patientAddress;
   final String labId;
   final String labName;
+  final String? labNameEn;
+  final String? labNameFr;
   final String labAddress;
   final List<Map<String, dynamic>> tests;
   final double totalPrice;
@@ -33,6 +35,8 @@ class LabBookingModel {
     this.patientAddress,
     required this.labId,
     required this.labName,
+    this.labNameEn,
+    this.labNameFr,
     required this.labAddress,
     required this.tests,
     required this.totalPrice,
@@ -57,6 +61,8 @@ class LabBookingModel {
       'patientAddress': patientAddress,
       'labId': labId,
       'labName': labName,
+      'labNameEn': labNameEn,
+      'labNameFr': labNameFr,
       'labAddress': labAddress,
       'tests': tests,
       'totalPrice': totalPrice,
@@ -83,6 +89,8 @@ class LabBookingModel {
       patientAddress: data['patientAddress'],
       labId: data['labId'] ?? '',
       labName: data['labName'] ?? '',
+      labNameEn: data['labNameEn'],
+      labNameFr: data['labNameFr'],
       labAddress: data['labAddress'] ?? '',
       tests: List<Map<String, dynamic>>.from(data['tests'] ?? []),
       totalPrice: data['totalPrice']?.toDouble() ?? 0,
