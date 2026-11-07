@@ -448,7 +448,44 @@ class _ChatInputBarState extends State<ChatInputBar> {
       if (mounted) setState(() { _recording = false; _paused = false; });
     } catch (e, st) {
       debugPrint('record stop failed: $e\\n$st');
-      if (mounted) ToastService.showError(_t('تعذر إنهاء التسجيل وحفظه. حاول الإيقاف مرة أخرى.'));
+      var recorderStillActive = true;
+      try {
+        recorderStillActive = await _recorder.isRecording();
+      } catch (statusError) {
+        debugPrint('recording state check failed: $statusError');
+      }
+
+      // If the recorder stopped despite reporting an error, preserve a valid
+      // file so the user can retry sending it. Keep the recording active only
+      // when the recorder itself is still running.
+      if (!recorderStillActive) {
+        final path = _recordPath;
+        var fileExists = false;
+        if (path != null) {
+          try {
+            fileExists = await File(path).exists();
+          } catch (fileError) {
+            debugPrint('recording file check failed: $fileError');
+          }
+        }
+        _timer?.cancel();
+        _timer = null;
+        if (mounted) {
+          setState(() {
+            _recording = false;
+            _paused = false;
+            if (!fileExists) _recordPath = null;
+            if (!fileExists) _duration = Duration.zero;
+          });
+        }
+      }
+      if (mounted) {
+        ToastService.showError(
+          _t(recorderStillActive
+              ? 'تعذر إنهاء التسجيل وحفظه. حاول الإيقاف مرة أخرى.'
+              : 'تعذر تأكيد حفظ التسجيل. تحقق من التسجيل قبل الإرسال.'),
+        );
+      }
     }
   }
 
