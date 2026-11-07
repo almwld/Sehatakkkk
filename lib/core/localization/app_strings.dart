@@ -5210,6 +5210,23 @@ class AppStrings {
 
       '• رمز خاص (!@#$%^&*)': ['• Special character (!@#$%^&*)', '• Caractère spécial (!@#$%^&*)'],
 
+      'الإثنين': ['Monday', 'Lundi'],
+      'شوفان مع فواكه': ['Oatmeal with fruit', 'Flocons d’avoine aux fruits'],
+      'تفاح + مكسرات': ['Apple + nuts', 'Pomme + noix'],
+      'دجاج مشوي + أرز + خضار': ['Grilled chicken + rice + vegetables', 'Poulet grillé + riz + légumes'],
+      'زبادي + فواكه': ['Yogurt + fruit', 'Yaourt + fruits'],
+      'سمك مشوي + سلطة': ['Grilled fish + salad', 'Poisson grillé + salade'],
+      'سيتم إضافة تقويم النظام الغذائي قريباً': ['The diet calendar will be available soon', 'Le calendrier alimentaire sera bientôt disponible'],
+      'سعرة حرارية': ['Calories', 'Calories'],
+      'كربوهيدرات': ['Carbohydrates', 'Glucides'],
+      'دهون': ['Fat', 'Lipides'],
+      'اوميبرازول': ['Omeprazole', 'Oméprazole'],
+      'ميتفورمين': ['Metformin', 'Metformine'],
+      'ازيثرومايسين': ['Azithromycin', 'Azithromycine'],
+      'ليفوثيروكسين': ['Levothyroxine', 'Lévothyroxine'],
+      'وارفارين': ['Warfarin', 'Warfarine'],
+      'كلوبيدوجريل': ['Clopidogrel', 'Clopidogrel'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
