@@ -648,8 +648,35 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      function isAssignedPharmacyOwner() {
+        return isSignedIn()
+          && resource.data.get('pharmacyId', null) is string
+          && exists(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId))
+          && (
+            get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('ownerId', '') == request.auth.uid
+            || get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('userId', '') == request.auth.uid
+            || resource.data.get('providerId', '') == request.auth.uid
+          );
+      }
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.userId == request.auth.uid)
+        || isAssignedPharmacyOwner();
+      // Legacy non-checkout orders may still be created by their patient,
+      // but only as pending records. Trusted checkout uses the Admin SDK.
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.get('status', 'pending') == 'pending'
+        && !request.resource.data.keys().hasAny(['transactionId', 'paymentStatus', 'invoiceId']);
+      // Patients may cancel their own pending order. All fulfilment transitions
+      // and payment/inventory changes are performed by trusted backend callables.
+      allow update: if isAdmin()
+        || (isSignedIn()
+            && resource.data.userId == request.auth.uid
+            && resource.data.get('status', '') == 'pending'
+            && request.resource.data.get('status', '') == 'cancelled'
+            && request.resource.data.userId == resource.data.userId
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'cancellationReason']));
+      allow delete: if isAdmin();
     }
 
     match /payments/{paymentId} {
