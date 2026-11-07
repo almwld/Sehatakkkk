@@ -342,6 +342,164 @@ exports.createPayment = onCall(async (request) => {
   return {transactionId: txId, status: 'completed'};
 });
 
+
+function validId(value, field, max = 150) {
+  const result = String(value || '').trim();
+  if (!result || result.length > max || !/^[A-Za-z0-9_-]+$/.test(result)) {
+    throw new HttpsError('invalid-argument', `معرّف غير صالح: ${field}`);
+  }
+  return result;
+}
+
+const PHARMACY_ORDER_TRANSITIONS = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['preparing', 'cancelled'],
+  preparing: ['ready'],
+  ready: ['delivering'],
+  delivering: ['delivered'],
+  delivered: [],
+  cancelled: [],
+};
+
+exports.checkoutCart = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const items = Array.isArray(request.data.items) ? request.data.items : [];
+  if (!items.length || items.length > 50) throw new HttpsError('invalid-argument', 'السلة فارغة أو تحتوي عدداً غير مسموح من المنتجات');
+  const idempotencyKey = text(request.data.idempotencyKey, 'idempotencyKey', 180);
+  const deliveryRequired = request.data.deliveryRequired !== false;
+  const deliveryAddress = deliveryRequired ? text(request.data.deliveryAddress, 'deliveryAddress', 1000) : '';
+  const normalized = new Map();
+  for (const item of items) {
+    const productId = validId(item.productId, 'productId');
+    const quantity = Number(item.quantity);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) throw new HttpsError('invalid-argument', 'كمية المنتج غير صالحة');
+    const old = normalized.get(productId);
+    normalized.set(productId, {productId, quantity: quantity + (old?.quantity || 0), requestedPharmacyId: item.pharmacyId ? validId(item.pharmacyId, 'pharmacyId') : null, prescriptionId: item.prescriptionId ? validId(item.prescriptionId, 'prescriptionId') : null});
+  }
+  if ([...normalized.values()].some(x => x.quantity > 100)) throw new HttpsError('invalid-argument', 'الكمية المطلوبة تتجاوز الحد المسموح');
+  const keyDigest = digest(`${uid}|pharmacy_checkout|${idempotencyKey}`);
+  const idempotencyRef = db.collection('checkout_idempotency').doc(keyDigest);
+  const walletRef = db.collection('wallets').doc(uid);
+  const productRefs = [...normalized.values()].map(x => db.collection('products').doc(x.productId));
+  const pharmacyIds = [...new Set([...normalized.values()].map(x => x.requestedPharmacyId).filter(Boolean))];
+  const pharmacyRefs = pharmacyIds.map(id => db.collection('pharmacies').doc(id));
+
+  const result = await db.runTransaction(async (tx) => {
+    const [idempotencySnap, walletSnap, ...productSnaps] = await Promise.all([
+      tx.get(idempotencyRef), tx.get(walletRef), ...productRefs.map(ref => tx.get(ref)),
+    ]);
+    if (idempotencySnap.exists) return idempotencySnap.data();
+    if (!walletSnap.exists || walletSnap.data().isActive === false) throw new HttpsError('failed-precondition', 'محفظة صحتك غير مفعلة');
+    const wallet = walletSnap.data();
+    const productsById = new Map(productSnaps.map((snap, index) => [productRefs[index].id, snap]));
+    const actualPharmacyIds = new Set();
+    const prepared = [];
+    for (const item of normalized.values()) {
+      const snap = productsById.get(item.productId);
+      if (!snap || !snap.exists) throw new HttpsError('not-found', 'أحد المنتجات لم يعد متاحاً');
+      const product = snap.data() || {};
+      if (product.approvalStatus !== 'approved' || product.isPublished !== true || product.isActive !== true) throw new HttpsError('failed-precondition', 'أحد المنتجات غير منشور أو غير معتمد حالياً');
+      const pharmacyId = String(product.pharmacyId || '');
+      if (!pharmacyId || (item.requestedPharmacyId && item.requestedPharmacyId !== pharmacyId)) throw new HttpsError('failed-precondition', 'بيانات الصيدلية للمنتج غير متطابقة');
+      actualPharmacyIds.add(pharmacyId);
+      const rawPrice = Number(product.discountPrice != null && Number(product.discountPrice) > 0 ? product.discountPrice : product.price);
+      if (!Number.isFinite(rawPrice) || rawPrice <= 0) throw new HttpsError('failed-precondition', 'سعر أحد المنتجات غير صالح');
+      const stockField = Object.prototype.hasOwnProperty.call(product, 'stock') ? 'stock' : 'quantity';
+      const stock = Number(product[stockField]);
+      if (!Number.isInteger(stock) || stock < item.quantity) throw new HttpsError('failed-precondition', 'المخزون غير كافٍ لأحد المنتجات');
+      if (product.requiresPrescription === true) {
+        if (!item.prescriptionId) throw new HttpsError('failed-precondition', 'هذا المنتج يتطلب وصفة طبية');
+        const prescriptionRef = db.collection('prescriptions').doc(item.prescriptionId);
+        const prescriptionSnap = await tx.get(prescriptionRef);
+        if (!prescriptionSnap.exists || ![prescriptionSnap.data().userId, prescriptionSnap.data().patientId].includes(uid)) throw new HttpsError('permission-denied', 'الوصفة غير موجودة أو لا تخص هذا الحساب');
+      }
+      prepared.push({item, product, productRef: productRefs.find(ref => ref.id === item.productId), pharmacyId, unitPrice: Math.round(rawPrice * 100) / 100, lineTotal: Math.round(rawPrice * item.quantity * 100) / 100, stockField, stock});
+    }
+    const pharmacyRefsById = new Map([...actualPharmacyIds].map(id => [id, db.collection('pharmacies').doc(id)]));
+    const pharmacySnaps = await Promise.all([...pharmacyRefsById.values()].map(ref => tx.get(ref)));
+    const pharmacies = new Map(pharmacySnaps.map(snap => [snap.id, snap]));
+    for (const id of actualPharmacyIds) {
+      const snap = pharmacies.get(id);
+      if (!snap?.exists) throw new HttpsError('failed-precondition', 'الصيدلية المرتبطة بأحد المنتجات غير موجودة');
+      const pharmacy = snap.data() || {};
+      if (pharmacy.status !== 'approved' || pharmacy.isActive === false || pharmacy.acceptingOrders === false) throw new HttpsError('failed-precondition', 'إحدى الصيدليات لا تستقبل الطلبات حالياً');
+    }
+    const subtotal = prepared.reduce((sum, row) => sum + row.lineTotal, 0);
+    const total = Math.round(subtotal * 100) / 100;
+    if (!Number.isFinite(total) || total <= 0 || total > 100000000) throw new HttpsError('failed-precondition', 'إجمالي الطلب غير صالح');
+    const balance = Number(wallet.balance || 0);
+    if (!Number.isFinite(balance) || balance < total) throw new HttpsError('failed-precondition', 'رصيد المحفظة غير كافٍ');
+    const invoiceId = 'INV-' + keyDigest.slice(0, 16).toUpperCase();
+    const orderIds = [];
+    const groups = new Map();
+    for (const row of prepared) {
+      if (!groups.has(row.pharmacyId)) groups.set(row.pharmacyId, []);
+      groups.get(row.pharmacyId).push(row);
+    }
+    const transactionId = 'pay_' + uid + '_' + keyDigest;
+    const now = FieldValue.serverTimestamp();
+    tx.update(walletRef, {balance: Math.round((balance - total) * 100) / 100, totalSpent: Number(wallet.totalSpent || 0) + total, updatedAt: now, lastTransactionAt: now});
+    tx.set(db.collection('transactions').doc(transactionId), {userId: uid, amount: total, fee: 0, netAmount: total, type: 'payment', status: 'completed', title: 'شراء منتجات صيدلية', description: 'دفع طلب صيدلية عبر محفظة صحتك', orderId: null, invoiceId, serviceType: 'pharmacy', idempotencyKey, createdAt: now, completedAt: now});
+    for (const [pharmacyId, rows] of groups) {
+      const pharmacy = pharmacies.get(pharmacyId).data() || {};
+      const ownerId = String(pharmacy.ownerId || pharmacy.userId || '');
+      if (!ownerId) throw new HttpsError('failed-precondition', 'لا يوجد مالك موثق للصيدلية');
+      const orderId = 'ord_' + digest(uid + '|' + keyDigest + '|' + pharmacyId).slice(0, 24);
+      orderIds.push(orderId);
+      const groupSubtotal = rows.reduce((sum, row) => sum + row.lineTotal, 0);
+      tx.create(db.collection('orders').doc(orderId), {
+        id: orderId, type: 'pharmacy', userId: uid, pharmacyId, providerId: ownerId,
+        pharmacyName: String(pharmacy.name || pharmacy.pharmacyName || ''),
+        items: rows.map(row => ({productId: row.item.productId, name: String(row.product.name || ''), quantity: row.item.quantity, unitPrice: row.unitPrice, price: row.unitPrice, total: row.lineTotal, requiresPrescription: row.product.requiresPrescription === true, prescriptionId: row.item.prescriptionId || null})),
+        subtotal: groupSubtotal, discount: 0, deliveryFee: 0, deliveryFeePendingQuote: deliveryRequired,
+        total: groupSubtotal, currency: 'YER', status: 'pending', paymentStatus: 'paid', paymentMethod: 'wallet',
+        transactionId, invoiceId, deliveryRequired, deliveryAddress: deliveryAddress || null,
+        createdAt: now, updatedAt: now, statusHistory: [{status: 'pending', at: new Date().toISOString(), actorId: uid}],
+      });
+      tx.set(db.collection('notifications').doc(), {userId: ownerId, type: 'pharmacy_order_created', title: 'طلب صيدلية جديد', body: 'لديك طلب جديد يحتاج إلى التأكيد.', data: {orderId, pharmacyId, invoiceId}, orderId, isRead: false, createdAt: now});
+    }
+    for (const row of prepared) {
+      const nextStock = row.stock - row.item.quantity;
+      tx.update(row.productRef, {[row.stockField]: nextStock, inStock: nextStock > 0, updatedAt: now});
+    }
+    tx.set(db.collection('invoices').doc(invoiceId), {id: invoiceId, userId: uid, orderIds, amount: total, currency: 'YER', paymentMethod: 'wallet', paymentStatus: 'paid', transactionId, createdAt: now});
+    const response = {success: true, orderId: orderIds[0], orderIds, invoiceId, total, currency: 'YER', status: 'paid'};
+    tx.create(idempotencyRef, {...response, userId: uid, createdAt: now});
+    return response;
+  });
+  return result;
+});
+
+exports.updatePharmacyOrderStatus = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const orderId = validId(request.data.orderId, 'orderId');
+  const nextStatus = text(request.data.status, 'status', 30);
+  const allowedStatuses = ['confirmed', 'preparing', 'ready', 'cancelled'];
+  if (!allowedStatuses.includes(nextStatus)) throw new HttpsError('invalid-argument', 'حالة الطلب غير مسموحة من لوحة الصيدلية');
+  const orderRef = db.collection('orders').doc(orderId);
+  let patientId = '';
+  await db.runTransaction(async (tx) => {
+    const orderSnap = await tx.get(orderRef);
+    if (!orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
+    const order = orderSnap.data() || {};
+    if (order.type !== 'pharmacy') throw new HttpsError('failed-precondition', 'هذا ليس طلب صيدلية');
+    const pharmacyId = validId(order.pharmacyId, 'pharmacyId');
+    const pharmacyRef = db.collection('pharmacies').doc(pharmacyId);
+    const pharmacySnap = await tx.get(pharmacyRef);
+    if (!pharmacySnap.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة');
+    const pharmacy = pharmacySnap.data() || {};
+    if (![pharmacy.ownerId, pharmacy.userId, pharmacyId].map(String).includes(uid)) throw new HttpsError('permission-denied', 'لا تملك صلاحية إدارة طلبات هذه الصيدلية');
+    const current = String(order.status || 'pending');
+    if (!(PHARMACY_ORDER_TRANSITIONS[current] || []).includes(nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال من الحالة الحالية إلى الحالة المطلوبة');
+    if (nextStatus === 'cancelled' && order.paymentStatus === 'paid') throw new HttpsError('failed-precondition', 'الطلب المدفوع يحتاج إلى إجراء استرداد موثق قبل الإلغاء');
+    patientId = String(order.userId || '');
+    const now = FieldValue.serverTimestamp();
+    tx.update(orderRef, {status: nextStatus, updatedAt: now, statusHistory: FieldValue.arrayUnion({status: nextStatus, actorId: uid, at: new Date().toISOString()})});
+    if (patientId) tx.set(db.collection('notifications').doc(), {userId: patientId, type: 'pharmacy_order_status', title: 'تحديث طلب الصيدلية', body: 'تم تحديث حالة طلبك إلى: ' + nextStatus, data: {orderId, status: nextStatus}, orderId, isRead: false, createdAt: now});
+  });
+  return {success: true, orderId, status: nextStatus};
+});
+
 exports.submitTopUp = onCall(async (request) => {
   const uid = requireAuth(request);
   const amount = amountOf(request.data.amount);
