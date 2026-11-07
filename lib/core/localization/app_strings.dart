@@ -5165,6 +5165,11 @@ class AppStrings {
       'تمت إضافة الملاحظة': ['Note added', 'Note ajoutée'],
       'قادمة': ['Upcoming', 'À venir'],
 
+      'تعذر تأكيد حفظ التسجيل. تحقق من التسجيل قبل الإرسال.': ['Could not confirm that the recording was saved. Check the recording before sending.', 'Impossible de confirmer l’enregistrement. Vérifiez le fichier avant de l’envoyer.'],
+      'رجوع 10 ثوان': ['Rewind 10 seconds', 'Reculer de 10 secondes'],
+      'تقديم 10 ثوان': ['Forward 10 seconds', 'Avancer de 10 secondes'],
+      'تحميل': ['Download', 'Télécharger'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
