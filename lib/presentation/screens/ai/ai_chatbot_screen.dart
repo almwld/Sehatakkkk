@@ -38,9 +38,10 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
 
   Future<void> _send(String value) async {
     final text=value.trim(); if(text.isEmpty||_loading||!_historyReady)return;
+    var historyWriteFailed=false;
     final userTime=DateTime.now();
     setState((){_messages.add({'text':text,'user':true,'time':userTime});_controller.clear();_loading=true;}); _scrollToEnd();
-    try { await _historyStore.saveMessage(sessionId:_sessionId,message:text,isUser:true,type:'user'); } catch (_) {}
+    try { await _historyStore.saveMessage(sessionId:_sessionId,message:text,isUser:true,type:'user'); } catch (_) { historyWriteFailed=true; }
     await Future<void>.delayed(const Duration(milliseconds:220));
     final intent=LocalAiIntentEngine.classify(text); final safety=MedicalSafetyEngine.assess(text,languageCode:AppStrings.of(context).locale.languageCode); final knowledge=MedicalKnowledgeCatalog.answer(text,AppStrings.of(context).locale.languageCode); final symptom=SymptomInterpreter.analyze(text,languageCode:AppStrings.of(context).locale.languageCode); final services=SmartHealthKnowledge.findServices(text); final service=services.isEmpty?null:services.first; Map<String,dynamic> result;
     try { await _dialogue.update(topic: symptom?['symptoms']?.toString() ?? (services.isNotEmpty ? services.first['title']?.toString() : null), intent:intent.intent.name, userMessage:text); } catch (_) { /* Conversation memory must never block a chatbot reply. */ }
@@ -57,8 +58,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
     }
     if(services.isNotEmpty&&symptom==null&&knowledge==null){reply+='\n\n📍 ${_t('داخل صحتك')}\n${services.map((s)=>'• ${_t(s['title'] as String)}: ${_t(s['help'] as String)}').join('\n')}\n\n${_t('اختر الخدمة المناسبة من الأزرار أسفل الرد.')}';}
     if(!mounted)return; final responseTime=DateTime.now(); setState((){_messages.add({'text':reply,'user':false,'time':responseTime,'service':service,'services':services});_loading=false;});
-    try { await _historyStore.saveMessage(sessionId:_sessionId,message:reply,isUser:false,type:result['type']?.toString()??'assistant'); } catch (_) {}
+    try { await _historyStore.saveMessage(sessionId:_sessionId,message:reply,isUser:false,type:result['type']?.toString()??'assistant'); } catch (_) { historyWriteFailed=true; }
     _scrollToEnd();
+    if(historyWriteFailed){final lang=AppStrings.of(context).locale.languageCode;_toast(lang=='fr'?'Impossible d’enregistrer tout l’historique sur cet appareil.':(lang=='en'?'Chat history could not be fully saved on this device.':'تعذر حفظ سجل المحادثة بالكامل على هذا الجهاز.'));}
   }
   bool _looksLikeGreeting(String s)=>RegExp(r'^(سلام|هلا|اهلا|أهلا|مرحبا|مرحباً|السلام)').hasMatch(s.trim());
   void _scrollToEnd()=>WidgetsBinding.instance.addPostFrameCallback((_){if(_scroll.hasClients)_scroll.animateTo(_scroll.position.maxScrollExtent,duration:const Duration(milliseconds:260),curve:Curves.easeOut);});
@@ -114,14 +116,16 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
       });
       _scrollToEnd();
     } catch (_) {
-      if(mounted)setState(() {if(_messages.isEmpty){_messages.add({'text':_t('مرحباً، كيف أساعدك اليوم؟'),'user':false,'time':DateTime.now()});}_historyReady=true;});
+      if(mounted){setState(() {if(_messages.isEmpty){_messages.add({'text':_t('مرحباً، كيف أساعدك اليوم؟'),'user':false,'time':DateTime.now()});}_historyReady=true;});final lang=AppStrings.of(context).locale.languageCode;_toast(lang=='fr'?'Impossible de restaurer l’historique local.':(lang=='en'?'Could not restore local chat history.':'تعذر استعادة سجل المحادثة المحلي.'));}
     } finally {_historyLoading=false;}
   }
   Future<void> _clear() async {
-    await _dialogue.clear();
-    try { await _historyStore.clearConversation(_sessionId); } catch (_) {}
+    var clearFailed=false;
+    try { await _dialogue.clear(); } catch (_) { clearFailed=true; }
+    try { await _historyStore.clearConversation(_sessionId); } catch (_) { clearFailed=true; }
     if(!mounted)return;
     setState((){_messages.clear();_messages.add({'text':_t('مرحباً، كيف أساعدك؟'),'user':false,'time':DateTime.now()});});
+    if(clearFailed){final lang=AppStrings.of(context).locale.languageCode;_toast(lang=='fr'?'L’historique n’a pas pu être entièrement effacé.':(lang=='en'?'Chat history could not be fully cleared.':'تعذر مسح سجل المحادثة بالكامل.'));}
   }
   String _time(DateTime t)=>'${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
 }
