@@ -13,6 +13,10 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProviderStateMixin {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _currency(dynamic value) {
+    final amount = value is num ? value : num.tryParse(value?.toString() ?? '') ?? 0;
+    return AppStrings.of(context).formatCurrency(amount);
+  }
   late TabController _tabController;
   final ReportService _reportService = ReportService();
   bool _isLoading = true;
@@ -96,8 +100,8 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     final data = _reportData?['revenue'] as Map<String, dynamic>?;
     if (data == null) return Center(child: Text(_t('لا توجد بيانات')));
     return SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(children: [
-      Row(children: [_buildStatCard('إجمالي الإيرادات', '${data['totalRevenue'] ?? 0} ريال', Icons.attach_money, Colors.green), _buildStatCard('عمولة المنصة', '${data['platformCommission'] ?? 0} ريال', Icons.percent, Colors.orange)]),
-      Row(children: [_buildStatCard('صافي المقدمين', '${data['providerRevenue'] ?? 0} ريال', Icons.business, Colors.blue), _buildStatCard('عدد المعاملات', '${data['totalPayments'] ?? 0}', Icons.payment, Colors.purple)]),
+      Row(children: [_buildStatCard('إجمالي الإيرادات', _currency(data['totalRevenue']), Icons.attach_money, Colors.green), _buildStatCard('عمولة المنصة', _currency(data['platformCommission']), Icons.percent, Colors.orange)]),
+      Row(children: [_buildStatCard('صافي المقدمين', _currency(data['providerRevenue']), Icons.business, Colors.blue), _buildStatCard('عدد المعاملات', '${data['totalPayments'] ?? 0}', Icons.payment, Colors.purple)]),
     ]));
   }
 
