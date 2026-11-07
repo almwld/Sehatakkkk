@@ -419,7 +419,7 @@ exports.assignDeliveryCompany = onCall(async (request) => {
       orderId, userId: order.userId, companyId, companyName: String(company.name || ''),
       pharmacyId, patientName: String(order.patientName || ''), patientPhone: String(order.patientPhone || order.phoneNumber || ''),
       address: String(order.deliveryAddress || ''), deliveryAddress: String(order.deliveryAddress || ''),
-      deliveryArea: String(order.deliveryArea || ''), status: 'assigned', currentStep: 1,
+      deliveryArea: String(order.deliveryArea || ''), status: 'assigned', currentStep: 0,
       estimatedTime: 'غير محدد', courier: null,
       history: [{status: 'assigned', description: 'تم تعيين شركة التوصيل للطلب', time: new Date().toISOString()}],
       createdAt: now, updatedAt: now,
@@ -458,7 +458,7 @@ exports.updateDeliveryTracking = onCall(async (request) => {
     if (nextStatus === 'picked_up' && order.status !== 'ready') throw new HttpsError('failed-precondition', 'يجب أن يكون الطلب جاهزاً قبل استلامه');
     if (['in_transit', 'delivered'].includes(nextStatus) && order.status !== 'delivering') throw new HttpsError('failed-precondition', 'حالة الطلب لا تسمح بتحديث مرحلة التوصيل');
     const now = FieldValue.serverTimestamp();
-    const step = nextStatus === 'picked_up' ? 2 : nextStatus === 'in_transit' ? 3 : 4;
+    const step = nextStatus === 'picked_up' ? 1 : nextStatus === 'in_transit' ? 2 : 3;
     tx.update(deliveryRef, {
       status: nextStatus, currentStep: step, updatedAt: now,
       history: FieldValue.arrayUnion({status: nextStatus, description: nextStatus, time: new Date().toISOString(), actorId: uid}),
