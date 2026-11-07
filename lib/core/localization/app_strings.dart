@@ -4862,6 +4862,12 @@ class AppStrings {
       'إضافة ملف الطفل': ['Add child profile', 'Ajouter le profil de l’enfant'],
       'أشعة الصدر': ['Chest X-ray', 'Radiographie thoracique'],
       'تحليل السكر التراكمي': ['HbA1c test', 'Analyse de l’HbA1c'],
+      '2.4/3 لتر': ['2.4 of 3 L', '2,4 sur 3 L'],
+      '18/30 دقيقة': ['18 of 30 min', '18 sur 30 min'],
+      '6.4/8 ساعات': ['6.4 of 8 hours', '6,4 sur 8 heures'],
+      '2/5 حصص': ['2 of 5 servings', '2 sur 5 portions'],
+      '02:00 م': ['02:00 PM', '14:00'],
+      '09:30 ص': ['09:30 AM', '09:30'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
