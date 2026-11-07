@@ -4859,11 +4859,9 @@ class AppStrings {
     };
 
 
-      'صحة نفسية': ['Mental health', 'Santé mentale'],
       'إضافة ملف الطفل': ['Add child profile', 'Ajouter le profil de l’enfant'],
       'أشعة الصدر': ['Chest X-ray', 'Radiographie thoracique'],
       'تحليل السكر التراكمي': ['HbA1c test', 'Analyse de l’HbA1c'],
-      'التحاليل والأشعة': ['Lab tests & imaging', 'Analyses et imagerie'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
