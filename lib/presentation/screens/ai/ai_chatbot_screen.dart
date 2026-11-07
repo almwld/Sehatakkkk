@@ -36,16 +36,16 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
   Future<void> _send(String value) async {
     final text=value.trim(); if(text.isEmpty||_loading)return;
     final userTime=DateTime.now();
-    setState(()=>{_messages.add({'text':text,'user':true,'time':userTime}),_controller.clear(),_loading=true}); _scrollToEnd();
+    setState((){_messages.add({'text':text,'user':true,'time':userTime});_controller.clear();_loading=true;}); _scrollToEnd();
     try { await _historyStore.saveMessage(sessionId:_sessionId,message:text,isUser:true,type:'user'); } catch (_) {}
     await Future<void>.delayed(const Duration(milliseconds:220));
     final intent=LocalAiIntentEngine.classify(text); final safety=MedicalSafetyEngine.assess(text); final knowledge=MedicalKnowledgeCatalog.answer(text,AppStrings.of(context).locale.languageCode); final symptom=SymptomInterpreter.analyze(text); final services=SmartHealthKnowledge.findServices(text); final service=services.isEmpty?null:services.first; Map<String,dynamic> result;
     try { await _dialogue.update(topic: symptom?['symptoms']?.toString() ?? (services.isNotEmpty ? services.first['title']?.toString() : null), intent:intent.intent.name, userMessage:text); } catch (_) { /* Conversation memory must never block a chatbot reply. */ }
     if(safety.emergency){result={'response':safety.response,'type':'emergency'};}else if(knowledge!=null){result=knowledge;}else if(symptom!=null){result={'response':symptom['response'],'type':'symptom'};}else if(intent.intent==LocalAiIntent.greeting){result={'response':_t('أهلاً بك. اكتب سؤالك كما تتحدث عادةً، بالفصحى أو باللهجة اليمنية، وسأفهم المقصود وأوجّهك إلى المعلومة أو الشاشة المناسبة.'),'type':'greeting'};}else{try{result=_bot.respond(text);}catch(_){result={'response':_t('اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.'),'type':'clarification'};}}
     var reply=(result['response']??_t('ما الذي تريد معرفته تحديداً؟')).toString();
-    if(result['source']!=null){reply+='\\n\\n${_t('المصدر')}: ${result['source']}';}
+    if(result['source']!=null){reply+='\n\n${_t('المصدر')}: ${result['source']}';}
     if(services.isNotEmpty&&symptom==null){reply+='\n\n📍 ${_t('داخل صحتك')}\n${services.map((s)=>'• ${_t(s['title'] as String)}: ${_t(s['help'] as String)}').join('\n')}\n\n${_t('اختر الخدمة المناسبة من الأزرار أسفل الرد.')}';}
-    if(!mounted)return; final responseTime=DateTime.now(); setState(()=>{_messages.add({'text':reply,'user':false,'time':responseTime,'service':service,'services':services}),_loading=false});
+    if(!mounted)return; final responseTime=DateTime.now(); setState((){_messages.add({'text':reply,'user':false,'time':responseTime,'service':service,'services':services});_loading=false;});
     try { await _historyStore.saveMessage(sessionId:_sessionId,message:reply,isUser:false,type:result['type']?.toString()??'assistant'); } catch (_) {}
     _scrollToEnd();
   }
@@ -94,21 +94,21 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
       await _historyStore.initialize();
       final rows=await _historyStore.getConversation(_sessionId);
       if(!mounted)return;
-      setState(()=>{
-        _messages.addAll(rows.map((row)=>{'text':row['message']?.toString()??'','user':row['is_user']==1,'time':DateTime.fromMillisecondsSinceEpoch((row['timestamp'] as num?)?.toInt()??DateTime.now().millisecondsSinceEpoch)})),
-        if(_messages.isEmpty)_messages.add({'text':'${_t('مرحباً 👋')}\\n${_t('المساعد الصحي الذكي')} — ${_t('كيف أساعدك اليوم؟')}','user':false,'time':DateTime.now()}),
-        _historyReady=true
+      setState(() {
+        _messages.addAll(rows.map((row)=>{'text':row['message']?.toString()??'','user':row['is_user']==1,'time':DateTime.fromMillisecondsSinceEpoch((row['timestamp'] as num?)?.toInt()??DateTime.now().millisecondsSinceEpoch)}));
+        if(_messages.isEmpty){_messages.add({'text':'${_t('مرحباً 👋')}\\n${_t('المساعد الصحي الذكي')} — ${_t('كيف أساعدك اليوم؟')}','user':false,'time':DateTime.now()});}
+        _historyReady=true;
       });
       _scrollToEnd();
     } catch (_) {
-      if(mounted)setState(()=>{if(_messages.isEmpty)_messages.add({'text':_t('مرحباً، كيف أساعدك اليوم؟'),'user':false,'time':DateTime.now()}),_historyReady=true});
+      if(mounted)setState(() {if(_messages.isEmpty){_messages.add({'text':_t('مرحباً، كيف أساعدك اليوم؟'),'user':false,'time':DateTime.now()});}_historyReady=true;});
     } finally {_historyLoading=false;}
   }
   Future<void> _clear() async {
     await _dialogue.clear();
     try { await _historyStore.clearConversation(_sessionId); } catch (_) {}
     if(!mounted)return;
-    setState(()=>{_messages.clear(),_messages.add({'text':_t('مرحباً، كيف أساعدك؟'),'user':false,'time':DateTime.now()})});
+    setState((){_messages.clear();_messages.add({'text':_t('مرحباً، كيف أساعدك؟'),'user':false,'time':DateTime.now()});});
   }
   String _time(DateTime t)=>'${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
 }
