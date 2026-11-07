@@ -21,7 +21,7 @@ class AiChatbotScreen extends StatefulWidget {
 class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProviderStateMixin {
   String _t(String value) => AppStrings.of(context).translate(value);
   final _controller=TextEditingController(); final _scroll=ScrollController(); final _bot=ChatBot();
-  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; late final AnimationController _typingController; late LocalDialogueState _dialogue;
+  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; late final AnimationController _typingController; LocalDialogueState _dialogue=LocalDialogueState();
   final LocalStorageService _historyStore=LocalStorageService();
   String _sessionId='assistant_guest_v1'; bool _historyReady=false; bool _historyLoading=false;
   static const _quick=<Map<String,String>>[
@@ -64,7 +64,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
 
   @override Widget build(BuildContext context){final dark=Theme.of(context).brightness==Brightness.dark;return Scaffold(
     backgroundColor:dark?const Color(0xFF0B1121):const Color(0xFFF7FAFA),
-    appBar:AppBar(backgroundColor:AppColors.primary,foregroundColor:Colors.white,elevation:0,title:Row(children:[_assistantIcon(32),const SizedBox(width:8),Expanded(child:Text(_t('المساعد الصحي الذكي'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.bold))),Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:3),decoration:BoxDecoration(color:Colors.white24,borderRadius:BorderRadius.circular(10)),child:Text(_t('صحتك'),style:const TextStyle(fontSize:9)))]),actions:[IconButton(onPressed:_clear,tooltip:_t('محادثة جديدة'),icon:const Icon(Icons.delete_outline))]),
+    appBar:AppBar(backgroundColor:AppColors.primary,foregroundColor:Colors.white,elevation:0,title:Row(children:[_assistantIcon(32),const SizedBox(width:8),Expanded(child:Text(_t('المساعد الصحي الذكي'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.bold))),Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:3),decoration:BoxDecoration(color:Colors.white24,borderRadius:BorderRadius.circular(10)),child:Text(_t('صحتك'),style:const TextStyle(fontSize:9)))]),actions:[IconButton(onPressed:_historyReady?_clear:null,tooltip:_t('محادثة جديدة'),icon:const Icon(Icons.delete_outline))]),
     body:Column(children:[Expanded(child:!_historyReady?const Center(child:CircularProgressIndicator()):ListView.builder(controller:_scroll,padding:const EdgeInsets.fromLTRB(12,8,12,12),itemCount:_messages.length+(_loading?1:0),itemBuilder:(_,i)=>i==_messages.length?_typing(dark):_message(_messages[i],dark))),_quickSuggestions(dark),_input(dark)]));}
   Widget _assistantIcon(double size)=>Image.asset('assets/images/services/ai_assistant.webp',width:size,height:size,fit:BoxFit.contain,errorBuilder:(_,__,___)=>Icon(Icons.medical_services,color:Colors.white,size:size*.65));
   Widget _quickSuggestions(bool dark)=>Container(
