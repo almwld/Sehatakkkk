@@ -41,12 +41,12 @@ class _ProviderVerificationScreenState extends State<ProviderVerificationScreen>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-          tabs: const [
-            Tab(icon: Icon(Icons.medical_services, size: 20), text: 'طبيب'),
-            Tab(icon: Icon(Icons.local_pharmacy, size: 20), text: 'صيدلي'),
-            Tab(icon: Icon(Icons.emergency, size: 20), text: 'مسعف'),
-            Tab(icon: Icon(Icons.local_hospital, size: 20), text: 'مستشفى'),
-            Tab(icon: Icon(Icons.biotech, size: 20), text: 'مخبري'),
+          tabs: [
+            Tab(icon: const Icon(Icons.medical_services, size: 20), text: _localizedUiText(context, 'طبيب')),
+            Tab(icon: const Icon(Icons.local_pharmacy, size: 20), text: _localizedUiText(context, 'صيدلي')),
+            Tab(icon: const Icon(Icons.emergency, size: 20), text: _localizedUiText(context, 'مسعف')),
+            Tab(icon: const Icon(Icons.local_hospital, size: 20), text: _localizedUiText(context, 'مستشفى')),
+            Tab(icon: const Icon(Icons.biotech, size: 20), text: _localizedUiText(context, 'مخبري')),
           ],
         ),
       ),
