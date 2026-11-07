@@ -29,7 +29,7 @@ class BotProvider extends ChangeNotifier {
   // 💬 إرسال رسالة
   // ============================================================
 
-  Future<void> sendMessage(String message) async {
+  Future<void> sendMessage(String message, {String languageCode = 'ar'}) async {
     if (message.trim().isEmpty) return;
 
     _isLoading = true;
@@ -37,7 +37,7 @@ class BotProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _botService.processMessage(message);
+      await _botService.processMessage(message, languageCode: languageCode);
       _messages = await _botService.getConversation();
       _isLoading = false;
       notifyListeners();
