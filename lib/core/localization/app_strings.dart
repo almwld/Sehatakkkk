@@ -5170,6 +5170,12 @@ class AppStrings {
       'تقديم 10 ثوان': ['Forward 10 seconds', 'Avancer de 10 secondes'],
       'تحميل': ['Download', 'Télécharger'],
 
+      'تسجيل الدخول باستخدام': ['Sign in using', 'Se connecter avec'],
+      'فشل التحقق من': ['Failed to verify', 'Échec de la vérification de'],
+      'الحساب المحدد:': ['Selected account:', 'Compte sélectionné :'],
+      'إدارة حسابي': ['Manage my account', 'Gérer mon compte'],
+      'إدارة لوحة الحساب حسب صلاحياتك': ['Manage your role-based dashboard', 'Gérer votre tableau de bord selon vos autorisations'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {

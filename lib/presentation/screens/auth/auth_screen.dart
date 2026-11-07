@@ -1079,7 +1079,7 @@ class _AuthScreenState extends State<AuthScreen>
 
     final authenticated =
         await _biometricService.authenticate(
-      reason: 'تسجيل الدخول باستخدام $_biometricName',
+      reason: '${AppStrings.of(context).translate('تسجيل الدخول باستخدام')} $_biometricName',
     );
 
     _hideLoading();
@@ -1100,7 +1100,7 @@ class _AuthScreenState extends State<AuthScreen>
       }
     } else {
       _showMessage(
-        'فشل التحقق من $_biometricName',
+        '${AppStrings.of(context).translate('فشل التحقق من')} $_biometricName',
         true,
       );
     }
@@ -1359,7 +1359,7 @@ class _AuthScreenState extends State<AuthScreen>
     Color primaryColor,
   ) {
     return Text(
-      'الحساب المحدد: ${_getRoleDisplayName(_selectedRole)}',
+      '${AppStrings.of(context).translate('الحساب المحدد:')} ${_getRoleDisplayName(_selectedRole)}',
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
