@@ -329,7 +329,7 @@ class LocalStorageService {
       final prefs = await SharedPreferences.getInstance();
       final key = 'sehatak_ai_conversation_${Uri.encodeComponent(sessionId)}';
       final rows = (jsonDecode(prefs.getString(key) ?? '[]') as List).cast<Map<String, dynamic>>();
-      return rows;
+      return rows.length > 100 ? rows.sublist(rows.length - 100) : rows;
     }
     try {
       final result = await _database.query(
