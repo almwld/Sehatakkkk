@@ -10,7 +10,6 @@ import 'package:sehatak/core/services/local_ai/symptom_interpreter.dart';
 import 'package:sehatak/core/services/local_ai/local_intent_engine.dart';
 import 'package:sehatak/core/services/local_ai/dialogue_state.dart';
 import 'package:sehatak/core/services/local_ai/medical_safety_engine.dart';
-import 'package:sehatak/core/services/local_ai/local_llm_service.dart';
 import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
 
 class AiChatbotScreen extends StatefulWidget {
@@ -20,20 +19,17 @@ class AiChatbotScreen extends StatefulWidget {
 class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProviderStateMixin {
   String _t(String value) => AppStrings.of(context).translate(value);
   final _controller=TextEditingController(); final _scroll=ScrollController(); final _bot=ChatBot();
-  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; bool _llmReady=false; bool _llmDownloading=false; double _llmProgress=0; late final AnimationController _typingController; final LocalDialogueState _dialogue=LocalDialogueState(); final _llm=LocalLlmService.instance; bool _welcomeAdded=false;
+  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; late final AnimationController _typingController; final LocalDialogueState _dialogue=LocalDialogueState(); bool _welcomeAdded=false;
   static const _quick=<Map<String,String>>[
     {'title':'أعراضي','prompt':'اشعر ب حمى وعندي غثيان'},{'title':'طبيب','prompt':'أريد طبيباً مناسباً'},
     {'title':'دواء','prompt':'أريد معلومات عن دواء'},{'title':'تحاليل','prompt':'أين أجد التحاليل؟'},
     {'title':'خدمات التطبيق','prompt':'عرفني بخدمات صحتك'},{'title':'مساعدة','prompt':'أحتاج مساعدة من داخل التطبيق'},
   ];
 
-  @override void initState(){super.initState();_dialogue.load();_refreshLlmStatus();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
+  @override void initState(){super.initState();_dialogue.load();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
   @override void didChangeDependencies(){super.didChangeDependencies();if(_welcomeAdded)return;_messages.add({'text':'${_t('مرحباً 👋')}\n${_t('المساعد الصحي الذكي')} — ${_t('كيف أساعدك اليوم؟')}','user':false,'time':DateTime.now()});_welcomeAdded=true;}
   @override void dispose(){_typingController.dispose();_controller.dispose();_scroll.dispose();super.dispose();}
 
-  Future<void> _refreshLlmStatus() async { try { final status=await _llm.status(); if(mounted)setState((){_llmReady=status['ready']==true;}); } catch (_) {} }
-  Future<void> _downloadLlm() async { if(_llmDownloading||_llmReady)return; setState((){_llmDownloading=true;_llmProgress=0;}); try { final sub=_llm.progress.listen((p){if(mounted)setState((){_llmProgress=p;});}); await _llm.download(); await sub.cancel(); if(mounted)setState((){_llmReady=true;_llmDownloading=false;_llmProgress=1;}); } catch (_) { if(mounted)setState((){_llmDownloading=false;}); _toast(_t('تعذر تنزيل النموذج المحلي. تحقق من الاتصال وحاول مرة أخرى.')); } }
-  Future<String?> _enhanceWithLocalLlm(String userText, String deterministicReply, LocalAiIntent intent) async { if(!_llmReady)return null; final language = AppStrings.of(context).locale.languageCode == 'fr' ? 'French' : AppStrings.of(context).locale.languageCode == 'en' ? 'English' : 'Arabic'; final system='You are a careful local medical assistant editor for the Sehatak app. Write the complete user-facing response exclusively in $language, in a calm and empathetic tone. Do not diagnose or invent any medicine, dosage, test result, or fact absent from the reference reply. Treat the reference reply as the sole source of medical facts; add no new medical facts. Preserve every warning, red flag, dosage limit, emergency number, and app navigation instruction. If information is insufficient, state that clearly and ask one specific follow-up question instead of guessing. Never turn a possibility into a confirmed diagnosis. Intent: ${intent.name}.'; final prompt='رسالة المستخدم:\n$userText\n\nالرد المرجعي المعتمد من محركات صحتك المحلية:\n$deterministicReply\n\nحسّن وضوح الرد وترتيبه وتخصيصه للسؤال، دون حذف أي معلومة أو تحذير من الرد المرجعي ودون إضافة حقائق جديدة. اجعل الإجابة عملية، ثم اطرح سؤال متابعة واحداً فقط إذا كان ضرورياً.'; try { final out=await _llm.generate(prompt:prompt,systemPrompt:system,maxTokens:240); return out.trim().isEmpty?null:out.trim(); } catch (_) { return null; } }
   Future<void> _send(String value) async {
     final text=value.trim(); if(text.isEmpty||_loading)return;
     setState((){_messages.add({'text':text,'user':true,'time':DateTime.now()});_controller.clear();_loading=true;}); _scrollToEnd();
@@ -42,9 +38,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
     try { await _dialogue.update(topic: symptom?['symptoms']?.toString() ?? (services.isNotEmpty ? services.first['title']?.toString() : null), intent:intent.intent.name, userMessage:text); } catch (_) { /* Conversation memory must never block a chatbot reply. */ }
     if(safety.emergency){result={'response':safety.response,'type':'emergency'};}else if(symptom!=null){result={'response':symptom['response'],'type':'symptom'};}else if(intent.intent==LocalAiIntent.greeting){result={'response':_t('أهلاً بك. اكتب سؤالك كما تتحدث عادةً، بالفصحى أو باللهجة اليمنية، وسأفهم المقصود وأوجّهك إلى المعلومة أو الشاشة المناسبة.'),'type':'greeting'};}else{try{result=_bot.respond(text);}catch(_){result={'response':_t('اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.'),'type':'clarification'};}}
     var reply=(result['response']??_t('اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.')).toString();
-    if(!safety.emergency&&symptom==null){final enhanced=await _enhanceWithLocalLlm(text,reply,intent.intent); if(enhanced!=null&&enhanced.isNotEmpty)reply=enhanced;}
     if(services.isNotEmpty&&symptom==null){reply+='\n\n📍 ${_t('داخل صحتك')}\n${services.map((s)=>'• ${_t(s['title'] as String)}: ${_t(s['help'] as String)}').join('\n')}\n\n${_t('اختر الخدمة المناسبة من الأزرار أسفل الرد.')}';}
-    if(symptom==null&&services.isEmpty&&!_looksLikeGreeting(text)){reply+='\n\n'+_t('اكتب لي التفاصيل التي تعرفها: مكان المشكلة، متى بدأت، شدتها، والأعراض المصاحبة. ويمكنك الكتابة بالفصحى أو باللهجة اليمنية أو بأي أسلوب طبيعي، وسأرتب المعلومات وأتابع معك خطوة بخطوة.');}
     if(!mounted)return; setState((){_messages.add({'text':reply,'user':false,'time':DateTime.now(),'service':service,'services':services});_loading=false;});_scrollToEnd();
   }
   bool _looksLikeGreeting(String s)=>RegExp(r'^(سلام|هلا|اهلا|أهلا|مرحبا|مرحباً|السلام)').hasMatch(s.trim());
@@ -54,19 +48,36 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
 
   @override Widget build(BuildContext context){final dark=Theme.of(context).brightness==Brightness.dark;return Scaffold(
     backgroundColor:dark?const Color(0xFF0B1121):const Color(0xFFF7FAFA),
-    appBar:AppBar(backgroundColor:AppColors.primary,foregroundColor:Colors.white,elevation:0,title:Row(children:[_assistantIcon(32),const SizedBox(width:8),Expanded(child:Text(_t('المساعد الصحي الذكي'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.bold))),Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:3),decoration:BoxDecoration(color:Colors.white24,borderRadius:BorderRadius.circular(10)),child:Text(_t('صحتك'),style:const TextStyle(fontSize:9)))]),actions:[if(_llmDownloading)Padding(padding:const EdgeInsets.symmetric(horizontal:8),child:Center(child:Text('${(_llmProgress*100).round()}%',style:const TextStyle(fontSize:11)))),if(!_llmReady&&!_llmDownloading)IconButton(onPressed:_downloadLlm,tooltip:_t('تنزيل النموذج المحلي'),icon:const Icon(Icons.download_rounded)),if(_llmReady)const Padding(padding:EdgeInsetsDirectional.only(end:4),child:Icon(Icons.offline_bolt_rounded,size:19)),IconButton(onPressed:_clear,icon:const Icon(Icons.delete_outline))]),
-    body:Column(children:[_serviceHub(dark),Expanded(child:ListView.builder(controller:_scroll,padding:const EdgeInsets.fromLTRB(12,8,12,12),itemCount:_messages.length+(_loading?1:0),itemBuilder:(_,i)=>i==_messages.length?_typing(dark):_message(_messages[i],dark))),_input(dark)]));}
+    appBar:AppBar(backgroundColor:AppColors.primary,foregroundColor:Colors.white,elevation:0,title:Row(children:[_assistantIcon(32),const SizedBox(width:8),Expanded(child:Text(_t('المساعد الصحي الذكي'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.bold))),Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:3),decoration:BoxDecoration(color:Colors.white24,borderRadius:BorderRadius.circular(10)),child:Text(_t('صحتك'),style:const TextStyle(fontSize:9)))]),actions:[IconButton(onPressed:_clear,tooltip:_t('محادثة جديدة'),icon:const Icon(Icons.delete_outline))]),
+    body:Column(children:[Expanded(child:ListView.builder(controller:_scroll,padding:const EdgeInsets.fromLTRB(12,8,12,12),itemCount:_messages.length+(_loading?1:0),itemBuilder:(_,i)=>i==_messages.length?_typing(dark):_message(_messages[i],dark))),_quickSuggestions(dark),_input(dark)]));}
   Widget _assistantIcon(double size)=>Image.asset('assets/images/services/ai_assistant.webp',width:size,height:size,fit:BoxFit.contain,errorBuilder:(_,__,___)=>Icon(Icons.medical_services,color:Colors.white,size:size*.65));
-  Widget _serviceHub(bool dark)=>Container(padding:const EdgeInsets.fromLTRB(10,8,10,6),decoration:BoxDecoration(color:dark?const Color(0xFF111A2D):Colors.white,boxShadow:const[BoxShadow(blurRadius:5,color:Color(0x11000000))]),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    Text(_t('كيف أساعدك اليوم؟'),style:TextStyle(fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)),const SizedBox(height:6),
-    SizedBox(height:38,child:ListView.separated(scrollDirection:Axis.horizontal,itemCount:_quick.length,separatorBuilder:(_,__)=>const SizedBox(width:6),itemBuilder:(_,i)=>ActionChip(avatar:const Icon(Icons.auto_awesome,size:15),label:Text(_t(_quick[i]['title']!)),onPressed:()=>_send(_quick[i]['prompt']!)))),
-    const SizedBox(height:6),if(!_llmReady&&!_llmDownloading)Padding(padding:const EdgeInsetsDirectional.only(top:2,bottom:4),child:Row(children:[const Icon(Icons.offline_bolt_outlined,size:15),const SizedBox(width:5),Expanded(child:Text(_t('يمكن تفعيل النموذج العربي المحلي من زر التنزيل أعلى الشاشة. حجمه نحو 424 MB ويُحفظ خارج التطبيق.'),style:const TextStyle(fontSize:10))),TextButton(onPressed:_downloadLlm,child:Text(_t('تفعيل')))])),if(_llmDownloading)Padding(padding:const EdgeInsets.only(bottom:4),child:LinearProgressIndicator(value:_llmProgress)),const SizedBox(height:2),SizedBox(height:64,child:ListView.separated(scrollDirection:Axis.horizontal,itemCount:SmartHealthKnowledge.services.length,separatorBuilder:(_,__)=>const SizedBox(width:6),itemBuilder:(_,i){final s=SmartHealthKnowledge.services[i];return InkWell(onTap:()=>_openService(s),borderRadius:BorderRadius.circular(12),child:Container(width:88,padding:const EdgeInsets.all(6),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):const Color(0xFFF3F8F7),borderRadius:BorderRadius.circular(12)),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[Icon(s['icon'] as IconData,color:AppColors.primary,size:21),const SizedBox(height:2),Text(_t(s['title'] as String),maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:9,fontWeight:FontWeight.w600))])));})),
-    Align(alignment:AlignmentDirectional.centerEnd,child:TextButton.icon(onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const HelpCenterScreen())),icon:const Icon(Icons.support_agent_outlined,size:17),label:Text(_t('مركز المساعدة')),style:TextButton.styleFrom(visualDensity:VisualDensity.compact))),
-  ]));
+  Widget _quickSuggestions(bool dark)=>Container(
+    width:double.infinity,
+    padding:const EdgeInsetsDirectional.fromSTEB(10,8,10,6),
+    decoration:BoxDecoration(
+      color:dark?const Color(0xFF111A2D):Colors.white,
+      boxShadow:const[BoxShadow(blurRadius:5,color:Color(0x11000000))],
+    ),
+    child:Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisSize:MainAxisSize.min,children:[
+      Text(_t('أسئلة مقترحة'),style:TextStyle(fontWeight:FontWeight.w600,fontSize:12,color:dark?Colors.white70:Colors.black54)),
+      const SizedBox(height:5),
+      SizedBox(height:36,child:ListView.separated(
+        scrollDirection:Axis.horizontal,
+        itemCount:_quick.length,
+        separatorBuilder:(_,__)=>const SizedBox(width:7),
+        itemBuilder:(_,i)=>ActionChip(
+          visualDensity:VisualDensity.compact,
+          avatar:const Icon(Icons.chat_bubble_outline,size:14),
+          label:Text(_t(_quick[i]['title']!),style:const TextStyle(fontSize:11)),
+          onPressed:()=>_send(_quick[i]['prompt']!),
+        ),
+      )),
+    ]),
+  );
   Widget _message(Map<String,dynamic> m,bool dark){final user=m['user']==true;final s=m['service'] as Map<String,dynamic>?; final services=(m['services'] as List?)?.cast<Map<String,dynamic>>() ?? const <Map<String,dynamic>>[];return Align(alignment:user?AlignmentDirectional.centerEnd:AlignmentDirectional.centerStart,child:Container(constraints:const BoxConstraints(maxWidth:360),margin:const EdgeInsets.symmetric(vertical:5),padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:user?AppColors.primary:(dark?const Color(0xFF1A2540):Colors.white),borderRadius:BorderRadius.circular(17).copyWith(bottomRight:user?const Radius.circular(4):null,bottomLeft:user?null:const Radius.circular(4)),boxShadow:user?null:const[BoxShadow(blurRadius:3,color:Color(0x10000000))]),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(m['text']?.toString()??'',style:TextStyle(color:user?Colors.white:(dark?Colors.white:Colors.black87),height:1.5,fontSize:14)),if(!user&&(services.isNotEmpty||s!=null))...[const SizedBox(height:9),Wrap(spacing:7,runSpacing:7,children:(services.isNotEmpty?services:<Map<String,dynamic>>[s!]).map((item)=>OutlinedButton.icon(onPressed:()=>_openService(item),icon:Icon(item['icon'] as IconData,size:16),label:Text('${_t('فتح')} ${_t(item['title'] as String)}'))).toList())],const SizedBox(height:3),Text(_time(m['time'] as DateTime),style:TextStyle(fontSize:9,color:user?Colors.white70:Colors.grey))])));}
   Widget _typing(bool dark)=>Align(alignment:AlignmentDirectional.centerStart,child:Row(crossAxisAlignment:CrossAxisAlignment.end,children:[Padding(padding:const EdgeInsetsDirectional.only(start:4,end:6,bottom:8),child:_assistantIcon(28)),AnimatedBuilder(animation:_typingController,builder:(_,__)=>Container(margin:const EdgeInsets.all(8),padding:const EdgeInsets.symmetric(horizontal:14,vertical:10),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(mainAxisSize:MainAxisSize.min,children:List.generate(3,(i){final phase=(_typingController.value+i/3)%1;final scale=.65+.35*(.5+.5*math.sin(phase*2*math.pi));return Transform.scale(scale:scale,child:Container(width:7,height:7,margin:EdgeInsets.only(right:i==2?0:5),decoration:BoxDecoration(color:dark?Colors.grey[300]:Colors.grey[600],shape:BoxShape.circle)));})))),
   ]));
   Widget _input(bool dark)=>SafeArea(top:false,child:Container(padding:const EdgeInsets.fromLTRB(10,7,10,8),decoration:BoxDecoration(color:dark?const Color(0xFF111A2D):Colors.white,boxShadow:const[BoxShadow(blurRadius:6,color:Color(0x12000000))]),child:Row(children:[Expanded(child:TextField(controller:_controller,textDirection:AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,textInputAction:TextInputAction.send,onSubmitted:_send,decoration:InputDecoration(hintText:_t('اكتب ما تشعر به أو ما تحتاجه…'),filled:true,fillColor:dark?const Color(0xFF1A2540):const Color(0xFFF3F5F6),border:OutlineInputBorder(borderRadius:BorderRadius.circular(24),borderSide:BorderSide.none),contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:11)))),const SizedBox(width:7),IconButton.filled(onPressed:_loading?null:()=>_send(_controller.text),icon:const Icon(Icons.send_rounded))])));
-  void _clear(){setState((){_messages.clear();_messages.add({'text':_t('بدأنا محادثة جديدة. قل لي ما تشعر به أو ما تريد الوصول إليه داخل صحتك.'),'user':false,'time':DateTime.now()});});}
+  void _clear(){_dialogue.clear();setState((){_messages.clear();_messages.add({'text':_t('مرحباً، كيف أساعدك؟'),'user':false,'time':DateTime.now()});});}
   String _time(DateTime t)=>'${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
 }
