@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/health/child_section_screen.dart';
+import 'package:sehatak/presentation/screens/family/family_dashboard_screen.dart';
 
 class ChildHealthScreen extends StatelessWidget {
   final String? childId;
@@ -104,7 +105,7 @@ class ChildHealthScreen extends StatelessWidget {
           Container(width: 52, height: 52, decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(.12), borderRadius: BorderRadius.circular(16)), child: const Icon(Icons.face_rounded, color: Color(0xFF0284C7), size: 30)),
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_t(context, 'أضف ملف طفلك'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), const SizedBox(height: 4), Text(_t(context, 'العمر وتاريخ الميلاد والجنس والطول والوزن والتطعيمات.'), style: const TextStyle(fontSize: 11, height: 1.4))])),
-          IconButton(onPressed: () { if (childId == null || childId!.isEmpty) { ToastService.showInfo(_t(context, 'أضف ملف الطفل أولاً من حساب العائلة')); return; } Navigator.push(context, MaterialPageRoute(builder: (_) => ChildSectionScreen(childId: childId!, section: 'growth'))); }, icon: const Icon(Icons.add_circle_outline_rounded)),
+          IconButton(tooltip: _t(context, 'إضافة ملف الطفل'), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FamilyDashboardScreen())), icon: const Icon(Icons.add_circle_outline_rounded)),
         ]),
       ),
     );
