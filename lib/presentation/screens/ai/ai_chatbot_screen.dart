@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sehatak/core/services/local_storage_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/local_ai/local_medical_ai.dart';
 import 'package:sehatak/core/services/local_ai/smart_health_knowledge.dart';
@@ -10,6 +12,7 @@ import 'package:sehatak/core/services/local_ai/symptom_interpreter.dart';
 import 'package:sehatak/core/services/local_ai/local_intent_engine.dart';
 import 'package:sehatak/core/services/local_ai/dialogue_state.dart';
 import 'package:sehatak/core/services/local_ai/medical_safety_engine.dart';
+import 'package:sehatak/core/services/local_ai/medical_knowledge_catalog.dart';
 
 class AiChatbotScreen extends StatefulWidget {
   const AiChatbotScreen({super.key});
@@ -18,27 +21,33 @@ class AiChatbotScreen extends StatefulWidget {
 class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProviderStateMixin {
   String _t(String value) => AppStrings.of(context).translate(value);
   final _controller=TextEditingController(); final _scroll=ScrollController(); final _bot=ChatBot();
-  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; late final AnimationController _typingController; final LocalDialogueState _dialogue=LocalDialogueState(); bool _welcomeAdded=false;
+  final List<Map<String,dynamic>> _messages=[]; bool _loading=false; late final AnimationController _typingController; final LocalDialogueState _dialogue=LocalDialogueState();
+  final LocalStorageService _historyStore=LocalStorageService();
+  String _sessionId='assistant_guest_v1'; bool _historyReady=false; bool _historyLoading=false;
   static const _quick=<Map<String,String>>[
     {'title':'أعراضي','prompt':'اشعر ب حمى وعندي غثيان'},{'title':'طبيب','prompt':'أريد طبيباً مناسباً'},
     {'title':'دواء','prompt':'أريد معلومات عن دواء'},{'title':'تحاليل','prompt':'أين أجد التحاليل؟'},
     {'title':'خدمات التطبيق','prompt':'عرفني بخدمات صحتك'},{'title':'مساعدة','prompt':'أحتاج مساعدة من داخل التطبيق'},
   ];
 
-  @override void initState(){super.initState();_dialogue.load();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
-  @override void didChangeDependencies(){super.didChangeDependencies();if(_welcomeAdded)return;_messages.add({'text':'${_t('مرحباً 👋')}\n${_t('المساعد الصحي الذكي')} — ${_t('كيف أساعدك اليوم؟')}','user':false,'time':DateTime.now()});_welcomeAdded=true;}
+  @override void initState(){super.initState();_dialogue.load();_restoreHistory();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
   @override void dispose(){_typingController.dispose();_controller.dispose();_scroll.dispose();super.dispose();}
 
   Future<void> _send(String value) async {
     final text=value.trim(); if(text.isEmpty||_loading)return;
-    setState((){_messages.add({'text':text,'user':true,'time':DateTime.now()});_controller.clear();_loading=true;}); _scrollToEnd();
-    await Future<void>.delayed(const Duration(milliseconds:420));
-    final intent=LocalAiIntentEngine.classify(text); final safety=MedicalSafetyEngine.assess(text); final symptom=SymptomInterpreter.analyze(text); final services=SmartHealthKnowledge.findServices(text); final service=services.isEmpty?null:services.first; Map<String,dynamic> result;
+    final userTime=DateTime.now();
+    setState(()=>{_messages.add({'text':text,'user':true,'time':userTime}),_controller.clear(),_loading=true}); _scrollToEnd();
+    try { await _historyStore.saveMessage(sessionId:_sessionId,message:text,isUser:true,type:'user'); } catch (_) {}
+    await Future<void>.delayed(const Duration(milliseconds:220));
+    final intent=LocalAiIntentEngine.classify(text); final safety=MedicalSafetyEngine.assess(text); final knowledge=MedicalKnowledgeCatalog.answer(text,AppStrings.of(context).locale.languageCode); final symptom=SymptomInterpreter.analyze(text); final services=SmartHealthKnowledge.findServices(text); final service=services.isEmpty?null:services.first; Map<String,dynamic> result;
     try { await _dialogue.update(topic: symptom?['symptoms']?.toString() ?? (services.isNotEmpty ? services.first['title']?.toString() : null), intent:intent.intent.name, userMessage:text); } catch (_) { /* Conversation memory must never block a chatbot reply. */ }
-    if(safety.emergency){result={'response':safety.response,'type':'emergency'};}else if(symptom!=null){result={'response':symptom['response'],'type':'symptom'};}else if(intent.intent==LocalAiIntent.greeting){result={'response':_t('أهلاً بك. اكتب سؤالك كما تتحدث عادةً، بالفصحى أو باللهجة اليمنية، وسأفهم المقصود وأوجّهك إلى المعلومة أو الشاشة المناسبة.'),'type':'greeting'};}else{try{result=_bot.respond(text);}catch(_){result={'response':_t('اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.'),'type':'clarification'};}}
-    var reply=(result['response']??_t('اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.')).toString();
+    if(safety.emergency){result={'response':safety.response,'type':'emergency'};}else if(knowledge!=null){result=knowledge;}else if(symptom!=null){result={'response':symptom['response'],'type':'symptom'};}else if(intent.intent==LocalAiIntent.greeting){result={'response':_t('أهلاً بك. اكتب سؤالك كما تتحدث عادةً، بالفصحى أو باللهجة اليمنية، وسأفهم المقصود وأوجّهك إلى المعلومة أو الشاشة المناسبة.'),'type':'greeting'};}else{try{result=_bot.respond(text);}catch(_){result={'response':_t('اكتب لي ما تريد إنجازه أو الأعراض التي تشعر بها، وسأتابع معك خطوة بخطوة.'),'type':'clarification'};}}
+    var reply=(result['response']??_t('ما الذي تريد معرفته تحديداً؟')).toString();
+    if(result['source']!=null){reply+='\\n\\n${_t('المصدر')}: ${result['source']}';}
     if(services.isNotEmpty&&symptom==null){reply+='\n\n📍 ${_t('داخل صحتك')}\n${services.map((s)=>'• ${_t(s['title'] as String)}: ${_t(s['help'] as String)}').join('\n')}\n\n${_t('اختر الخدمة المناسبة من الأزرار أسفل الرد.')}';}
-    if(!mounted)return; setState((){_messages.add({'text':reply,'user':false,'time':DateTime.now(),'service':service,'services':services});_loading=false;});_scrollToEnd();
+    if(!mounted)return; final responseTime=DateTime.now(); setState(()=>{_messages.add({'text':reply,'user':false,'time':responseTime,'service':service,'services':services}),_loading=false});
+    try { await _historyStore.saveMessage(sessionId:_sessionId,message:reply,isUser:false,type:result['type']?.toString()??'assistant'); } catch (_) {}
+    _scrollToEnd();
   }
   bool _looksLikeGreeting(String s)=>RegExp(r'^(سلام|هلا|اهلا|أهلا|مرحبا|مرحباً|السلام)').hasMatch(s.trim());
   void _scrollToEnd()=>WidgetsBinding.instance.addPostFrameCallback((_){if(_scroll.hasClients)_scroll.animateTo(_scroll.position.maxScrollExtent,duration:const Duration(milliseconds:260),curve:Curves.easeOut);});
@@ -48,7 +57,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
   @override Widget build(BuildContext context){final dark=Theme.of(context).brightness==Brightness.dark;return Scaffold(
     backgroundColor:dark?const Color(0xFF0B1121):const Color(0xFFF7FAFA),
     appBar:AppBar(backgroundColor:AppColors.primary,foregroundColor:Colors.white,elevation:0,title:Row(children:[_assistantIcon(32),const SizedBox(width:8),Expanded(child:Text(_t('المساعد الصحي الذكي'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.bold))),Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:3),decoration:BoxDecoration(color:Colors.white24,borderRadius:BorderRadius.circular(10)),child:Text(_t('صحتك'),style:const TextStyle(fontSize:9)))]),actions:[IconButton(onPressed:_clear,tooltip:_t('محادثة جديدة'),icon:const Icon(Icons.delete_outline))]),
-    body:Column(children:[Expanded(child:ListView.builder(controller:_scroll,padding:const EdgeInsets.fromLTRB(12,8,12,12),itemCount:_messages.length+(_loading?1:0),itemBuilder:(_,i)=>i==_messages.length?_typing(dark):_message(_messages[i],dark))),_quickSuggestions(dark),_input(dark)]));}
+    body:Column(children:[Expanded(child:!_historyReady?const Center(child:CircularProgressIndicator()):ListView.builder(controller:_scroll,padding:const EdgeInsets.fromLTRB(12,8,12,12),itemCount:_messages.length+(_loading?1:0),itemBuilder:(_,i)=>i==_messages.length?_typing(dark):_message(_messages[i],dark))),_quickSuggestions(dark),_input(dark)]));}
   Widget _assistantIcon(double size)=>Image.asset('assets/images/services/ai_assistant.webp',width:size,height:size,fit:BoxFit.contain,errorBuilder:(_,__,___)=>Icon(Icons.medical_services,color:Colors.white,size:size*.65));
   Widget _quickSuggestions(bool dark)=>Container(
     width:double.infinity,
@@ -77,6 +86,29 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
   Widget _typing(bool dark)=>Align(alignment:AlignmentDirectional.centerStart,child:Row(crossAxisAlignment:CrossAxisAlignment.end,children:[Padding(padding:const EdgeInsetsDirectional.only(start:4,end:6,bottom:8),child:_assistantIcon(28)),AnimatedBuilder(animation:_typingController,builder:(_,__)=>Container(margin:const EdgeInsets.all(8),padding:const EdgeInsets.symmetric(horizontal:14,vertical:10),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Row(mainAxisSize:MainAxisSize.min,children:List.generate(3,(i){final phase=(_typingController.value+i/3)%1;final scale=.65+.35*(.5+.5*math.sin(phase*2*math.pi));return Transform.scale(scale:scale,child:Container(width:7,height:7,margin:EdgeInsets.only(right:i==2?0:5),decoration:BoxDecoration(color:dark?Colors.grey[300]:Colors.grey[600],shape:BoxShape.circle)));})))),
   ]));
   Widget _input(bool dark)=>SafeArea(top:false,child:Container(padding:const EdgeInsets.fromLTRB(10,7,10,8),decoration:BoxDecoration(color:dark?const Color(0xFF111A2D):Colors.white,boxShadow:const[BoxShadow(blurRadius:6,color:Color(0x12000000))]),child:Row(children:[Expanded(child:TextField(controller:_controller,textDirection:AppStrings.of(context).locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,textInputAction:TextInputAction.send,onSubmitted:_send,decoration:InputDecoration(hintText:_t('اكتب ما تشعر به أو ما تحتاجه…'),filled:true,fillColor:dark?const Color(0xFF1A2540):const Color(0xFFF3F5F6),border:OutlineInputBorder(borderRadius:BorderRadius.circular(24),borderSide:BorderSide.none),contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:11)))),const SizedBox(width:7),IconButton.filled(onPressed:_loading?null:()=>_send(_controller.text),icon:const Icon(Icons.send_rounded))])));
-  void _clear(){_dialogue.clear();setState((){_messages.clear();_messages.add({'text':_t('مرحباً، كيف أساعدك؟'),'user':false,'time':DateTime.now()});});}
+  Future<void> _restoreHistory() async {
+    if(_historyLoading)return; _historyLoading=true;
+    try {
+      final uid=FirebaseAuth.instance.currentUser?.uid;
+      _sessionId=uid==null?'assistant_guest_v1':'assistant_user_$uid';
+      await _historyStore.initialize();
+      final rows=await _historyStore.getConversation(_sessionId);
+      if(!mounted)return;
+      setState(()=>{
+        _messages.addAll(rows.map((row)=>{'text':row['message']?.toString()??'','user':row['is_user']==1,'time':DateTime.fromMillisecondsSinceEpoch((row['timestamp'] as num?)?.toInt()??DateTime.now().millisecondsSinceEpoch)})),
+        if(_messages.isEmpty)_messages.add({'text':'${_t('مرحباً 👋')}\\n${_t('المساعد الصحي الذكي')} — ${_t('كيف أساعدك اليوم؟')}','user':false,'time':DateTime.now()}),
+        _historyReady=true
+      });
+      _scrollToEnd();
+    } catch (_) {
+      if(mounted)setState(()=>{if(_messages.isEmpty)_messages.add({'text':_t('مرحباً، كيف أساعدك اليوم؟'),'user':false,'time':DateTime.now()}),_historyReady=true});
+    } finally {_historyLoading=false;}
+  }
+  Future<void> _clear() async {
+    await _dialogue.clear();
+    try { await _historyStore.clearConversation(_sessionId); } catch (_) {}
+    if(!mounted)return;
+    setState(()=>{_messages.clear(),_messages.add({'text':_t('مرحباً، كيف أساعدك؟'),'user':false,'time':DateTime.now()})});
+  }
   String _time(DateTime t)=>'${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
 }
