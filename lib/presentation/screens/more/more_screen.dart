@@ -218,7 +218,6 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/consultation.webp', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
           {'icon': 'assets/images/services/video_consultation.webp', 'title': 'استشارة فيديو', 'subtitle': 'استشارة طبية عبر الفيديو', 'screen': const VideoConsultationScreen()},
           {'icon': 'assets/images/services/health_tips.webp', 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
-          {'icon': 'assets/images/ui/user_profile.webp', 'title': 'توثيق الحساب', 'subtitle': 'متابعة أو استكمال توثيق حسابك', 'screen': const VerificationScreen()},
           {'icon': 'assets/images/services/wallet.webp', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
           {'icon': 'assets/images/services/calendar_booking.webp', 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const AppointmentsScreen()},
           {'icon': 'assets/images/services/nearby_clinics.webp', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
