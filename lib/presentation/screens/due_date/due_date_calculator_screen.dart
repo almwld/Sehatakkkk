@@ -61,16 +61,31 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
             ),
             const SizedBox(height: 14),
             Row(children: [
-              _infoCard(context, 'عمر الحمل', '$_weeks أسبوع و $_days يوم', Icons.pregnant_woman, Colors.pink),
+              _infoCard(context, 'عمر الحمل', _pregnancyAgeText(context), Icons.pregnant_woman, Colors.pink),
               const SizedBox(width: 8),
               _infoCard(context, 'الثلث', _trimester, Icons.baby_changing_station, AppColors.purple),
               const SizedBox(width: 8),
-              _infoCard(context, 'متبقي', '${_dueDate!.difference(DateTime.now()).inDays} يوم', Icons.hourglass_bottom, AppColors.info),
+              _infoCard(context, 'متبقي', _daysRemainingText(context), Icons.hourglass_bottom, AppColors.info),
             ]),
           ],
         ]),
       ),
     );
+  }
+
+  String _pregnancyAgeText(BuildContext context) {
+    final language = AppStrings.of(context).locale.languageCode;
+    if (language == 'en') return '$_weeks weeks and $_days days';
+    if (language == 'fr') return '$_weeks semaines et $_days jours';
+    return '$_weeks أسبوع و $_days يوم';
+  }
+
+  String _daysRemainingText(BuildContext context) {
+    final days = _dueDate!.difference(DateTime.now()).inDays;
+    final language = AppStrings.of(context).locale.languageCode;
+    if (language == 'en') return '$days days';
+    if (language == 'fr') return '$days jours';
+    return '$days يوم';
   }
 
   Widget _infoCard(BuildContext context, String label, String value, IconData icon, Color color) {
