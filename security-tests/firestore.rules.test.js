@@ -314,3 +314,14 @@ test('delivery tracking is readable only by the owner of its linked order', asyn
   await assertFails(updateDoc(doc(owner, 'deliveries/order-1'), { status: 'delivered' }));
   await assertSucceeds(updateDoc(doc(admin, 'deliveries/order-1'), { status: 'delivered' }));
 });
+
+test('blood donor registration is tied to the signed-in account', async () => {
+  const owner = env.authenticatedContext('patient-b').firestore();
+  const other = env.authenticatedContext('patient-a').firestore();
+  const anonymous = env.unauthenticatedContext().firestore();
+  await assertFails(setDoc(doc(anonymous, 'blood_donors/anonymous'), { name: 'Donor', phone: '000', age: 25, bloodType: 'O+', city: 'Sanaa' }));
+  await assertFails(setDoc(doc(owner, 'blood_donors/missing-owner'), { name: 'Donor', phone: '000', age: 25, bloodType: 'O+', city: 'Sanaa' }));
+  await assertSucceeds(setDoc(doc(owner, 'blood_donors/owned'), { userId: 'patient-b', name: 'Donor', phone: '000', age: 25, bloodType: 'O+', city: 'Sanaa' }));
+  await assertFails(updateDoc(doc(other, 'blood_donors/owned'), { phone: '111' }));
+  await assertSucceeds(getDoc(doc(other, 'blood_donors/owned')));
+});
