@@ -24,12 +24,16 @@ class BotService {
     String message, {
     String languageCode = 'ar',
   }) async {
-    await _storage.saveMessage(
-      sessionId: _sessionId,
-      message: message,
-      isUser: true,
-      type: 'user',
-    );
+    try {
+      await _storage.saveMessage(
+        sessionId: _sessionId,
+        message: message,
+        isUser: true,
+        type: 'user',
+      );
+    } catch (_) {
+      // The offline answer must remain available if local history storage fails.
+    }
 
     final response = _chatBot.respond(message, languageCode: languageCode);
     var reply = response['response']?.toString() ?? '';
@@ -40,12 +44,16 @@ class BotService {
       reply += '\n${languageCode == 'fr' ? 'Validation clinique locale en attente.' : (languageCode == 'en' ? 'Local clinician review is pending.' : 'المراجعة السريرية المحلية ما زالت مطلوبة.')}';
     }
 
-    await _storage.saveMessage(
-      sessionId: _sessionId,
-      message: reply,
-      isUser: false,
-      type: type,
-    );
+    try {
+      await _storage.saveMessage(
+        sessionId: _sessionId,
+        message: reply,
+        isUser: false,
+        type: type,
+      );
+    } catch (_) {
+      // Keep the answer available even if history cannot be persisted.
+    }
 
     return {
       ...response,
