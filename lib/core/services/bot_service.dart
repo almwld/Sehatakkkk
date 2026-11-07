@@ -70,7 +70,7 @@ class BotService {
               ? 'Décrivez les symptômes, leur durée et leur intensité.'
               : (languageCode == 'en'
                   ? 'Describe the symptoms, how long they have lasted, and their severity.'
-                  : 'اذكر الأعراض ومدتها وشدتها.');
+                  : 'اذكر الأعراض ومدتها وشدتها.'),
           'type': 'clarification',
         };
   }
