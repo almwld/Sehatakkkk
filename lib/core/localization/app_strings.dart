@@ -5210,6 +5210,8 @@ class AppStrings {
       '🎵 رسالة صوتية': ['🎵 Voice message', '🎵 Message vocal'],
       '• رمز خاص (!@#$%^&)': ['• Special character (!@#$%^&)', '• Caractère spécial (!@#$%^&)'],
 
+      '• رمز خاص (!@#$%^&*)': ['• Special character (!@#$%^&*)', '• Caractère spécial (!@#$%^&*)'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
