@@ -17,10 +17,10 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
   final List<Map<String, String>> _chat = [];
   bool _isTyping = false;
 
-  void _send(String text) {
+  void _send(String text, {String? displayText}) {
     if (text.trim().isEmpty) return;
     setState(() {
-      _chat.add({'role': 'user', 'text': text});
+      _chat.add({'role': 'user', 'text': displayText ?? text});
       _isTyping = true;
     });
     _controller.clear();
@@ -30,7 +30,8 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
       String fullReply = reply;
       if (RegExp(r'عندي|اعاني|احس|اشعر|الم|وجع|صداع|حرارة|سعال').hasMatch(text)) {
         final triage = _ai.triage(text);
-        fullReply += '\n\n🔍 تحليل سريع:\n• التخصص: ${triage['specialization']}\n• الطوارئ: ${triage['urgency']}\n• الإجراء: ${triage['action']}';
+        final urgencyLabel = switch (triage['urgency']) { 'high' => 'مرتفع', 'medium' => 'متوسط', _ => 'منخفض' };
+        fullReply += '\n\n${_t('تحليل سريع:')}\n• ${_t('التخصص:')} ${_t(triage['specialization'].toString())}\n• ${_t('الطوارئ:')} ${_t(urgencyLabel)}\n• ${_t('الإجراء:')} ${_t(triage['action'].toString())}';
       }
       setState(() {
         _chat.add({'role': 'bot', 'text': fullReply});
@@ -127,7 +128,7 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
   Widget _quickChip(String label, String query) {
     return Padding(
       padding: const EdgeInsets.only(right: 6),
-      child: ActionChip(label: Text(_t(label), style: const TextStyle(fontSize: 11)), onPressed: () => _send(query)),
+      child: ActionChip(label: Text(_t(label), style: const TextStyle(fontSize: 11)), onPressed: () => _send(query, displayText: _t(query))),
     );
   }
 }
