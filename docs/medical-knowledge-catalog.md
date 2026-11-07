@@ -4,7 +4,7 @@
 
 The local assistant uses a curated, offline, multilingual reference catalog in
 `lib/core/services/local_ai/medical_knowledge_catalog.dart`. It currently has
-14 topic records, each with Arabic, English, and French text, matching phrases,
+20 topic records, each with Arabic, English, and French text, matching phrases,
 a source URL, and a review-state marker.
 
 This is public-health education and first-aid orientation only. It is not a
@@ -29,6 +29,12 @@ emergency services rather than displaying an unverified country-specific number.
 - Hypertension
 - Asthma
 - Healthy diet
+- Physical activity
+- Diarrhoeal disease and dehydration warnings
+- Malaria warning signs and need for prompt testing
+- Pneumonia warning signs in children
+- Seasonal influenza
+- Emergency headache warning signs
 
 ## Source register
 
@@ -42,6 +48,20 @@ emergency services rather than displaying an unverified country-specific number.
   https://www.who.int/news-room/fact-sheets/detail/diabetes
 - World Health Organization, Hypertension:
   https://www.who.int/news-room/fact-sheets/detail/hypertension
+- World Health Organization, Physical activity:
+  https://www.who.int/initiatives/behealthy/physical-activity/
+- World Health Organization, Diarrhoeal disease:
+  https://www.who.int/news-room/fact-sheets/detail/diarrhoeal-disease
+- World Health Organization, Malaria:
+  https://www.who.int/news-room/questions-and-answers/item/malaria
+- World Health Organization, Pneumonia:
+  https://www.who.int/news-room/fact-sheets/detail/pneumonia
+- World Health Organization, Seasonal influenza:
+  https://www.who.int/news-room/fact-sheets/detail/influenza-(seasonal)
+- NHS, Headaches:
+  https://www.nhs.uk/symptoms/headaches/
+- WHO, Suicide questions and answers:
+  https://www.who.int/news-room/questions-and-answers/item/suicide
 - World Health Organization, Healthy diet:
   https://www.who.int/en/news-room/fact-sheets/detail/healthy-diet
 - World Health Organization, Asthma:
