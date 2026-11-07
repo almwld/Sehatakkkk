@@ -60,7 +60,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
 
       final list = snap.docs
           .map(ArticleModel.fromFirestore)
-          .where((a) => a.title.trim().isNotEmpty)
+          .where((a) => a.title.trim().isNotEmpty || (a.titleEn ?? '').trim().isNotEmpty || (a.titleFr ?? '').trim().isNotEmpty)
           .toList();
 
       list.sort((a, b) {
