@@ -100,7 +100,7 @@ class _PatientMedicalHistoryState extends State<PatientMedicalHistory> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        record['title'],
+                        _localizedUiText(context, record['title'] as String),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -125,7 +125,7 @@ class _PatientMedicalHistoryState extends State<PatientMedicalHistory> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    record['status'],
+                    _localizedUiText(context, record['status'] as String),
                     style: TextStyle(
                       fontSize: 10,
                       color: statusColor,
