@@ -2,7 +2,7 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {setGlobalOptions} = require('firebase-functions/v2/options');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
-const { PHARMACY_ORDER_TRANSITIONS, isPharmacyOwner } = require('./pharmacy_order_workflow');
+const { canTransition, isPharmacyOwner } = require('./pharmacy_order_workflow');
 const {appointmentInstantFromDateMarker} = require('./appointment-date');
 
 admin.initializeApp();
@@ -374,8 +374,6 @@ exports.checkoutCart = onCall(async (request) => {
   const walletRef = db.collection('wallets').doc(uid);
   const userRef = db.collection('users').doc(uid);
   const productRefs = [...normalized.values()].map(x => db.collection('products').doc(x.productId));
-  const pharmacyIds = [...new Set([...normalized.values()].map(x => x.requestedPharmacyId).filter(Boolean))];
-  const pharmacyRefs = pharmacyIds.map(id => db.collection('pharmacies').doc(id));
 
   const result = await db.runTransaction(async (tx) => {
     const [idempotencySnap, walletSnap, userSnap, ...productSnaps] = await Promise.all([
@@ -534,7 +532,7 @@ exports.updatePharmacyOrderStatus = onCall(async (request) => {
     if (!isPharmacyOwner(pharmacy, uid, pharmacyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية إدارة طلبات هذه الصيدلية');
     if (pharmacy.status !== 'approved' || pharmacy.isActive === false) throw new HttpsError('failed-precondition', 'حساب الصيدلية غير معتمد أو موقوف');
     const current = String(order.status || 'pending');
-    if (!(PHARMACY_ORDER_TRANSITIONS[current] || []).includes(nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال من الحالة الحالية إلى الحالة المطلوبة');
+    if (!canTransition(current, nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال من الحالة الحالية إلى الحالة المطلوبة');
     if (nextStatus === 'cancelled' && order.paymentStatus === 'paid') throw new HttpsError('failed-precondition', 'الطلب المدفوع يحتاج إلى إجراء استرداد موثق قبل الإلغاء');
     const now = FieldValue.serverTimestamp();
     const updates = {status: nextStatus, updatedAt: now, statusHistory: FieldValue.arrayUnion({status: nextStatus, actorId: uid, at: new Date().toISOString()})};
