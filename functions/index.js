@@ -492,6 +492,7 @@ exports.reviewPharmacyPrescription = onCall(async (request) => {
     if (!pharmacySnap.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة');
     const pharmacy = pharmacySnap.data() || {};
     if (!isPharmacyOwner(pharmacy, uid, pharmacyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية مراجعة وصفات هذه الصيدلية');
+    if (!String(prescription.fileRemotePath || prescription.imageUrl || prescription.documentUrl || '').trim()) throw new HttpsError('failed-precondition', 'لا يمكن اعتماد وصفة دون ملف مرفق');
     if (pharmacy.status !== 'approved' || pharmacy.isActive === false) throw new HttpsError('failed-precondition', 'حساب الصيدلية غير معتمد أو موقوف');
     if (String(prescription.status || 'pending') !== 'pending') throw new HttpsError('failed-precondition', 'تمت مراجعة هذه الوصفة مسبقاً');
     tx.update(prescriptionRef, {
