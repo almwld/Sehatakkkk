@@ -4,7 +4,7 @@
 
 The local assistant uses a curated, offline, multilingual reference catalog in
 `lib/core/services/local_ai/medical_knowledge_catalog.dart`. It contains
-34 topic records. Every record has Arabic, English, and French content,
+39 topic records. Every record has Arabic, English, and French content,
 matching phrases, a source URL, and an explicit review-state marker.
 
 This is public-health education and first-aid orientation only. It is not a
@@ -50,6 +50,11 @@ emergency services rather than displaying an unverified country-specific number.
 32. Depression awareness and support
 33. Oral health and dental warning signs
 34. Child malnutrition warning signs
+35. Urinary tract infection and kidney infection warning signs
+36. Eye injury and sudden vision-loss emergencies
+37. Sleep health
+38. Tobacco risks and quitting support
+39. Vaccination and national immunization schedules
 
 ## Source register
 
@@ -111,6 +116,16 @@ emergency services rather than displaying an unverified country-specific number.
   https://www.who.int/en/news-room/fact-sheets/detail/malnutrition
 - World Health Organization and UNICEF, 2026 wasting and nutritional oedema guidance:
   https://www.who.int/publications/i/item/9789240122840
+- NHS, Urinary tract infections:
+  https://www.nhs.uk/conditions/urinary-tract-infections-utis/
+- NHS, Eye injuries:
+  https://www.nhs.uk/conditions/eye-injuries/
+- Centers for Disease Control and Prevention, About Sleep:
+  https://www.cdc.gov/sleep/about/index.html
+- World Health Organization, Tobacco and nicotine:
+  https://www.who.int/en/news-room/fact-sheets/detail/tobacco
+- World Health Organization, Immunization coverage:
+  https://www.who.int/news-room/fact-sheets/detail/immunization-coverage
 
 ## Review status — do not misrepresent
 
