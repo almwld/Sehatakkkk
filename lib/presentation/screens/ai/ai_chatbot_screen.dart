@@ -25,9 +25,12 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
   final LocalStorageService _historyStore=LocalStorageService();
   String _sessionId='assistant_guest_v1'; bool _historyReady=false; bool _historyLoading=false;
   static const _quick=<Map<String,String>>[
-    {'title':'أعراضي','prompt':'اشعر ب حمى وعندي غثيان'},{'title':'طبيب','prompt':'أريد طبيباً مناسباً'},
-    {'title':'دواء','prompt':'أريد معلومات عن دواء'},{'title':'تحاليل','prompt':'أين أجد التحاليل؟'},
-    {'title':'خدمات التطبيق','prompt':'عرفني بخدمات صحتك'},{'title':'مساعدة','prompt':'أحتاج مساعدة من داخل التطبيق'},
+    {'title':'أعراضي','prompt_ar':'اشعر ب حمى وعندي غثيان','prompt_en':'I have a fever and nausea','prompt_fr':'J’ai de la fièvre et des nausées'},
+    {'title':'طبيب','prompt_ar':'أريد طبيباً مناسباً','prompt_en':'I want to find a suitable doctor','prompt_fr':'Je veux trouver un médecin adapté'},
+    {'title':'دواء','prompt_ar':'أريد معلومات آمنة عن دواء','prompt_en':'I need safe information about a medicine','prompt_fr':'Je veux des informations fiables sur un médicament'},
+    {'title':'تحاليل','prompt_ar':'أين أجد التحاليل؟','prompt_en':'Where can I find laboratory tests?','prompt_fr':'Où puis-je trouver un laboratoire ?'},
+    {'title':'خدمات التطبيق','prompt_ar':'عرفني بخدمات صحتك','prompt_en':'Show me Sehatak services','prompt_fr':'Présentez-moi les services de Sehatak'},
+    {'title':'مساعدة','prompt_ar':'أحتاج مساعدة من داخل التطبيق','prompt_en':'I need help using the app','prompt_fr':'J’ai besoin d’aide pour utiliser l’application'},
   ];
 
   @override void initState(){super.initState();_restoreHistory();_typingController=AnimationController(vsync:this,duration:const Duration(milliseconds:1100))..repeat();}
@@ -85,7 +88,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
           visualDensity:VisualDensity.compact,
           avatar:const Icon(Icons.chat_bubble_outline,size:14),
           label:Text(_t(_quick[i]['title']!),style:const TextStyle(fontSize:11)),
-          onPressed:()=>_send(_quick[i]['prompt']!),
+          onPressed:()=>_send(_quick[i][AppStrings.of(context).locale.languageCode=='fr'?'prompt_fr':(AppStrings.of(context).locale.languageCode=='en'?'prompt_en':'prompt_ar')]!),
         ),
       )),
     ]),
