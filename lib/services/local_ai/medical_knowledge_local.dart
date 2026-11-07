@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:sehatak/core/services/local_storage_service.dart';
 
 class MedicalKnowledgeLocal {
@@ -89,119 +88,20 @@ class MedicalKnowledgeLocal {
   // ============================================================
 
   List<Map<String, dynamic>> _getInitialDrugs() {
+    // Keep names for offline lookup only. No unreviewed dose or safety claims
+    // are seeded; medication decisions must use an approved leaflet or clinician.
     return [
-      {
-        'name': 'باراسيتامول',
-        'name_en': 'Paracetamol',
-        'category': 'مسكن ألم وخافض حرارة',
-        'dose_adult': '500-1000mg كل 6-8 ساعات',
-        'dose_child': '15mg/kg كل 6 ساعات',
-        'max_daily': '4g',
-        'pregnancy': 'آمن',
-        'breastfeeding': 'آمن',
-        'side_effects': 'نادر: حساسية جلدية',
-        'interactions': 'وارفارين (زيادة تأثير)',
-        'contraindications': 'أمراض كبد حادة',
-        'notes': 'لا يتعارض مع المعدة',
-        'overdose': 'تلف كبدي حاد - طوارئ',
-        'forms': jsonEncode(['أقراص', 'شراب', 'تحاميل', 'حقن']),
-        'brands': jsonEncode(['بانادول', 'تايلينول', 'أدول']),
-      },
-      {
-        'name': 'ايبوبروفين',
-        'name_en': 'Ibuprofen',
-        'category': 'مضاد التهاب غير ستيرويدي',
-        'dose_adult': '200-400mg كل 6-8 ساعات',
-        'dose_child': '10mg/kg كل 8 ساعات',
-        'max_daily': '1200mg',
-        'pregnancy': 'غير آمن (الثلث الثالث)',
-        'breastfeeding': 'باستشارة طبيب',
-        'side_effects': 'حرقة معدة، قرحة، تأثير كلوي',
-        'interactions': 'مميعات دم، ليثيوم، ميثوتريكسيت',
-        'contraindications': 'قرحة معدة نشطة، فشل كلوي',
-        'notes': 'يؤخذ مع الطعام لتقليل تأثير المعدة',
-        'overdose': 'غثيان، نزيف معدي، فشل كلوي',
-        'forms': jsonEncode(['أقراص', 'جل', 'شراب', 'تحاميل']),
-        'brands': jsonEncode(['نوروفين', 'أدفيل', 'بروفين']),
-      },
-      {
-        'name': 'اموكسيسيلين',
-        'name_en': 'Amoxicillin',
-        'category': 'مضاد حيوي - بنسلين',
-        'dose_adult': '500mg كل 8 ساعات',
-        'dose_child': '50mg/kg/يوم مقسمة',
-        'max_daily': '1500mg',
-        'pregnancy': 'آمن نسبياً',
-        'breastfeeding': 'آمن',
-        'side_effects': 'إسهال، حساسية، طفح',
-        'interactions': 'ألوبيورينول (زيادة طفح)',
-        'contraindications': 'حساسية البنسلين',
-        'notes': 'أكمل الكورس كاملاً',
-        'overdose': 'غثيان، إقياء، إسهال',
-        'forms': jsonEncode(['أقراص', 'كبسولات', 'شراب', 'حقن']),
-        'brands': jsonEncode(['أموكسيل', 'هيكسيل']),
-      },
+      {'name': 'باراسيتامول', 'name_en': 'Paracetamol', 'category': 'مسكن وخافض حرارة', 'notes': 'راجع النشرة المعتمدة أو الطبيب/الصيدلي قبل الاستخدام.'},
+      {'name': 'ايبوبروفين', 'name_en': 'Ibuprofen', 'category': 'مضاد التهاب غير ستيرويدي', 'notes': 'راجع النشرة المعتمدة أو الطبيب/الصيدلي قبل الاستخدام.'},
+      {'name': 'اموكسيسيلين', 'name_en': 'Amoxicillin', 'category': 'مضاد حيوي', 'notes': 'لا تستخدم المضادات الحيوية دون وصفة ومتابعة طبية.'},
     ];
   }
 
-  List<Map<String, dynamic>> _getInitialDiseases() {
-    return [
-      {
-        'name': 'ارتفاع ضغط الدم',
-        'category': 'قلب وأوعية دموية',
-        'symptoms': 'صداع خلفي، دوخة، نزيف أنف، زغللة عين، ضيق تنفس',
-        'causes': 'وراثة، ملح زائد، سمنة، توتر نفسي، قلة حركة',
-        'treatment': 'أدوية خافضة، تقليل ملح، رياضة، وزن مثالي',
-        'complications': 'جلطة دماغية، فشل كلوي، فشل قلبي، عمى',
-        'prevention': 'غذاء صحي قليل الملح، رياضة 150 دقيقة/أسبوع',
-        'normal_range': 'أقل من 120/80 mmHg',
-        'when_to_see_doctor': 'قراءة متكررة ≥140/90 أو أعراض شديدة',
-        'emergency_warning': 'صداع شديد مفاجئ، ضيق تنفس، ألم صدر',
-      },
-      {
-        'name': 'السكري نوع 2',
-        'category': 'غدد صماء وسكري',
-        'symptoms': 'عطش مفرط، تبول كثير، جوع مستمر، فقدان وزن، تعب',
-        'causes': 'وراثة، سمنة، قلة حركة، مقاومة إنسولين',
-        'treatment': 'ميتفورمين، أنسولين، حمية، رياضة، مراقبة سكر',
-        'complications': 'عمى، فشل كلوي، بتر، أمراض قلبية',
-        'prevention': 'وزن صحي، رياضة منتظمة، تغذية متوازنة، فحص سنوي',
-        'normal_range': 'سكر صائم <100 mg/dL، تراكمي <5.7%',
-        'when_to_see_doctor': 'سكر صائم ≥126 أو تراكمي ≥6.5%',
-        'emergency_warning': 'غيبوبة، تنفس كيتوني، عطش شديد',
-      },
-    ];
-  }
+  List<Map<String, dynamic>> _getInitialDiseases() => [];
 
-  List<Map<String, String>> _getInitialFirstAid() {
-    return [
-      {
-        'name': 'النزيف',
-        'steps': '1. اضغط بقوة على الجرح بقطعة قماش نظيفة\n2. ارفع الجزء المصاب فوق مستوى القلب\n3. اتصل بالطوارئ إذا لم يتوقف النزيف بعد 10 دقائق',
-        'warnings': '⚠️ لا ترفع الضغط حتى وصول المساعدة',
-      },
-      {
-        'name': 'الحروق',
-        'steps': '1. ضع المنطقة المصابة تحت ماء بارد جارٍ لمدة 10-15 دقيقة\n2. لا تضع ثلجاً مباشرة على الحرق\n3. غطِ الجرح بضمادة معقمة\n4. لا تفرقع الفقاعات',
-        'warnings': '⚠️ للحروق الكبيرة أو في الوجه - اتصل بالطوارئ فوراً',
-      },
-    ];
-  }
+  List<Map<String, String>> _getInitialFirstAid() => [];
 
-  List<String> _getInitialTips() {
-    return [
-      'اشرب 8-10 أكواب ماء يومياً 💧',
-      'تناول 5 حصص من الخضار والفواكه يومياً 🥗',
-      'قلل استهلاك الملح إلى أقل من 5 غرامات يومياً 🧂',
-      'مارس المشي 30 دقيقة يومياً 🚶',
-      'نم 7-8 ساعات ليلاً 😴',
-      'مارس تمارين التنفس العميق 🧘',
-      'تناول الأسماك الدهنية مرتين أسبوعياً 🐟',
-      'تجنب التدخين والكحول 🚭',
-      'افحص ضغط الدم شهرياً 🩺',
-      'افحص السكر سنوياً 🧪',
-    ];
-  }
+  List<String> _getInitialTips() => [];
 
   // ============================================================
   // 🗑️ تنظيف
