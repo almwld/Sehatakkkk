@@ -25,9 +25,20 @@ exports.onPharmacyOrderCreated = onDocumentCreated('orders/{orderId}', async eve
   const snap = event.data;
   if (!snap) return;
   const order = snap.data() || {};
-  if (order.type !== 'pharmacy' || order.status !== 'paid') return;
+  if (order.type !== 'pharmacy' || (order.paymentStatus !== 'paid' && order.status !== 'paid')) return;
   const patientId = String(order.userId || '');
   if (!patientId || !Array.isArray(order.items)) return;
+
+  const pharmacyOwnerId = String(order.providerId || '');
+  if (pharmacyOwnerId) {
+    await sendFcm(pharmacyOwnerId, {
+      type: 'pharmacy_order_created',
+      orderId: event.params.orderId,
+      invoiceId: order.invoiceId || '',
+      title: 'طلب صيدلية جديد',
+      body: 'لديك طلب مدفوع جديد يحتاج إلى التأكيد.',
+    });
+  }
 
   const medicationsSnap = await db.collection('users').doc(patientId).collection('medications').where('active', '==', true).get();
   const medications = medicationsSnap.docs.map(d => ({id: d.id, ...d.data()}));
