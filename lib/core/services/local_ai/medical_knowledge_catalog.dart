@@ -155,6 +155,37 @@ class MedicalKnowledgeCatalog {
       'source': 'WHO — Physical activity',
       'url': 'https://www.who.int/initiatives/behealthy/physical-activity/',
       'review': 'editorial_source_checked_clinician_review_pending'
+    },,
+
+    {
+      'id': 'diarrhoea',
+      'aliases': ['اسهال','إسهال','مغص واسهال','اسهال شديد','diarrhea','diarrhoea','loose stools','diarrhée'],
+      'ar': 'الإسهال قد يسبب فقدان الماء والأملاح. استخدم محلول الإماهة الفموية الجاهز بعد تحضيره تماماً وفق تعليمات العبوة، واستمر في تناول الطعام المناسب والسوائل الآمنة. اطلب تقييماً عاجلاً عند وجود دم في البراز، أو خمول شديد، أو عدم القدرة على الشرب، أو علامات جفاف، أو استمرار الحالة.',
+      'en': 'Diarrhoea can cause loss of water and salts. Use a prepared oral rehydration solution exactly as directed on its packet, and continue suitable food and safe fluids. Seek urgent assessment for blood in the stool, marked lethargy, inability to drink, signs of dehydration, or persistent illness.',
+      'fr': 'La diarrhée peut entraîner une perte d’eau et de sels. Utilisez une solution de réhydratation orale en respectant exactement les instructions du sachet, et poursuivez une alimentation adaptée ainsi que des boissons sûres. Demandez rapidement un avis médical en cas de sang dans les selles, de grande somnolence, d’incapacité à boire, de signes de déshydratation ou de symptômes persistants.',
+      'source': 'WHO — Diarrhoeal disease fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/diarrhoeal-disease',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'malaria',
+      'aliases': ['ملاريا','حمى الملاريا','رعشة مع حرارة','malaria','paludisme'],
+      'ar': 'قد تبدأ الملاريا بحمى وصداع وقشعريرة، لكن هذه الأعراض لا تكفي لتشخيصها. إذا ظهرت حمى بعد الإقامة في منطقة تنتشر فيها الملاريا، اطلب تقييماً وفحصاً تشخيصياً سريعاً؛ لا تبدأ علاجاً مضاداً للملاريا من نفسك. الارتباك أو التشنجات أو صعوبة التنفس أو الضعف الشديد تستدعي الطوارئ فوراً.',
+      'en': 'Malaria may begin with fever, headache and chills, but these symptoms cannot confirm it. If fever develops after being in an area where malaria occurs, seek prompt clinical assessment and testing; do not start antimalarial treatment yourself. Confusion, seizures, breathing difficulty or extreme weakness require emergency care.',
+      'fr': 'Le paludisme peut commencer par de la fièvre, des maux de tête et des frissons, mais ces signes ne suffisent pas au diagnostic. En cas de fièvre après un séjour dans une zone où le paludisme circule, demandez rapidement une évaluation et un test ; ne commencez pas vous-même un traitement antipaludique. Confusion, convulsions, difficultés respiratoires ou faiblesse extrême nécessitent des soins d’urgence.',
+      'source': 'WHO — Malaria questions and answers',
+      'url': 'https://www.who.int/news-room/questions-and-answers/item/malaria',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'child_pneumonia',
+      'aliases': ['التهاب رئوي عند طفل','التهاب رئوي للاطفال','طفلي يتنفس بسرعة','تنفس سريع عند الطفل','pneumonia in child','child fast breathing','pneumonie chez enfant','respiration rapide enfant'],
+      'ar': 'قد تظهر عدوى الرئة عند الطفل بسعال أو صعوبة تنفس، مع أو دون حمى. سرعة التنفس أو انكماش أسفل الصدر أثناء الشهيق من العلامات التي تستلزم تقييماً طبياً سريعاً. عدم القدرة على الرضاعة أو الشرب، أو فقدان الوعي، أو التشنجات، أو صعوبة التنفس الشديدة علامات طارئة.',
+      'en': 'Pneumonia in a child may cause cough or difficult breathing, with or without fever. Fast breathing or the lower chest moving inward during inhalation needs prompt medical assessment. Inability to breastfeed or drink, unconsciousness, convulsions, or severe breathing difficulty are emergency signs.',
+      'fr': 'La pneumonie chez l’enfant peut provoquer une toux ou une difficulté respiratoire, avec ou sans fièvre. Une respiration rapide ou un creusement de la partie inférieure du thorax à l’inspiration nécessite une évaluation médicale rapide. L’incapacité à téter ou boire, la perte de connaissance, les convulsions ou une difficulté respiratoire sévère sont des signes d’urgence.',
+      'source': 'WHO — Pneumonia fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/pneumonia',
+      'review': 'editorial_source_checked_clinician_review_pending'
     },
   ];
 
