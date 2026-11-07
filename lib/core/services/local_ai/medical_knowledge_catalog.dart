@@ -101,7 +101,7 @@ class MedicalKnowledgeCatalog {
       'ar': 'أنا آسف أنك تمر بهذا. إذا كنت في خطر الآن أو قد تؤذي نفسك، ابتعد عن أي وسيلة قد تستخدمها، وابقَ مع شخص تثق به، واطلب مساعدة الطوارئ المحلية فوراً. أخبرني فقط: هل أنت في خطر مباشر الآن؟',
       'en': 'I’m sorry you’re going through this. If you may hurt yourself now, move away from anything you could use, stay with someone you trust, and contact local emergency help immediately. Just tell me: are you in immediate danger right now?',
       'fr': 'Je suis désolé que vous traversiez cela. Si vous risquez de vous faire du mal maintenant, éloignez-vous de tout moyen dangereux, restez avec une personne de confiance et contactez immédiatement les secours locaux. Dites-moi simplement : êtes-vous en danger immédiat ?',
-      'source': 'Resuscitation Council UK — 2025 First Aid Guidelines (suicidal thoughts section)',
+      'source': 'WHO — Suicide: questions and answers',
       'url': 'https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/first-aid-guidelines',
       'review': 'editorial_source_checked_clinician_review_pending'
     }
@@ -143,6 +143,37 @@ class MedicalKnowledgeCatalog {
       'fr': 'Privilégiez une alimentation variée et équilibrée : légumes, fruits, légumineuses, céréales complètes et sources de protéines adaptées ; limitez le sel, les sucres libres et les acides gras trans. Les besoins varient selon l’âge, la grossesse, les maladies et les médicaments. Demandez conseil à un professionnel pour un régime thérapeutique personnalisé.',
       'source': 'World Health Organization — Healthy diet fact sheet',
       'url': 'https://www.who.int/en/news-room/fact-sheets/detail/healthy-diet',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },,
+
+    {
+      'id': 'hypertension',
+      'aliases': ['ارتفاع ضغط الدم','ضغط مرتفع','الضغط عالي','ضغطي مرتفع','ضغط الدم','hypertension','high blood pressure','tension arterielle','tension élevée'],
+      'ar': 'قد لا يسبب ارتفاع ضغط الدم أعراضاً؛ القياس المتكرر لدى مختص هو الطريقة لمعرفة ذلك. قد تزيد المخاطر مع كثرة الملح، وقلة الحركة، والتدخين، وزيادة الوزن. قلّل الملح، وتحرك بانتظام، ولا توقف دواءً موصوفاً دون مراجعة الطبيب. التشخيص وخطة العلاج يحددهما مختص صحي.',
+      'en': 'High blood pressure often causes no symptoms; repeated measurement by a health professional is how it is detected. Risk can increase with excess salt, inactivity, tobacco and excess weight. Limit salt, stay active, and do not stop prescribed medicine without medical advice. A health professional must confirm the diagnosis and care plan.',
+      'fr': 'L’hypertension ne provoque souvent aucun symptôme ; des mesures répétées par un professionnel permettent de la détecter. Le risque augmente notamment avec l’excès de sel, l’inactivité, le tabac et le surpoids. Limitez le sel, restez actif et n’arrêtez pas un traitement prescrit sans avis médical. Le diagnostic et le suivi relèvent d’un professionnel.',
+      'source': 'WHO — Hypertension fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/hypertension',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'diabetes',
+      'aliases': ['السكري','مرض السكر','داء السكري','سكر الدم','عندي سكر','diabetes','blood sugar','diabete','glycemie'],
+      'ar': 'قد تشمل أعراض السكري العطش الشديد، وكثرة التبول، والتعب، وتشوش الرؤية، أو فقدان الوزن دون قصد. وقد تكون أعراض النوع الثاني خفيفة أو غير ملحوظة في البداية. لا تكفي الأعراض للتشخيص؛ يلزم فحص وتقييم طبي. اتبع خطة الرعاية المقررة ولا تغيّر الأدوية أو جرعاتها بنفسك.',
+      'en': 'Possible diabetes symptoms include unusual thirst, frequent urination, tiredness, blurred vision, or unintended weight loss. Type 2 symptoms may be mild or unnoticed early on. Symptoms alone cannot confirm diabetes; testing and clinical assessment are needed. Follow your care plan and do not change medicines or doses yourself.',
+      'fr': 'Les signes possibles du diabète comprennent une soif inhabituelle, des urines fréquentes, de la fatigue, une vision trouble ou une perte de poids involontaire. Les symptômes du type 2 peuvent être légers ou passer inaperçus au début. Les symptômes seuls ne suffisent pas au diagnostic ; des examens et une évaluation médicale sont nécessaires. Suivez votre plan de soins sans modifier vous-même vos médicaments ou leurs doses.',
+      'source': 'WHO — Diabetes fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/diabetes',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'physical_activity',
+      'aliases': ['النشاط البدني','الرياضة الصحية','كم امشي','الوقاية الصحية','المشي للصحة','physical activity','exercise','activite physique','exercice physique'],
+      'ar': 'للبالغين، توصي منظمة الصحة العالمية عادةً بما لا يقل عن 150 دقيقة أسبوعياً من النشاط الهوائي المعتدل، أو 75 دقيقة من النشاط الشديد، مع تمارين تقوية العضلات يومين أو أكثر أسبوعياً. بعض النشاط أفضل من عدمه؛ ابدأ تدريجياً بما يناسب قدرتك. إذا كان لديك مرض مزمن أو أعراض مقلقة، استشر مختصاً بشأن النشاط المناسب.',
+      'en': 'For adults, WHO recommends at least 150 minutes per week of moderate aerobic activity, or 75 minutes of vigorous activity, plus muscle-strengthening activity on two or more days. Some activity is better than none; start gradually at a level suited to your ability. If you have a chronic condition or concerning symptoms, ask a health professional what is appropriate.',
+      'fr': 'Pour les adultes, l’OMS recommande au moins 150 minutes d’activité aérobie modérée par semaine, ou 75 minutes d’activité intense, ainsi que du renforcement musculaire au moins deux jours par semaine. Toute activité vaut mieux que l’inactivité ; commencez progressivement selon vos capacités. En cas de maladie chronique ou de symptômes préoccupants, demandez conseil à un professionnel.',
+      'source': 'WHO — Physical activity',
+      'url': 'https://www.who.int/initiatives/behealthy/physical-activity/',
       'review': 'editorial_source_checked_clinician_review_pending'
     },
   ];
