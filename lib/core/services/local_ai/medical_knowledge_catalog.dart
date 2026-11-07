@@ -144,7 +144,7 @@ class MedicalKnowledgeCatalog {
       'source': 'World Health Organization — Healthy diet fact sheet',
       'url': 'https://www.who.int/en/news-room/fact-sheets/detail/healthy-diet',
       'review': 'editorial_source_checked_clinician_review_pending'
-    },,
+    },
 
     {
       'id': 'physical_activity',
@@ -155,7 +155,7 @@ class MedicalKnowledgeCatalog {
       'source': 'WHO — Physical activity',
       'url': 'https://www.who.int/initiatives/behealthy/physical-activity/',
       'review': 'editorial_source_checked_clinician_review_pending'
-    },,
+    },
 
     {
       'id': 'diarrhoea',
