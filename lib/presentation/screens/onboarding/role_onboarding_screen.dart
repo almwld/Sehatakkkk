@@ -64,7 +64,7 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
     final specialty = widget.specialty ?? 'طبيب';
     return [
       OnboardingPage(
-        title: 'مرحباً دكتور $specialty',
+        title: '${_localizedUiText(context, 'مرحباً دكتور')} ${_localizedUiText(context, specialty)}',
         description: 'أهلاً بك في منصة صحتك الطبية',
         icon: Icons.local_hospital,
         color: Colors.blue,
