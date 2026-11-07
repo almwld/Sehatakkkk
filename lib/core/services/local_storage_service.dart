@@ -319,6 +319,7 @@ class LocalStorageService {
       });
     } catch (e) {
       print('❌ Error saving message: $e');
+      rethrow;
     }
   }
 
@@ -342,7 +343,7 @@ class LocalStorageService {
       return result.reversed.toList();
     } catch (e) {
       print('❌ Error getting conversation: $e');
-      return [];
+      rethrow;
     }
   }
 
@@ -363,6 +364,7 @@ class LocalStorageService {
       );
     } catch (e) {
       print('❌ Error clearing conversation: $e');
+      rethrow;
     }
   }
 
