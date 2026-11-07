@@ -77,6 +77,7 @@ class _MoreScreenState extends State<MoreScreen>
   bool get wantKeepAlive => true;
 
   late ScrollController _scrollController;
+  late final PageController _categoryPageController;
   bool _isScrolled = false;
   String _selectedCategory = 'الكل';
 
@@ -156,8 +157,8 @@ class _MoreScreenState extends State<MoreScreen>
     },
   ];
 
-  List<Map<String, dynamic>> get _filteredServices {
-    switch (_selectedCategory) {
+  List<Map<String, dynamic>> _servicesForCategory(String category) {
+    switch (category) {
       case 'رعاية عائلية':
         return [
           {'icon': 'assets/images/services/womens_health.webp', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const WomensHealthScreen()},
@@ -264,6 +265,7 @@ class _MoreScreenState extends State<MoreScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _scrollController = widget.scrollController ?? ScrollController();
+    _categoryPageController = PageController(initialPage: 0);
     _scrollController.addListener(() {
       if (mounted) {
         setState(() {
@@ -279,6 +281,7 @@ class _MoreScreenState extends State<MoreScreen>
     if (widget.scrollController == null) {
       _scrollController.dispose();
     }
+    _categoryPageController.dispose();
     super.dispose();
   }
 
@@ -363,7 +366,7 @@ class _MoreScreenState extends State<MoreScreen>
             const SizedBox(height: 16),
             _buildCategoriesBar(isDark),
             const SizedBox(height: 20),
-            _buildFilteredServicesGrid(isDark),
+            _buildCategoryPages(isDark),
             const SizedBox(height: 24),
             _buildLogoutButton(isDark),
           ],
@@ -455,7 +458,16 @@ class _MoreScreenState extends State<MoreScreen>
           final category = _categories[index];
           final isSelected = _selectedCategory == category;
           return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = category),
+            onTap: () {
+              final index = _categories.indexOf(category);
+              if (index >= 0) {
+                _categoryPageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeInOut,
+                );
+              }
+            },
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -474,8 +486,39 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
-  Widget _buildFilteredServicesGrid(bool isDark) {
-    final services = _filteredServices;
+  Widget _buildCategoryPages(bool isDark) {
+    final currentServices = _servicesForCategory(_selectedCategory);
+    final availableWidth = MediaQuery.of(context).size.width - 32;
+    final itemWidth = (availableWidth - 20) / 3;
+    final rowCount = (currentServices.length / 3).ceil();
+    final pageHeight = currentServices.isEmpty
+        ? 80.0
+        : rowCount * (itemWidth / 0.80) + (rowCount - 1) * 10;
+
+    return SizedBox(
+      height: pageHeight,
+      child: PageView.builder(
+        controller: _categoryPageController,
+        itemCount: _categories.length,
+        onPageChanged: (index) {
+          if (_selectedCategory != _categories[index]) {
+            setState(() => _selectedCategory = _categories[index]);
+          }
+        },
+        itemBuilder: (context, index) {
+          return _buildServicesGrid(
+            isDark,
+            _servicesForCategory(_categories[index]),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildServicesGrid(
+    bool isDark,
+    List<Map<String, dynamic>> services,
+  ) {
     if (services.isEmpty) {
       return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Text(AppStrings.of(context).translate('لا توجد خدمات في هذا القسم'), style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]))));
     }
