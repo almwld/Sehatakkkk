@@ -187,6 +187,27 @@ class MedicalKnowledgeCatalog {
       'url': 'https://www.who.int/news-room/fact-sheets/detail/pneumonia',
       'review': 'editorial_source_checked_clinician_review_pending'
     },
+
+    {
+      'id': 'influenza',
+      'aliases': ['انفلونزا','إنفلونزا','الانفلونزا','الإنفلونزا','نزلة برد شديدة','flu','influenza','grippe','grippe saisonnière'],
+      'ar': 'قد تبدأ الإنفلونزا فجأة بحمى وسعال وصداع وآلام عضلية وإرهاق والتهاب حلق أو سيلان الأنف. قد يتعافى كثيرون خلال نحو أسبوع، لكن الخطر أعلى لدى الحوامل والأطفال دون الخامسة وكبار السن ومن لديهم أمراض مزمنة أو ضعف مناعة. الراحة والسوائل الآمنة والحد من مخالطة الآخرين تساعد؛ اطلب الرعاية إذا ساءت الأعراض أو كانت شديدة. اللقاح الموسمي وسيلة الوقاية الأهم.',
+      'en': 'Flu can begin suddenly with fever, cough, headache, muscle aches, fatigue, sore throat or a runny nose. Many people recover in about a week, but risk is higher during pregnancy, in children under five, older adults, and people with chronic illness or weakened immunity. Rest, safe fluids and limiting close contact can help; seek care if symptoms are severe or worsen. Seasonal vaccination is the key preventive measure.',
+      'fr': 'La grippe débute souvent brutalement par de la fièvre, une toux, des maux de tête, des douleurs musculaires, de la fatigue, un mal de gorge ou un écoulement nasal. Beaucoup guérissent en environ une semaine, mais le risque est plus élevé pendant la grossesse, chez les enfants de moins de cinq ans, les personnes âgées et celles atteintes de maladies chroniques ou immunodéprimées. Repos, boissons sûres et limitation des contacts peuvent aider ; consultez si les symptômes sont sévères ou s’aggravent. La vaccination saisonnière est la principale mesure préventive.',
+      'source': 'WHO — Influenza (seasonal) fact sheet',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/influenza-(seasonal)',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'severe_headache',
+      'aliases': ['صداع شديد مفاجئ','اسوأ صداع','أسوأ صداع','صداع كالصاعقة','صداع مع تيبس الرقبة','sudden severe headache','worst headache','thunderclap headache','céphalée brutale intense','pire mal de tête'],
+      'ar': 'اطلب الطوارئ فوراً إذا بدأ الصداع فجأة وكان شديداً جداً، أو صاحبه ضعف أو خدر مفاجئ، أو اضطراب الكلام أو الرؤية أو التوازن، أو تشوش أو تشنجات، أو حمى شديدة مع تيبس الرقبة، أو حدث بعد إصابة في الرأس. لا تقد بنفسك.',
+      'en': 'Seek emergency help immediately for a sudden, extremely severe headache, or headache with new weakness or numbness, speech, vision or balance problems, confusion, seizures, a high fever with a stiff neck, or a recent head injury. Do not drive yourself.',
+      'fr': 'Demandez une aide d’urgence immédiate en cas de céphalée soudaine et extrêmement intense, ou accompagnée d’une faiblesse ou d’un engourdissement nouveau, de troubles de la parole, de la vision ou de l’équilibre, de confusion, de convulsions, d’une forte fièvre avec raideur de la nuque ou d’un traumatisme crânien récent. Ne conduisez pas vous-même.',
+      'source': 'NHS — Headaches',
+      'url': 'https://www.nhs.uk/symptoms/headaches/',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
   ];
 
   static String normalize(String value) => value
