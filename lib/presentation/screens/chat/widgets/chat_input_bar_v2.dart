@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -212,7 +213,7 @@ class _ChatInputBarState extends State<ChatInputBar>
       if (url == null || user == null) throw Exception('audio_upload_failed');
       await _writeMediaMessage(user, {
         'type': 'audio',
-        'text': '🎵 رسالة صوتية',
+        'text': AppStrings.of(context).translate('🎵 رسالة صوتية'),
         'audioUrl': url,
         'duration': _recordingDuration.inSeconds,
       });
