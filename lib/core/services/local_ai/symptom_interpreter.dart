@@ -176,13 +176,7 @@ class SymptomInterpreter {
             : language == 'fr'
                 ? ' Spécialité à envisager : ${_specialtyLabels[specialties.first]?['fr'] ?? specialties.first}.'
                 : ' Suggested specialty: ${_specialtyLabels[specialties.first]?['en'] ?? specialties.first}.';
-    final since = duration == null
-        ? ''
-        : language == 'fr'
-            ? ' depuis $duration.'
-            : language == 'en'
-                ? ' for $duration.'
-                : ' منذ $duration.';
+    final since = duration == null ? '' : ' $duration.';
     if (language == 'fr') return 'Symptômes compris : $summary.$since$specialty Depuis quand ont-ils commencé ?';
     if (language == 'en') return 'Symptoms understood: $summary.$since$specialty When did they start?';
     return 'الأعراض التي فهمتها: $summary.$since$specialty متى بدأت؟';
