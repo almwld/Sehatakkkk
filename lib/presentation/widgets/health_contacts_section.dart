@@ -12,6 +12,7 @@ import 'package:sehatak/presentation/widgets/status_row.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 
 class HealthContactsSection extends StatefulWidget {
   final bool isDark;
@@ -158,8 +159,8 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         leading: CircleAvatar(radius: 25, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: item.image.isNotEmpty ? NetworkImage(item.image) : null, child: item.image.isEmpty ? Icon(item.icon, color: AppColors.primary) : null),
-        title: Text(_t(item.name), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle: Text(_t(item.subtitle), maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
         onTap: item.userId.isEmpty ? null : () => _openChat(item),
       ),
@@ -173,13 +174,14 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
     void add(String category, String id, Map<String, dynamic> data, IconData icon) {
       final userId = (data['userId'] ?? data['uid'] ?? data['ownerId'] ?? id).toString();
       if (userId.isEmpty || userId == self) return;
-      final name = (data['name'] ?? data['displayName'] ?? data['title'] ?? 'حساب صحي').toString().trim();
+      final locale = AppStrings.of(context).locale;
+      final name = localizedField(data, 'name', locale, fallback: localizedValue(data['displayName'] ?? data['title'] ?? 'حساب صحي', locale)).trim();
       final image = (data['photoUrl'] ?? data['imageUrl'] ?? data['logoUrl'] ?? data['photo'] ?? '').toString();
       final availability = data['role'] == 'paramedic'
           ? (data['isAvailable'] == true && data['isOnline'] == true && data['acceptingEmergency'] == true ? 'متاح الآن' : 'غير متاح')
           : '';
-      final area = (data['serviceArea'] ?? data['area'] ?? data['address'] ?? data['location'] ?? '').toString().trim();
-      final baseSubtitle = (data['specialty'] ?? data['description'] ?? area ?? category).toString().trim();
+      final area = localizedField(data, 'serviceArea', locale, fallback: localizedField(data, 'area', locale, fallback: localizedField(data, 'address', locale, fallback: localizedField(data, 'location', locale)))).trim();
+      final baseSubtitle = localizedField(data, 'specialty', locale, fallback: localizedField(data, 'description', locale, fallback: area.isNotEmpty ? area : _t(category))).trim();
       final subtitle = availability.isEmpty ? baseSubtitle : '$availability • $baseSubtitle';
       records.add(_DirectoryRecord(category: category, userId: userId, name: name.isEmpty ? 'حساب صحي' : name, image: image, subtitle: subtitle.isEmpty ? category : subtitle, icon: icon, data: data));
     }
@@ -231,5 +233,5 @@ class _DirectoryRecord {
   final IconData icon;
   final Map<String, dynamic> data;
   const _DirectoryRecord({required this.category, required this.userId, required this.name, required this.image, required this.subtitle, required this.icon, required this.data});
-  String get searchText => '$category $name $subtitle ${data['specialty'] ?? ''} ${data['location'] ?? ''}'.toLowerCase();
+  String get searchText => '$category $name $subtitle ${data['specialty'] ?? ''} ${data['specialtyEn'] ?? ''} ${data['specialtyFr'] ?? ''} ${data['location'] ?? ''} ${data['locationEn'] ?? ''} ${data['locationFr'] ?? ''}'.toLowerCase();
 }
