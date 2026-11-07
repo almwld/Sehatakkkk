@@ -320,6 +320,7 @@ test('pharmacy order reads are scoped to patient and assigned pharmacy owner; cl
     const db = context.firestore();
     await setDoc(doc(db, 'pharmacies/pharmacy-1'), { ownerId: 'pharmacy-owner', status: 'approved', isActive: true });
     await setDoc(doc(db, 'orders/order-1'), { userId: 'patient-b', pharmacyId: 'pharmacy-1', providerId: 'pharmacy-owner', type: 'pharmacy', status: 'pending', total: 500 });
+    await setDoc(doc(db, 'orders/order-paid'), { userId: 'patient-b', pharmacyId: 'pharmacy-1', providerId: 'pharmacy-owner', type: 'pharmacy', status: 'pending', paymentStatus: 'paid', total: 500 });
   });
   const patient = env.authenticatedContext('patient-b').firestore();
   const owner = env.authenticatedContext('pharmacy-owner').firestore();
@@ -331,6 +332,7 @@ test('pharmacy order reads are scoped to patient and assigned pharmacy owner; cl
   await assertFails(updateDoc(doc(owner, 'orders/order-1'), { status: 'confirmed' }));
   await assertFails(updateDoc(doc(patient, 'orders/order-1'), { status: 'confirmed' }));
   await assertSucceeds(updateDoc(doc(patient, 'orders/order-1'), { status: 'cancelled' }));
+  await assertFails(updateDoc(doc(patient, 'orders/order-paid'), { status: 'cancelled' }));
   await assertSucceeds(updateDoc(doc(admin, 'orders/order-1'), { status: 'confirmed' }));
 });
 
