@@ -341,7 +341,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
           child: DropdownButtonFormField<String>(
             value: _selectedArea,
             decoration: InputDecoration(
-              labelText: 'المحافظة',
+              labelText: _t('المحافظة'),
               prefixIcon: Icon(Icons.location_city_outlined),
               border: OutlineInputBorder(),
             ),
