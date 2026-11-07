@@ -6,6 +6,9 @@ class LocalDialogueState {
   static const _key = 'local_ai_dialogue_state_v1';
   static const _maxTurns = 12;
 
+  LocalDialogueState({String? storageKey}) : _storageKey = storageKey ?? _key;
+  final String _storageKey;
+
   String? topic;
   String? lastIntent;
   final Map<String, String> slots = <String, String>{};
@@ -31,7 +34,7 @@ class LocalDialogueState {
 
   Future<void> save() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, jsonEncode({
+    await prefs.setString(_storageKey, jsonEncode({
       'topic': topic,
       'lastIntent': lastIntent,
       'slots': slots,
@@ -41,7 +44,7 @@ class LocalDialogueState {
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key);
+    final raw = prefs.getString(_storageKey);
     if (raw == null || raw.isEmpty) return;
     try {
       final data = jsonDecode(raw) as Map<String, dynamic>;
@@ -68,6 +71,6 @@ class LocalDialogueState {
     slots.clear();
     recentUserMessages.clear();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
+    await prefs.remove(_storageKey);
   }
 }
