@@ -158,7 +158,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      time,
+                      _displayTime(time),
                       style: TextStyle(color: selected ? Colors.white : Colors.grey.shade700),
                     ),
                   ),
