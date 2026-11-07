@@ -36,7 +36,13 @@ emergency services rather than displaying an unverified country-specific number.
 19. Seasonal influenza
 20. Severe headache warning signs
 
-21. Cholera and severe dehydration\n22. Dengue and severe dengue warning signs\n23. Newborn danger signs\n24. Pregnancy and postpartum danger signs, including pre-eclampsia\n25. Heatstroke\n26. Sepsis\n\n## Source register
+21. Cholera and severe dehydration
+22. Dengue and severe dengue warning signs
+23. Newborn danger signs
+24. Pregnancy and postpartum danger signs, including pre-eclampsia
+25. Heatstroke
+26. Sepsis
+\n## Source register
 
 - American Heart Association and American Red Cross, 2024 First Aid Guidelines:
   https://cpr.heart.org/en/resuscitation-science/2024-first-aid-guidelines
