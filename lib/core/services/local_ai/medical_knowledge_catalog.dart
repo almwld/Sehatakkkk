@@ -349,6 +349,57 @@ class MedicalKnowledgeCatalog {
       'url': 'https://www.who.int/en/news-room/fact-sheets/detail/malnutrition',
       'review': 'editorial_source_checked_clinician_review_pending'
     },
+
+    {
+      'id': 'urinary_tract_infection',
+      'aliases': ['التهاب المسالك البولية','التهاب بول','حرقان البول','حرقة البول','كثرة التبول مع حرقان','urinary tract infection','uti','burning urination','pain when urinating','infection urinaire','brûlure en urinant'],
+      'ar': 'قد يسبب التهاب المسالك البولية حرقة أو ألماً عند التبول، وكثرة أو إلحاح التبول، وأحياناً ألماً أسفل البطن. الحمى أو القشعريرة أو ألم الخاصرة/الظهر أو القيء أو الدم في البول قد تشير إلى إصابة الكلى وتحتاج تقييماً عاجلاً. الحمل والأطفال والرجال وبعض الأمراض المزمنة تستلزم تقييماً طبياً مبكراً. لا تستخدم مضاداً حيوياً من نفسك.',
+      'en': 'A urinary tract infection may cause burning or pain when urinating, frequent or urgent urination, and sometimes lower abdominal pain. Fever, chills, side/back pain, vomiting or blood in the urine may indicate kidney involvement and need urgent assessment. Pregnancy, children, men and some chronic conditions require early medical review. Do not self-start antibiotics.',
+      'fr': 'Une infection urinaire peut provoquer des brûlures ou douleurs en urinant, des envies fréquentes ou urgentes et parfois une douleur dans le bas-ventre. Fièvre, frissons, douleur sur le côté ou dans le dos, vomissements ou sang dans les urines peuvent indiquer une atteinte rénale et nécessitent une évaluation urgente. La grossesse, les enfants, les hommes et certaines maladies chroniques justifient un avis médical précoce. Ne prenez pas d’antibiotiques sans prescription.',
+      'source': 'NHS — Urinary tract infections; NHS — Kidney infection',
+      'url': 'https://www.nhs.uk/conditions/urinary-tract-infections-utis/',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'eye_emergency',
+      'aliases': ['فقدان النظر فجأة','فقدان البصر المفاجئ','ألم شديد في العين','مادة كيميائية في العين','دخل منظف في عيني','sudden vision loss','severe eye pain','chemical in eye','eye injury','perte soudaine de vision','douleur oculaire intense','produit chimique dans l’œil'],
+      'ar': 'فقدان النظر المفاجئ أو ألم العين الشديد أو إصابة نافذة أو دخول مادة كيميائية إلى العين حالة طارئة. اطلب المساعدة الطبية فوراً. عند دخول مادة كيميائية، ابدأ غسل العين بماء نظيف جارٍ باستمرار أثناء طلب المساعدة. لا تفرك العين ولا تحاول نزع جسم مغروس.',
+      'en': 'Sudden vision loss, severe eye pain, a penetrating injury or a chemical splash in the eye is an emergency. Seek medical help immediately. If a chemical enters the eye, begin continuous rinsing with clean running water while arranging urgent help. Do not rub the eye or remove an embedded object.',
+      'fr': 'Une perte soudaine de vision, une douleur oculaire intense, une blessure pénétrante ou une projection chimique dans l’œil constitue une urgence. Demandez immédiatement une aide médicale. En cas de produit chimique dans l’œil, commencez un rinçage continu à l’eau propre courante tout en organisant une prise en charge urgente. Ne frottez pas l’œil et ne retirez pas un objet planté.',
+      'source': 'NHS — Eye injuries; NHS — Eye pain and vision loss',
+      'url': 'https://www.nhs.uk/conditions/eye-injuries/',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'sleep_health',
+      'aliases': ['النوم الصحي','قلة النوم','ما اقدر انام','ارق','أرق','نومي متقطع','healthy sleep','sleep hygiene','insomnia','trouble sleeping','sommeil sain','insomnie','difficulté à dormir'],
+      'ar': 'يساعد النوم الكافي والمنتظم على الصحة الجسدية والنفسية. حاول تثبيت وقت النوم والاستيقاظ، وتهيئة غرفة هادئة ومريحة، وتقليل الشاشات قبل النوم والكافيين مساءً. تختلف الحاجة للنوم حسب العمر. إذا استمرت صعوبة النوم أو أثرت في يومك، تحدث مع مقدم رعاية صحية.',
+      'en': 'Enough, regular sleep supports physical and emotional health. Keep consistent bed and wake times, make the bedroom quiet and comfortable, reduce screens before bed and avoid caffeine late in the day. Sleep needs vary by age. If sleep problems persist or affect daily life, speak with a healthcare professional.',
+      'fr': 'Un sommeil suffisant et régulier favorise la santé physique et émotionnelle. Gardez des heures de coucher et de lever régulières, créez un environnement calme et confortable, réduisez les écrans avant le coucher et évitez la caféine en soirée. Les besoins varient selon l’âge. Si les troubles persistent ou affectent votre quotidien, parlez-en à un professionnel de santé.',
+      'source': 'CDC — About Sleep',
+      'url': 'https://www.cdc.gov/sleep/about/index.html',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'tobacco_cessation',
+      'aliases': ['التدخين','اريد اترك التدخين','ابطل تدخين','الاقلاع عن التدخين','تبغ','شيشة','smoking','quit smoking','tobacco','nicotine','arrêter de fumer','tabac','sevrage tabagique'],
+      'ar': 'التبغ بجميع أشكاله ضار، ولا يوجد مستوى آمن من التعرض لدخانه. الإقلاع يفيد الصحة في أي عمر، ويمكن أن تساعد المشورة وخدمات الدعم الصحي على النجاح. اطلب من مقدم الرعاية معلومات عن خدمات الإقلاع المناسبة والمتاحة في منطقتك.',
+      'en': 'All forms of tobacco are harmful, and there is no safe level of exposure to tobacco smoke. Quitting benefits health at any age; counselling and health-service support can improve the chance of success. Ask a healthcare professional about cessation support available in your area.',
+      'fr': 'Toutes les formes de tabac sont nocives et il n’existe aucun niveau d’exposition à la fumée considéré comme sûr. Arrêter est bénéfique à tout âge ; le conseil et l’accompagnement par les services de santé peuvent augmenter les chances de réussite. Demandez à un professionnel de santé quels services d’aide à l’arrêt sont disponibles dans votre région.',
+      'source': 'WHO — Tobacco and nicotine fact sheet',
+      'url': 'https://www.who.int/en/news-room/fact-sheets/detail/tobacco',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
+    {
+      'id': 'vaccination',
+      'aliases': ['التطعيم','التلقيح','جدول اللقاحات','تطعيمات الاطفال','تطعيمات الأطفال','لقاح','vaccination','immunization','vaccine schedule','vaccin','vaccination des enfants','calendrier vaccinal'],
+      'ar': 'التطعيم وسيلة فعالة للوقاية من أمراض معدية خطيرة. يختلف جدول اللقاحات حسب البلد والعمر والحالة الصحية؛ اتبع الجدول الوطني المعتمد واسأل مركز الصحة عن الجرعات الفائتة أو التطعيمات المناسبة للسفر أو الحمل أو الأمراض المزمنة. لا تعتمد على جدول عام بدلاً من السجل الصحي المحلي.',
+      'en': 'Vaccination is an effective way to prevent serious infectious diseases. Vaccine schedules vary by country, age and health status; follow your national schedule and ask a health service about missed doses or vaccines relevant to travel, pregnancy or chronic conditions. Do not use a generic schedule instead of your local immunization record.',
+      'fr': 'La vaccination est un moyen efficace de prévenir des maladies infectieuses graves. Les calendriers varient selon le pays, l’âge et l’état de santé ; suivez le calendrier national et demandez au service de santé comment rattraper des doses oubliées ou quelles vaccinations sont adaptées aux voyages, à la grossesse ou aux maladies chroniques. N’utilisez pas un calendrier générique à la place de votre carnet vaccinal local.',
+      'source': 'WHO — Immunization coverage; WHO — What is vaccination?',
+      'url': 'https://www.who.int/news-room/fact-sheets/detail/immunization-coverage',
+      'review': 'editorial_source_checked_clinician_review_pending'
+    },
   ];
 
   static String normalize(String value) => value
