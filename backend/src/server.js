@@ -10,6 +10,7 @@ const filesRoutes = require('./routes/files.routes');
 const chatRoutes = require('./routes/chat.routes');
 const { requireAuth } = require('./middleware/auth.middleware');
 const livekitRoutes = require('./routes/livekit.routes');
+const labResultsRoutes = require('./routes/lab-results.routes');
 
 const app = express();
 
@@ -67,6 +68,9 @@ app.use('/api/firebase', firebaseRoutes);
 
 // Nextcloud files
 app.use('/api/files', requireAuth, filesRoutes);
+
+// Private laboratory results (Nextcloud-backed)
+app.use('/api/lab-results', requireAuth, labResultsRoutes);
 
 // Chat / Firestore
 app.use('/api/chats', requireAuth, chatRoutes);
