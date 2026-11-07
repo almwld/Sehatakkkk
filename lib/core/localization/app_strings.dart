@@ -5008,6 +5008,8 @@ class AppStrings {
       'فرع حدة - بجوار.يوق الأحد': ['Hadda branch – near Souq Al-Ahad', 'Agence de Hadda – près du souk Al-Ahad'],
       'فرع الجراف - شارع الميثاق': ['Al-Jiraf branch – Al-Mithaq Street', 'Agence Al-Jiraf – rue Al-Mithaq'],
 
+      'تحليل شامل لمكونات الدم': ['Comprehensive blood count test', 'Hémogramme complet'],
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
