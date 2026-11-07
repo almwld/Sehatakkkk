@@ -485,12 +485,17 @@ exports.updatePharmacyOrderStatus = onCall(async (request) => {
     if (!pharmacySnap.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة');
     const pharmacy = pharmacySnap.data() || {};
     if (!isPharmacyOwner(pharmacy, uid, pharmacyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية إدارة طلبات هذه الصيدلية');
+    if (pharmacy.status !== 'approved' || pharmacy.isActive === false) throw new HttpsError('failed-precondition', 'حساب الصيدلية غير معتمد أو موقوف');
     const current = String(order.status || 'pending');
     if (!(PHARMACY_ORDER_TRANSITIONS[current] || []).includes(nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال من الحالة الحالية إلى الحالة المطلوبة');
     if (nextStatus === 'cancelled' && order.paymentStatus === 'paid') throw new HttpsError('failed-precondition', 'الطلب المدفوع يحتاج إلى إجراء استرداد موثق قبل الإلغاء');
     patientId = String(order.userId || '');
     const now = FieldValue.serverTimestamp();
-    tx.update(orderRef, {status: nextStatus, updatedAt: now, statusHistory: FieldValue.arrayUnion({status: nextStatus, actorId: uid, at: new Date().toISOString()})});
+    const updates = {status: nextStatus, updatedAt: now, statusHistory: FieldValue.arrayUnion({status: nextStatus, actorId: uid, at: new Date().toISOString()})};
+    if (nextStatus === 'confirmed') updates.confirmedAt = now;
+    if (nextStatus === 'preparing') updates.preparingAt = now;
+    if (nextStatus === 'ready') updates.readyAt = now;
+    tx.update(orderRef, updates);
     if (patientId) tx.set(db.collection('notifications').doc(), {userId: patientId, type: 'pharmacy_order_status', title: 'تحديث طلب الصيدلية', body: 'تم تحديث حالة طلبك إلى: ' + nextStatus, data: {orderId, status: nextStatus}, orderId, isRead: false, createdAt: now});
   });
   return {success: true, orderId, status: nextStatus};
