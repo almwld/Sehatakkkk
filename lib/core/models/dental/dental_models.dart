@@ -5,24 +5,24 @@ class DentalDoctor {
   final int experienceYears;
   final double rating;
   final Map<String, dynamic> sourceData;
-  const DentalDoctor({required this.id,required this.name,required this.specialty,required this.experienceYears,required this.rating,required this.address,required this.phone,this.sourceData = const {}};
+  const DentalDoctor({required this.id,required this.name,required this.specialty,required this.experienceYears,required this.rating,required this.address,required this.phone,this.sourceData = const {}});
   factory DentalDoctor.fromDoc(DocumentSnapshot<Map<String,dynamic>> doc){final d=doc.data()??const <String,dynamic>{};return DentalDoctor(id:doc.id,name:'${d['name']??'طبيب أسنان'}',specialty:'${d['specialty']??'طب الأسنان'}',experienceYears:(d['experienceYears'] as num?)?.toInt()??0,rating:(d['rating'] as num?)?.toDouble()??0,address:'${d['address']??''}',phone:'${d['phone']??''}',sourceData:d);}
 }
 class DentalClinic {
   final String id,name,address,phone; final double rating; final bool isOpen;
   final Map<String, dynamic> sourceData;
-  const DentalClinic({required this.id,required this.name,required this.address,required this.phone,required this.rating,required this.isOpen,this.sourceData = const {}};
+  const DentalClinic({required this.id,required this.name,required this.address,required this.phone,required this.rating,required this.isOpen,this.sourceData = const {}});
   factory DentalClinic.fromDoc(DocumentSnapshot<Map<String,dynamic>> doc){final d=doc.data()??const <String,dynamic>{};return DentalClinic(id:doc.id,name:'${d['name']??'عيادة أسنان'}',address:'${d['address']??''}',phone:'${d['phone']??''}',rating:(d['rating'] as num?)?.toDouble()??0,isOpen:d['isOpen']!=false,sourceData:d);}
 }
 class DentalHospital {
   final String id,name,address,phone; final bool emergency;
   final Map<String, dynamic> sourceData;
-  const DentalHospital({required this.id,required this.name,required this.address,required this.phone,required this.emergency,this.sourceData = const {}};
+  const DentalHospital({required this.id,required this.name,required this.address,required this.phone,required this.emergency,this.sourceData = const {}});
   factory DentalHospital.fromDoc(DocumentSnapshot<Map<String,dynamic>> doc){final d=doc.data()??const <String,dynamic>{};return DentalHospital(id:doc.id,name:'${d['name']??'مستشفى'}',address:'${d['address']??''}',phone:'${d['phone']??''}',emergency:d['emergency']==true,sourceData:d);}
 }
 class DentalTip {
   final String id,title,category,body;
   final Map<String, dynamic> sourceData;
-  const DentalTip({required this.id,required this.title,required this.category,required this.body,this.sourceData = const {}};
+  const DentalTip({required this.id,required this.title,required this.category,required this.body,this.sourceData = const {}});
   factory DentalTip.fromDoc(DocumentSnapshot<Map<String,dynamic>> doc){final d=doc.data()??const <String,dynamic>{};return DentalTip(id:doc.id,title:'${d['title']??'نصيحة'}',category:'${d['category']??'عام'}',body:'${d['body']??''}',sourceData:d);}
 }
