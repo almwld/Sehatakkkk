@@ -17,7 +17,15 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
-  String _notificationText(Map<String, dynamic> data, String field, {String fallback = ''}) => localizedField(data, field, AppStrings.of(context).locale, fallback: fallback);
+  String _notificationText(Map<String, dynamic> data, String field, {String fallback = ''}) {
+    final strings = AppStrings.of(context);
+    final value = localizedField(data, field, strings.locale, fallback: fallback);
+    final type = data['type']?.toString() ?? '';
+    if (type == 'new_message' || type == 'chat_message' || type == 'message') {
+      return value;
+    }
+    return value.isEmpty ? value : strings.translate(value);
+  }
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _watchNotifications(String uid) {

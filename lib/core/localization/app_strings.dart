@@ -5284,6 +5284,9 @@ class AppStrings {
       'نيتشر': ['Nature', 'Nature'],
 
       'رقم المريض غير متاح حالياً': ['Patient number is currently unavailable', 'Le numéro de patient est actuellement indisponible'],
+      'طلب صيدلية جديد': ['New pharmacy order', 'Nouvelle commande de pharmacie'],
+      'لديك طلب مدفوع جديد يحتاج إلى التأكيد.': ['You have a new paid order that needs confirmation.', 'Vous avez une nouvelle commande payée à confirmer.'],
+      'لديك طلب جديد يحتاج إلى التأكيد.': ['You have a new order that needs confirmation.', 'Vous avez une nouvelle commande à confirmer.'],
     };
 
     final entry = translations[value];
