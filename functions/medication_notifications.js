@@ -18,18 +18,32 @@ exports.onPrescriptionUpdated = onDocumentUpdated('consultations/{consultationId
   if (!Array.isArray(after.prescription) || JSON.stringify(before.prescription || null) === JSON.stringify(after.prescription || null)) return;
   const patientId = String(after.patientId || '');
   if (!patientId) return;
-  const names = after.prescription.map(x => String(x?.name || x?.medicine || x?.medication || '').trim()).filter(Boolean);
+  const prescription = after.prescription;
+  const names = prescription.map(x => String(x?.name || x?.medicine || x?.medication || '').trim()).filter(Boolean);
+  const namesEn = prescription.map(x => String(x?.nameEn || x?.name || x?.medicine || x?.medication || '').trim()).filter(Boolean);
+  const namesFr = prescription.map(x => String(x?.nameFr || x?.name || x?.medicine || x?.medication || '').trim()).filter(Boolean);
+  const doctorName = String(after.doctorName || 'الطبيب');
+  const doctorNameEn = String(after.doctorNameEn || after.doctorName || 'the doctor');
+  const doctorNameFr = String(after.doctorNameFr || after.doctorName || 'le médecin');
+  const body = 'أضاف ' + doctorName + ' وصفة دوائية' + (names.length ? ': ' + names.join('، ') : '') + '. تم نقلها إلى تذكير الأدوية.';
+  const bodyEn = doctorNameEn + ' added a new prescription' + (namesEn.length ? ': ' + namesEn.join(', ') : '') + '. It has been added to medication reminders.';
+  const bodyFr = doctorNameFr + ' a ajouté une nouvelle ordonnance' + (namesFr.length ? ' : ' + namesFr.join(', ') : '') + '. Elle a été ajoutée aux rappels de médicaments.';
   const data = {
     type: 'medication_prescription',
     title: 'وصفة دوائية جديدة',
-    body: 'أضاف ' + String(after.doctorName || 'الطبيب') + ' وصفة دوائية' + (names.length ? ': ' + names.join('، ') : '') + '. تم نقلها إلى تذكير الأدوية.',
+    titleEn: 'New medication prescription',
+    titleFr: 'Nouvelle ordonnance médicale',
+    body,
+    bodyEn,
+    bodyFr,
     consultationId: event.params.consultationId,
     doctorId: after.doctorId || '',
     recipientId: patientId,
     action: 'medications',
   };
   await db.collection('notifications').add({
-    userId: patientId, type: data.type, title: data.title, body: data.body,
+    userId: patientId, type: data.type, title: data.title, titleEn: data.titleEn, titleFr: data.titleFr,
+    body: data.body, bodyEn: data.bodyEn, bodyFr: data.bodyFr,
     data, consultationId: event.params.consultationId, doctorId: after.doctorId || null,
     action: 'medications', isRead: false, createdAt: admin.firestore.FieldValue.serverTimestamp()
   });
