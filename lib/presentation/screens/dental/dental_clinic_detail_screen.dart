@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/models/dental/dental_models.dart';
 import 'package:sehatak/core/services/dental_service.dart';
 
@@ -13,6 +14,7 @@ class DentalClinicDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(_localizedUiText(context, 'تفاصيل عيادة الأسنان'))),
       body: FutureBuilder<DentalClinic?>(
@@ -31,13 +33,13 @@ class DentalClinicDetailScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                clinic.name,
+                localizedField(clinic.sourceData, 'name', strings.locale, fallback: strings.translate(clinic.name)),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(clinic.address),
+              Text(localizedField(clinic.sourceData, 'address', strings.locale, fallback: clinic.address)),
               Text('${_localizedUiText(context, 'الهاتف: ')}${clinic.phone}'),
               Text('${_localizedUiText(context, 'التقييم: ')}${clinic.rating.toStringAsFixed(1)}'),
               Text(_localizedUiText(context, clinic.isOpen ? 'مفتوح الآن' : 'مغلق الآن')),

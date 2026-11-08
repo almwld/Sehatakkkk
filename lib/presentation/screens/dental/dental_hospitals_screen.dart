@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/services/dental_service.dart';
 
 class DentalHospitalsScreen extends StatelessWidget {
@@ -19,8 +20,8 @@ class DentalHospitalsScreen extends StatelessWidget {
             children: data.map((hospital) => Card(
               child: ListTile(
                 leading: Icon(hospital.emergency ? Icons.emergency : Icons.local_hospital, color: hospital.emergency ? Colors.red : Colors.cyan),
-                title: Text(hospital.name),
-                subtitle: Text('${hospital.address}\n${hospital.phone}'),
+                title: Text(localizedField(hospital.sourceData, 'name', strings.locale, fallback: strings.translate(hospital.name))),
+                subtitle: Text('${localizedField(hospital.sourceData, 'address', strings.locale, fallback: hospital.address)}\n${hospital.phone}'),
               ),
             )).toList(),
           );
