@@ -54,7 +54,7 @@ class ChatBot {
       (term) => normalized.contains(MedicalKnowledgeCatalog.normalize(term)),
     )) {
       return {
-        'response': _medicationSafetyReply(lang),
+        'response': _medicineSafetyReply(lang),
         'type': 'medicine_safety',
       };
     }
