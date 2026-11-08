@@ -5224,9 +5224,9 @@ class AppStrings {
       'ميكروفون': ['Microphone', 'Microphone'],
       'مكبر': ['Speaker', 'Haut-parleur'],
       '🎵 رسالة صوتية': ['🎵 Voice message', '🎵 Message vocal'],
-      '• رمز خاص (!@#$%^&)': ['• Special character (!@#$%^&)', '• Caractère spécial (!@#$%^&)'],
+      '• رمز خاص (!@#\$%^&)': ['• Special character (!@#\$%^&)', '• Caractère spécial (!@#\$%^&)'],
 
-      '• رمز خاص (!@#$%^&*)': ['• Special character (!@#$%^&*)', '• Caractère spécial (!@#$%^&*)'],
+      '• رمز خاص (!@#\$%^&*)': ['• Special character (!@#\$%^&*)', '• Caractère spécial (!@#\$%^&*)'],
 
       'الإثنين': ['Monday', 'Lundi'],
       'شوفان مع فواكه': ['Oatmeal with fruit', 'Flocons d’avoine aux fruits'],
