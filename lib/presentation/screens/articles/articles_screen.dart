@@ -264,6 +264,10 @@ class _ArticleCard extends StatelessWidget {
     required this.onTap,
   });
 
+  String _articleText(BuildContext context, ArticleModel a, String field) =>
+      localizedField(a.toFirestore(), field, AppStrings.of(context).locale,
+          fallback: field == 'title' ? a.title : '');
+
   String? get imageUrl {
     if (article.images != null) {
       for (final image in article.images!) {
@@ -423,6 +427,10 @@ class ArticleReaderScreen extends StatelessWidget {
     super.key,
     required this.article,
   });
+
+  String _articleText(BuildContext context, ArticleModel a, String field) =>
+      localizedField(a.toFirestore(), field, AppStrings.of(context).locale,
+          fallback: field == 'title' ? a.title : '');
 
   String? get imageUrl {
     if (article.images != null) {
