@@ -347,7 +347,7 @@ class _ArticleCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _articleText(article, 'title'),
+                    _articleText(context, article, 'title'),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -357,10 +357,10 @@ class _ArticleCard extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  if ((_articleText(article, 'summary').isNotEmpty || _articleText(article, 'subtitle').isNotEmpty)) ...[
+                  if ((_articleText(context, article, 'summary').isNotEmpty || _articleText(context, article, 'subtitle').isNotEmpty)) ...[
                     const SizedBox(height: 5),
                     Text(
-                      (_articleText(article, 'summary').isNotEmpty ? _articleText(article, 'summary') : _articleText(article, 'subtitle')),
+                      (_articleText(context, article, 'summary').isNotEmpty ? _articleText(context, article, 'summary') : _articleText(context, article, 'subtitle')),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: secondary, fontSize: 12, height: 1.5),
@@ -373,8 +373,8 @@ class _ArticleCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          _articleText(article, 'authorName').trim().isNotEmpty
-                              ? _articleText(article, 'authorName')
+                          _articleText(context, article, 'authorName').trim().isNotEmpty
+                              ? _articleText(context, article, 'authorName')
                               : AppStrings.of(context).translate('فريق صحتك'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -483,7 +483,7 @@ class ArticleReaderScreen extends StatelessWidget {
               ),
             const SizedBox(height: 7),
             Text(
-              _articleText(article, 'title'),
+              _articleText(context, article, 'title'),
               style: TextStyle(
                 color: text,
                 fontSize: 24,
@@ -491,10 +491,10 @@ class ArticleReaderScreen extends StatelessWidget {
                 fontWeight: FontWeight.w900,
               ),
             ),
-            if (_articleText(article, 'subtitle').trim().isNotEmpty) ...[
+            if (_articleText(context, article, 'subtitle').trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                _articleText(article, 'subtitle'),
+                _articleText(context, article, 'subtitle'),
                 style: TextStyle(color: body.withOpacity(.75), fontSize: 14, height: 1.6),
               ),
             ],
@@ -505,8 +505,8 @@ class ArticleReaderScreen extends StatelessWidget {
                 const SizedBox(width: 5),
                 Expanded(
                   child: Text(
-                    _articleText(article, 'authorName').trim().isNotEmpty
-                        ? _articleText(article, 'authorName')
+                    _articleText(context, article, 'authorName').trim().isNotEmpty
+                        ? _articleText(context, article, 'authorName')
                         : AppStrings.of(context).translate('فريق صحتك'),
                     style: TextStyle(color: body.withOpacity(.65), fontSize: 12),
                   ),
@@ -526,9 +526,9 @@ class ArticleReaderScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
               ),
               child: SelectableText(
-                (_articleText(article, 'content').trim().isEmpty && _articleText(article, 'summary').trim().isEmpty)
+                (_articleText(context, article, 'content').trim().isEmpty && _articleText(context, article, 'summary').trim().isEmpty)
                     ? AppStrings.of(context).translate('لا يوجد محتوى متاح لهذا المقال حالياً.')
-                    : (_articleText(article, 'content').trim().isNotEmpty ? _articleText(article, 'content').trim() : _articleText(article, 'summary').trim()),
+                    : (_articleText(context, article, 'content').trim().isNotEmpty ? _articleText(context, article, 'content').trim() : _articleText(context, article, 'summary').trim()),
                 style: TextStyle(color: body, fontSize: 15, height: 1.85),
               ),
             ),
