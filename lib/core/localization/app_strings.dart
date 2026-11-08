@@ -3616,7 +3616,7 @@ class AppStrings {
       '• 8 أحرف على الأقل': ['• At least 8 characters', '• Au moins 8 caractères'],
       '• حرف كبير وصغير': ['• Uppercase and lowercase letters', '• Lettres majuscules et minuscules'],
       '• رقم واحد على الأقل': ['• At least one number', '• Au moins un chiffre'],
-      '• رمز خاص (!@#\$%^&*)': ['• A special character (!@#\$%^&*)', '• Un caractère spécial (!@#\$%^&*)'],
+      '• رمز خاص (!@#\$%^&*)': ['• Special character (!@#\$%^&*)', '• Caractère spécial (!@#\$%^&*)'],
       'حفظ كلمة المرور الجديدة': ['Save new password', 'Enregistrer le nouveau mot de passe'],
       'ابحث في التواصل الصحي...': ['Search health contacts...', 'Rechercher des contacts santé...'],
       'لا توجد حسابات صحية متاحة للتواصل حالياً.': ['No health accounts are currently available to contact.', 'Aucun compte santé n’est actuellement disponible pour communiquer.'],
@@ -5226,7 +5226,6 @@ class AppStrings {
       '🎵 رسالة صوتية': ['🎵 Voice message', '🎵 Message vocal'],
       '• رمز خاص (!@#\$%^&)': ['• Special character (!@#\$%^&)', '• Caractère spécial (!@#\$%^&)'],
 
-      '• رمز خاص (!@#\$%^&*)': ['• Special character (!@#\$%^&*)', '• Caractère spécial (!@#\$%^&*)'],
 
       'الإثنين': ['Monday', 'Lundi'],
       'شوفان مع فواكه': ['Oatmeal with fruit', 'Flocons d’avoine aux fruits'],
