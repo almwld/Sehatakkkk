@@ -2,6 +2,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -22,6 +23,13 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   final _searchCtrl = TextEditingController();
   String _filterType = 'الكل';
   String _t(String value) => AppStrings.of(context).translate(value);
+
+  String _localizedField(Map<String, dynamic> data, String field, {String fallback = ''}) {
+    final raw = data[field];
+    final rawText = raw is String ? raw.trim() : '';
+    final safeFallback = rawText.isNotEmpty ? _t(rawText) : fallback;
+    return localizedField(data, field, AppStrings.of(context).locale, fallback: safeFallback);
+  }
   final _types = ['الكل', 'تقارير', 'تحاليل', 'أشعة', 'وصفات', 'ملاحظات'];
 
   @override
@@ -59,7 +67,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 if (query.isNotEmpty) {
                   records = records.where((doc) {
                     final data = doc.data();
-                    return '${data['title'] ?? ''} ${data['doctorName'] ?? ''}'.toLowerCase().contains(query);
+                    final searchable = '${_localizedField(data, 'title')} ${_localizedField(data, 'doctorName')} ${_localizedField(data, 'description')}'.toLowerCase();
+                    return searchable.contains(query);
                   }).toList();
                 }
                 if (_filterType != 'الكل') records = records.where((doc) => doc.data()['type'] == _filterType).toList();
@@ -101,6 +110,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     final rawDate = data['date'];
     final date = rawDate is Timestamp ? rawDate.toDate() : DateTime.now();
     final type = '${data['type'] ?? 'تقارير'}';
+    final typeLabel = _localizedField(data, 'type', fallback: _t('تقارير'));
+    final title = _localizedField(data, 'title', fallback: _t('ملف طبي'));
+    final doctorName = _localizedField(data, 'doctorName', fallback: _t('طبيب'));
+    final description = _localizedField(data, 'description');
     final color = type == 'تحاليل' ? AppColors.info : type == 'أشعة' ? AppColors.purple : type == 'وصفات' ? AppColors.success : type == 'ملاحظات' ? AppColors.warning : AppColors.primary;
     final attachments = (data['attachments'] as List?)?.cast<dynamic>() ?? const <dynamic>[];
     return Card(
@@ -110,12 +123,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(.1), borderRadius: BorderRadius.circular(8)), child: Text(_t(type), style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600))), const Spacer(), Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 10, color: AppColors.grey))]),
+            Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(.1), borderRadius: BorderRadius.circular(8)), child: Text(typeLabel, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600))), const Spacer(), Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 10, color: AppColors.grey))]),
             const SizedBox(height: 8),
-            Text('${data['title'] ?? _t('ملف طبي')}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text('${data['doctorName'] ?? _t('طبيب')}', style: const TextStyle(fontSize: 12, color: AppColors.grey)),
-            if (data['description'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text('${data['description']}', maxLines: 2, overflow: TextOverflow.ellipsis)),
+            Text(doctorName, style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+            if (description.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Text(description, maxLines: 2, overflow: TextOverflow.ellipsis)),
             const SizedBox(height: 8),
             Row(children: [const Icon(Icons.attachment, size: 14, color: AppColors.grey), const SizedBox(width: 4), Text('${attachments.length} ${_t('مرفق')}', style: const TextStyle(fontSize: 10, color: AppColors.grey)), const Spacer(), IconButton(icon: const Icon(Icons.share, size: 18, color: AppColors.primary), onPressed: () => _shareRecord(data)), IconButton(icon: const Icon(Icons.download, size: 18, color: AppColors.primary), onPressed: () => _openFirstAttachment(attachments))]),
           ],
@@ -124,7 +137,13 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
-  Future<void> _shareRecord(Map<String, dynamic> data) async => Share.share('${data['title'] ?? 'ملف طبي'}\n${data['doctorName'] ?? ''}\n${data['description'] ?? ''}', subject: _t('ملف طبي من صحتك'));
+  Future<void> _shareRecord(Map<String, dynamic> data) async {
+    final title = _localizedField(data, 'title', fallback: _t('ملف طبي'));
+    final doctorName = _localizedField(data, 'doctorName');
+    final description = _localizedField(data, 'description');
+    final content = [title, doctorName, description].where((value) => value.isNotEmpty).join('\n');
+    await Share.share(content, subject: _t('ملف طبي من صحتك'));
+  }
 
   Future<void> _openFirstAttachment(List<dynamic> attachments) async {
     if (attachments.isEmpty) { ToastService.showInfo(_t('لا يوجد مرفق لهذا الملف')); return; }
