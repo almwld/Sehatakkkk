@@ -4876,8 +4876,6 @@ class AppStrings {
       'اضغط مرة أخرى للخروج من التطبيق': ['Press back again to exit the app', 'Appuyez de nouveau pour quitter l’application'],
       'هل تريد بدء هذه العملية مع جهة الاتصال؟': ['Do you want to start this action with the contact?', 'Voulez-vous lancer cette action avec le contact ?'],
       'جاري تنفيذ: ': ['Executing: ', 'Exécution de : '],
-    };
-
 
       'إضافة ملف الطفل': ['Add child profile', 'Ajouter le profil de l’enfant'],
       'أشعة الصدر': ['Chest X-ray', 'Radiographie thoracique'],
@@ -5287,6 +5285,7 @@ class AppStrings {
       'نيتشر': ['Nature', 'Nature'],
 
       'رقم المريض غير متاح حالياً': ['Patient number is currently unavailable', 'Le numéro de patient est actuellement indisponible'],
+    };
 
     final entry = translations[value];
     if (entry == null) return value;
