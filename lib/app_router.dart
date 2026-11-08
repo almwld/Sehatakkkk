@@ -237,7 +237,7 @@ class AppRouter {
       GoRoute(
           onExit: _returnToHome,
           path: chatRoom,
-          builder: (_, s) {
+          builder: (context, s) {
             final e = (s.extra as Map?)?.cast<String, dynamic>() ??
                 const <String, dynamic>{};
             return ChatRoomScreen(
@@ -400,7 +400,7 @@ class AppRouter {
             builder: (_) => const ChatScreen(), settings: routeSettings);
       case chatRoom:
         return MaterialPageRoute(
-            builder: (_) => const ChatRoomScreen(
+            builder: (context) => ChatRoomScreen(
                 chatId: '',
                 otherUserId: '',
                 otherUserName: AppStrings.of(context).translate('مستخدم'),
