@@ -53,6 +53,8 @@ class _ChatInputBarState extends State<ChatInputBar>
     duration: const Duration(milliseconds: 220),
   );
 
+  String _t(String value) => AppStrings.of(context).translate(value);
+
   bool get _hasText => _controller.text.trim().isNotEmpty;
 
   @override
@@ -90,7 +92,7 @@ class _ChatInputBarState extends State<ChatInputBar>
       _controller.clear();
       widget.onSendMessage(text);
     } catch (e) {
-      ToastService.showError('تعذر إرسال الرسالة. تحقق من الاتصال وحاول مجددًا.');
+      ToastService.showError(_t('تعذر إرسال الرسالة. تحقق من الاتصال وحاول مجددًا.'));
       debugPrint('ChatInputBar text send error: $e');
     } finally {
       if (mounted) setState(() => _isSending = false);
@@ -127,7 +129,7 @@ class _ChatInputBarState extends State<ChatInputBar>
       });
       widget.onSendImage?.call(url);
     } catch (e) {
-      ToastService.showError('تعذر إرسال الصورة.');
+      ToastService.showError(_t('تعذر إرسال الصورة.'));
       debugPrint('Image send error: $e');
     } finally {
       if (mounted) setState(() => _isSending = false);
@@ -166,7 +168,7 @@ class _ChatInputBarState extends State<ChatInputBar>
   Future<void> _startRecording() async {
     if (_hasText || _isRecording || _isSending) return;
     if (!await _recorder.hasPermission()) {
-      ToastService.showError('يلزم السماح بالوصول إلى الميكروفون.');
+      ToastService.showError(_t('يلزم السماح بالوصول إلى الميكروفون.'));
       return;
     }
     final dir = await getTemporaryDirectory();
@@ -203,7 +205,7 @@ class _ChatInputBarState extends State<ChatInputBar>
     }
     if (!await file.exists() || await file.length() < 1000) {
       if (await file.exists()) await file.delete();
-      ToastService.showError('التسجيل قصير جدًا.');
+      ToastService.showError(_t('التسجيل قصير جدًا.'));
       return;
     }
     setState(() => _isSending = true);
@@ -218,7 +220,7 @@ class _ChatInputBarState extends State<ChatInputBar>
         'duration': _recordingDuration.inSeconds,
       });
     } catch (e) {
-      ToastService.showError('تعذر إرسال التسجيل الصوتي.');
+      ToastService.showError(_t('تعذر إرسال التسجيل الصوتي.'));
       debugPrint('Audio send error: $e');
     } finally {
       if (await file.exists()) await file.delete();
@@ -278,8 +280,8 @@ class _ChatInputBarState extends State<ChatInputBar>
                                   minLines: 1,
                                   maxLines: 5,
                                   textInputAction: TextInputAction.newline,
-                                  decoration: const InputDecoration(
-                                    hintText: 'اكتب رسالة...',
+                                  decoration: InputDecoration(
+                                    hintText: _t('اكتب رسالة...'),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   ),
@@ -405,7 +407,7 @@ class _ChatInputBarState extends State<ChatInputBar>
               }),
               _attachment('file', 'ملف', () {
                 Navigator.pop(context);
-                ToastService.showInfo('اختيار الملفات سيُفعّل عبر خدمة الملفات الموحدة.');
+                ToastService.showInfo(_t('اختيار الملفات سيُفعّل عبر خدمة الملفات الموحدة.'));
               }),
               _attachment('location', 'الموقع', () {
                 Navigator.pop(context);
@@ -439,7 +441,7 @@ class _ChatInputBarState extends State<ChatInputBar>
                 child: _assetIcon(asset, size: 28),
               ),
               const SizedBox(height: 7),
-              Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11)),
+              Text(_t(label), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11)),
             ],
           ),
         ),
