@@ -2466,6 +2466,9 @@ class AppStrings {
       'المنتج': ['Product', 'Produit'],
       'إيداع': ['Deposit', 'Dépôt'],
       'سحب': ['Withdrawal', 'Retrait'],
+      'شراء منتجات صيدلية': ['Pharmacy products purchase', 'Achat de produits pharmaceutiques'],
+      'طلب تغذية حساب عبر': ['Wallet top-up request via', 'Demande de recharge du portefeuille via'],
+      'طلب سحب عبر': ['Wallet withdrawal request via', 'Demande de retrait du portefeuille via'],
       'دفع': ['Payment', 'Paiement'],
       'استرداد': ['Refund', 'Remboursement'],
       'حاسب الكريمي': ['Al Kuraimi', 'Al Kuraimi'],
@@ -5283,9 +5286,6 @@ class AppStrings {
       'منظمة الصحة العالمية': ['World Health Organization', 'Organisation mondiale de la Santé'],
       'نيتشر': ['Nature', 'Nature'],
 
-      'شراء منتجات صيدلية': ['Pharmacy products purchase', 'Achat de produits pharmaceutiques'],
-      'طلب تغذية حساب عبر': ['Wallet top-up request via', 'Demande de recharge du portefeuille via'],
-      'طلب سحب عبر': ['Wallet withdrawal request via', 'Demande de retrait du portefeuille via'],
       'رقم المريض غير متاح حالياً': ['Patient number is currently unavailable', 'Le numéro de patient est actuellement indisponible'],
     };
 
