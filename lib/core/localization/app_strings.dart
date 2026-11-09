@@ -401,6 +401,7 @@ class AppStrings {
       'مساء الخير': ['Good evening', 'Bonsoir'],
       'مستخدم': ['User', 'Utilisateur'],
       'ابحث عن طبيب، دواء، أو خدمة...': ['Search for a doctor, medicine, or service...', 'Rechercher un médecin, un médicament ou un service...'],
+      'ابحث عن طبيب، دواء، أو مستشفى...': ['Search for a doctor, medicine, or hospital...', 'Recherchez un médecin, un médicament ou un hôpital...'],
       'صحتك معك كل يوم': ['Your health, every day', 'Votre santé, chaque jour'],
       'أفضل الأطباء': ['Top doctors', 'Meilleurs médecins'],
       'لا يوجد أطباء موثقون متاحون حالياً': ['No verified doctors are available right now', 'Aucun médecin vérifié n’est disponible pour le moment'],
