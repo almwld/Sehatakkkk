@@ -76,27 +76,56 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final strings = AppStrings.of(context);
     final languageCode = strings.locale.languageCode;
     if (date == null) return strings.translate('الآن');
+
     final difference = DateTime.now().difference(date);
     if (difference.inSeconds < 60) return strings.translate('الآن');
+
     if (difference.inMinutes < 60) {
       final count = difference.inMinutes;
-      if (languageCode == 'en') return '${count} min ago';
-      if (languageCode == 'fr') return 'Il y a ${count} min';
-      return 'منذ $count دقيقة';
+      if (languageCode == 'en') return '$count min ago';
+      if (languageCode == 'fr') return 'Il y a $count min';
+      return _formatArabicRelativeTime(count, 'minute');
     }
     if (difference.inHours < 24) {
       final count = difference.inHours;
-      if (languageCode == 'en') return '${count} hr ago';
-      if (languageCode == 'fr') return 'Il y a ${count} h';
-      return 'منذ $count ساعة';
+      if (languageCode == 'en') return '$count hr ago';
+      if (languageCode == 'fr') return 'Il y a $count h';
+      return _formatArabicRelativeTime(count, 'hour');
     }
     if (difference.inDays < 7) {
       final count = difference.inDays;
-      if (languageCode == 'en') return '${count} days ago';
-      if (languageCode == 'fr') return 'Il y a ${count} jour(s)';
-      return 'منذ $count يوم';
+      if (languageCode == 'en') return '$count day${count == 1 ? '' : 's'} ago';
+      if (languageCode == 'fr') return 'Il y a $count ${count == 1 ? 'jour' : 'jours'}';
+      return _formatArabicRelativeTime(count, 'day');
     }
     return DateFormat('yyyy/MM/dd - HH:mm', languageCode).format(date);
+  }
+
+  String _formatArabicRelativeTime(int count, String unit) {
+    final phrase = switch (unit) {
+      'minute' => count == 1
+          ? 'دقيقة'
+          : count == 2
+              ? 'دقيقتين'
+              : count <= 10
+                  ? '$count دقائق'
+                  : 'دقيقة',
+      'hour' => count == 1
+          ? 'ساعة'
+          : count == 2
+              ? 'ساعتين'
+              : count <= 10
+                  ? '$count ساعات'
+                  : 'ساعة',
+      _ => count == 1
+          ? 'يوم'
+          : count == 2
+              ? 'يومين'
+              : count <= 10
+                  ? '$count أيام'
+                  : 'يوم',
+    };
+    return 'منذ $phrase';
   }
 
   IconData _iconFor(String type) {
