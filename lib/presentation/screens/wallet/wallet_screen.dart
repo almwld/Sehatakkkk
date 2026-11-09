@@ -19,6 +19,20 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _transactionTitle(Map<String, dynamic> data) {
+    final rawTitle =
+        data['title']?.toString() ?? data['description']?.toString() ?? '';
+    final rawMetadata = data['metadata'];
+    final metadata = rawMetadata is Map
+        ? Map<String, dynamic>.from(rawMetadata)
+        : null;
+    return AppStrings.of(context).translateTransactionTitle(
+      title: rawTitle,
+      type: data['type']?.toString(),
+      serviceType: data['serviceType']?.toString(),
+      metadata: metadata,
+    );
+  }
   final PaymentService _payment = PaymentService();
   bool _hideBalance = false;
   double _balance = 0;
@@ -152,7 +166,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         return ListTile(
                           leading: Icon(credit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
                               color: credit ? Colors.green : Colors.red),
-                          title: Text(data['title']?.toString() ?? data['description']?.toString() ?? _t('معاملة')),
+                          title: Text(_transactionTitle(data)),
                           trailing: Text('${credit ? '+' : ''}${AppStrings.of(context).formatCurrency(amount.abs())}',
                               style: TextStyle(fontWeight: FontWeight.bold, color: credit ? Colors.green : Colors.red)),
                         );
@@ -224,7 +238,7 @@ class _WalletScreenState extends State<WalletScreen> {
             final isCredit=data['type']=='credit' || amount >= 0;
             final created=data['createdAt'];
             final date=created is Timestamp ? created.toDate() : null;
-            final title=data['title']?.toString() ?? data['description']?.toString() ?? _t('معاملة');
+            final title = _transactionTitle(data);
             return ListTile(
               leading:Icon(isCredit?Icons.arrow_downward_rounded:Icons.arrow_upward_rounded,color:isCredit?Colors.green:Colors.red),
               title:Text(title),
