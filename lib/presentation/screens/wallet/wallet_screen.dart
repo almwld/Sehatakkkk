@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -237,12 +238,18 @@ class _WalletScreenState extends State<WalletScreen> {
             final amount=(data['amount'] as num?)?.toDouble() ?? 0;
             final isCredit=data['type']=='credit' || amount >= 0;
             final created=data['createdAt'];
-            final date=created is Timestamp ? created.toDate() : null;
+            final date = created is Timestamp ? created.toDate() : null;
+            final dateLabel = date == null
+                ? _t('التاريخ غير متوفر')
+                : DateFormat(
+                    'yyyy/MM/dd - HH:mm',
+                    AppStrings.of(context).locale.languageCode,
+                  ).format(date.toLocal());
             final title = _transactionTitle(data);
             return ListTile(
               leading:Icon(isCredit?Icons.arrow_downward_rounded:Icons.arrow_upward_rounded,color:isCredit?Colors.green:Colors.red),
               title:Text(title),
-              subtitle:Text(date == null ? _t('التاريخ غير متوفر') : date.toLocal().toString().split('.').first),
+              subtitle: Text(dateLabel),
               trailing:Text((isCredit?'+':'') + AppStrings.of(context).formatCurrency(amount.abs()),style:TextStyle(fontWeight:FontWeight.bold,color:isCredit?Colors.green:Colors.red)),
             );
           });
