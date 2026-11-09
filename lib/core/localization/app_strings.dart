@@ -5283,6 +5283,9 @@ class AppStrings {
       'منظمة الصحة العالمية': ['World Health Organization', 'Organisation mondiale de la Santé'],
       'نيتشر': ['Nature', 'Nature'],
 
+      'شراء منتجات صيدلية': ['Pharmacy products purchase', 'Achat de produits pharmaceutiques'],
+      'طلب تغذية حساب عبر': ['Wallet top-up request via', 'Demande de recharge du portefeuille via'],
+      'طلب سحب عبر': ['Wallet withdrawal request via', 'Demande de retrait du portefeuille via'],
       'رقم المريض غير متاح حالياً': ['Patient number is currently unavailable', 'Le numéro de patient est actuellement indisponible'],
     };
 
@@ -5295,6 +5298,74 @@ class AppStrings {
     }
   }
 
+
+  /// Localizes known transaction titles while preserving unknown, user-entered
+  /// titles and provider names. The metadata map carries stable service codes.
+  String translateTransactionTitle({
+    required String title,
+    String? type,
+    String? serviceType,
+    Map<String, dynamic>? metadata,
+  }) {
+    final source = title.trim();
+    if (source.isEmpty) return translate('معاملة');
+
+    final exact = translate(source);
+    if (exact != source) return exact;
+
+    if (serviceType == 'pharmacy') {
+      return translate('شراء منتجات صيدلية');
+    }
+    if (serviceType == 'subscription') {
+      final planCode = metadata?['planCode']?.toString();
+      final planKey = switch (planCode) {
+        'silver' => 'الباقة الفضية',
+        'bronze' => 'الباقة البرونزية',
+        'gold' => 'الباقة الذهبية',
+        'family' => 'باقة العائلة',
+        'crystal' => 'الباقة الكريستالية',
+        _ => null,
+      };
+      return planKey == null
+          ? translate('اشتراك')
+          : '${translate('اشتراك')} ${translate(planKey)}';
+    }
+    if (serviceType == 'lab') {
+      const prefix = 'حجز فحص ';
+      if (source.startsWith(prefix)) {
+        final labName = source.substring(prefix.length).trim();
+        return labName.isEmpty
+            ? translate('حجز فحص')
+            : '${translate('حجز فحص')} $labName';
+      }
+      return translate('حجز فحص');
+    }
+    if (type == 'deposit') {
+      const prefix = 'طلب تغذية حساب عبر ';
+      if (source.startsWith(prefix)) {
+        final walletName = source.substring(prefix.length).trim();
+        return walletName.isEmpty
+            ? translate('إيداع')
+            : '${translate('طلب تغذية حساب عبر')} ${translate(walletName)}';
+      }
+      return translate('إيداع');
+    }
+    if (type == 'withdrawal') {
+      const prefix = 'طلب سحب عبر ';
+      if (source.startsWith(prefix)) {
+        final walletName = source.substring(prefix.length).trim();
+        return walletName.isEmpty
+            ? translate('سحب')
+            : '${translate('طلب سحب عبر')} ${translate(walletName)}';
+      }
+      return translate('سحب');
+    }
+    if (type == 'refund') return translate('استرداد');
+
+    // Unknown titles may be entered by the user or a provider. Do not
+    // machine-translate or rewrite that content.
+    return source;
+  }
 
   String _translateRole(String role) {
     const roles = <String, List<String>>{
