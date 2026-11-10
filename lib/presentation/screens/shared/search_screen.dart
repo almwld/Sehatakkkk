@@ -52,7 +52,8 @@ class _SearchScreenState extends State<SearchScreen> {
       _searchQuery = normalizedQuery;
     });
 
-    final locale = AppStrings.of(context).locale;
+    final strings = AppStrings.of(context);
+    final locale = strings.locale;
     final localizedNameField = locale.languageCode == 'en'
         ? 'nameEn'
         : locale.languageCode == 'fr'
@@ -78,10 +79,12 @@ class _SearchScreenState extends State<SearchScreen> {
             .get();
         for (final document in snapshot.docs) {
           if (seenIds.add(document.id)) documents.add(document);
+          if (documents.length >= 5) break;
         }
       } catch (error) {
         debugPrint('Error searching doctors by $field: $error');
       }
+      if (documents.length >= 5) break;
     }
 
     final results = <Map<String, dynamic>>[];
@@ -100,14 +103,14 @@ class _SearchScreenState extends State<SearchScreen> {
         fallback: localizedField(data, 'specialization', locale),
       ).trim();
       final specialty = rawSpecialty.isEmpty || rawSpecialty == 'عام'
-          ? AppStrings.of(context).translate('طبيب عام')
-          : AppStrings.of(context).translate(rawSpecialty);
+          ? strings.translate('طبيب عام')
+          : strings.translate(rawSpecialty);
 
       results.add({
-        'type': AppStrings.of(context).translate('طبيب'),
+        'type': strings.translate('طبيب'),
         'id': document.id,
         'name': name.isEmpty
-            ? AppStrings.of(context).translate('طبيب')
+            ? strings.translate('طبيب')
             : name,
         'subtitle': specialty,
         'icon': Icons.medical_services_rounded,
