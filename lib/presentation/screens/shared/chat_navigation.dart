@@ -35,7 +35,7 @@ class ChatNavigation {
         groupImage: doctorImage,
         isGroup: false,
       )));
-    } catch (e) { if (context.mounted) ToastService.showError('${_t(context, 'فشل فتح المحادثة: ')}$e'); }
+    } catch (e) { debugPrint('Open chat failed: $e'); if (context.mounted) ToastService.showError(_t(context, 'تعذر فتح المحادثة. حاول مرة أخرى.')); }
   }
 
   static Future<void> openCall(BuildContext context, {required String chatId, required String doctorName, required String doctorId, required bool isVideo}) async {
@@ -51,6 +51,6 @@ class ChatNavigation {
       if (!context.mounted) return;
       if (call == null || call.id.isEmpty) { ToastService.showError(_t(context, 'تعذر إنشاء المكالمة')); return; }
       await Navigator.push(context, MaterialPageRoute(builder: (_) => CallScreen(chatId: chatId, doctorName: displayDoctorName, doctorId: doctorId, callId: call.id, isVideo: isVideo, isOutgoing: true)));
-    } catch (e) { if (context.mounted) ToastService.showError('${_t(context, 'فشل بدء المكالمة: ')}$e'); }
+    } catch (e) { debugPrint('Start call failed: $e'); if (context.mounted) ToastService.showError(_t(context, 'تعذر بدء المكالمة. حاول مرة أخرى.')); }
   }
 }
