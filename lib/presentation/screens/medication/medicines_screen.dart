@@ -41,12 +41,18 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
             final arabicCategory =
                 localizedField(data, 'category', arabicLocale).trim();
             if (arabicCategory.isNotEmpty) {
-              categoryLabels[arabicCategory] = localizedField(
+              final localizedCategory = localizedField(
                 data,
                 'category',
                 locale,
                 fallback: arabicCategory,
               );
+              final currentLabel = categoryLabels[arabicCategory];
+              if (currentLabel == null ||
+                  (currentLabel == arabicCategory &&
+                      localizedCategory != arabicCategory)) {
+                categoryLabels[arabicCategory] = localizedCategory;
+              }
             }
           }
           final categories = <String>{'الكل', ...categoryLabels.keys};
