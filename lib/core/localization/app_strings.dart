@@ -2436,8 +2436,10 @@ class AppStrings {
       'فشل رفع صورة المنتج': ['Could not upload product image', 'Échec du téléversement de l’image du produit'],
       'تم حفظ المنتج وإرساله للمراجعة': ['Product saved and submitted for review', 'Produit enregistré et envoyé pour examen'],
       'فشل حفظ المنتج:': ['Could not save product:', 'Impossible d’enregistrer le produit :'],
+      'تعذر حفظ المنتج': ['Could not save the product. Please try again.', 'Impossible d’enregistrer le produit. Veuillez réessayer.'],
       'تم تحديث المنتج': ['Product updated', 'Produit mis à jour'],
       'فشل تحديث المنتج:': ['Could not update product:', 'Impossible de mettre à jour le produit :'],
+      'تعذر تحديث المنتج': ['Could not update the product. Please try again.', 'Impossible de mettre à jour le produit. Veuillez réessayer.']
       'لوحة الصيدلية': ['Pharmacy dashboard', 'Tableau de bord de la pharmacie'],
       'تسجيل صيدليتي': ['Register my pharmacy', 'Enregistrer ma pharmacie'],
       'الحالة:': ['Status:', 'Statut :'],
