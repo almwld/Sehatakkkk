@@ -2,6 +2,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
@@ -16,6 +17,8 @@ class EducationalVideosScreen extends StatefulWidget {
 class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   String _selectedCategory = 'الكل';
+
+  String _t(String value) => AppStrings.of(context).translate(value);
 
   final List<String> _categories = [
     'الكل', 'تشريح', 'أمراض', 'أدوية', 'تغذية', 'إسعافات', 'صحة نفسية'
@@ -51,16 +54,29 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
 
                 var videos = snapshot.data?.docs ?? [];
                 if (_searchCtrl.text.isNotEmpty) {
-                  final q = _searchCtrl.text.toLowerCase();
+                  final q = _searchCtrl.text.trim().toLowerCase();
+                  final locale = AppStrings.of(context).locale;
                   videos = videos.where((doc) {
                     final data = doc.data() as Map<String, dynamic>;
-                    return data['title'].toLowerCase().contains(q);
+                    final title = localizedField(data, 'title', locale);
+                    final arabicTitle = localizedField(
+                      data,
+                      'title',
+                      const Locale('ar'),
+                    );
+                    return title.toLowerCase().contains(q) ||
+                        arabicTitle.toLowerCase().contains(q);
                   }).toList();
                 }
                 if (_selectedCategory != 'الكل') {
                   videos = videos.where((doc) {
                     final data = doc.data() as Map<String, dynamic>;
-                    return data['category'] == _selectedCategory;
+                    final category = localizedField(
+                      data,
+                      'category',
+                      const Locale('ar'),
+                    );
+                    return category == _selectedCategory;
                   }).toList();
                 }
 
@@ -147,6 +163,13 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
   }
 
   Widget _buildVideoCard(Map<String, dynamic> data, bool isDark) {
+    final locale = AppStrings.of(context).locale;
+    final title = _t(
+      localizedField(data, 'title', locale, fallback: _t('فيديو تعليمي')),
+    );
+    final category = _t(
+      localizedField(data, 'category', locale, fallback: _t('تعليمي')),
+    );
     final color = AppColors.primary;
     return Container(
       decoration: BoxDecoration(
@@ -198,14 +221,14 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  data['title'] ?? AppStrings.of(context).translate('فيديو تعليمي'),
+                  title,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  AppStrings.of(context).translate(data['category']?.toString() ?? 'تعليمي'),
+                  category,
                   style: const TextStyle(fontSize: 9, color: AppColors.grey),
                 ),
                 const SizedBox(height: 4),
