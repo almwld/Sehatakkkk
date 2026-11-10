@@ -5282,8 +5282,7 @@ class AppStrings {
       'رويترز': ['Reuters', 'Reuters'],
       'منظمة الصحة العالمية': ['World Health Organization', 'Organisation mondiale de la Santé'],
       'نيتشر': ['Nature', 'Nature'],
-
-      'رقم المريض غير متاح حالياً': ['Patient number is currently unavailable', 'Le numéro de patient est actuellement indisponible'],
+      // Onboarding, call history, education, and field-responder UI copy.
       'منصة الرعاية الصحية الشاملة\nاستشر الأطباء واحجز مواعيدك بسهولة\nمن أي مكان وفي أي وقت': ['Your complete healthcare platform\nConsult doctors and book appointments easily\nAnytime, anywhere', 'Votre plateforme de santé complète\nConsultez des médecins et prenez rendez-vous facilement\nPartout et à tout moment'],
       'اطلب أدويتك واستلمها لمنزلك\nمع توصيل سريع وآمن\nخصومات وعروض يومية': ['Order medicines and have them delivered\nFast and secure delivery\nDaily discounts and offers', 'Commandez vos médicaments et faites-vous livrer\nLivraison rapide et sécurisée\nRéductions et offres quotidiennes'],
       'متابعة صحية شاملة وتحاليل مخبرية\nوخدمات طوارئ على مدار الساعة\nملف طبي متكامل لتاريخك الصحي': ['Comprehensive health tracking and lab tests\n24/7 emergency services\nA complete record of your health history', 'Suivi de santé complet et analyses médicales\nServices d’urgence 24 h/24\nUn dossier complet de votre historique médical'],
@@ -5298,7 +5297,9 @@ class AppStrings {
       'تعليمي': ['Educational', 'Éducatif'],
       'مجهول': ['Unknown', 'Inconnu'],
       'المسعفون المتاحون الآن': ['Available field responders now', 'Secouristes disponibles actuellement'],
-      'اعرض المسعفين المتواجدين في مناطق الخدمة والمتاحين للاستجابة للطوارئ.': ['View responders in service areas who are available for emergencies.', 'Consultez les secouristes présents dans les zones de service et disponibles pour les urgences.'],
+      'اعرض المسعفين المتواجدين في مناطق الخدمة والمتاحين للاستجابة للطوارئ.': ['View responders in service areas who are available for emergencies.', 'Consultez les secouristes présents dans les zones de service et disponibles pour les urgences.']
+
+      'رقم المريض غير متاح حالياً': ['Patient number is currently unavailable', 'Le numéro de patient est actuellement indisponible'],
     };
 
     final entry = translations[value];
