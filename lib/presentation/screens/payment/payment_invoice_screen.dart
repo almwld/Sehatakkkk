@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/services/payment_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
@@ -21,6 +22,8 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
   final PaymentService _paymentService = PaymentService();
   bool _isLoading = false;
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _field(Map<String, dynamic> data, String key, {String fallback = ''}) =>
+      localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +40,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
             if (widget.items != null && widget.items!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(_t('المنتجات:'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              ...widget.items!.map((item) => Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text('${item['name'] ?? _t('منتج')}')), Text(AppStrings.of(context).formatCurrency(item['price'] is num ? item['price'] as num : num.tryParse('${item['price']}') ?? 0))]))),
+              ...widget.items!.map((item) => Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(_field(item, 'name', fallback: _t('منتج')))), Text(AppStrings.of(context).formatCurrency(item['price'] is num ? item['price'] as num : num.tryParse('${item['price']}') ?? 0))]))),
             ],
             const Divider(),
             _buildRow(_t('المبلغ الإجمالي'), AppStrings.of(context).formatCurrency(widget.amount), isBold: true),
@@ -78,7 +81,8 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
       Navigator.pop(context, transaction.id);
     } catch (e) {
       if (!mounted) return;
-      ToastService.showError('${_t('تعذر إتمام الدفع:')} $e');
+      debugPrint('Invoice payment failed: $e');
+      ToastService.showError(_t('تعذر إتمام الدفع'));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
