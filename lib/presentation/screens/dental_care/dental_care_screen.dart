@@ -75,9 +75,9 @@ class DentalCareScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(service['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            Text(_localizedUiText(context, service['name'] as String), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                             const SizedBox(height: 4),
-                            Text(service['description'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
+                            Text(_localizedUiText(context, service['description'] as String), style: TextStyle(fontSize: 11, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
                           ],
                         ),
                       ),
@@ -113,7 +113,7 @@ class DentalServiceDetailsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF4F6F7),
-      appBar: AppBar(title: Text(service['name'] as String), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: Text(_localizedUiText(context, service['name'] as String)), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -125,9 +125,9 @@ class DentalServiceDetailsScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(radius: 34, backgroundColor: AppColors.primary.withOpacity(.10), child: Icon(service['icon'] as IconData, color: AppColors.primary, size: 34)),
                   const SizedBox(height: 16),
-                  Text(service['name'] as String, textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                  Text(_localizedUiText(context, service['name'] as String), textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
-                  Text(service['description'] as String, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)),
+                  Text(_localizedUiText(context, service['description'] as String), textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700)),
                 ],
               ),
             ),
