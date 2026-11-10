@@ -99,7 +99,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF6F8FA),
       appBar: CustomAppBar(
-        title: 'نصائح صحية',
+        title: _t('نصائح صحية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         centerTitle: true,
@@ -147,7 +147,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          cat,
+                          _t(cat),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: selected ? FontWeight.bold : FontWeight.w500,
