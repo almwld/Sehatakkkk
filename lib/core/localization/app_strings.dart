@@ -2439,7 +2439,7 @@ class AppStrings {
       'تعذر حفظ المنتج': ['Could not save the product. Please try again.', 'Impossible d’enregistrer le produit. Veuillez réessayer.'],
       'تم تحديث المنتج': ['Product updated', 'Produit mis à jour'],
       'فشل تحديث المنتج:': ['Could not update product:', 'Impossible de mettre à jour le produit :'],
-      'تعذر تحديث المنتج': ['Could not update the product. Please try again.', 'Impossible de mettre à jour le produit. Veuillez réessayer.']
+      'تعذر تحديث المنتج': ['Could not update the product. Please try again.', 'Impossible de mettre à jour le produit. Veuillez réessayer.'],
       'لوحة الصيدلية': ['Pharmacy dashboard', 'Tableau de bord de la pharmacie'],
       'تسجيل صيدليتي': ['Register my pharmacy', 'Enregistrer ma pharmacie'],
       'الحالة:': ['Status:', 'Statut :'],
