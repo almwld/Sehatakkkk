@@ -60,9 +60,17 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
   }
 
   void _addToCart(Map<String, dynamic> product) {
+    final nameTranslations = product['name'] is Map
+        ? Map<String, dynamic>.from(product['name'] as Map)
+        : const <String, dynamic>{};
+    final rawName = product['name'] is String
+        ? product['name'] as String
+        : _field(product, 'name', fallback: _t('منتج'));
     _cart.add(
       productId: product['id'].toString(), // Firestore offer document ID used by trusted checkout.
-      name: _field(product, 'name', fallback: _t('منتج')),
+      name: rawName,
+      nameEn: (product['nameEn'] ?? nameTranslations['en'] ?? nameTranslations['english'])?.toString(),
+      nameFr: (product['nameFr'] ?? nameTranslations['fr'] ?? nameTranslations['french'])?.toString(),
       unitPrice: (product['price'] as num?)?.toDouble() ?? 0,
       requiresPrescription: product['requiresPrescription'] == true,
       pharmacyId: widget.pharmacyId,
