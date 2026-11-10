@@ -5284,6 +5284,9 @@ class AppStrings {
       'نيتشر': ['Nature', 'Nature'],
 
       'رقم المريض غير متاح حالياً': ['Patient number is currently unavailable', 'Le numéro de patient est actuellement indisponible'],
+      'تعذر فتح المحادثة. حاول مرة أخرى.': ['Could not open the conversation. Please try again.', 'Impossible d’ouvrir la conversation. Veuillez réessayer.'],
+      'تعذر رفض المكالمة. حاول مرة أخرى.': ['Could not decline the call. Please try again.', 'Impossible de refuser l’appel. Veuillez réessayer.'],
+      'تعذر قبول المكالمة. حاول مرة أخرى.': ['Could not answer the call. Please try again.', 'Impossible de répondre à l’appel. Veuillez réessayer.'],
     };
 
     final entry = translations[value];
