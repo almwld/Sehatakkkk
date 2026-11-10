@@ -3,6 +3,8 @@ import 'package:cloud_functions/cloud_functions.dart';
 class CartItem {
   final String productId;
   final String name;
+  final String? nameEn;
+  final String? nameFr;
   final double unitPrice;
   int quantity;
   final bool requiresPrescription;
@@ -13,6 +15,8 @@ class CartItem {
   CartItem({
     required this.productId,
     required this.name,
+    this.nameEn,
+    this.nameFr,
     required this.unitPrice,
     this.quantity = 1,
     this.requiresPrescription = false,
@@ -26,6 +30,8 @@ class CartItem {
   Map<String, dynamic> toJson() => {
         'productId': productId,
         'name': name,
+        'nameEn': nameEn,
+        'nameFr': nameFr,
         'unitPrice': unitPrice,
         'quantity': quantity,
         'requiresPrescription': requiresPrescription,
@@ -49,6 +55,8 @@ class UnifiedCartService {
   void add({
     required String productId,
     required String name,
+    String? nameEn,
+    String? nameFr,
     required double unitPrice,
     bool requiresPrescription = false,
     String? pharmacyId,
@@ -62,6 +70,8 @@ class UnifiedCartService {
       _items.add(CartItem(
         productId: productId,
         name: name,
+        nameEn: nameEn,
+        nameFr: nameFr,
         unitPrice: unitPrice,
         requiresPrescription: requiresPrescription,
         pharmacyId: pharmacyId,
