@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import '../../../core/constants/app_colors.dart';
@@ -24,6 +25,8 @@ class PharmacyMarketplaceScreen extends StatefulWidget {
 class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     with SingleTickerProviderStateMixin {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _field(Map<String, dynamic> data, String key, {String fallback = ''}) =>
+      localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
 
   final _search = TextEditingController();
   final _cart = UnifiedCartService.instance;
@@ -128,7 +131,11 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   String _searchText(Map<String, dynamic> p) => [
         p['name'],
+        p['nameEn'],
+        p['nameFr'],
         p['genericName'],
+        p['genericNameEn'],
+        p['genericNameFr'],
         p['activeIngredient'],
         p['category'],
         p['sellerName'],
@@ -211,9 +218,17 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     final price = (p['price'] as num?)?.toDouble() ?? 0;
     final stock = (p['stock'] as num?)?.toInt() ?? 0;
     if (id.isEmpty || price <= 0 || stock <= 0) return;
+    final nameTranslations = p['name'] is Map
+        ? Map<String, dynamic>.from(p['name'] as Map)
+        : const <String, dynamic>{};
+    final rawName = p['name'] is String
+        ? p['name'] as String
+        : _field(p, 'name', fallback: _t('منتج'));
     _cart.add(
         productId: id,
-        name: '${p['name'] ?? AppStrings.of(context).translate('منتج')}',
+        name: rawName,
+        nameEn: (p['nameEn'] ?? nameTranslations['en'] ?? nameTranslations['english'])?.toString(),
+        nameFr: (p['nameFr'] ?? nameTranslations['fr'] ?? nameTranslations['french'])?.toString(),
         unitPrice: price,
         requiresPrescription: p['requiresPrescription'] == true,
         pharmacyId: '${p['pharmacyId'] ?? p['sellerId'] ?? ''}'.trim().isEmpty ? null : '${p['pharmacyId'] ?? p['sellerId'] ?? ''}'.trim(),
@@ -352,9 +367,9 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                                             child: const Icon(Icons.local_pharmacy, color: AppColors.primary, size: 36)))),
                             const SizedBox(width: 12),
                             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text('${p['name'] ?? AppStrings.of(context).translate('صيدلية')}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text(_field(p, 'name', fallback: _t('صيدلية')), style: const TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
-                              Text('${p['address'] ?? p['city'] ?? AppStrings.of(context).translate('الموقع غير محدد')}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.grey)),
+                              Text(_field(p, 'address', fallback: _field(p, 'city', fallback: _t('الموقع غير محدد'))), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.grey)),
                               const SizedBox(height: 6),
                               Text('${AppStrings.of(context).translate(open ? 'مفتوحة الآن' : 'مغلقة')} • ${AppStrings.of(context).translate(delivery ? 'توصيل متاح' : 'التوصيل غير متاح')}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                             ])),
@@ -418,14 +433,14 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    Text('${p['name'] ?? AppStrings.of(context).translate('منتج')}',
+                    Text(_field(p, 'name', fallback: _t('منتج')),
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     if (p['companyName'] != null || p['genericName'] != null)
-                      Text('${p['companyName'] ?? p['genericName']}',
+                      Text(_field(p, 'companyName', fallback: _field(p, 'genericName')),
                           style: const TextStyle(
                               fontSize: 12, color: Colors.grey)),
                     if (p['strength'] != null || p['activeIngredient'] != null)
-                      Text('${p['strength'] ?? p['activeIngredient']}',
+                      Text(_field(p, 'strength', fallback: _field(p, 'activeIngredient')),
                           style: const TextStyle(
                               fontSize: 11, color: Colors.grey)),
                     const SizedBox(height: 5),
@@ -492,7 +507,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                       title: Text('${AppStrings.of(context).translate('طلب')} #$orderId',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
-                          '${o['pharmacyName'] ?? o['providerName'] ?? _t('طلب صيدلية')}\n${_t(status)}'),
+                          '${_field(o, 'pharmacyName', fallback: _field(o, 'providerName', fallback: _t('طلب صيدلية')))}\n${_t(status)}'),
                       trailing: const Icon(Icons.chevron_left),
                       onTap: () {}));
             }));
