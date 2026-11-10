@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/unified_search_bar.dart';
@@ -36,14 +37,85 @@ class _SearchScreenState extends State<SearchScreen> {
   @override void initState() { super.initState(); _recentSearches = [{'query':'د. أحمد','time':'منذ 5 دقائق'},{'query':'صيدلية اليمن','time':'منذ ساعة'},{'query':'تحليل سكر','time':'منذ 3 ساعات'}]; }
   @override void dispose() { _searchController.dispose(); super.dispose(); }
   Future<void> _performSearch(String query) async {
-    if (query.isEmpty) { setState(() { _isSearching=false; _results=[]; _searchQuery=''; }); return; }
-    setState(() { _isSearching=true; _searchQuery=query; });
-    final results=<Map<String,dynamic>>[];
-    try {
-      final snap=await FirebaseFirestore.instance.collection('doctors').where('name',isGreaterThanOrEqualTo:query).where('name',isLessThanOrEqualTo:'$query\uf8ff').limit(5).get();
-      for(final doc in snap.docs){ final data=doc.data(); results.add({'type':'طبيب','id':doc.id,'name':data['name']??'طبيب','subtitle':data['specialty']??'طبيب عام','icon':Icons.medical_services_rounded,'color':AppColors.primary}); }
-    } catch(e) { debugPrint('Error searching doctors: $e'); }
-    if(mounted) setState(()=>_results=results);
+    final normalizedQuery = query.trim();
+    if (normalizedQuery.isEmpty) {
+      setState(() {
+        _isSearching = false;
+        _results = [];
+        _searchQuery = '';
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _searchQuery = normalizedQuery;
+    });
+
+    final locale = AppStrings.of(context).locale;
+    final localizedNameField = locale.languageCode == 'en'
+        ? 'nameEn'
+        : locale.languageCode == 'fr'
+            ? 'nameFr'
+            : 'name';
+    final searchFields = <String>{
+      localizedNameField,
+      if (localizedNameField != 'name') 'name',
+    };
+    final documents = <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+    final seenIds = <String>{};
+
+    for (final field in searchFields) {
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('doctors')
+            .where(field, isGreaterThanOrEqualTo: normalizedQuery)
+            .where(
+              field,
+              isLessThanOrEqualTo: '$normalizedQuery\uf8ff',
+            )
+            .limit(5)
+            .get();
+        for (final document in snapshot.docs) {
+          if (seenIds.add(document.id)) documents.add(document);
+        }
+      } catch (error) {
+        debugPrint('Error searching doctors by $field: $error');
+      }
+    }
+
+    final results = <Map<String, dynamic>>[];
+    for (final document in documents) {
+      final data = document.data();
+      final name = localizedField(
+        data,
+        'name',
+        locale,
+        fallback: localizedValue(data['displayName'] ?? data['title'], locale),
+      ).trim();
+      final rawSpecialty = localizedField(
+        data,
+        'specialty',
+        locale,
+        fallback: localizedField(data, 'specialization', locale),
+      ).trim();
+      final specialty = rawSpecialty.isEmpty || rawSpecialty == 'عام'
+          ? AppStrings.of(context).translate('طبيب عام')
+          : AppStrings.of(context).translate(rawSpecialty);
+
+      results.add({
+        'type': AppStrings.of(context).translate('طبيب'),
+        'id': document.id,
+        'name': name.isEmpty
+            ? AppStrings.of(context).translate('طبيب')
+            : name,
+        'subtitle': specialty,
+        'icon': Icons.medical_services_rounded,
+        'color': AppColors.primary,
+      });
+    }
+
+    if (mounted) setState(() => _results = results);
   }
   void _clearSearch(){setState((){_searchController.clear();_searchQuery='';_results=[];_isSearching=false;});}
   @override Widget build(BuildContext context){
