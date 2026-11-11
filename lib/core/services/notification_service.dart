@@ -528,6 +528,13 @@ class NotificationService {
     // Server-side notification producers write the canonical feed.
   }
 
+  String? _localizedNotificationField(Map<String, dynamic>? data, String field, String languageCode) {
+    if (languageCode == 'ar') return null;
+    final suffix = languageCode == 'fr' ? 'Fr' : 'En';
+    final value = data?['$field$suffix']?.toString().trim();
+    return value?.isNotEmpty == true ? value : null;
+  }
+
   Future<void> showTypedNotification({
     required String type,
     required String title,
@@ -538,29 +545,33 @@ class NotificationService {
   }) async {
     await initialize(startCallCoordinator: false);
     final family = SehatakNotificationTypeValue.fromWireValue(type);
+    final languageCode = await _languageCode();
+    final isChatMessage =
+        type == 'new_message' || type == 'chat_message' || type == 'message';
+    final localizedTitle = _localizedNotificationField(data, 'title', languageCode);
+    final localizedBody = _localizedNotificationField(data, 'body', languageCode);
+    final safeTitle = isChatMessage
+        ? (data?['senderName']?.toString().trim().isNotEmpty == true
+            ? data!['senderName'].toString()
+            : title)
+        : localizedTitle ?? _translate(languageCode, title);
+    final safeBody = body.trim().isNotEmpty
+        ? (isChatMessage
+            ? body
+            : localizedBody ?? _translateNotificationBody(languageCode, type, body))
+        : (isChatMessage
+            ? _localized(languageCode, 'لديك رسالة جديدة في الدردشة', 'You have a new chat message', 'Vous avez un nouveau message')
+            : _localized(languageCode, 'لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'));
+
     if (family == null) {
       await showMessageNotification(
-        title: title,
-        body: body,
+        title: safeTitle,
+        body: safeBody,
         payload: payload ?? _encodePayload(type, data),
         data: data,
       );
       return;
     }
-
-    final languageCode = await _languageCode();
-    final isChatMessage =
-        type == 'new_message' || type == 'chat_message' || type == 'message';
-    final safeTitle = isChatMessage
-        ? (data?['senderName']?.toString().trim().isNotEmpty == true
-            ? data!['senderName'].toString()
-            : title)
-        : _translate(languageCode, title);
-    final safeBody = body.trim().isNotEmpty
-        ? (isChatMessage ? body : _translateNotificationBody(languageCode, type, body))
-        : (isChatMessage
-            ? _localized(languageCode, 'لديك رسالة جديدة في الدردشة', 'You have a new chat message', 'Vous avez un nouveau message')
-            : _localized(languageCode, 'لديك إشعار جديد', 'You have a new notification', 'Vous avez une nouvelle notification'));
 
     if (isChatMessage) {
       await showMessageNotification(
