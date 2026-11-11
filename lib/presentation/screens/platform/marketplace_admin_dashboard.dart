@@ -43,7 +43,7 @@ class _MarketplaceAdminDashboardState extends State<MarketplaceAdminDashboard> {
   @override Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_t('إدارة Marketplace')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
-      body: _loading ? const Center(child: CircularProgressIndicator()) : _error != null ? Center(child: Text(_error!)) : RefreshIndicator(
+      body: _loading ? const Center(child: CircularProgressIndicator()) : _error != null ? Center(child: Text(_t('تعذر تحميل بيانات السوق'))) : RefreshIndicator(
         onRefresh: _load,
         child: ListView(padding: const EdgeInsets.all(12), children: [
           _section(_t('طلبات اعتماد الصيدليات'), _pharmacies, (p) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${p['name'] ?? _t('صيدلية')}', style: const TextStyle(fontWeight: FontWeight.bold)), Text('${p['address'] ?? ''}'), _actions(() => _reviewPharmacy('${p['id']}', 'reject'), () => _reviewPharmacy('${p['id']}', 'approve'))])),
