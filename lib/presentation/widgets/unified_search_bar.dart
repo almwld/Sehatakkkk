@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 
 /// Search field with the same geometry as the Home search bar.
 /// Colors remain configurable so each screen keeps its existing visual theme.
@@ -62,7 +63,7 @@ class UnifiedSearchBar extends StatelessWidget {
         textAlign: TextAlign.right,
         style: TextStyle(color: text, fontSize: 14),
         decoration: InputDecoration(
-          hintText: hint,
+          hintText: AppStrings.of(context).translate(hint),
           hintStyle: TextStyle(color: hintText, fontSize: 14),
           prefixIcon: Padding(
             padding: const EdgeInsets.all(13),
