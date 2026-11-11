@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/common/unified_search_bar.dart';
 
@@ -32,17 +33,66 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
           if (snapshot.hasError) return Center(child: Text(_t('تعذر تحميل الأدوية حالياً')));
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final docs = snapshot.data!.docs;
-          final categories = <String>{'الكل', ...docs.map((d) => d.data()['category']?.toString()).whereType<String>().where((x) => x.isNotEmpty)};
-          final filtered = docs.where((d) {
-            final x = d.data();
-            final q = _searchQuery.toLowerCase();
-            final text = '${x['name'] ?? ''} ${x['genericName'] ?? ''} ${x['category'] ?? ''}'.toLowerCase();
-            return (_selectedCategory == 'الكل' || x['category']?.toString() == _selectedCategory) && (q.isEmpty || text.contains(q));
+          final locale = AppStrings.of(context).locale;
+          final arabicLocale = const Locale('ar');
+          final categoryLabels = <String, String>{};
+          for (final document in docs) {
+            final data = document.data();
+            final arabicCategory =
+                localizedField(data, 'category', arabicLocale).trim();
+            if (arabicCategory.isNotEmpty) {
+              final localizedCategory = localizedField(
+                data,
+                'category',
+                locale,
+                fallback: arabicCategory,
+              );
+              final currentLabel = categoryLabels[arabicCategory];
+              if (currentLabel == null ||
+                  (currentLabel == arabicCategory &&
+                      localizedCategory != arabicCategory)) {
+                categoryLabels[arabicCategory] = localizedCategory;
+              }
+            }
+          }
+          final categories = <String>{'الكل', ...categoryLabels.keys};
+          final filtered = docs.where((document) {
+            final data = document.data();
+            final query = _searchQuery.toLowerCase();
+            final name = localizedField(
+              data,
+              'name',
+              locale,
+              fallback: localizedField(data, 'genericName', locale),
+            );
+            final genericName = localizedField(data, 'genericName', locale);
+            final category = localizedField(data, 'category', locale);
+            final arabicName = localizedField(
+              data,
+              'name',
+              arabicLocale,
+              fallback: localizedField(data, 'genericName', arabicLocale),
+            );
+            final arabicGenericName =
+                localizedField(data, 'genericName', arabicLocale);
+            final arabicCategory =
+                localizedField(data, 'category', arabicLocale);
+            final searchableText = [
+              name,
+              genericName,
+              category,
+              arabicName,
+              arabicGenericName,
+              arabicCategory,
+            ].join(' ').toLowerCase();
+            return (_selectedCategory == 'الكل' ||
+                    arabicCategory == _selectedCategory) &&
+                (query.isEmpty || searchableText.contains(query));
           }).toList();
           return Column(children: [
             Padding(padding: const EdgeInsets.fromLTRB(12,12,12,4), child: UnifiedSearchBar(controller: _searchController, onChanged: (v) => setState(() => _searchQuery = v.trim()), onClear: () { _searchController.clear(); setState(() => _searchQuery=''); }, hintText: _t('ابحث عن دواء...'), isDark: dark)),
-            SizedBox(height: 40, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), itemCount: categories.length, separatorBuilder: (_,__) => const SizedBox(width: 6), itemBuilder: (_,i) { final cat=categories.elementAt(i); final selected=_selectedCategory==cat; return FilterChip(label: Text(_t(cat), style: const TextStyle(fontSize: 11)), selected:selected, onSelected:(_)=>setState(()=>_selectedCategory=cat), selectedColor:AppColors.primary, labelStyle:TextStyle(color:selected?Colors.white:AppColors.primary)); })),
-            Expanded(child: filtered.isEmpty ? Center(child: Text(_t('لا توجد أدوية متاحة حالياً'), style: TextStyle(color: dark?Colors.white70:Colors.black54))) : GridView.builder(padding: const EdgeInsets.all(12), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:2, childAspectRatio:.72, crossAxisSpacing:12, mainAxisSpacing:12), itemCount:filtered.length, itemBuilder:(_,i){ final m=filtered[i].data(); final image=m['imageUrl']?.toString() ?? m['image']?.toString() ?? ''; return Container(decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(child:ClipRRect(borderRadius:const BorderRadius.vertical(top:Radius.circular(16)),child:image.isEmpty?Container(color:AppColors.primary.withOpacity(.06),child:const Icon(Icons.medication_outlined,size:42,color:AppColors.primary)):AppImage(imageUrl:image,width:double.infinity,height:double.infinity,fit:BoxFit.cover))),Padding(padding:const EdgeInsets.all(9),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(m['name']?.toString() ?? m['genericName']?.toString() ?? _t('دواء'),maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontWeight:FontWeight.bold,fontSize:12)),const SizedBox(height:4),Text(m['price'] is num ? AppStrings.of(context).formatCurrency(m['price'] as num) : _t('السعر غير متاح'),style:const TextStyle(color:AppColors.primary,fontWeight:FontWeight.bold)),]))])); })),
+            SizedBox(height: 40, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), itemCount: categories.length, separatorBuilder: (_,__) => const SizedBox(width: 6), itemBuilder: (_,i) { final cat=categories.elementAt(i); final selected=_selectedCategory==cat; final categoryLabel = cat == 'الكل' ? _t(cat) : _t(categoryLabels[cat] ?? cat); return FilterChip(label: Text(categoryLabel, style: const TextStyle(fontSize: 11)), selected:selected, onSelected:(_)=>setState(()=>_selectedCategory=cat), selectedColor:AppColors.primary, labelStyle:TextStyle(color:selected?Colors.white:AppColors.primary)); })),
+            Expanded(child: filtered.isEmpty ? Center(child: Text(_t('لا توجد أدوية متاحة حالياً'), style: TextStyle(color: dark?Colors.white70:Colors.black54))) : GridView.builder(padding: const EdgeInsets.all(12), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:2, childAspectRatio:.72, crossAxisSpacing:12, mainAxisSpacing:12), itemCount:filtered.length, itemBuilder:(_,i){ final m=filtered[i].data(); final image=m['imageUrl']?.toString() ?? m['image']?.toString() ?? ''; final localizedName=localizedField(m,'name',locale,fallback:localizedField(m,'genericName',locale,fallback:_t('دواء'))); return Container(decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(16)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(child:ClipRRect(borderRadius:const BorderRadius.vertical(top:Radius.circular(16)),child:image.isEmpty?Container(color:AppColors.primary.withOpacity(.06),child:const Icon(Icons.medication_outlined,size:42,color:AppColors.primary)):AppImage(imageUrl:image,width:double.infinity,height:double.infinity,fit:BoxFit.cover))),Padding(padding:const EdgeInsets.all(9),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(_t(localizedName),maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontWeight:FontWeight.bold,fontSize:12)),const SizedBox(height:4),Text(m['price'] is num ? AppStrings.of(context).formatCurrency(m['price'] as num) : _t('السعر غير متاح'),style:const TextStyle(color:AppColors.primary,fontWeight:FontWeight.bold)),]))])); })),
           ]);
         },
       ),
