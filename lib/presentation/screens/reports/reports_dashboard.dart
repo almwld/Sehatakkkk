@@ -50,6 +50,19 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
 
   String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
 
+  String _localizedDuration(BuildContext context, String value) {
+    final text = value.trim();
+    if (text == 'غير محددة' || text == 'يوم واحد') return _t(context, text);
+    final match = RegExp(r'^(\d+)\s+يوم$').firstMatch(text);
+    if (match != null) {
+      final days = int.tryParse(match.group(1)!) ?? 0;
+      if (days == 1) return _t(context, 'يوم واحد');
+      if (days == 2) return _t(context, 'يومان');
+      return '$days ${_t(context, 'أيام')}';
+    }
+    return text;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -405,6 +418,9 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
   }
 
   Widget _buildMedicalReportCard(MedicalReportModel report, bool isDark, BuildContext context) {
+    final summary = report.summary == 'توجد نتائج أو وصفة مرتبطة بهذه الاستشارة.'
+        ? _t(context, report.summary)
+        : report.summary;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -422,7 +438,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  report.title,
+                  _t(context, report.title),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -450,7 +466,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
           ),
           const SizedBox(height: 4),
           Text(
-            report.summary,
+            summary,
             style: TextStyle(
               fontSize: 12,
               color: isDark ? Colors.grey : Colors.grey,
@@ -589,7 +605,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
               const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF0D5257)),
               const SizedBox(width: 4),
               Text(
-                '${_t(context, 'المدة:')} ${medication.duration}',
+                '${_t(context, 'المدة:')} ${_localizedDuration(context, medication.duration)}',
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.grey : Colors.grey,
