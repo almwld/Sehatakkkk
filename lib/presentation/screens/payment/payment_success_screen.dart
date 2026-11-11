@@ -55,7 +55,12 @@ class PaymentSuccessScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              t(transaction.title),
+              strings.translateTransactionTitle(
+                title: transaction.title,
+                type: transaction.type.name,
+                serviceType: transaction.serviceType,
+                metadata: transaction.metadata,
+              ),
               style: TextStyle(
                 fontSize: 14,
                 color: isDark ? Colors.white70 : Colors.grey[600],
