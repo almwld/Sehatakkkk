@@ -1367,6 +1367,8 @@ class AppStrings {
       'لا توجد مستشفيات متاحة حالياً': ['No hospitals are currently available', 'Aucun hôpital n’est actuellement disponible'],
       'لا توجد تقييمات': ['No reviews yet', 'Aucun avis pour le moment'],
       'تعذر تحميل الوصفات': ['Could not load prescriptions', 'Impossible de charger les ordonnances'],
+      'تعذر تحميل بيانات الأطفال': ['Could not load children profiles', 'Impossible de charger les profils des enfants'],
+      'تعذر تحميل ملف الطفل': ['Could not load the child profile', 'Impossible de charger le profil de l’enfant'],
       'لا توجد وصفات طبية حالياً': ['No prescriptions are currently available', 'Aucune ordonnance n’est disponible pour le moment'],
       'لا يوجد أطباء مضافون إلى المفضلة': ['No doctors have been added to favorites', 'Aucun médecin n’a été ajouté aux favoris'],
       'لا توجد تقارير': ['No reports available', 'Aucun rapport disponible'],
