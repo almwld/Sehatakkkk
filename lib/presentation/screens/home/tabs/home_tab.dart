@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
@@ -213,6 +214,24 @@ class _HomeTabState extends State<HomeTab>
         itemBuilder: (_, index) {
           final doctor = doctors[index];
           final image = ImageKit.doctorPhoto(doctor);
+          final strings = AppStrings.of(context);
+          final rawDoctorName = (doctor['name'] ?? '').toString().trim();
+          final doctorName = localizedField(
+            doctor,
+            'name',
+            strings.locale,
+            fallback: rawDoctorName.isEmpty ? _t('طبيب') : rawDoctorName,
+          );
+          final rawSpecialty = (doctor['specialty'] ?? 'تخصص طبي').toString();
+          final localizedSpecialty = localizedField(
+            doctor,
+            'specialty',
+            strings.locale,
+            fallback: rawSpecialty,
+          );
+          final specialty = localizedSpecialty == rawSpecialty
+              ? _t(rawSpecialty)
+              : localizedSpecialty;
           final id = (doctor['id'] ?? doctor['uid'] ?? '').toString();
           return InkWell(
             onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'),
@@ -229,9 +248,9 @@ class _HomeTabState extends State<HomeTab>
                 ),
                 const SizedBox(width: 8),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text((doctor['name'] ?? AppStrings.of(context).translate('طبيب')).toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                  Text(doctorName, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
                   const SizedBox(height: 3),
-                  Text(AppStrings.of(context).translate((doctor['specialty'] ?? 'تخصص طبي').toString()), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
+                  Text(specialty, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
                   if (doctor['rating'] != null) ...[
                     const SizedBox(height: 4),
                     Row(children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 13), const SizedBox(width: 2), Text(doctor['rating'].toString(), style: TextStyle(fontSize: 9, color: dark ? Colors.white70 : _muted))]),
@@ -383,9 +402,30 @@ class _HomeTabState extends State<HomeTab>
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
                   final item = items[i] as Map<String, dynamic>;
-                  final name = (item['name'] ?? item['pharmacyName'] ?? _t('صيدلية')).toString();
+                  final locale = AppStrings.of(context).locale;
+                  final name = localizedField(
+                    item,
+                    'name',
+                    locale,
+                    fallback: localizedField(
+                      item,
+                      'pharmacyName',
+                      locale,
+                      fallback: _t('صيدلية'),
+                    ),
+                  );
                   final image = (item['imageUrl'] ?? item['image'] ?? item['photoUrl'] ?? '').toString();
-                  final location = (item['location'] ?? item['city'] ?? item['address'] ?? '').toString();
+                  final location = localizedField(
+                    item,
+                    'location',
+                    locale,
+                    fallback: localizedField(
+                      item,
+                      'city',
+                      locale,
+                      fallback: localizedField(item, 'address', locale),
+                    ),
+                  );
                   return InkWell(
                     onTap: more,
                     borderRadius: BorderRadius.circular(16),
@@ -435,9 +475,34 @@ class _HomeTabState extends State<HomeTab>
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
                   final item = items[i] as Map<String, dynamic>;
+                  final locale = AppStrings.of(context).locale;
                   final image = (item['imageUrl'] ?? item['image'] ?? '').toString();
-                  final titleValue = (item['title'] ?? item['name'] ?? title).toString();
-                  final subtitle = (item[subtitleKey] ?? item['description'] ?? '').toString();
+                  final titleField = item.containsKey('title')
+                      ? 'title'
+                      : item.containsKey('name')
+                          ? 'name'
+                          : null;
+                  final titleValue = titleField == null
+                      ? title
+                      : localizedField(
+                          item,
+                          titleField,
+                          locale,
+                          fallback: item[titleField]?.toString() ?? title,
+                        );
+                  final subtitleField = item.containsKey(subtitleKey)
+                      ? subtitleKey
+                      : item.containsKey('description')
+                          ? 'description'
+                          : null;
+                  final subtitle = subtitleField == null
+                      ? ''
+                      : localizedField(
+                          item,
+                          subtitleField,
+                          locale,
+                          fallback: item[subtitleField]?.toString() ?? '',
+                        );
                   return InkWell(
                     onTap: onMore,
                     borderRadius: BorderRadius.circular(16),
@@ -505,7 +570,14 @@ class _HomeTabState extends State<HomeTab>
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Column(children: items.take(3).map((raw) {
           final data = Map<String, dynamic>.from(raw as Map);
           final createdAt = data['createdAt'] is Timestamp ? (data['createdAt'] as Timestamp).toDate() : data['createdAt'] is DateTime ? data['createdAt'] as DateTime : null;
-          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? AppStrings.of(context).translate('مستخدم')}', title: '${data['title'] ?? AppStrings.of(context).translate('منشور')}', content: data['content']?.toString(), imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: data['category']?.toString(), likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
+          final locale = AppStrings.of(context).locale;
+          final rawPostTitle = (data['title'] ?? _t('منشور')).toString();
+          final postTitle = localizedField(data, 'title', locale, fallback: rawPostTitle);
+          final rawPostContent = data['content']?.toString();
+          final postContent = rawPostContent == null
+              ? null
+              : localizedField(data, 'content', locale, fallback: rawPostContent);
+          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? AppStrings.of(context).translate('مستخدم')}', title: postTitle, content: postContent, imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: data['category']?.toString(), likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
           return Padding(padding: const EdgeInsets.only(bottom: 12), child: _HomeCommunityPost(post: post, dark: dark));
         }).toList())),
     );
