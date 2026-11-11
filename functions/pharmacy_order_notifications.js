@@ -67,11 +67,18 @@ exports.onPharmacyOrderCreated = onDocumentCreated('orders/{orderId}', async eve
       }, {merge: true});
       const doctorId = String(item.doctorId || med.doctorId || '');
       if (doctorId) {
+        const displayName = String(item.name || med.name || 'دواء');
+        const displayNameEn = String(item.nameEn || med.nameEn || item.name || med.name || 'medicine');
+        const displayNameFr = String(item.nameFr || med.nameFr || item.name || med.name || 'médicament');
         const n = {
           userId: doctorId,
           type: 'medication_purchased',
           title: 'تم شراء الدواء الموصوف',
-          body: 'اشترى المريض الدواء «' + String(item.name || med.name || 'دواء') + '» بكمية ' + qty + '، وتم ربط العملية بالوصفة.',
+          titleEn: 'Prescribed medication purchased',
+          titleFr: 'Médicament prescrit acheté',
+          body: 'اشترى المريض الدواء «' + displayName + '» بكمية ' + qty + '، وتم ربط العملية بالوصفة.',
+          bodyEn: 'The patient purchased “' + displayNameEn + '” (quantity: ' + qty + ') and it was linked to the prescription.',
+          bodyFr: 'Le patient a acheté « ' + displayNameFr + ' » (quantité : ' + qty + ') ; l’achat a été associé à l’ordonnance.',
           data: {type: 'medication_purchased', orderId: event.params.orderId, medicationId: med.id, patientId, quantity: qty},
           orderId: event.params.orderId,
           medicationId: med.id,

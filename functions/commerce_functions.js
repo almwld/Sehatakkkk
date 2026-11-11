@@ -176,7 +176,12 @@ exports.checkoutCart = onCall(async (request) => {
       });
       tx.set(db.collection('notifications').doc(), {
         userId: ownerId, type: 'pharmacy_order_created', title: 'طلب صيدلية جديد',
-        body: 'لديك طلب جديد يحتاج إلى التأكيد.', data: {orderId, pharmacyId, invoiceId},
+        titleEn: 'New pharmacy order',
+        titleFr: 'Nouvelle commande de pharmacie',
+        body: 'لديك طلب جديد يحتاج إلى التأكيد.',
+        bodyEn: 'You have a new order that needs confirmation.',
+        bodyFr: 'Vous avez une nouvelle commande à confirmer.',
+        data: {orderId, pharmacyId, invoiceId},
         orderId, isRead: false, createdAt: now,
       });
       const linkedPrescriptionIds = new Set(rows.filter(row => row.prescriptionRef).map(row => row.item.prescriptionId));
