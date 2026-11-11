@@ -577,7 +577,16 @@ class _HomeTabState extends State<HomeTab>
           final postContent = rawPostContent == null
               ? null
               : localizedField(data, 'content', locale, fallback: rawPostContent);
-          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? AppStrings.of(context).translate('مستخدم')}', title: postTitle, content: postContent, imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: data['category']?.toString(), likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
+          final rawCategory = data['category']?.toString();
+          final localizedCategory = rawCategory == null
+              ? null
+              : localizedField(data, 'category', locale, fallback: rawCategory);
+          final postCategory = localizedCategory == null
+              ? null
+              : localizedCategory == rawCategory
+                  ? _t(rawCategory)
+                  : localizedCategory;
+          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? AppStrings.of(context).translate('مستخدم')}', title: postTitle, content: postContent, imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: postCategory, likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
           return Padding(padding: const EdgeInsets.only(bottom: 12), child: _HomeCommunityPost(post: post, dark: dark));
         }).toList())),
     );
@@ -602,9 +611,62 @@ class _HomeCommunityPostState extends State<_HomeCommunityPost> {
     if (mounted) setState(() { _liked = !_liked; _likes += _liked ? 1 : -1; });
   }
   Future<void> _share() async { try { await FirebaseFirestore.instance.collection('community_posts').doc(widget.post.id).update({'shares': FieldValue.increment(1)}); await Share.share('${widget.post.title}\n${widget.post.content ?? ''}', subject: AppStrings.of(context).translate('منشور من صحتك')); if (mounted) setState(() => _shares++); } catch (_) {} }
+String _localizedCommunityTimeAgo(DateTime? createdAt, String languageCode) {
+  final language = languageCode.toLowerCase();
+  String justNow() => language == 'fr'
+      ? 'À l’instant'
+      : language == 'en'
+          ? 'Just now'
+          : 'الآن';
+  if (createdAt == null) return justNow();
+
+  final difference = DateTime.now().difference(createdAt);
+  if (difference.inMinutes < 1) return justNow();
+
+  if (difference.inHours < 1) {
+    final value = difference.inMinutes;
+    if (language == 'fr') return 'Il y a $value min';
+    if (language == 'en') return value == 1 ? '1 min ago' : '$value mins ago';
+    if (value == 1) return 'منذ دقيقة';
+    if (value == 2) return 'منذ دقيقتين';
+    if (value <= 10) return 'منذ $value دقائق';
+    return 'منذ $value دقيقة';
+  }
+
+  if (difference.inDays < 1) {
+    final value = difference.inHours;
+    if (language == 'fr') return 'Il y a $value h';
+    if (language == 'en') return value == 1 ? '1 hour ago' : '$value hours ago';
+    if (value == 1) return 'منذ ساعة';
+    if (value == 2) return 'منذ ساعتين';
+    if (value <= 10) return 'منذ $value ساعات';
+    return 'منذ $value ساعة';
+  }
+
+  if (difference.inDays < 7) {
+    final value = difference.inDays;
+    if (language == 'fr') return value == 1 ? 'Il y a 1 jour' : 'Il y a $value jours';
+    if (language == 'en') return value == 1 ? '1 day ago' : '$value days ago';
+    if (value == 1) return 'منذ يوم';
+    if (value == 2) return 'منذ يومين';
+    if (value <= 10) return 'منذ $value أيام';
+    return 'منذ $value يوم';
+  }
+
+  final weeks = (difference.inDays / 7).floor();
+  if (language == 'fr') return weeks == 1 ? 'Il y a 1 sem.' : 'Il y a $weeks sem.';
+  if (language == 'en') return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
+  if (weeks == 1) return 'منذ أسبوع';
+  if (weeks == 2) return 'منذ أسبوعين';
+  if (weeks <= 10) return 'منذ $weeks أسابيع';
+  return 'منذ $weeks أسبوع';
+}
   @override Widget build(BuildContext context) { final p = widget.post; final image = p.images?.isNotEmpty == true ? p.images!.first : p.imageUrl;
+    final locale = AppStrings.of(context).locale.languageCode;
+    final category = p.category ?? AppStrings.of(context).translate('عام');
+    final timeAgo = _localizedCommunityTimeAgo(p.createdAt, locale);
     return Container(decoration: BoxDecoration(color: widget.dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(20)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Padding(padding: const EdgeInsets.fromLTRB(14,14,14,8), child: Row(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(p.userName.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'ص' : 'S') : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87)), Text('${p.category ?? AppStrings.of(context).translate('عام')} • ${p.timeAgo}', style: TextStyle(fontSize: 10, color: widget.dark ? Colors.white60 : Colors.black54))]))])),
+      Padding(padding: const EdgeInsets.fromLTRB(14,14,14,8), child: Row(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(p.userName.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'ص' : 'S') : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87)), Text('$category • $timeAgo', style: TextStyle(fontSize: 10, color: widget.dark ? Colors.white60 : Colors.black54))]))])),
       Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Text(p.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87))),
       if ((p.content ?? '').trim().isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(14,6,14,10), child: Text(p.content!, style: TextStyle(height: 1.5, color: widget.dark ? Colors.white70 : Colors.black87))),
       if (image != null && image.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: ClipRRect(borderRadius: BorderRadius.circular(16), child: AppImage(imageUrl: image, height: 250, width: double.infinity, fit: BoxFit.cover))),
