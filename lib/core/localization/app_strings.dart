@@ -1597,6 +1597,8 @@ class AppStrings {
       'توجد نتائج أو وصفة مرتبطة بهذه الاستشارة.': ['Results or a prescription are associated with this consultation.', 'Des résultats ou une ordonnance sont associés à cette consultation.'],
       'غير محددة': ['Not specified', 'Non précisée'],
       'يوم واحد': ['One day', 'Un jour'],
+      'يومان': ['Two days', 'Deux jours'],
+      'أيام': ['days', 'jours'],
       'غير نشط': ['Inactive', 'Inactif'],
       '🟢 نشط': ['🟢 Active', '🟢 Actif'],
       '🔄 قيد المراجعة': ['🔄 Under review', '🔄 En cours d’examen'],
