@@ -99,6 +99,7 @@ class _ParamedicFieldScreenState extends State<ParamedicFieldScreen> {
     body:StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
       stream:_paramedics(),builder:(context,snapshot){
         final docs=snapshot.data?.docs??const [];
+        if (snapshot.hasError) debugPrint('Available paramedics stream failed: ${snapshot.error}');
         return ListView(padding:const EdgeInsets.all(16),children:[
           _hero(_t('المسعفون المتاحون الآن'),_t('اعرض المسعفين المتواجدين في مناطق الخدمة والمتاحين للاستجابة للطوارئ.')),
           const SizedBox(height:12),
