@@ -54,7 +54,12 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
     final text = value.trim();
     if (text == 'غير محددة' || text == 'يوم واحد') return _t(context, text);
     final match = RegExp(r'^(\d+)\s+يوم$').firstMatch(text);
-    if (match != null) return '${match.group(1)} ${_t(context, 'يوم')}';
+    if (match != null) {
+      final days = int.tryParse(match.group(1)!) ?? 0;
+      if (days == 1) return _t(context, 'يوم واحد');
+      if (days == 2) return _t(context, 'يومان');
+      return '$days ${_t(context, 'أيام')}';
+    }
     return text;
   }
 
