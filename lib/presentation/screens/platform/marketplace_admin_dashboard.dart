@@ -24,7 +24,10 @@ class _MarketplaceAdminDashboardState extends State<MarketplaceAdminDashboard> {
       _products = (d['products'] as List? ?? const []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
       _pharmacies = (d['pharmacies'] as List? ?? const []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
       if (mounted) setState(() => _error = null);
-    } catch (e) { if (mounted) setState(() => _error = e.toString()); }
+    } catch (e) {
+      debugPrint('Marketplace admin data load failed: $e');
+      if (mounted) setState(() => _error = 'load_failed');
+    }
     finally { if (mounted) setState(() => _loading = false); }
   }
 
