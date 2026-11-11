@@ -4847,6 +4847,10 @@ class AppStrings {
       'يلزم السماح بالميكروفون والكاميرا لإجراء المكالمة.': ['Microphone and camera permissions are required to make the call.', 'Les autorisations du microphone et de la caméra sont nécessaires pour passer l’appel.'],
       'تعذر الاتصال بالشبكة. تحقق من الإنترنت وحاول مرة أخرى.': ['Could not connect to the network. Check your internet connection and try again.', 'Impossible de se connecter au réseau. Vérifiez votre connexion Internet et réessayez.'],
       'تعذر بدء المكالمة. حاول مرة أخرى.': ['Could not start the call. Try again.', 'Impossible de démarrer l’appel. Réessayez.'],
+      // Chat and incoming-call failure feedback.
+      'تعذر فتح المحادثة. حاول مرة أخرى.': ['Could not open the conversation. Please try again.', 'Impossible d’ouvrir la conversation. Veuillez réessayer.'],
+      'تعذر رفض المكالمة. حاول مرة أخرى.': ['Could not decline the call. Please try again.', 'Impossible de refuser l’appel. Veuillez réessayer.'],
+      'تعذر قبول المكالمة. حاول مرة أخرى.': ['Could not answer the call. Please try again.', 'Impossible de répondre à l’appel. Veuillez réessayer.'],
       'في انتظار قبول المكالمة...': ['Waiting for the call to be answered…', 'En attente de la réponse à l’appel…'],
       'لا يوجد اتصال بالإنترنت': ['No internet connection', 'Aucune connexion Internet'],
       'متصل': ['Connected', 'Connecté'],

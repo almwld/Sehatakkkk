@@ -190,7 +190,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           _swipeDirection = 0;
           _swipeLocked = false;
         });
-        ToastService.showError('${_t('تعذر رفض المكالمة:')} $e');
+        ToastService.showError(_t('تعذر رفض المكالمة. حاول مرة أخرى.'));
       }
     }
   }
@@ -239,7 +239,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           _swipeDirection = 0;
           _swipeLocked = false;
         });
-        ToastService.showError('${_t('تعذر قبول المكالمة:')} $e');
+        ToastService.showError(_t('تعذر قبول المكالمة. حاول مرة أخرى.'));
       }
     }
   }
@@ -276,7 +276,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           _swipeDirection = 0;
           _swipeLocked = false;
         });
-        ToastService.showError('${AppStrings.of(context).translate('تعذر قبول المكالمة:')} $e');
+        ToastService.showError(_t('تعذر قبول المكالمة. حاول مرة أخرى.'));
       }
       return;
     }
