@@ -18,7 +18,8 @@ Future<void> showDoctorMedicalForms({required BuildContext context,required Stri
   if(values==null||!context.mounted)return;
   values['chatId']=chatId;
   try {
-    final file=await MedicalDocumentService.instance.buildPdf(formType:form,doctor:doctor,patient:patient,values:values);
+    final languageCode = AppStrings.of(context).locale.languageCode;
+    final file=await MedicalDocumentService.instance.buildPdf(formType:form,doctor:doctor,patient:patient,values:values,languageCode:languageCode);
     final docs=await FirebaseFirestore.instance.collection('medical_documents').where('localPath',isEqualTo:file.path).limit(1).get();
     final docId=docs.docs.isNotEmpty?docs.docs.first.id:'';
     await ChatMediaTransferService.instance.enqueue(chatId:chatId,sourceFile:file,type:'file',folder:'medical_documents',preview:'📄 ${_title(context,form)}',fileName:file.uri.pathSegments.last,fileSize:'PDF',mimeType:'application/pdf');
