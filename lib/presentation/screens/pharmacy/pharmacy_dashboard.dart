@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:sehatak/core/constants/app_icons.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/toast_service.dart';
@@ -18,6 +19,8 @@ class PharmacyDashboard extends StatefulWidget {
 
 class _PharmacyDashboardState extends State<PharmacyDashboard> {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _field(Map<String, dynamic> data, String key, {String fallback = ''}) =>
+      localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
   Map<String, dynamic>? _pharmacy;
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
@@ -68,11 +71,11 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
       if (_productImage != null) { final up = await NextcloudService().uploadFile(file: _productImage!, path: 'sehatak/products/'+uid, fileName: DateTime.now().millisecondsSinceEpoch.toString()+'_'+_productImage!.path.split('/').last); if (!up.success || up.url == null) throw StateError(up.error ?? _t('فشل رفع صورة المنتج')); imageUrl = up.url; }
       await FirebaseFirestore.instance.collection('products').add({'name':name.text.trim(),'category':category.text.trim(),'price':double.tryParse(price.text)??0,'stock':int.tryParse(stock.text)??0,'drugId':drug.text.trim(),'imageUrl':imageUrl,'pharmacyId':_pharmacy!['id'],'sellerId':uid,'pharmacyName':_pharmacy!['name']??'','approvalStatus':'pending','isPublished':false,'isActive':true,'createdAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp()});
       _productImage=null; await _load(); if(mounted) ToastService.showSuccess(_t('تم حفظ المنتج وإرساله للمراجعة'));
-    } catch(e){if(mounted) ToastService.showError('${_t('فشل حفظ المنتج:')} '+e.toString());}
+    } catch(error){debugPrint('Pharmacy product save failed: $error');if(mounted) ToastService.showError(_t('تعذر حفظ المنتج'));}
     finally { if (mounted) setState(() => _addingProduct = false); }
   }
 
-  Future<void> _editOffer(Map<String, dynamic> p) async { final id='${p['id']??''}'; if(id.isEmpty)return; final price=TextEditingController(text:'${p['price']??0}'), stock=TextEditingController(text:'${p['stock']??0}'); final ok=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(title:Text('${_t('تعديل')} ${p['name']??_t('المنتج')}'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:price,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('السعر ر.ي'))),TextField(controller:stock,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('المخزون')))]),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:Text(_t('إلغاء'))),ElevatedButton(onPressed:()=>Navigator.pop(context,true),child:Text(_t('حفظ')))])); if(ok!=true)return; try{await FirebaseFirestore.instance.collection('products').doc(id).update({'price':double.tryParse(price.text)??0,'stock':int.tryParse(stock.text)??0,'updatedAt':FieldValue.serverTimestamp()});await _load();if(mounted)ToastService.showSuccess(_t('تم تحديث المنتج'));}catch(e){if(mounted)ToastService.showError('${_t('فشل تحديث المنتج:')} '+e.toString());}}
+  Future<void> _editOffer(Map<String, dynamic> p) async { final id='${p['id']??''}'; if(id.isEmpty)return; final price=TextEditingController(text:'${p['price']??0}'), stock=TextEditingController(text:'${p['stock']??0}'); final ok=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(title:Text('${_t('تعديل')} ${_field(p, 'name', fallback: _t('المنتج'))}'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:price,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('السعر ر.ي'))),TextField(controller:stock,keyboardType:TextInputType.number,decoration:InputDecoration(labelText:_t('المخزون')))]),actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:Text(_t('إلغاء'))),ElevatedButton(onPressed:()=>Navigator.pop(context,true),child:Text(_t('حفظ')))])); if(ok!=true)return; try{await FirebaseFirestore.instance.collection('products').doc(id).update({'price':double.tryParse(price.text)??0,'stock':int.tryParse(stock.text)??0,'updatedAt':FieldValue.serverTimestamp()});await _load();if(mounted)ToastService.showSuccess(_t('تم تحديث المنتج'));}catch(error){debugPrint('Pharmacy product update failed: $error'); if(mounted) ToastService.showError(_t('تعذر تحديث المنتج'));}}
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +92,7 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
                       child: ListView(
                         padding: const EdgeInsets.all(16),
                         children: [
-                          Card(child: ListTile(leading: const CircleAvatar(child: Icon(Icons.local_pharmacy)), title: Text('${_pharmacy!['name'] ?? ''}'), subtitle: Text('${_t('الحالة:')} ${_t(_pharmacy!['status'] == 'approved' ? 'مقبولة' : 'معلقة')}'), trailing: Icon(_pharmacy!['status'] == 'approved' ? Icons.verified : Icons.hourglass_top, color: _pharmacy!['status'] == 'approved' ? Colors.green : Colors.orange))),
+                          Card(child: ListTile(leading: const CircleAvatar(child: Icon(Icons.local_pharmacy)), title: Text(_field(_pharmacy!, 'name')), subtitle: Text('${_t('الحالة:')} ${_t(_pharmacy!['status'] == 'approved' ? 'مقبولة' : 'معلقة')}'), trailing: Icon(_pharmacy!['status'] == 'approved' ? Icons.verified : Icons.hourglass_top, color: _pharmacy!['status'] == 'approved' ? Colors.green : Colors.orange))),
                           const SizedBox(height: 12),
                           Row(children: [Expanded(child: _metric(_t('المنتجات'), _products.length.toString())), Expanded(child: _metric(_t('مقبولة'), _products.where((p) => p['status'] == 'approved').length.toString())), Expanded(child: _metric(_t('معلقة'), _products.where((p) => p['status'] == 'pending').length.toString()))]),
                           const SizedBox(height: 16),
@@ -108,7 +111,7 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     final approved = p['status'] == 'approved';
     return Card(
       child: ListTile(
-        title: Text('${p['name'] ?? ''}'),
+        title: Text(_field(p, 'name', fallback: _t('المنتج'))),
         subtitle: Text('${p['price'] ?? 0} ${AppStrings.of(context).locale.languageCode == 'ar' ? 'ر.ي' : 'YER'} • ${_t('المخزون')} ${p['stock'] ?? 0}'),
         trailing: approved
             ? IconButton(onPressed: () => _editOffer(p), icon: const Icon(Icons.edit, color: AppColors.primary))

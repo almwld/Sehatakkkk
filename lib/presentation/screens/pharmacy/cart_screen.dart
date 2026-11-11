@@ -10,6 +10,16 @@ class CartScreen extends StatefulWidget {
 }
 class _CartScreenState extends State<CartScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _itemName(CartItem item) {
+    final language = AppStrings.of(context).locale.languageCode;
+    if (language == 'en' && (item.nameEn?.trim().isNotEmpty ?? false)) {
+      return item.nameEn!.trim();
+    }
+    if (language == 'fr' && (item.nameFr?.trim().isNotEmpty ?? false)) {
+      return item.nameFr!.trim();
+    }
+    return item.name;
+  }
   String get _currency => AppStrings.of(context).locale.languageCode == 'ar' ? 'ر.ي' : 'YER';
   final _cart = UnifiedCartService.instance;
   final _address = TextEditingController();
@@ -24,7 +34,7 @@ class _CartScreenState extends State<CartScreen> {
       if (!mounted) return;
       await showDialog<void>(context: context, builder: (_) => AlertDialog(title: Text(_t('تم الدفع بنجاح')), content: Text(_t('رقم الطلب:') + ' ${result['orderId']}\n' + _t('الإجمالي:') + ' ${result['total']} $_currency\n' + _t('رقم الفاتورة:') + ' ${result['invoiceId'] ?? '—'}'), actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(_t('متابعة')))]));
       setState(() {});
-    } catch (e) { if (mounted) ToastService.showError(_t('تعذر إتمام الدفع') + ': $e'); } finally { if (mounted) setState(() => _processing = false); }
+    } catch (error) { debugPrint('Pharmacy cart checkout failed: $error'); if (mounted) ToastService.showError(_t('تعذر إتمام الدفع')); } finally { if (mounted) setState(() => _processing = false); }
   }
   @override
   Widget build(BuildContext context) {
@@ -32,7 +42,7 @@ class _CartScreenState extends State<CartScreen> {
     final total = _cart.subtotal;
     if (_cart.items.isEmpty) return Scaffold(appBar: AppBar(title: Text(_t('السلة')), backgroundColor: AppColors.primary, foregroundColor: Colors.white), body: Center(child: Text(_t('السلة فارغة'))));
     return Scaffold(appBar: AppBar(title: Text(_t('السلة الموحدة')), backgroundColor: AppColors.primary, foregroundColor: Colors.white), backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC), body: ListView(padding: const EdgeInsets.all(16), children: [
-      ..._cart.items.map((item) => Card(child: ListTile(title: Text(item.name), subtitle: Text('${item.unitPrice.toStringAsFixed(0)} $_currency × ${item.quantity}'), trailing: Wrap(spacing: 2, children: [IconButton(onPressed: () => setState(() => _cart.decrement(item.productId)), icon: const Icon(Icons.remove_circle_outline)), Text('${item.quantity}'), IconButton(onPressed: () => setState(() => _cart.increment(item.productId)), icon: const Icon(Icons.add_circle_outline)), IconButton(onPressed: () => setState(() => _cart.remove(item.productId)), icon: const Icon(Icons.delete_outline, color: Colors.red))])))),
+      ..._cart.items.map((item) => Card(child: ListTile(title: Text(_itemName(item)), subtitle: Text('${item.unitPrice.toStringAsFixed(0)} $_currency × ${item.quantity}'), trailing: Wrap(spacing: 2, children: [IconButton(onPressed: () => setState(() => _cart.decrement(item.productId)), icon: const Icon(Icons.remove_circle_outline)), Text('${item.quantity}'), IconButton(onPressed: () => setState(() => _cart.increment(item.productId)), icon: const Icon(Icons.add_circle_outline)), IconButton(onPressed: () => setState(() => _cart.remove(item.productId)), icon: const Icon(Icons.delete_outline, color: Colors.red))])))),
       const SizedBox(height: 8),
       SwitchListTile(title: Text(_t('توصيل الطلب')), value: _delivery, onChanged: _processing ? null : (v) => setState(() => _delivery = v)),
       if (_delivery) TextField(controller: _address, maxLines: 2, decoration: InputDecoration(labelText: _t('عنوان التوصيل'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on_outlined))),
