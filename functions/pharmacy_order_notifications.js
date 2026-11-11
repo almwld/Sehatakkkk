@@ -36,7 +36,11 @@ exports.onPharmacyOrderCreated = onDocumentCreated('orders/{orderId}', async eve
       orderId: event.params.orderId,
       invoiceId: order.invoiceId || '',
       title: 'طلب صيدلية جديد',
+      titleEn: 'New pharmacy order',
+      titleFr: 'Nouvelle commande de pharmacie',
       body: 'لديك طلب مدفوع جديد يحتاج إلى التأكيد.',
+      bodyEn: 'You have a new paid order that needs confirmation.',
+      bodyFr: 'Vous avez une nouvelle commande payée à confirmer.',
     });
   }
 
@@ -88,10 +92,18 @@ exports.onPharmacyOrderCreated = onDocumentCreated('orders/{orderId}', async eve
         };
         const ref = db.collection('notifications').doc();
         batch.set(ref, n);
-        notifications.push({doctorId, data: n.data});
+        notifications.push({doctorId, data: n.data, notification: n});
       }
     }
   }
   if (notifications.length || medications.length) await batch.commit();
-  await Promise.all(notifications.map(n => sendFcm(n.doctorId, {...n.data, title: 'تم شراء الدواء الموصوف', body: 'تم شراء دواء موصوف لأحد مرضاك'})));
+  await Promise.all(notifications.map(n => sendFcm(n.doctorId, {
+    ...n.data,
+    title: n.notification.title,
+    titleEn: n.notification.titleEn,
+    titleFr: n.notification.titleFr,
+    body: n.notification.body,
+    bodyEn: n.notification.bodyEn,
+    bodyFr: n.notification.bodyFr,
+  })));
 });
