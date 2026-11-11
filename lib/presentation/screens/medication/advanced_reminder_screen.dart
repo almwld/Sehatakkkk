@@ -36,8 +36,8 @@ class _AdvancedReminderScreenState extends State<AdvancedReminderScreen> {
                 Container(width: 44, height: 44, decoration: BoxDecoration(color: (m['color'] as Color).withOpacity(0.08), borderRadius: BorderRadius.circular(10)), child: Center(child: Text(m['icon'], style: const TextStyle(fontSize: 22)))),
                 const SizedBox(width: 10),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(m['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  Text(m['time'], style: const TextStyle(fontSize: 11, color: AppColors.grey)),
+                  Text(_localizedUiText(context, m['name'] as String), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(_localizedUiText(context, m['time'] as String), style: const TextStyle(fontSize: 11, color: AppColors.grey)),
                 ])),
                 Checkbox(value: m['taken'], activeColor: AppColors.success, onChanged: (v) => setState(() => m['taken'] = v)),
               ]),
@@ -52,7 +52,7 @@ class _AdvancedReminderScreenState extends State<AdvancedReminderScreen> {
                   margin: const EdgeInsets.only(top: 8),
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(color: AppColors.error.withOpacity(0.05), borderRadius: BorderRadius.circular(8)),
-                  child: Row(children: [const Icon(Icons.warning, color: AppColors.error, size: 14), const SizedBox(width: 4), Text('${_localizedUiText(context, 'يحتاج إعادة تعبئة قبل ')}${m['refill']}', style: const TextStyle(color: AppColors.error, fontSize: 10))]),
+                  child: Row(children: [const Icon(Icons.warning, color: AppColors.error, size: 14), const SizedBox(width: 4), Text('${_localizedUiText(context, 'يحتاج إعادة تعبئة قبل ')}${_localizedUiText(context, m['refill'] as String)}', style: const TextStyle(color: AppColors.error, fontSize: 10))]),
                 ),
               const SizedBox(height: 8),
               Row(children: [
