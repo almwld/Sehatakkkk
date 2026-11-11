@@ -1,5 +1,6 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,7 +25,7 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
     if(!mounted)return; setState((){_doctors=snap.docs.map((d){final x=d.data();return {...x,'id':d.id,'name':x['name']??x['displayName']??'','specialty':x['specialty']??x['specialization']??'عام','rating':(x['rating'] as num?)?.toDouble()??0.0,'reviews':(x['reviews'] as num?)?.toInt()??0,'price':'${x['consultationPrice']??x['price']??0}','available':x['available']==true,'online':x['online']==true,'image':_firstImageUrl(x),'nextAvailable':x['nextAvailable']??'غير محدد'};}).toList();_isLoading=false;});
   } catch(_){if(mounted)setState((){_doctors=[];_isLoading=false;});}}
   List<Map<String,dynamic>> get _filteredDoctors {final l=List<Map<String,dynamic>>.from(_doctors);switch(_selectedFilter){case'متاح الآن':l.retainWhere((d)=>d['online']==true);break;case'الأعلى تقييماً':l.sort((a,b)=>(b['rating'] as double).compareTo(a['rating'] as double));break;case'الأقل سعراً':l.sort((a,b)=>(double.tryParse(a['price'].toString())??double.maxFinite).compareTo(double.tryParse(b['price'].toString())??double.maxFinite));}return l;}
-  void _startConsultation(Map<String,dynamic> doctor){showDialog(context:context,builder:(c)=>AlertDialog(title:Text('${_localizedUiText(context, 'استشارة مع ')}${doctor['name']}'),content:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${_localizedUiText(context, 'التخصص: ')}${_localizedUiText(context, doctor['specialty']?.toString() ?? 'عام')}'),const SizedBox(height:8),Text('${_localizedUiText(context, 'التقييم: ')}${doctor['rating']} (${doctor['reviews']} ${_localizedUiText(context, 'تقييم')})'),const SizedBox(height:8),Text('${_localizedUiText(context, 'السعر: ')}${doctor['price']} ${_localizedUiText(context, 'ر.ي')}')]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(_localizedUiText(context, 'إلغاء'))),ElevatedButton.icon(onPressed:(){Navigator.pop(c);_chooseCallType(doctor);},icon:const Icon(Icons.call),label:Text(_localizedUiText(context, 'الاتصال')),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white))]));}
+  void _startConsultation(Map<String,dynamic> doctor){showDialog(context:context,builder:(c)=>AlertDialog(title:Text('${_localizedUiText(context, 'استشارة مع ')}${_doctorName(doctor)}'),content:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${_localizedUiText(context, 'التخصص: ')}${_doctorSpecialty(doctor)}'),const SizedBox(height:8),Text('${_localizedUiText(context, 'التقييم: ')}${doctor['rating']} (${doctor['reviews']} ${_localizedUiText(context, 'تقييم')})'),const SizedBox(height:8),Text('${_localizedUiText(context, 'السعر: ')}${doctor['price']} ${_localizedUiText(context, 'ر.ي')}')]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:Text(_localizedUiText(context, 'إلغاء'))),ElevatedButton.icon(onPressed:(){Navigator.pop(c);_chooseCallType(doctor);},icon:const Icon(Icons.call),label:Text(_localizedUiText(context, 'الاتصال')),style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white))]));}
   void _chooseCallType(Map<String, dynamic> doctor) {
     showModalBottomSheet<void>(
       context: context,
@@ -211,11 +212,34 @@ class _VideoConsultationScreenState extends State<VideoConsultationScreen> {
   }
 
   String _doctorName(Map<String, dynamic> doctor) {
-    final name = doctor['name']?.toString().trim() ?? '';
+    final locale = AppStrings.of(context).locale;
+    final name = localizedField(
+      doctor,
+      'name',
+      locale,
+      fallback: localizedValue(
+        doctor['displayName'] ?? doctor['title'],
+        locale,
+      ),
+    ).trim();
     return name.isEmpty ? _localizedUiText(context, 'طبيب') : name;
   }
 
-  Widget _doctorCard(Map<String,dynamic> d,bool dark){final image=d['image']?.toString()??'';final name=_doctorName(d);return Container(margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Row(children:[CircleAvatar(radius:28,backgroundImage:image.isNotEmpty?NetworkImage(image):null,child:image.isEmpty?Text(name[0]):null),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)),Text(_localizedUiText(context, d['specialty']?.toString()??'عام'),style:TextStyle(fontSize:12,color:dark?Colors.grey.shade400:Colors.grey.shade600)),const SizedBox(height:4),Text('${d['price']} ${_localizedUiText(context, 'ر.ي')}',style:TextStyle(fontSize:11,color:dark?Colors.white:Colors.black87))])),ElevatedButton(onPressed:d['available']==true?()=>_startConsultation(d):null,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:Text(_localizedUiText(context, 'ابدأ')))]));}
+  String _doctorSpecialty(Map<String, dynamic> doctor) {
+    final locale = AppStrings.of(context).locale;
+    final specialty = localizedField(
+      doctor,
+      'specialty',
+      locale,
+      fallback: localizedField(doctor, 'specialization', locale),
+    ).trim();
+    if (specialty.isEmpty || specialty == 'عام') {
+      return _localizedUiText(context, 'طبيب عام');
+    }
+    return _localizedUiText(context, specialty);
+  }
+
+  Widget _doctorCard(Map<String,dynamic> d,bool dark){final image=d['image']?.toString()??'';final name=_doctorName(d);return Container(margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:dark?const Color(0xFF1A2540):Colors.white,borderRadius:BorderRadius.circular(14)),child:Row(children:[CircleAvatar(radius:28,backgroundImage:image.isNotEmpty?NetworkImage(image):null,child:image.isEmpty?Text(name[0]):null),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontWeight:FontWeight.bold,color:dark?Colors.white:Colors.black87)),Text(_doctorSpecialty(d),style:TextStyle(fontSize:12,color:dark?Colors.grey.shade400:Colors.grey.shade600)),const SizedBox(height:4),Text('${d['price']} ${_localizedUiText(context, 'ر.ي')}',style:TextStyle(fontSize:11,color:dark?Colors.white:Colors.black87))])),ElevatedButton(onPressed:d['available']==true?()=>_startConsultation(d):null,style:ElevatedButton.styleFrom(backgroundColor:AppColors.primary,foregroundColor:Colors.white),child:Text(_localizedUiText(context, 'ابدأ')))]));}
 }
 
 String _localizedUiText(BuildContext context, String value) =>
