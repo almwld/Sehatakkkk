@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import 'package:sehatak/presentation/screens/pharmacy/product_request_screen.dart';
@@ -10,6 +11,9 @@ class PharmacyDetailScreen extends StatelessWidget {
   String _t(BuildContext context, String value) => AppStrings.of(context).translate(value);
   final Map<String, dynamic> pharmacy;
   const PharmacyDetailScreen({super.key, required this.pharmacy});
+
+  String _localizedText(BuildContext context, String key, {String fallback = ''}) =>
+      localizedField(pharmacy, key, AppStrings.of(context).locale, fallback: fallback).trim();
 
   String _text(String key, [String fallback = 'غير متوفر']) {
     final value = pharmacy[key];
@@ -29,7 +33,8 @@ class PharmacyDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final name = _text('name', _t(context, 'الصيدلية'));
+    final sourceName = localizedField(pharmacy, 'name', const Locale('ar'), fallback: _text('name', _t(context, 'الصيدلية'))).trim();
+    final name = _localizedText(context, 'name', fallback: sourceName);
     final image = _text('image', 'https://ik.imagekit.io/fqcynk86c/images/pharmacies/pharmacy_1.png');
     final open = _bool('open');
     final delivery = _bool('delivery');
@@ -44,7 +49,7 @@ class PharmacyDetailScreen extends StatelessWidget {
           foregroundColor: Colors.white,
           bottom: TabBar(tabs: [Tab(text: _t(context, 'المعلومات')), Tab(text: _t(context, 'الطلب'))]),
         ),
-        body: TabBarView(children: [_infoTab(context, isDark, name, image, open, delivery), _orderTab(context, isDark, name, delivery)]),
+        body: TabBarView(children: [_infoTab(context, isDark, name, image, open, delivery), _orderTab(context, isDark, name, sourceName, delivery)]),
       ),
     );
   }
@@ -55,7 +60,7 @@ class PharmacyDetailScreen extends StatelessWidget {
       const SizedBox(height: 16),
       Text(name, style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 12),
-      _row(context, 'assets/icons/map_pins/pharmacy.svg', _t(context, 'العنوان'), _text('address'), isDark),
+      _row(context, 'assets/icons/map_pins/pharmacy.svg', _t(context, 'العنوان'), _localizedText(context, 'address', fallback: _t(context, 'غير متوفر')), isDark),
       _row(context, 'assets/icons/services/medical.svg', _t(context, 'الهاتف'), _text('phone'), isDark),
       _row(context, 'assets/icons/mini_specialties/heart.svg', _t(context, 'التقييم'), _text('rating', '--'), isDark),
       _row(context, 'assets/icons/social/chat_modern.svg', _t(context, 'التقييمات'), _text('reviews', '0'), isDark),
@@ -67,9 +72,9 @@ class PharmacyDetailScreen extends StatelessWidget {
     ]);
   }
 
-  Widget _orderTab(BuildContext context, bool isDark, String name, bool delivery) {
+  Widget _orderTab(BuildContext context, bool isDark, String name, String sourceName, bool delivery) {
     return ListView(padding: const EdgeInsets.all(16), children: [
-      Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${_t(context, 'طلب من')} $name', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Text(_t(context, delivery ? 'يمكنك رفع الوصفة أو صورة الدواء وإرسال طلبك للصيدلية.' : 'التوصيل غير متاح لهذه الصيدلية حالياً.'), style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700, height: 1.4)), const SizedBox(height: 14), SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductRequestScreen(pharmacyId: '${pharmacy['id'] ?? ''}', pharmacyName: name))), icon: SvgPicture.asset('assets/icons/mini_specialties/pill.svg', width: 22, height: 22, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)), label: Text(_t(context, 'رفع/تصوير الدواء وطلبه')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white)))]))),
+      Card(elevation: 0, child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${_t(context, 'طلب من')} $name', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Text(_t(context, delivery ? 'يمكنك رفع الوصفة أو صورة الدواء وإرسال طلبك للصيدلية.' : 'التوصيل غير متاح لهذه الصيدلية حالياً.'), style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade300 : Colors.grey.shade700, height: 1.4)), const SizedBox(height: 14), SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductRequestScreen(pharmacyId: '${pharmacy['id'] ?? ''}', pharmacyName: sourceName))), icon: SvgPicture.asset('assets/icons/mini_specialties/pill.svg', width: 22, height: 22, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)), label: Text(_t(context, 'رفع/تصوير الدواء وطلبه')), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white)))]))),
     ]);
   }
 
