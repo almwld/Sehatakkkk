@@ -1598,7 +1598,6 @@ class AppStrings {
       'غير محددة': ['Not specified', 'Non précisée'],
       'يوم واحد': ['One day', 'Un jour'],
       'يومان': ['Two days', 'Deux jours'],
-      'أيام': ['days', 'jours'],
       'غير نشط': ['Inactive', 'Inactif'],
       '🟢 نشط': ['🟢 Active', '🟢 Actif'],
       '🔄 قيد المراجعة': ['🔄 Under review', '🔄 En cours d’examen'],
