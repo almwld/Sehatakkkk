@@ -265,9 +265,10 @@ class _CommunityScreenState extends State<CommunityScreen>
               stream: _posts(),
               builder: (context, snapshot) {
           if (snapshot.hasError) {
+            debugPrint('Community feed stream failed: ${snapshot.error}');
             return Center(
               child: Text(
-                '${AppStrings.of(context).translate('تعذر تحميل المجتمع')}\n${snapshot.error}',
+                AppStrings.of(context).translate('تعذر تحميل المجتمع'),
                 textAlign: TextAlign.center,
               ),
             );
