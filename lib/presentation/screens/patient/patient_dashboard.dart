@@ -353,7 +353,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
       await _saveToCache();
       ToastService.showSuccess('✅ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'تم رفع الصورة بنجاح' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Image téléversée avec succès' : 'Image uploaded successfully'}');
     } catch (e) {
-      ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'فشل رفع الصورة' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Échec du téléversement de l’image' : 'Image upload failed'}: $e');
+      debugPrint('Patient dashboard image upload failed: $e');
+      ToastService.showError('❌ ${AppStrings.of(context).translate('فشل رفع الصورة')}');
     }
   }
 
@@ -377,7 +378,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 ''';
       await Share.share(shareText, subject: AppStrings.of(context).translate('ملفي الصحي - صحتك'));
     } catch (e) {
-      ToastService.showError('❌ ${AppStrings.of(context).locale.languageCode == 'ar' ? 'فشل مشاركة الملف' : AppStrings.of(context).locale.languageCode == 'fr' ? 'Échec du partage du fichier' : 'File sharing failed'}: $e');
+      debugPrint('Patient profile share failed: $e');
+      ToastService.showError('❌ ${AppStrings.of(context).translate('فشل مشاركة الملف')}');
     } finally {
       setState(() => _isSharing = false);
     }
