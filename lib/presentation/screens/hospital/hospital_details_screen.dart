@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
@@ -22,10 +23,19 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hospital = widget.hospitalData ?? {};
+    final locale = AppStrings.of(context).locale;
+    final hospitalName = localizedField(hospital, 'name', locale, fallback: _localizedUiText(context, 'اسم المستشفى'));
+    final hospitalLocation = localizedField(
+      hospital,
+      'location',
+      locale,
+      fallback: localizedField(hospital, 'address', locale, fallback: _localizedUiText(context, 'الموقع غير معروف')),
+    );
+    final hospitalType = localizedField(hospital, 'type', locale, fallback: _localizedUiText(context, 'عام'));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(hospital['name'] ?? _localizedUiText(context, 'تفاصيل المستشفى')),
+        title: Text(hospitalName),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -49,7 +59,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
 
             // اسم المستشفى
             Text(
-              hospital['name'] ?? _localizedUiText(context, 'اسم المستشفى'),
+              hospitalName,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -63,7 +73,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                 Icon(Icons.location_on, color: AppColors.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  hospital['location'] ?? _localizedUiText(context, 'الموقع غير معروف'),
+                  hospitalLocation,
                   style: TextStyle(
                     fontSize: 16,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -110,7 +120,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
             const SizedBox(height: 16),
 
             // معلومات إضافية
-            _buildInfoRow('🏥 ${_localizedUiText(context, 'النوع')}', hospital['type'] ?? _localizedUiText(context, 'عام')),
+            _buildInfoRow('🏥 ${_localizedUiText(context, 'النوع')}', hospitalType),
             _buildInfoRow('🛏️ ${_localizedUiText(context, 'عدد الأسرة')}', '${hospital['beds'] ?? 100} ${_localizedUiText(context, 'سرير')}'),
             _buildInfoRow('📞 ${_localizedUiText(context, 'الهاتف')}', hospital['phone'] ?? _localizedUiText(context, 'غير متوفر')),
 
