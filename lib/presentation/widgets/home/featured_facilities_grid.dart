@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_details_screen.dart';
@@ -83,8 +84,14 @@ class _FacilityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final id = _string('id');
     final image = _string('imageUrl', _string('image', _string('photoUrl')));
-    final name = _string('name', AppStrings.of(context).translate(isHospital ? 'مستشفى' : 'مختبر'));
-    final location = _string('location', _string('city', _string('address')));
+    final locale = AppStrings.of(context).locale;
+    final name = localizedField(item, 'name', locale, fallback: AppStrings.of(context).translate(isHospital ? 'مستشفى' : 'مختبر'));
+    final location = localizedField(
+      item,
+      'location',
+      locale,
+      fallback: localizedField(item, 'city', locale, fallback: localizedField(item, 'address', locale)),
+    );
     final rating = _rating();
     final hasOpenField = item.containsKey('open') || item.containsKey('isOpen');
     final isOpen = item['open'] == true || item['isOpen'] == true;
