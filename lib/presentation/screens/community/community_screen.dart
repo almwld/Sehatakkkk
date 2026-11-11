@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -287,14 +288,38 @@ class _CommunityScreenState extends State<CommunityScreen>
               padding: const EdgeInsets.fromLTRB(12, 104, 12, 120),
               itemCount: docs.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (_, index) => _PostCard(
-                post: CommunityPostModel.fromFirestore(docs[index]).copyWith(isLiked: _likedPostIds.contains(docs[index].id)),
-                dark: dark,
-                onLike: _toggleLike,
-                onComment: _comment,
-                onComments: _showComments,
-                onShare: _share,
-              ),
+              itemBuilder: (_, index) {
+                final document = docs[index];
+                final data = document.data();
+                final strings = AppStrings.of(context);
+                final locale = strings.locale;
+                final rawPost = CommunityPostModel.fromFirestore(document);
+                final rawCategory = rawPost.category;
+                final localizedCategory = rawCategory == null
+                    ? null
+                    : localizedField(data, 'category', locale, fallback: rawCategory);
+                final category = localizedCategory == null
+                    ? null
+                    : localizedCategory == rawCategory
+                        ? strings.translate(rawCategory)
+                        : localizedCategory;
+                final localizedPost = rawPost.copyWith(
+                  title: localizedField(data, 'title', locale, fallback: rawPost.title),
+                  content: rawPost.content == null
+                      ? null
+                      : localizedField(data, 'content', locale, fallback: rawPost.content!),
+                  category: category,
+                  isLiked: _likedPostIds.contains(document.id),
+                );
+                return _PostCard(
+                  post: localizedPost,
+                  dark: dark,
+                  onLike: _toggleLike,
+                  onComment: _comment,
+                  onComments: _showComments,
+                  onShare: _share,
+                );
+              },
             ),
               );
               },
@@ -378,6 +403,57 @@ class _CommunityScreenState extends State<CommunityScreen>
       ),
     );
   }
+}
+
+String _localizedCommunityTimeAgo(DateTime? createdAt, String languageCode) {
+  final language = languageCode.toLowerCase();
+  String justNow() => language == 'fr'
+      ? 'À l’instant'
+      : language == 'en'
+          ? 'Just now'
+          : 'الآن';
+  if (createdAt == null) return justNow();
+
+  final difference = DateTime.now().difference(createdAt);
+  if (difference.inMinutes < 1) return justNow();
+
+  if (difference.inHours < 1) {
+    final value = difference.inMinutes;
+    if (language == 'fr') return 'Il y a $value min';
+    if (language == 'en') return value == 1 ? '1 min ago' : '$value mins ago';
+    if (value == 1) return 'منذ دقيقة';
+    if (value == 2) return 'منذ دقيقتين';
+    if (value <= 10) return 'منذ $value دقائق';
+    return 'منذ $value دقيقة';
+  }
+
+  if (difference.inDays < 1) {
+    final value = difference.inHours;
+    if (language == 'fr') return 'Il y a $value h';
+    if (language == 'en') return value == 1 ? '1 hour ago' : '$value hours ago';
+    if (value == 1) return 'منذ ساعة';
+    if (value == 2) return 'منذ ساعتين';
+    if (value <= 10) return 'منذ $value ساعات';
+    return 'منذ $value ساعة';
+  }
+
+  if (difference.inDays < 7) {
+    final value = difference.inDays;
+    if (language == 'fr') return value == 1 ? 'Il y a 1 jour' : 'Il y a $value jours';
+    if (language == 'en') return value == 1 ? '1 day ago' : '$value days ago';
+    if (value == 1) return 'منذ يوم';
+    if (value == 2) return 'منذ يومين';
+    if (value <= 10) return 'منذ $value أيام';
+    return 'منذ $value يوم';
+  }
+
+  final weeks = (difference.inDays / 7).floor();
+  if (language == 'fr') return weeks == 1 ? 'Il y a 1 sem.' : 'Il y a $weeks sem.';
+  if (language == 'en') return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
+  if (weeks == 1) return 'منذ أسبوع';
+  if (weeks == 2) return 'منذ أسبوعين';
+  if (weeks <= 10) return 'منذ $weeks أسابيع';
+  return 'منذ $weeks أسبوع';
 }
 
 class _PostCard extends StatelessWidget {
@@ -465,7 +541,7 @@ class _PostCard extends StatelessWidget {
                         ],
                       ),
                       Text(
-                        '${post.category ?? AppStrings.of(context).translate('عام')} • ${post.timeAgo}',
+                        '${post.category ?? AppStrings.of(context).translate('عام')} • ${_localizedCommunityTimeAgo(post.createdAt, AppStrings.of(context).locale.languageCode)}',
                         style: TextStyle(
                           fontSize: 10,
                           color: dark ? Colors.white60 : Colors.grey[600],
