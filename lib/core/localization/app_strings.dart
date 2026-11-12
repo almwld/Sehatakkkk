@@ -5342,6 +5342,10 @@ class AppStrings {
       'تعذر تحديث حالة المنتج. حاول مرة أخرى.': ['Could not update the product status. Please try again.', 'Impossible de mettre à jour le statut du produit. Veuillez réessayer.'],
       'تعذر تحديث حالة الصيدلية. حاول مرة أخرى.': ['Could not update the pharmacy status. Please try again.', 'Impossible de mettre à jour le statut de la pharmacie. Veuillez réessayer.'],
       'تعذر نشر المنشور. حاول مرة أخرى.': ['Could not publish the post. Please try again.', 'Impossible de publier la publication. Veuillez réessayer.'],
+      'تعذر تحميل الرسائل. حاول مرة أخرى.': ['Could not load messages. Please try again.', 'Impossible de charger les messages. Veuillez réessayer.'],
+      'تعذر إرسال الرسالة. حاول مرة أخرى.': ['Could not send the message. Please try again.', 'Impossible d’envoyer le message. Veuillez réessayer.'],
+      'تعذر حذف الرسالة. حاول مرة أخرى.': ['Could not delete the message. Please try again.', 'Impossible de supprimer le message. Veuillez réessayer.'],
+      'تعذر إضافة التفاعل. حاول مرة أخرى.': ['Could not add the reaction. Please try again.', 'Impossible d’ajouter la réaction. Veuillez réessayer.'],
     };
 
     final entry = translations[value];
