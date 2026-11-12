@@ -81,7 +81,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       _show(_t('تم إرسال طلب الحجز بنجاح. رقم الحجز: ')+bookingId, true);
       Navigator.pop(context, bookingId);
     } catch (e) {
-      if (mounted) _show(_t('تعذر إرسال الحجز: ')+e.toString(), false);
+      debugPrint('Lab booking submission failed: $e');
+      if (mounted) _show(_t('تعذر إرسال طلب حجز الفحص. تحقق من الاتصال وحاول مرة أخرى.'), false);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

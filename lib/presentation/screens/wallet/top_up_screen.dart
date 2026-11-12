@@ -295,7 +295,8 @@ class _TopUpScreenState extends State<TopUpScreen> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted) ToastService.showError(_t('فشل إرسال الطلب: ') + e.toString());
+      debugPrint('Wallet top-up request failed: $e');
+      if (mounted) ToastService.showError(_t('تعذر إرسال طلب تغذية المحفظة. حاول مرة أخرى لاحقاً.'));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
