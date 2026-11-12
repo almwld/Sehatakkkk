@@ -102,10 +102,10 @@ class _HealthMapScreenState extends State<HealthMapScreen> {
                       Row(children: [
                         Text(f['icon'], style: const TextStyle(fontSize: 22)),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(f['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
+                        Expanded(child: Text(_t(f['name'] as String), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
                       ]),
                       const SizedBox(height: 4),
-                      Row(children: [const Icon(Icons.location_on, size: 14, color: AppColors.grey), const SizedBox(width: 4), Expanded(child: Text(f['address'], style: const TextStyle(fontSize: 11, color: AppColors.grey)))]),
+                      Row(children: [const Icon(Icons.location_on, size: 14, color: AppColors.grey), const SizedBox(width: 4), Expanded(child: Text(_t(f['address'] as String), style: const TextStyle(fontSize: 11, color: AppColors.grey)))]),
                       const SizedBox(height: 6),
                       // تفاصيل حسب النوع
                       if (f['category'] == 'مستشفيات') Row(children: [_tag('${f['beds']} ${_t('سرير')}', AppColors.primary), const SizedBox(width: 6), if (f['emergency']) _tag(_t('طوارئ 24 ساعة'), AppColors.error)]),
