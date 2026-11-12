@@ -33,11 +33,11 @@ class _MarketplaceAdminDashboardState extends State<MarketplaceAdminDashboard> {
 
   Future<void> _reviewProduct(String id, String decision) async {
     try { await _functions.httpsCallable('reviewPharmacyProduct').call({'submissionId': id, 'decision': decision, 'note': ''}); ToastService.showSuccess(_t(decision == 'approve' ? 'تم اعتماد المنتج' : 'تم رفض المنتج')); await _load(); }
-    catch (e) { ToastService.showError(e.toString()); }
+    catch (e) { debugPrint('Marketplace product review failed: $e'); ToastService.showError(_t('تعذر تحديث حالة المنتج. حاول مرة أخرى.')); }
   }
   Future<void> _reviewPharmacy(String id, String decision) async {
     try { await _functions.httpsCallable('reviewPharmacy').call({'pharmacyId': id, 'decision': decision, 'note': ''}); ToastService.showSuccess(_t(decision == 'approve' ? 'تم اعتماد الصيدلية' : 'تم رفض الصيدلية')); await _load(); }
-    catch (e) { ToastService.showError(e.toString()); }
+    catch (e) { debugPrint('Marketplace pharmacy review failed: $e'); ToastService.showError(_t('تعذر تحديث حالة الصيدلية. حاول مرة أخرى.')); }
   }
 
   @override Widget build(BuildContext context) {

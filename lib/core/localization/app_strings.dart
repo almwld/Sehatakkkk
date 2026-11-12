@@ -5335,6 +5335,13 @@ class AppStrings {
       'لديك طلب جديد يحتاج إلى التأكيد.': ['You have a new order that needs confirmation.', 'Vous avez une nouvelle commande à confirmer.'],
       'تعذر تهيئة خدمة الأطباء، حاول مرة أخرى.': ['The doctors service is not ready. Please try again.', 'Le service des médecins n’est pas prêt. Veuillez réessayer.'],
       'تعذر تحميل الأطباء، حاول مرة أخرى.': ['Unable to load doctors. Please try again.', 'Impossible de charger les médecins. Veuillez réessayer.'],
+      'تعذر تحميل المستخدمين': ['Could not load users', 'Impossible de charger les utilisateurs'],
+      'تعذر إرسال الإشعار. حاول مرة أخرى.': ['Could not send the notification. Please try again.', 'Impossible d’envoyer la notification. Veuillez réessayer.'],
+      'تعذر تنفيذ الإجراء. حاول مرة أخرى.': ['Could not complete the action. Please try again.', 'Impossible d’effectuer l’action. Veuillez réessayer.'],
+      'تعذر إنشاء التقرير اليومي. حاول مرة أخرى.': ['Could not create the daily report. Please try again.', 'Impossible de créer le rapport quotidien. Veuillez réessayer.'],
+      'تعذر تحديث حالة المنتج. حاول مرة أخرى.': ['Could not update the product status. Please try again.', 'Impossible de mettre à jour le statut du produit. Veuillez réessayer.'],
+      'تعذر تحديث حالة الصيدلية. حاول مرة أخرى.': ['Could not update the pharmacy status. Please try again.', 'Impossible de mettre à jour le statut de la pharmacie. Veuillez réessayer.'],
+      'تعذر نشر المنشور. حاول مرة أخرى.': ['Could not publish the post. Please try again.', 'Impossible de publier la publication. Veuillez réessayer.'],
     };
 
     final entry = translations[value];

@@ -87,7 +87,13 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ToastService.showError(_t(e.toString().replaceFirst('Exception: ', '')));
+      final message = e.toString().replaceFirst('Exception: ', '').trim();
+      debugPrint('Community post submission failed: $e');
+      if (message == _t('النشر متاح للأطباء الموثقين فقط')) {
+        ToastService.showError(message);
+      } else {
+        ToastService.showError(_t('تعذر نشر المنشور. حاول مرة أخرى.'));
+      }
     }
   }
 
@@ -101,7 +107,8 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
           ToastService.showSuccess(_t('تم نشر المنشور بنجاح'));
         } else if (state.status == CommunityStatus.error && _isLoading) {
           setState(() => _isLoading = false);
-          ToastService.showError(_t(state.errorMessage ?? 'فشل النشر'));
+          debugPrint('Community post bloc failed: ${state.errorMessage}');
+          ToastService.showError(_t('تعذر نشر المنشور. حاول مرة أخرى.'));
         }
       },
       child: Container(

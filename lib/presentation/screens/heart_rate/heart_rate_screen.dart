@@ -66,11 +66,12 @@ class _HeartRateScreenState extends State<HeartRateScreen>
         _error = null;
       });
     } catch (e) {
+      debugPrint('Heart-rate camera initialization failed: $e');
       if (!mounted) return;
       setState(() {
         _initializing = false;
         _status = 0;
-        _error = e.toString();
+        _error = _t('تعذر تشغيل الكاميرا أو القياس');
       });
     }
   }
@@ -127,6 +128,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
       });
       _pulseController.repeat(reverse: true);
     } catch (e) {
+      debugPrint('Heart-rate measurement failed: $e');
       _bpmSub?.cancel();
       _qualitySub?.cancel();
       _waveformSub?.cancel();
@@ -135,7 +137,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
       setState(() {
         _measuring = false;
         _status = 0;
-        _error = e.toString();
+        _error = _t('تعذر تشغيل الكاميرا أو القياس');
       });
     }
   }
