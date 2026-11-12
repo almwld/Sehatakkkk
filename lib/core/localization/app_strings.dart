@@ -5320,6 +5320,7 @@ class AppStrings {
       'طلب صيدلية جديد': ['New pharmacy order', 'Nouvelle commande de pharmacie'],
       'لديك طلب مدفوع جديد يحتاج إلى التأكيد.': ['You have a new paid order that needs confirmation.', 'Vous avez une nouvelle commande payée à confirmer.'],
       'لديك طلب جديد يحتاج إلى التأكيد.': ['You have a new order that needs confirmation.', 'Vous avez une nouvelle commande à confirmer.'],
+      'اشتراك نشط': ['Active subscription', 'Abonnement actif'],
     };
 
     final entry = translations[value];
