@@ -1665,6 +1665,7 @@ class AppStrings {
       'رد على التقييم': ['Reply to review', 'Répondre à l’avis'],
       'تقييمات': ['Reviews', 'Avis'],
       'عرض الكل': ['View all', 'Tout afficher'],
+      'عرض المزيد': ['Show more', 'Afficher plus'],
       'ابحث عن خدمة منزلية...': ['Search home services...', 'Rechercher des services à domicile…'],
       'جرب تغيير البحث أو التصنيف': ['Try changing your search or category', 'Essayez de modifier votre recherche ou catégorie'],
       'المساعدة والدعم': ['Help and support', 'Aide et assistance'],
