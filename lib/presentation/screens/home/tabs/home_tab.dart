@@ -150,7 +150,7 @@ class _HomeTabState extends State<HomeTab>
                     SliverToBoxAdapter(child: _weather(dark)),
                     SliverToBoxAdapter(child: _community(state.communityPosts, dark)),
                     if (state.isLoading) const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(strokeWidth: 2)))),
-                    if (state.hasError) SliverToBoxAdapter(child: _error(state.errorMessage ?? AppStrings.of(context).translate('حدث خطأ غير متوقع'), dark)),
+                    if (state.hasError) SliverToBoxAdapter(child: _error(AppStrings.of(context).translate(state.errorMessage ?? 'حدث خطأ غير متوقع'), dark)),
                     const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
                 ),
