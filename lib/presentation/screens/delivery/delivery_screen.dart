@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -52,7 +53,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
   }
 
   Widget _serviceCard(Map<String,dynamic> data,bool dark) {
-    final name=data['name']?.toString()??_t('خدمة توصيل');
+    final name=localizedField(data, 'name', AppStrings.of(context).locale, fallback: _t('خدمة توصيل'));
     final price=(data['price'] as num?)?.toDouble();
     final eta=data['estimatedMinutes'];
     return Card(child:Padding(padding:const EdgeInsets.all(16),child:Row(children:[
