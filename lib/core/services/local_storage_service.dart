@@ -192,7 +192,7 @@ class LocalStorageService {
           'interactions': drug['interactions'] ?? '',
           'contraindications': drug['contraindications'] ?? '',
           'notes': drug['notes'] ?? '',
-          'overdose': drug['overdose'] ?? '',
+          'overdose': '',
           'forms': jsonEncode(drug['forms'] ?? []),
           'brands': jsonEncode(drug['brands'] ?? []),
           'updated_at': DateTime.now().millisecondsSinceEpoch,
