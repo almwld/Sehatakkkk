@@ -3215,6 +3215,8 @@ class AppStrings {
       'أكمل الاسم والتخصص ورقم الترخيص قبل الإرسال': ['Complete your name, specialty and license number before submitting', 'Renseignez votre nom, votre spécialité et votre numéro de licence avant l’envoi'],
       'ارفع الهوية والمستندات الرسمية أولاً': ['Upload your identity document and official documents first', 'Téléversez d’abord votre pièce d’identité et les documents officiels'],
       'تعذر إرسال طلب التوثيق': ['Could not submit the verification request', 'Impossible d’envoyer la demande de vérification'],
+      'تعذر تحميل طلبات التوثيق. حاول مرة أخرى.': ['Could not load verification requests. Please try again.', 'Impossible de charger les demandes de vérification. Veuillez réessayer.'],
+      'تعذر تحديث حالة طلب التوثيق. حاول مرة أخرى.': ['Could not update the verification request. Please try again.', 'Impossible de mettre à jour la demande de vérification. Veuillez réessayer.'],
       'تعذر تحميل حالة التوثيق. حاول مرة أخرى.': ['Could not load verification status. Please try again.', 'Impossible de charger le statut de vérification. Veuillez réessayer.'],
       'تعذر رفع مستند التحقق. حاول مرة أخرى.': ['Could not upload the verification document. Please try again.', 'Impossible de téléverser le document de vérification. Veuillez réessayer.'],
       ' ملف مرفوع': [' file uploaded', ' fichier téléversé'],
