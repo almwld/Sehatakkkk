@@ -47,7 +47,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
     return true;
   }
   @override void dispose(){for(final c in [_name,_age,_license,_experience,_specialty,_academic])c.dispose();super.dispose();}
-  Future<void> _load() async{try{final u=FirebaseAuth.instance.currentUser;if(u==null)throw Exception('يجب تسجيل الدخول أولاً');final s=await FirebaseFirestore.instance.collection('users').doc(u.uid).get();final request=await FirebaseFirestore.instance.collection('verification_requests').doc(u.uid).get();final d=s.data()??{};final rd=request.data()??{};final docs=rd['documents'];if(docs is Map){_docs..clear()..addAll(docs.map((k,v)=>MapEntry(k.toString(),v is List?v.map<Map<String,dynamic>>((x)=>x is Map?Map<String,dynamic>.from(x):<String,dynamic>{}).toList():<Map<String,dynamic>>[])));}if(!mounted)return;setState((){_role=d['role']?.toString()??'user';_name.text=d['name']?.toString()??d['displayName']?.toString()??'';_age.text=d['age']?.toString()??'';_academic.text=d['academicSummary']?.toString()??'';_license.text=d['licenseNumber']?.toString()??'';_experience.text=d['experience']?.toString()??'';_specialty.text=d['specialty']?.toString()??'';_status=rd['status']?.toString()??d['verificationStatus']?.toString()??'notSubmitted';_verified=d['isVerified']==true;_loading=false;});}catch(e){if(mounted)setState((){_error=e.toString();_loading=false;});}}
+  Future<void> _load() async{try{final u=FirebaseAuth.instance.currentUser;if(u==null)throw Exception('يجب تسجيل الدخول أولاً');final s=await FirebaseFirestore.instance.collection('users').doc(u.uid).get();final request=await FirebaseFirestore.instance.collection('verification_requests').doc(u.uid).get();final d=s.data()??{};final rd=request.data()??{};final docs=rd['documents'];if(docs is Map){_docs..clear()..addAll(docs.map((k,v)=>MapEntry(k.toString(),v is List?v.map<Map<String,dynamic>>((x)=>x is Map?Map<String,dynamic>.from(x):<String,dynamic>{}).toList():<Map<String,dynamic>>[])));}if(!mounted)return;setState((){_role=d['role']?.toString()??'user';_name.text=d['name']?.toString()??d['displayName']?.toString()??'';_age.text=d['age']?.toString()??'';_academic.text=d['academicSummary']?.toString()??'';_license.text=d['licenseNumber']?.toString()??'';_experience.text=d['experience']?.toString()??'';_specialty.text=d['specialty']?.toString()??'';_status=rd['status']?.toString()??d['verificationStatus']?.toString()??'notSubmitted';_verified=d['isVerified']==true;_loading=false;});}catch(e){debugPrint('Verification status load failed: $e');if(mounted)setState((){_error=_t('تعذر تحميل حالة التوثيق. حاول مرة أخرى.');_loading=false;});}}
   Future<void> _pick(String category) async {
     final result = await FilePicker.platform.pickFiles(allowMultiple: true, type: FileType.custom, allowedExtensions: ['pdf','jpg','jpeg','png']);
     if (result == null) return;
@@ -69,7 +69,7 @@ class _VerificationScreenState extends State<VerificationScreen>{
       }
       if (count > 0) ToastService.showSuccess(_t('تم رفع ') + count.toString() + _t(' ملف وحفظه كمسودة'));
       else ToastService.showError(_t('الملفات المحددة مرفوعة مسبقاً أو لم يتم اختيار ملف صالح'));
-    } catch(e) { ToastService.showError(e.toString().replaceFirst('Exception: ','')); await _saveDraft(); }
+    } catch(e) { debugPrint('Verification document upload failed: $e'); if (mounted) ToastService.showError(_t('تعذر رفع مستند التحقق. حاول مرة أخرى.')); await _saveDraft(); }
     finally { if (mounted) setState(() => _submitting = false); }
   }
 
