@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
 import 'medication_alerts_report_screen.dart';
@@ -17,6 +18,11 @@ class MedicationReminderScreen extends StatefulWidget {
 
 class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
+
+  String _localizedMedicationField(Map<String, dynamic> medicine, String field) {
+    final raw = medicine[field]?.toString() ?? '';
+    return localizedField(medicine, field, AppStrings.of(context).locale, fallback: _t(raw)).trim();
+  }
 
   final MedicationService _service = MedicationService();
   late final List<String> _filters = [_t('الكل'), _t('المتبقية'), _t('المكتملة')];
@@ -203,12 +209,13 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
     final id = medicine['id'].toString();
     final enabled = medicine['reminderEnabled'] != false;
     final taken = medicine['taken'] == true;
-    final dose = (medicine['dose'] ?? '').toString();
-    final frequency = (medicine['frequency'] ?? '').toString();
+    final dose = _localizedMedicationField(medicine, 'dose');
+    final frequency = _localizedMedicationField(medicine, 'frequency');
+    final locale = AppStrings.of(context).locale;
     final times = medicine['times'] is List
-        ? (medicine['times'] as List).join('، ')
-        : (medicine['time'] ?? '').toString();
-    final name = (medicine['name'] ?? '').toString();
+        ? (medicine['times'] as List).map((value) => _t(value.toString())).join(locale.languageCode == 'ar' ? '، ' : ', ')
+        : _localizedMedicationField(medicine, 'time');
+    final name = _localizedMedicationField(medicine, 'name');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
