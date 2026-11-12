@@ -49,7 +49,8 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('${AppStrings.of(context).translate('حدث خطأ')}: ${snapshot.error}'));
+                  debugPrint('Educational videos stream failed: ${snapshot.error}');
+                  return Center(child: Text(AppStrings.of(context).translate('تعذر تحميل الفيديوهات التعليمية')));
                 }
 
                 var videos = snapshot.data?.docs ?? [];

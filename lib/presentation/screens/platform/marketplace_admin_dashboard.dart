@@ -24,7 +24,10 @@ class _MarketplaceAdminDashboardState extends State<MarketplaceAdminDashboard> {
       _products = (d['products'] as List? ?? const []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
       _pharmacies = (d['pharmacies'] as List? ?? const []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
       if (mounted) setState(() => _error = null);
-    } catch (e) { if (mounted) setState(() => _error = e.toString()); }
+    } catch (e) {
+      debugPrint('Marketplace admin data load failed: $e');
+      if (mounted) setState(() => _error = 'load_failed');
+    }
     finally { if (mounted) setState(() => _loading = false); }
   }
 
@@ -40,7 +43,7 @@ class _MarketplaceAdminDashboardState extends State<MarketplaceAdminDashboard> {
   @override Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_t('إدارة Marketplace')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
-      body: _loading ? const Center(child: CircularProgressIndicator()) : _error != null ? Center(child: Text(_error!)) : RefreshIndicator(
+      body: _loading ? const Center(child: CircularProgressIndicator()) : _error != null ? Center(child: Text(_t('تعذر تحميل بيانات السوق'))) : RefreshIndicator(
         onRefresh: _load,
         child: ListView(padding: const EdgeInsets.all(12), children: [
           _section(_t('طلبات اعتماد الصيدليات'), _pharmacies, (p) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${p['name'] ?? _t('صيدلية')}', style: const TextStyle(fontWeight: FontWeight.bold)), Text('${p['address'] ?? ''}'), _actions(() => _reviewPharmacy('${p['id']}', 'reject'), () => _reviewPharmacy('${p['id']}', 'approve'))])),

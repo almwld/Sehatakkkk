@@ -31,7 +31,10 @@ class _RemindersScreenState extends State<RemindersScreen> {
       body: user == null ? Center(child: Text(_t('يرجى تسجيل الدخول'))) : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _firestore.collection('reminders').where('userId', isEqualTo: user.uid).orderBy('dateTime').snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text(_t('حدث خطأ') + ': ${snapshot.error}'));
+          if (snapshot.hasError) {
+            debugPrint('Reminders stream failed: ${snapshot.error}');
+            return Center(child: Text(_t('تعذر تحميل التذكيرات')));
+          }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final docs = snapshot.data!.docs;
           if (docs.isEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[const Icon(Icons.alarm, size: 60, color: AppColors.grey), const SizedBox(height: 16), Text(AppStrings.of(context).translate('لا توجد تذكيرات'), style: const TextStyle(color: AppColors.grey))]));

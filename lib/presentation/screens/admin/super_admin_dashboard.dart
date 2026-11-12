@@ -157,7 +157,10 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
     StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('admin_daily_reports').orderBy('date', descending: true).limit(14).snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return Card(child: Padding(padding: const EdgeInsets.all(12), child: Text(_t('تعذر تحميل التقارير: ') + snapshot.error.toString())));
+        if (snapshot.hasError) {
+          debugPrint('Admin reports stream failed: ${snapshot.error}');
+          return Card(child: Padding(padding: const EdgeInsets.all(12), child: Text(_t('تعذر تحميل تقارير الإدارة'))));
+        }
         if (!snapshot.hasData) return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
         if (snapshot.data!.docs.isEmpty) return Card(child: Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(_t('لا توجد تقارير محفوظة بعد')))));
         return Column(children: snapshot.data!.docs.map((doc) {
