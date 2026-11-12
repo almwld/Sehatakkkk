@@ -1,5 +1,6 @@
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class HomeLazyList<T> extends StatelessWidget {
@@ -18,5 +19,33 @@ class _LazyListView<T> extends StatefulWidget {
 class _LazyListViewState<T> extends State<_LazyListView<T>> {
   int _visibleItems = 0;
   @override void initState(){super.initState();_visibleItems=widget.initialItems;}
-  @override Widget build(BuildContext context)=>Column(children:[...widget.items.take(_visibleItems).map((item)=>widget.itemBuilder(context,item)),if(_visibleItems<widget.items.length)GestureDetector(onTap:()=>setState(()=>_visibleItems=(_visibleItems+widget.batchSize).clamp(0,widget.items.length)),child:Container(padding:const EdgeInsets.symmetric(vertical:8),child:Text('عرض المزيد (${widget.items.length-_visibleItems})',style:const TextStyle(color:AppColors.primary,fontWeight:FontWeight.w500),textAlign:TextAlign.center)))]);
+  @override
+  Widget build(BuildContext context) {
+    final showMoreLabel = AppStrings.of(context).translate('عرض المزيد');
+    return Column(
+      children: [
+        ...widget.items.take(_visibleItems).map(
+          (item) => widget.itemBuilder(context, item),
+        ),
+        if (_visibleItems < widget.items.length)
+          GestureDetector(
+            onTap: () => setState(
+              () => _visibleItems = (_visibleItems + widget.batchSize)
+                  .clamp(0, widget.items.length),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                '$showMoreLabel (${widget.items.length - _visibleItems})',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 }
