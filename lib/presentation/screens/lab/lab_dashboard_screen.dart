@@ -176,7 +176,7 @@ class _TestsTab extends StatelessWidget{
     body:StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
       stream:FirebaseFirestore.instance.collection('lab_tests').where('labId',isEqualTo:uid).snapshots(),
       builder:(context,s){
-        if(s.hasError)return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الفحوصات') + ': ' + s.error.toString()));
+        if(s.hasError){debugPrint('Lab tests stream failed: ${s.error}');return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الفحوصات')));}
         if(!s.hasData)return const Center(child:CircularProgressIndicator());
         final docs=[...s.data!.docs]..sort((a,b){
           final x=a.data()['createdAt'],y=b.data()['createdAt'];
@@ -223,11 +223,11 @@ class _BookingsTab extends StatelessWidget{
       if(!u.success||u.url==null)throw Exception(_t(context,'فشل رفع الملف'));
       await FirebaseFirestore.instance.collection('lab_bookings').doc(id).update({'resultUrl':u.url!,'status':'completed','completedAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp()});
       ToastService.showSuccess(_t(context,'تم إرسال النتيجة'));
-    }catch(e){ToastService.showError(_t(context,'فشل إرسال النتيجة')+': '+e.toString());}
+    }catch(e){debugPrint('Lab result upload failed: $e');ToastService.showError(_t(context,'فشل إرسال النتيجة'));}
   }
   Widget _list(String status)=>StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
     stream:_stream(status),builder:(context,s){
-      if(s.hasError)return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الحجوزات') + ': ' + s.error.toString()));
+      if(s.hasError){debugPrint('Lab bookings stream failed: ${s.error}');return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الحجوزات')));}
       if(!s.hasData)return const Center(child:CircularProgressIndicator());
       final docs=[...s.data!.docs]..sort((a,b){
         final x=a.data()['createdAt'],y=b.data()['createdAt'];
