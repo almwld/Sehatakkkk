@@ -34,8 +34,14 @@ class _DepositScreenState extends State<DepositScreen> {
       final result = await _walletService.deposit(userId: user.uid, amount: amount, walletNumber: walletNumber, walletType: _selectedWallet);
       if (!mounted) return;
       if (result['success'] == true) { ToastService.showSuccess(context, _t('تم شحن ') + AppStrings.of(context).formatCurrency(amount)); Navigator.pop(context, true); }
-      else { ToastService.showError(context, _t('فشل الشحن: ') + (result['error']?.toString() ?? '')); }
-    } catch (e) { if (mounted) ToastService.showError(context, _t('حدث خطأ: ') + e.toString()); }
+      else {
+        debugPrint('Wallet deposit rejected: ${result['error']}');
+        ToastService.showError(context, _t('تعذر إتمام شحن المحفظة. تحقق من الاتصال وحاول مرة أخرى.'));
+      }
+    } catch (e) {
+      debugPrint('Wallet deposit failed: $e');
+      if (mounted) ToastService.showError(context, _t('تعذر إتمام شحن المحفظة. تحقق من الاتصال وحاول مرة أخرى.'));
+    }
     finally { if (mounted) setState(() => _isProcessing = false); }
   }
   @override Widget build(BuildContext context) {

@@ -98,8 +98,9 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
       Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) return;
+      debugPrint('Status publishing failed: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_t('تعذر نشر الحالة: ') + error.toString())),
+        SnackBar(content: Text(_friendlyStatusError(error))),
       );
     } finally {
       if (mounted) setState(() => _publishing = false);
