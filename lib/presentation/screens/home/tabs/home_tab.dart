@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
@@ -213,6 +214,24 @@ class _HomeTabState extends State<HomeTab>
         itemBuilder: (_, index) {
           final doctor = doctors[index];
           final image = ImageKit.doctorPhoto(doctor);
+          final strings = AppStrings.of(context);
+          final rawDoctorName = (doctor['name'] ?? '').toString().trim();
+          final doctorName = localizedField(
+            doctor,
+            'name',
+            strings.locale,
+            fallback: rawDoctorName.isEmpty ? _t('طبيب') : rawDoctorName,
+          );
+          final rawSpecialty = (doctor['specialty'] ?? 'تخصص طبي').toString();
+          final localizedSpecialty = localizedField(
+            doctor,
+            'specialty',
+            strings.locale,
+            fallback: rawSpecialty,
+          );
+          final specialty = localizedSpecialty == rawSpecialty
+              ? _t(rawSpecialty)
+              : localizedSpecialty;
           final id = (doctor['id'] ?? doctor['uid'] ?? '').toString();
           return InkWell(
             onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'),
@@ -229,9 +248,9 @@ class _HomeTabState extends State<HomeTab>
                 ),
                 const SizedBox(width: 8),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text((doctor['name'] ?? AppStrings.of(context).translate('طبيب')).toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                  Text(doctorName, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
                   const SizedBox(height: 3),
-                  Text(AppStrings.of(context).translate((doctor['specialty'] ?? 'تخصص طبي').toString()), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
+                  Text(specialty, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
                   if (doctor['rating'] != null) ...[
                     const SizedBox(height: 4),
                     Row(children: [const Icon(Icons.star_rounded, color: Colors.amber, size: 13), const SizedBox(width: 2), Text(doctor['rating'].toString(), style: TextStyle(fontSize: 9, color: dark ? Colors.white70 : _muted))]),
@@ -383,9 +402,30 @@ class _HomeTabState extends State<HomeTab>
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
                   final item = items[i] as Map<String, dynamic>;
-                  final name = (item['name'] ?? item['pharmacyName'] ?? _t('صيدلية')).toString();
+                  final locale = AppStrings.of(context).locale;
+                  final name = localizedField(
+                    item,
+                    'name',
+                    locale,
+                    fallback: localizedField(
+                      item,
+                      'pharmacyName',
+                      locale,
+                      fallback: _t('صيدلية'),
+                    ),
+                  );
                   final image = (item['imageUrl'] ?? item['image'] ?? item['photoUrl'] ?? '').toString();
-                  final location = (item['location'] ?? item['city'] ?? item['address'] ?? '').toString();
+                  final location = localizedField(
+                    item,
+                    'location',
+                    locale,
+                    fallback: localizedField(
+                      item,
+                      'city',
+                      locale,
+                      fallback: localizedField(item, 'address', locale),
+                    ),
+                  );
                   return InkWell(
                     onTap: more,
                     borderRadius: BorderRadius.circular(16),
@@ -435,9 +475,34 @@ class _HomeTabState extends State<HomeTab>
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
                   final item = items[i] as Map<String, dynamic>;
+                  final locale = AppStrings.of(context).locale;
                   final image = (item['imageUrl'] ?? item['image'] ?? '').toString();
-                  final titleValue = (item['title'] ?? item['name'] ?? title).toString();
-                  final subtitle = (item[subtitleKey] ?? item['description'] ?? '').toString();
+                  final titleField = item.containsKey('title')
+                      ? 'title'
+                      : item.containsKey('name')
+                          ? 'name'
+                          : null;
+                  final titleValue = titleField == null
+                      ? title
+                      : localizedField(
+                          item,
+                          titleField,
+                          locale,
+                          fallback: item[titleField]?.toString() ?? title,
+                        );
+                  final subtitleField = item.containsKey(subtitleKey)
+                      ? subtitleKey
+                      : item.containsKey('description')
+                          ? 'description'
+                          : null;
+                  final subtitle = subtitleField == null
+                      ? ''
+                      : localizedField(
+                          item,
+                          subtitleField,
+                          locale,
+                          fallback: item[subtitleField]?.toString() ?? '',
+                        );
                   return InkWell(
                     onTap: onMore,
                     borderRadius: BorderRadius.circular(16),
@@ -505,7 +570,23 @@ class _HomeTabState extends State<HomeTab>
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Column(children: items.take(3).map((raw) {
           final data = Map<String, dynamic>.from(raw as Map);
           final createdAt = data['createdAt'] is Timestamp ? (data['createdAt'] as Timestamp).toDate() : data['createdAt'] is DateTime ? data['createdAt'] as DateTime : null;
-          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? AppStrings.of(context).translate('مستخدم')}', title: '${data['title'] ?? AppStrings.of(context).translate('منشور')}', content: data['content']?.toString(), imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: data['category']?.toString(), likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
+          final locale = AppStrings.of(context).locale;
+          final rawPostTitle = (data['title'] ?? _t('منشور')).toString();
+          final postTitle = localizedField(data, 'title', locale, fallback: rawPostTitle);
+          final rawPostContent = data['content']?.toString();
+          final postContent = rawPostContent == null
+              ? null
+              : localizedField(data, 'content', locale, fallback: rawPostContent);
+          final rawCategory = data['category']?.toString();
+          final localizedCategory = rawCategory == null
+              ? null
+              : localizedField(data, 'category', locale, fallback: rawCategory);
+          final postCategory = localizedCategory == null
+              ? null
+              : localizedCategory == rawCategory
+                  ? _t(rawCategory)
+                  : localizedCategory;
+          final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? AppStrings.of(context).translate('مستخدم')}', title: postTitle, content: postContent, imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: postCategory, likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
           return Padding(padding: const EdgeInsets.only(bottom: 12), child: _HomeCommunityPost(post: post, dark: dark));
         }).toList())),
     );
@@ -530,9 +611,62 @@ class _HomeCommunityPostState extends State<_HomeCommunityPost> {
     if (mounted) setState(() { _liked = !_liked; _likes += _liked ? 1 : -1; });
   }
   Future<void> _share() async { try { await FirebaseFirestore.instance.collection('community_posts').doc(widget.post.id).update({'shares': FieldValue.increment(1)}); await Share.share('${widget.post.title}\n${widget.post.content ?? ''}', subject: AppStrings.of(context).translate('منشور من صحتك')); if (mounted) setState(() => _shares++); } catch (_) {} }
+String _localizedCommunityTimeAgo(DateTime? createdAt, String languageCode) {
+  final language = languageCode.toLowerCase();
+  String justNow() => language == 'fr'
+      ? 'À l’instant'
+      : language == 'en'
+          ? 'Just now'
+          : 'الآن';
+  if (createdAt == null) return justNow();
+
+  final difference = DateTime.now().difference(createdAt);
+  if (difference.inMinutes < 1) return justNow();
+
+  if (difference.inHours < 1) {
+    final value = difference.inMinutes;
+    if (language == 'fr') return 'Il y a $value min';
+    if (language == 'en') return value == 1 ? '1 min ago' : '$value mins ago';
+    if (value == 1) return 'منذ دقيقة';
+    if (value == 2) return 'منذ دقيقتين';
+    if (value <= 10) return 'منذ $value دقائق';
+    return 'منذ $value دقيقة';
+  }
+
+  if (difference.inDays < 1) {
+    final value = difference.inHours;
+    if (language == 'fr') return 'Il y a $value h';
+    if (language == 'en') return value == 1 ? '1 hour ago' : '$value hours ago';
+    if (value == 1) return 'منذ ساعة';
+    if (value == 2) return 'منذ ساعتين';
+    if (value <= 10) return 'منذ $value ساعات';
+    return 'منذ $value ساعة';
+  }
+
+  if (difference.inDays < 7) {
+    final value = difference.inDays;
+    if (language == 'fr') return value == 1 ? 'Il y a 1 jour' : 'Il y a $value jours';
+    if (language == 'en') return value == 1 ? '1 day ago' : '$value days ago';
+    if (value == 1) return 'منذ يوم';
+    if (value == 2) return 'منذ يومين';
+    if (value <= 10) return 'منذ $value أيام';
+    return 'منذ $value يوم';
+  }
+
+  final weeks = (difference.inDays / 7).floor();
+  if (language == 'fr') return weeks == 1 ? 'Il y a 1 sem.' : 'Il y a $weeks sem.';
+  if (language == 'en') return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
+  if (weeks == 1) return 'منذ أسبوع';
+  if (weeks == 2) return 'منذ أسبوعين';
+  if (weeks <= 10) return 'منذ $weeks أسابيع';
+  return 'منذ $weeks أسبوع';
+}
   @override Widget build(BuildContext context) { final p = widget.post; final image = p.images?.isNotEmpty == true ? p.images!.first : p.imageUrl;
+    final locale = AppStrings.of(context).locale.languageCode;
+    final category = p.category ?? AppStrings.of(context).translate('عام');
+    final timeAgo = _localizedCommunityTimeAgo(p.createdAt, locale);
     return Container(decoration: BoxDecoration(color: widget.dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(20)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Padding(padding: const EdgeInsets.fromLTRB(14,14,14,8), child: Row(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(p.userName.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'ص' : 'S') : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87)), Text('${p.category ?? AppStrings.of(context).translate('عام')} • ${p.timeAgo}', style: TextStyle(fontSize: 10, color: widget.dark ? Colors.white60 : Colors.black54))]))])),
+      Padding(padding: const EdgeInsets.fromLTRB(14,14,14,8), child: Row(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(p.userName.isEmpty ? (AppStrings.of(context).locale.languageCode == 'ar' ? 'ص' : 'S') : p.userName.characters.first, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(p.userName, style: TextStyle(fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87)), Text('$category • $timeAgo', style: TextStyle(fontSize: 10, color: widget.dark ? Colors.white60 : Colors.black54))]))])),
       Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Text(p.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: widget.dark ? Colors.white : Colors.black87))),
       if ((p.content ?? '').trim().isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(14,6,14,10), child: Text(p.content!, style: TextStyle(height: 1.5, color: widget.dark ? Colors.white70 : Colors.black87))),
       if (image != null && image.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: ClipRRect(borderRadius: BorderRadius.circular(16), child: AppImage(imageUrl: image, height: 250, width: double.infinity, fit: BoxFit.cover))),
