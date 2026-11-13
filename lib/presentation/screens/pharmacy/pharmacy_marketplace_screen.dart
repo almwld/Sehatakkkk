@@ -420,12 +420,10 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                         radius: BorderRadius.circular(12),
                       );
                     }
-                    return AppImage(
-                      imageUrl: url,
+                    return MedicineImage(
+                      imagePath: url,
                       width: 78,
                       height: 78,
-                      fit: BoxFit.cover,
-                      borderRadius: BorderRadius.circular(12),
                     );
                   })()),
               const SizedBox(width: 12),

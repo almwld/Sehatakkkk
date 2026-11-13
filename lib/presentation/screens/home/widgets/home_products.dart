@@ -62,12 +62,10 @@ class HomeProductsRow extends StatelessWidget {
                   children: [
                     Stack(
                       children: [
-                        AppImage(
-                          imageUrl: product.resolvedImageUrl,
+                        MedicineImage(
+                          imagePath: product.resolvedImageUrl,
                           width: 80,
                           height: 80,
-                          borderRadius: BorderRadius.circular(12),
-                          fit: BoxFit.contain,
                         ),
                         if ((product.discount ?? 0) > 0)
                           Positioned(
