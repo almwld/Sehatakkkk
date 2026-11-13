@@ -77,6 +77,45 @@ after(async () => {
   await env.cleanup();
 });
 
+test('hospital owners can toggle operating state but cannot change verification or publication fields', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'hospitals/hospital-1'), { name: 'Synthetic Hospital', isOpen: true, status: 'approved', isPublished: true });
+  });
+  const owner = env.authenticatedContext('hospital-1').firestore();
+  await assertSucceeds(updateDoc(doc(owner, 'hospitals/hospital-1'), { isOpen: false }));
+  await assertFails(updateDoc(doc(owner, 'hospitals/hospital-1'), { status: 'pending_review', isPublished: false }));
+});
+
+test('hospital owners can manage only their own departments', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'users/hospital-2'), { uid: 'hospital-2', role: 'hospital' });
+  });
+  const owner = env.authenticatedContext('hospital-1').firestore();
+  const otherOwner = env.authenticatedContext('hospital-2').firestore();
+  await assertSucceeds(setDoc(doc(owner, 'hospital_departments/department-1'), { hospitalId: 'hospital-1', name: 'Emergency', isActive: true }));
+  await assertSucceeds(updateDoc(doc(owner, 'hospital_departments/department-1'), { isActive: false }));
+  await assertFails(updateDoc(doc(otherOwner, 'hospital_departments/department-1'), { isActive: false }));
+  await assertFails(setDoc(doc(owner, 'hospital_departments/forged-owner'), { hospitalId: 'hospital-2', name: 'Forged', isActive: true }));
+});
+
+test('hospital owners can read and update only the status of their hospital bookings', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'bookings/booking-1'), { userId: 'patient-b', providerId: 'hospital-1', type: 'hospital', status: 'pending' });
+  });
+  const owner = env.authenticatedContext('hospital-1').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(owner, 'bookings/booking-1')));
+  await assertSucceeds(updateDoc(doc(owner, 'bookings/booking-1'), { status: 'confirmed' }));
+  await assertFails(updateDoc(doc(owner, 'bookings/booking-1'), { amount: 999999 }));
+  await assertFails(getDoc(doc(outsider, 'bookings/booking-1')));
+});
+
 test('a user can create a basic self-owned account', async () => {
   const db = env.authenticatedContext('patient-a').firestore();
   await assertSucceeds(setDoc(doc(db, 'users/patient-a'), {
