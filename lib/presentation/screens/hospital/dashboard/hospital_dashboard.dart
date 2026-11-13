@@ -7,6 +7,7 @@ import 'package:sehatak/core/models/ad_model.dart';
 import 'package:sehatak/core/models/booking_model.dart';
 import 'package:sehatak/presentation/screens/advertisements/ad_management_screen.dart';
 import 'package:sehatak/presentation/screens/shared/my_bookings_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_staff_affiliations_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class HospitalDashboard extends StatefulWidget {
@@ -66,6 +67,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
         Row(children: [Text(_t('مفتوح'), style: TextStyle(color: Colors.white70, fontSize: 12)), Switch(value: _isOpen, onChanged: (value) async { final previous = _isOpen; setState(() => _isOpen = value); try { if (user != null) await FirebaseFirestore.instance.collection('hospitals').doc(user.uid).update({'isOpen': value, 'updatedAt': FieldValue.serverTimestamp()}); } catch (e) { if (mounted) { setState(() => _isOpen = previous); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر تحديث حالة المستشفى')))); } debugPrint('Hospital status update failed: $e'); } }, activeColor: Colors.green, inactiveThumbColor: Colors.red)]),
         IconButton(icon: const Icon(Icons.campaign), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdManagementScreen(providerId: user?.uid, providerName: _hospitalData?['name'], providerType: AdType.hospital)))),
         IconButton(icon: const Icon(Icons.calendar_today), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen()))),
+        IconButton(icon: const Icon(Icons.groups_2_outlined), tooltip: _t('إدارة الكادر الصحي'), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HospitalStaffAffiliationsScreen()))),
       ]),
       body: Column(children: [
         Container(padding: const EdgeInsets.all(16), decoration: const BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))), child: Row(children: [_buildStatCard(_t('المرضى'), '${_bookings.map((b) => b.userId).where((id) => id.isNotEmpty).toSet().length}', Icons.people, Colors.blue), _buildStatCard(_t('الحجوزات'), '${_bookings.length}', Icons.event, Colors.amber), _buildStatCard(_t('الإيرادات'), AppStrings.of(context).formatCurrency(_totalRevenue), Icons.attach_money, Colors.green), _buildStatCard(_t('هذا الشهر'), AppStrings.of(context).formatCurrency(_monthlyRevenue), Icons.calendar_month, Colors.purple)])),
