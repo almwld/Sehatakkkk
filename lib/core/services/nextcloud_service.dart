@@ -57,7 +57,9 @@ class NextcloudService {
 
   void _ensureConfigured() {
     if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
-      throw StateError('خادم الوسائط غير مهيأ: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
+      throw StateError(
+        'إعدادات خادم Nextcloud غير مكتملة. تحقق من عنوان الخادم واسم المستخدم وكلمة مرور التطبيق في إعدادات Nextcloud.',
+      );
     }
   }
 
