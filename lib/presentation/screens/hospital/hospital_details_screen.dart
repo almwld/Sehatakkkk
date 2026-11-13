@@ -128,7 +128,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
               ],
               SliverToBoxAdapter(child: _sectionTitle(_t('الكادر الصحي'), dark)),
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance.collection('hospital_staff').where('hospitalId', isEqualTo: widget.hospitalId).where('isPublic', isEqualTo: true).snapshots(),
+                stream: FirebaseFirestore.instance.collection('hospital_staff').where('hospitalId', isEqualTo: widget.hospitalId).where('isPublic', isEqualTo: true).where('status', isEqualTo: 'active').snapshots(),
                 builder: (context, staffSnapshot) {
                   if (staffSnapshot.hasError) return SliverToBoxAdapter(child: _notice(_t('تعذر تحميل بيانات الكادر الصحي'), dark));
                   if (!staffSnapshot.hasData) return const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator(strokeWidth: 2))));
