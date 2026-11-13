@@ -414,6 +414,14 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     );
   }
 
+  IconData _fallbackActionIcon(String asset) {
+    if (asset == AppAssets.chatBubble) return Icons.chat_bubble_outline_rounded;
+    if (asset == AppAssets.chatPhoneCall) return Icons.call_rounded;
+    if (asset == AppAssets.chatVideoCall) return Icons.videocam_rounded;
+    if (asset == AppAssets.chatCalendarBooking) return Icons.calendar_month_rounded;
+    return Icons.touch_app_rounded;
+  }
+
   Widget _action({required String iconAsset, required String label, required String hint, required Color color, required VoidCallback onTap, required bool dark}) {
     return Expanded(
       child: Padding(
@@ -438,7 +446,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                     decoration: BoxDecoration(color: color.withOpacity(.10), shape: BoxShape.circle),
                     child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: Image.asset(iconAsset, fit: BoxFit.contain),
+                      child: Image.asset(
+                        iconAsset,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          _fallbackActionIcon(iconAsset),
+                          size: 26,
+                          color: color,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 7),
