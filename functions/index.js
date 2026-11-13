@@ -772,25 +772,29 @@ exports.respondHospitalStaffInvitation = onCall(async (request) => {
         || hospitalSnap.data().isPublished !== true) {
       throw new HttpsError('failed-precondition', 'المستشفى غير موثق أو غير منشور حالياً');
     }
-    const now = FieldValue.serverTimestamp();
-    tx.update(invitationRef, {status: decision === 'accept' ? 'accepted' : 'rejected', respondedAt: now, updatedAt: now});
+    const staff = staffSnap.data();
+    const hospital = hospitalSnap.data();
+    const linkId = staffLinkId(invitation.hospitalId, staffId);
+    const linkRef = db.collection('hospital_staff_links').doc(linkId);
+    const publicRef = db.collection('hospital_staff').doc(linkId);
+    let departmentName = '';
+    let doctorSnap = null;
     if (decision === 'accept') {
-      const staff = staffSnap.data();
-      const hospital = hospitalSnap.data();
-      const linkId = staffLinkId(invitation.hospitalId, staffId);
-      const linkRef = db.collection('hospital_staff_links').doc(linkId);
-      const publicRef = db.collection('hospital_staff').doc(linkId);
-      const departmentRef = invitation.departmentId
-        ? db.collection('hospital_departments').doc(invitation.departmentId) : null;
-      let departmentName = '';
-      if (departmentRef) {
-        const departmentSnap = await tx.get(departmentRef);
+      if (invitation.departmentId) {
+        const departmentSnap = await tx.get(db.collection('hospital_departments').doc(invitation.departmentId));
         if (departmentSnap.exists && departmentSnap.data().hospitalId === invitation.hospitalId) {
           departmentName = String(departmentSnap.data().name || '').slice(0, 100);
         }
       }
-      const doctorRef = db.collection('doctors').doc(staffId);
-      const doctorSnap = staff.role === 'doctor' ? await tx.get(doctorRef) : null;
+      if (staff.role === 'doctor') doctorSnap = await tx.get(db.collection('doctors').doc(staffId));
+    }
+    // All transaction reads are complete before the first write.
+    const now = FieldValue.serverTimestamp();
+    tx.update(invitationRef, {
+      status: decision === 'accept' ? 'accepted' : 'rejected',
+      respondedAt: now, updatedAt: now,
+    });
+    if (decision === 'accept') {
       const displayName = String(
         (doctorSnap && doctorSnap.exists && doctorSnap.data().name)
         || staff.name || staff.displayName || 'ممارس صحي'
