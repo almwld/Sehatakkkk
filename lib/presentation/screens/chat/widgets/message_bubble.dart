@@ -115,22 +115,23 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget _shell(Widget child, bool dark) {
     // Text and audio messages share one bubble shell: identical fill,
     // radius, incoming border and elevation. Only their inner content differs.
+    // Match Memo's accepted voice/text bubble palette and silhouette.
     final bubbleColor = widget.isMe
-        ? AppColors.primary
-        : (dark ? const Color(0xFF1A2540) : const Color(0xFFF9FCFB));
+        ? const Color(0xFF0D8274)
+        : (dark ? const Color(0xFF10201E) : Colors.white);
     return GestureDetector(
       onLongPress: _options,
       child: Container(
         decoration: BoxDecoration(
           color: bubbleColor,
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(12),
-            topRight: const Radius.circular(12),
-            bottomLeft: Radius.circular(widget.isMe ? 12 : 4),
-            bottomRight: Radius.circular(widget.isMe ? 4 : 12),
+            topLeft: const Radius.circular(18),
+            topRight: const Radius.circular(18),
+            bottomLeft: Radius.circular(widget.isMe ? 18 : 6),
+            bottomRight: Radius.circular(widget.isMe ? 6 : 18),
           ),
           border: !widget.isMe && !dark
-              ? Border.all(color: const Color(0xFFC8DEDA), width: .8)
+              ? Border.all(color: const Color(0xFFDCE5E3), width: .8)
               : null,
           boxShadow: (!dark && !widget.isMe)
               ? const [
@@ -160,8 +161,10 @@ class _MessageBubbleState extends State<MessageBubble> {
         // receive a finite width: this Row is shrink-wrapped, so leaving the
         // player unconstrained makes its inner RenderFlex collapse/overflow
         // instead of painting the voice-message bubble.
+        final availableBubbleWidth =
+            MediaQuery.of(context).size.width * .80 - 24;
         final audioBubbleWidth =
-            (MediaQuery.of(context).size.width * .68).clamp(160.0, 260.0).toDouble();
+            availableBubbleWidth.clamp(220.0, 296.0).toDouble();
         return Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
