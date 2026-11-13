@@ -125,11 +125,10 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: imageUrl.startsWith('http')
-                    ? AppImage(
-                        imageUrl: imageUrl,
+                    ? MedicineImage(
+                        imagePath: imageUrl,
                         height: 80,
                         width: double.infinity,
-                        fit: BoxFit.contain,
                       )
                     : buildImageShimmer(
                         context,
