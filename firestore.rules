@@ -549,6 +549,12 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isOpen', 'updatedAt'])
             && request.resource.data.isOpen is bool);
     }
+    // Only explicitly published staff profiles are visible in public hospital pages.
+    // Private HR records remain inaccessible to public clients.
+    match /hospital_staff/{staffId} {
+      allow read: if resource.data.isPublic == true;
+      allow create, update, delete: if isAdmin();
+    }
     match /hospital_departments/{departmentId} {
       allow read: if true;
       allow create: if isSignedIn() && userExists(request.auth.uid)
