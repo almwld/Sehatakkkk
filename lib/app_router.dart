@@ -42,6 +42,7 @@ import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart'
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_staff_affiliations_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/lab/lab_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
@@ -72,6 +73,7 @@ class AppRouter {
       pharmacy = '/pharmacy',
       labs = '/labs',
       hospitals = '/hospitals',
+      professionalAffiliations = '/professional-affiliations',
       chat = '/chat',
       more = '/more',
       dashboard = '/dashboard',
@@ -232,6 +234,8 @@ class AppRouter {
           builder: (_, __) => ScreenTours.wrapLabs(const LabsListScreen())),
       GoRoute(
           onExit: _returnToHome,path: hospitals, builder: (_, __) => const HospitalScreen()),
+      GoRoute(onExit: _returnToHome, path: professionalAffiliations,
+        builder: (_, __) => const HospitalStaffAffiliationsScreen()),
       GoRoute(
           onExit: _returnToHome,path: chat, builder: (_, __) => const ChatScreen()),
       GoRoute(
