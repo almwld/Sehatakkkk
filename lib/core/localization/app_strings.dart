@@ -5320,8 +5320,6 @@ class AppStrings {
       'طلب صيدلية جديد': ['New pharmacy order', 'Nouvelle commande de pharmacie'],
       'لديك طلب مدفوع جديد يحتاج إلى التأكيد.': ['You have a new paid order that needs confirmation.', 'Vous avez une nouvelle commande payée à confirmer.'],
       'لديك طلب جديد يحتاج إلى التأكيد.': ['You have a new order that needs confirmation.', 'Vous avez une nouvelle commande à confirmer.'],
-    };
-
       'الانتسابات المهنية': ['Professional affiliations', 'Affiliations professionnelles'],
       'دعوة ممارس صحي': ['Invite a healthcare professional', 'Inviter un professionnel de santé'],
       'معرّف حساب الممارس': ['Professional account ID', 'Identifiant du compte professionnel'],
@@ -5354,6 +5352,8 @@ class AppStrings {
       'لا توجد انتسابات نشطة': ['There are no active affiliations', 'Aucune affiliation active'],
       'دعواتك وارتباطاتك بالمنشآت الصحية': ['Your invitations and affiliations with healthcare facilities', 'Vos invitations et affiliations avec les établissements de santé'],
       'إدارة الكادر الصحي': ['Manage healthcare staff', 'Gérer le personnel de santé'],
+    };
+
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
