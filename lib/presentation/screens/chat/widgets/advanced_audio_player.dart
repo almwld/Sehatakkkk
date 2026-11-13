@@ -2,6 +2,7 @@ import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Memo-style compact voice note player.
 /// The complete bubble is 68px high with a 40px play control, a 28px waveform,
@@ -28,6 +29,7 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
   late final AudioPlayer _player;
   static const _speeds = <double>[1.0, 1.5, 2.0];
   double _speed = 1.0;
+  double _volume = 1.0;
   bool _loading = true;
   bool _error = false;
 
@@ -60,6 +62,7 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
         await _player.setUrl(value);
       }
       await _player.setSpeed(_speed);
+      await _player.setVolume(_volume);
       if (mounted) setState(() => _loading = false);
     } catch (error) {
       debugPrint('AdvancedAudioPlayer prepare error: $error');
@@ -88,11 +91,43 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
     }
   }
 
-  Future<void> _cycleSpeed() async {
-    final index = _speeds.indexOf(_speed);
-    final next = _speeds[(index + 1) % _speeds.length];
-    await _player.setSpeed(next);
-    if (mounted) setState(() => _speed = next);
+  Future<void> _setSpeed(double value) async {
+    await _player.setSpeed(value);
+    if (mounted) setState(() => _speed = value);
+  }
+
+  Future<void> _seekBy(int seconds) async {
+    var target = _player.position + Duration(seconds: seconds);
+    final duration = _player.duration ?? Duration.zero;
+    if (target < Duration.zero) target = Duration.zero;
+    if (duration > Duration.zero && target > duration) target = duration;
+    await _player.seek(target);
+  }
+
+  Future<void> _toggleVolume() async {
+    final next = _volume == 0 ? 1.0 : 0.0;
+    await _player.setVolume(next);
+    if (mounted) setState(() => _volume = next);
+  }
+
+  Future<void> _download() async {
+    if (widget.isLocal) return;
+    final uri = Uri.tryParse(widget.audioUrl);
+    if (uri != null && uri.hasScheme && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _handleMoreAction(String action) {
+    switch (action) {
+      case 'back': _seekBy(-10); break;
+      case 'forward': _seekBy(10); break;
+      case 'speed_1': _setSpeed(1.0); break;
+      case 'speed_1_5': _setSpeed(1.5); break;
+      case 'speed_2': _setSpeed(2.0); break;
+      case 'volume': _toggleVolume(); break;
+      case 'download': _download(); break;
+    }
   }
 
   String _format(Duration value) {
@@ -229,19 +264,26 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
                                 ),
                               ),
                               const Spacer(),
-                              InkWell(
-                                onTap: _loading ? null : _cycleSpeed,
-                                borderRadius: BorderRadius.circular(8),
+                              PopupMenuButton<String>(
+                                tooltip: 'خيارات التسجيل الصوتي',
+                                enabled: !_loading,
+                                onSelected: _handleMoreAction,
+                                padding: EdgeInsets.zero,
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(value: 'back', child: Text('رجوع 10 ثوان')),
+                                  PopupMenuItem(value: 'forward', child: Text('تقديم 10 ثوان')),
+                                  PopupMenuDivider(),
+                                  PopupMenuItem(value: 'speed_1', child: Text('سرعة 1×')),
+                                  PopupMenuItem(value: 'speed_1_5', child: Text('سرعة 1.5×')),
+                                  PopupMenuItem(value: 'speed_2', child: Text('سرعة 2×')),
+                                  PopupMenuItem(value: 'volume', child: Text('كتم / تشغيل الصوت')),
+                                  if (!widget.isLocal) PopupMenuItem(value: 'download', child: Text('تحميل التسجيل')),
+                                ],
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 4, vertical: 1),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                   child: Text(
                                     '${_speed.toStringAsFixed(_speed == 1 ? 0 : 1)}×',
-                                    style: TextStyle(
-                                      color: _accent.withOpacity(.9),
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: TextStyle(color: _accent.withOpacity(.9), fontSize: 9, fontWeight: FontWeight.w700),
                                   ),
                                 ),
                               ),
