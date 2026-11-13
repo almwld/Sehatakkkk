@@ -16,6 +16,7 @@ import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
 import 'package:sehatak/presentation/screens/lab/lab_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
+import 'package:sehatak/presentation/screens/hospital/dashboard/hospital_dashboard.dart';
 
 class AdvancedRoleDashboardScreen extends StatelessWidget {
   final String role;
@@ -23,6 +24,7 @@ class AdvancedRoleDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (role == 'hospital') return const HospitalDashboard();
     if (role == 'doctor') return const _DoctorControlCenter();
     if (role == 'pharmacy' || role == 'pharmacist' || role == 'pharmacyowner') return const PharmacyDashboard();
     if (role == 'paramedic') return const ParamedicFieldScreen();
