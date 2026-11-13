@@ -710,7 +710,6 @@ exports.createHospitalStaffInvitation = onCall(async (request) => {
   const staffId = text(request.data.staffId, 'staffId', 128);
   const jobTitle = text(request.data.jobTitle, 'jobTitle', 100);
   const departmentId = String(request.data.departmentId || '').trim().slice(0, 128);
-  const isPublic = request.data.isPublic !== false;
   if (staffId === hospitalId) throw new HttpsError('invalid-argument', 'لا يمكن ربط حساب المستشفى بنفسه');
   const [staffSnap, linkSnap] = await Promise.all([
     db.collection('users').doc(staffId).get(),
@@ -734,7 +733,7 @@ exports.createHospitalStaffInvitation = onCall(async (request) => {
   await invitationRef.set({
     hospitalId, hospitalName: String(hospital.name || hospital.facilityName || '').slice(0, 160),
     staffId, staffRole: staff.role, jobTitle, departmentId,
-    isPublic, status: 'pending', invitedBy: hospitalId,
+    status: 'pending', invitedBy: hospitalId,
     createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
   });
   await db.collection('notifications').add({
@@ -750,6 +749,7 @@ exports.respondHospitalStaffInvitation = onCall(async (request) => {
   const staffId = requireAuth(request);
   const invitationId = text(request.data.invitationId, 'invitationId', 128);
   const decision = text(request.data.decision, 'decision', 10);
+  const publishProfile = request.data.publishProfile === true;
   if (!['accept', 'reject'].includes(decision)) throw new HttpsError('invalid-argument', 'قرار الدعوة غير صالح');
   const invitationRef = db.collection('hospital_staff_invitations').doc(invitationId);
   await db.runTransaction(async (tx) => {
@@ -807,10 +807,10 @@ exports.respondHospitalStaffInvitation = onCall(async (request) => {
         hospitalId: invitation.hospitalId, hospitalName: String(hospital.name || '').slice(0, 160),
         staffId, staffRole: staff.role, displayName,
         jobTitle: invitation.jobTitle, departmentId: invitation.departmentId || '',
-        departmentName, status: 'active', isPublic: invitation.isPublic === true,
+        departmentName, status: 'active', isPublic: publishProfile,
         acceptedAt: now, updatedAt: now,
       });
-      if (invitation.isPublic === true) {
+      if (publishProfile) {
         tx.set(publicRef, {
           hospitalId: invitation.hospitalId, staffRole: staff.role,
           displayName, jobTitle: invitation.jobTitle, departmentId: invitation.departmentId || '',
