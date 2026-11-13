@@ -62,6 +62,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/saved_accounts_service.dart';
 import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';
 import 'package:sehatak/presentation/screens/eye_care/eye_care_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_staff_affiliations_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   final ScrollController? scrollController;
@@ -197,6 +198,7 @@ class _MoreScreenState extends State<MoreScreen>
         return [
           {'icon': 'assets/images/ui/user_profile.webp', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
           {'icon': 'assets/images/ui/settings_gear.webp', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
+          {'icon': 'assets/images/services/hospital.webp', 'title': 'الانتسابات المهنية', 'subtitle': 'دعواتك وارتباطاتك بالمنشآت الصحية', 'screen': const HospitalStaffAffiliationsScreen()},
           {'icon': 'assets/images/services/notifications.webp', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
           {'icon': 'assets/images/ui/privacy.webp', 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
           {'icon': 'assets/images/ui/terms_conditions.webp', 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
