@@ -812,7 +812,7 @@ exports.respondHospitalStaffInvitation = onCall(async (request) => {
       });
       if (invitation.isPublic === true) {
         tx.set(publicRef, {
-          hospitalId: invitation.hospitalId, staffId, staffRole: staff.role,
+          hospitalId: invitation.hospitalId, staffRole: staff.role,
           displayName, jobTitle: invitation.jobTitle, departmentId: invitation.departmentId || '',
           departmentName, photoUrl, isVerified: true, isPublic: true,
           status: 'active', hospitalName: String(hospital.name || '').slice(0, 160),
