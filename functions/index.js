@@ -804,7 +804,7 @@ exports.respondHospitalStaffInvitation = onCall(async (request) => {
         || staff.photoUrl || staff.imageUrl || ''
       ).slice(0, 1000);
       tx.set(linkRef, {
-        hospitalId: invitation.hospitalId, staffId, staffRole: staff.role,
+        hospitalId: invitation.hospitalId, hospitalName: String(hospital.name || '').slice(0, 160), staffId, staffRole: staff.role,
         jobTitle: invitation.jobTitle, departmentId: invitation.departmentId || '',
         departmentName, status: 'active', isPublic: invitation.isPublic === true,
         acceptedAt: now, updatedAt: now,
