@@ -51,6 +51,8 @@ String localizedField(
     final translated = _nonEmpty(translatedEntry);
     if (translated != null) return translated;
     if (translatedEntry is Map) {
+      // Support translations such as {fr: {title: "..."}} as well as
+      // flat language strings and flat field maps.
       final nested = _nonEmpty(translatedEntry[field]) ??
           localizedValue(translatedEntry, locale, fallback: fallback);
       if (nested != null && nested.isNotEmpty) return nested;
