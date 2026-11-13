@@ -2,17 +2,20 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import 'nextcloud_service.dart';
 import '../models/status_model.dart';
 
 class StatusService {
-  StatusService({FirebaseFirestore? firestore, FirebaseAuth? auth})
+  StatusService({FirebaseFirestore? firestore, FirebaseAuth? auth, FirebaseStorage? storage})
       : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+        _auth = auth ?? FirebaseAuth.instance,
+        _storage = storage ?? FirebaseStorage.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final FirebaseStorage _storage;
   final NextcloudService _nextcloud = NextcloudService();
 
   CollectionReference<Map<String, dynamic>> get _statuses => _firestore.collection('statuses');
@@ -71,9 +74,8 @@ class StatusService {
     if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
     if (stories.isEmpty) throw StateError('أضف محتوى واحداً على الأقل.');
 
-    // A status is published only after all media stories have already been
-    // uploaded and verified by uploadMediaStory. Firestore is the source of
-    // truth that makes the completed status visible to other users.
+    // A status is published only after all media stories have already
+    // uploaded successfully. Firestore remains the source of truth.
     final ref = _statuses.doc(user.uid);
     final existing = await ref.get();
     final existingModel = existing.exists ? UserStatusModel.fromDocument(existing) : null;
@@ -101,28 +103,76 @@ class StatusService {
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
+    if (type != 'image' && type != 'video') {
+      throw ArgumentError.value(type, 'type', 'نوع وسائط الحالة غير مدعوم');
+    }
+    if (!await file.exists()) throw StateError('ملف الحالة غير موجود.');
 
-    await _nextcloud.loadConfig();
-    final extension = file.path.contains('.') ? file.path.split('.').last : 'bin';
-    final name = 'story_${DateTime.now().millisecondsSinceEpoch}.$extension';
-    final result = await _nextcloud.uploadFile(
-      file: file,
-      path: 'stories/${user.uid}',
-      fileName: name,
-      createShare: true,
+    // Nextcloud is preferred when configured, but it must not be a hard
+    // dependency for publishing stories. Fresh installs often have no
+    // per-device Nextcloud credentials, so Firebase Storage is the fallback.
+    String? mediaUrl;
+    String? nextcloudFailure;
+    try {
+      await _nextcloud.loadConfig();
+      if (_nextcloud.baseUrl.isNotEmpty &&
+          _nextcloud.username.isNotEmpty &&
+          _nextcloud.password.isNotEmpty) {
+        final extension = file.path.contains('.') ? file.path.split('.').last : 'bin';
+        final name = 'story_${DateTime.now().millisecondsSinceEpoch}.$extension';
+        final result = await _nextcloud.uploadFile(
+          file: file,
+          path: 'stories/${user.uid}',
+          fileName: name,
+          createShare: true,
+        );
+        if (result.success && result.url != null && result.url!.isNotEmpty) {
+          if (await _nextcloud.verifyPublicUrl(result.url!)) {
+            mediaUrl = result.url;
+          } else {
+            nextcloudFailure = 'Nextcloud media URL verification failed';
+          }
+        } else {
+          nextcloudFailure = result.error ?? 'Nextcloud did not return a public media URL';
+        }
+      } else {
+        nextcloudFailure = 'Nextcloud is not configured on this device';
+      }
+    } catch (error) {
+      nextcloudFailure = error.toString();
+    }
+
+    if (mediaUrl == null) {
+      try {
+        mediaUrl = await _uploadStatusToFirebase(file: file, userId: user.uid, type: type);
+      } catch (error, stackTrace) {
+        // Keep the diagnostic useful without ever logging credentials.
+        Error.throwWithStackTrace(
+          StateError('تعذر رفع الحالة إلى Nextcloud والتخزين الاحتياطي: $nextcloudFailure; Firebase Storage: $error'),
+          stackTrace,
+        );
+      }
+    }
+
+    return StoryItem(type: type, url: mediaUrl, duration: duration);
+  }
+
+  Future<String> _uploadStatusToFirebase({
+    required File file,
+    required String userId,
+    required String type,
+  }) async {
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
+    final extension = file.path.contains('.') ? file.path.split('.').last.toLowerCase() : (type == 'video' ? 'mp4' : 'jpg');
+    final safeExtension = RegExp(r'^[a-z0-9]{1,8}$').hasMatch(extension) ? extension : (type == 'video' ? 'mp4' : 'jpg');
+    final path = 'statuses/$userId/story_$timestamp.$safeExtension';
+    final reference = _storage.ref().child(path);
+    final metadata = SettableMetadata(
+      contentType: type == 'video' ? 'video/mp4' : 'image/jpeg',
+      customMetadata: {'ownerUid': userId, 'mediaType': type},
     );
-    if (!result.success || result.url == null || result.url!.isEmpty) {
-      throw StateError(result.error ?? 'تعذر رفع الحالة.');
-    }
-
-    // Do not publish the Firestore status until the Nextcloud public URL is
-    // reachable. This prevents broken media stories from becoming visible.
-    final verified = await _nextcloud.verifyPublicUrl(result.url!);
-    if (!verified) {
-      throw StateError('تعذر تجهيز الوسائط للنشر.');
-    }
-
-    return StoryItem(type: type, url: result.url!, duration: duration);
+    await reference.putFile(file, metadata);
+    return reference.getDownloadURL();
   }
 
   Future<void> markViewed(UserStatusModel status) async {
