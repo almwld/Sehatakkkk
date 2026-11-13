@@ -29,22 +29,24 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
 
   Future<void> _loadConfig() async {
     await _nextcloud.loadConfig();
+    if (!mounted) return;
     setState(() {
       _baseUrlController.text = _nextcloud.baseUrl;
       _usernameController.text = _nextcloud.username;
       _passwordController.text = _nextcloud.password;
     });
-    _checkConnection();
+    await _checkConnection();
   }
 
   Future<void> _checkConnection() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       _isConnected = await _nextcloud.checkServerStatus();
-    } catch (e) {
+    } catch (_) {
       _isConnected = false;
     }
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _saveConfig() async {
@@ -56,21 +58,22 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
       await _nextcloud.updateConfig(
         baseUrl: _baseUrlController.text.trim(),
         username: _usernameController.text.trim(),
-        password: _passwordController.text.trim(),
+        password: _passwordController.text, // Preserve app-password characters exactly.
       );
 
       await _checkConnection();
       
+      if (!mounted) return;
       if (_isConnected) {
         ToastService.showSuccess(_t('تم حفظ الإعدادات والاتصال بالخادم'));
       } else {
         ToastService.showWarning(_t('تم حفظ الإعدادات ولكن لا يمكن الاتصال بالخادم'));
       }
     } catch (e) {
-      ToastService.showError('${_t('فشل حفظ الإعدادات:')} $e');
+      if (mounted) ToastService.showError('${_t('فشل حفظ الإعدادات:')} $e');
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
