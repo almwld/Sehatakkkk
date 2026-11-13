@@ -157,8 +157,8 @@ class _HospitalStaffAffiliationsScreenState extends State<HospitalStaffAffiliati
             final data = doc.data(), staffId = doc.data()['staffId']?.toString() ?? '';
             return Card(child: ListTile(
               leading: const CircleAvatar(child: Icon(Icons.medical_services_outlined)),
-              title: Text(data['jobTitle']?.toString() ?? _t('ممارس صحي')),
-              subtitle: Text((data['staffRole'] ?? '').toString() + ' • ' + (data['departmentName'] ?? '').toString() + '\n' + staffId),
+              title: Text(data['displayName']?.toString().isNotEmpty == true ? data['displayName'].toString() : (data['jobTitle']?.toString() ?? _t('ممارس صحي'))),
+              subtitle: Text((data['jobTitle'] ?? '').toString() + ' • ' + (data['departmentName'] ?? '').toString() + '\n' + staffId),
               isThreeLine: true,
               trailing: IconButton(tooltip: _t('إنهاء الانتساب'),
                 onPressed: _busy ? null : () => _end(uid, staffId),
