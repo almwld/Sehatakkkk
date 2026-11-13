@@ -817,6 +817,8 @@ exports.respondHospitalStaffInvitation = onCall(async (request) => {
           status: 'active', hospitalName: String(hospital.name || '').slice(0, 160),
           createdAt: now, updatedAt: now,
         });
+      } else {
+        tx.delete(publicRef);
       }
     }
   });
