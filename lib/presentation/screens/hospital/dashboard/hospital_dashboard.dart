@@ -21,6 +21,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
   Map<String, dynamic>? _hospitalData;
   List<BookingModel> _bookings = [];
   double _totalRevenue = 0;
+  double _monthlyRevenue = 0;
   @override void initState() { super.initState(); _tabController = TabController(length: 4, vsync: this); _loadData(); }
   Future<void> _loadData() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -38,8 +39,20 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
   Future<void> _loadRevenue(String providerId) async {
     try {
       final snap = await FirebaseFirestore.instance.collection('payments').where('providerId', isEqualTo: providerId).get();
-      final total = snap.docs.fold<double>(0, (sum, doc) => sum + ((doc.data()['amount'] as num?)?.toDouble() ?? 0));
-      if (mounted) setState(() => _totalRevenue = total);
+      final now = DateTime.now();
+      double total = 0, month = 0;
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final amount = (data['amount'] as num?)?.toDouble() ?? 0;
+        total += amount;
+        final rawDate = data['createdAt'] ?? data['paidAt'];
+        DateTime? date;
+        if (rawDate is Timestamp) date = rawDate.toDate();
+        else if (rawDate is DateTime) date = rawDate;
+        else if (rawDate is String) date = DateTime.tryParse(rawDate);
+        if (date != null && date.year == now.year && date.month == now.month) month += amount;
+      }
+      if (mounted) setState(() { _totalRevenue = total; _monthlyRevenue = month; });
     } catch (e) { debugPrint('Error loading hospital revenue: $e'); }
   }
   String _statusText(String status) { switch (status) { case 'confirmed': return _t('مؤكد'); case 'completed': return _t('مكتمل'); case 'cancelled': return _t('ملغي'); case 'pending': return _t('قيد الانتظار'); default: return status; } }
@@ -55,7 +68,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
         IconButton(icon: const Icon(Icons.calendar_today), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen()))),
       ]),
       body: Column(children: [
-        Container(padding: const EdgeInsets.all(16), decoration: const BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))), child: Row(children: [_buildStatCard(_t('المرضى'), '${_bookings.length}', Icons.people, Colors.blue), _buildStatCard(_t('الحجوزات'), '${_bookings.length}', Icons.event, Colors.amber), _buildStatCard(_t('الإيرادات'), AppStrings.of(context).formatCurrency(_totalRevenue), Icons.attach_money, Colors.green), _buildStatCard(_t('هذا الشهر'), AppStrings.of(context).formatCurrency(_totalRevenue), Icons.calendar_month, Colors.purple)])),
+        Container(padding: const EdgeInsets.all(16), decoration: const BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))), child: Row(children: [_buildStatCard(_t('المرضى'), '${_bookings.length}', Icons.people, Colors.blue), _buildStatCard(_t('الحجوزات'), '${_bookings.length}', Icons.event, Colors.amber), _buildStatCard(_t('الإيرادات'), AppStrings.of(context).formatCurrency(_totalRevenue), Icons.attach_money, Colors.green), _buildStatCard(_t('هذا الشهر'), AppStrings.of(context).formatCurrency(_monthlyRevenue), Icons.calendar_month, Colors.purple)])),
         Container(color: isDark ? const Color(0xFF0B1121) : Colors.white, child: TabBar(controller: _tabController, indicatorColor: AppColors.primary, labelColor: AppColors.primary, unselectedLabelColor: AppColors.grey, tabs: [Tab(text: _t('الرئيسية')), Tab(text: _t('الحجوزات')), Tab(text: _t('الأقسام')), Tab(text: _t('الإحصائيات'))])),
         Expanded(child: TabBarView(controller: _tabController, children: [_buildHomeTab(), _buildBookingsTab(), _buildDepartmentsTab(), _buildStatisticsTab()])),
       ]),
@@ -72,7 +85,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return Center(child: Text(_t('يجب تسجيل الدخول')));
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('hospital_departments').where('hospitalId', isEqualTo: uid).orderBy('name').snapshots(),
+      stream: FirebaseFirestore.instance.collection('hospital_departments').where('hospitalId', isEqualTo: uid).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return Center(child: Text(_t('تعذر تحميل الأقسام')));
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
