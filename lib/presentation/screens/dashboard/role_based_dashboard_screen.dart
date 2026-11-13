@@ -25,7 +25,24 @@ class _RoleBasedDashboardScreenState extends State<RoleBasedDashboardScreen> {
     return StreamBuilder<DocumentSnapshot<Map<String,dynamic>>>(
       stream:FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder:(context,snapshot){
-        final role=snapshot.data?.data()?['role']?.toString()??'user';
+        if(snapshot.hasError){
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text('تعذر تحميل صلاحيات الحساب. تحقق من الاتصال ثم أعد المحاولة.'),
+              ),
+            ),
+          );
+        }
+        if(!snapshot.hasData){
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final rawRole=snapshot.data?.data()?['role']?.toString().trim()??'user';
+        final normalized=rawRole.toLowerCase();
+        final role=normalized=='superadmin'?'superAdmin':normalized;
         if(role=='user'||role=='patient')return const PatientDashboard();
         if(role!='admin'&&role!='superAdmin')WidgetsBinding.instance.addPostFrameCallback((_)=>_ensureNotice(role));
         return AdvancedRoleDashboardScreen(role:role);
