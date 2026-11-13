@@ -5346,6 +5346,9 @@ class AppStrings {
       'تعذر إرسال الرسالة. حاول مرة أخرى.': ['Could not send the message. Please try again.', 'Impossible d’envoyer le message. Veuillez réessayer.'],
       'تعذر حذف الرسالة. حاول مرة أخرى.': ['Could not delete the message. Please try again.', 'Impossible de supprimer le message. Veuillez réessayer.'],
       'تعذر إضافة التفاعل. حاول مرة أخرى.': ['Could not add the reaction. Please try again.', 'Impossible d’ajouter la réaction. Veuillez réessayer.'],
+      'كم': ['km', 'km'],
+      'السعر غير متاح': ['Price unavailable', 'Prix indisponible'],
+      'تعذر إرسال التقرير. حاول مرة أخرى.': ['Could not submit the report. Please try again.', 'Impossible d’envoyer le rapport. Veuillez réessayer.'],
     };
 
     final entry = translations[value];
