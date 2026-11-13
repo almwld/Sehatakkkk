@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
@@ -178,7 +178,7 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
                       final maxMs = duration.inMilliseconds;
                       final progress = maxMs > 0
                           ? (position.inMilliseconds / maxMs).clamp(0.0, 1.0)
-                          : 0.0;
+                          : 0.0).toDouble();
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
