@@ -30,29 +30,56 @@ class _HospitalStaffAffiliationsScreenState extends State<HospitalStaffAffiliati
   }
 
   Future<void> _invite() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
     final staffId = TextEditingController(), jobTitle = TextEditingController();
     final formKey = GlobalKey<FormState>();
-    final accepted = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
-      title: Text(_t('دعوة ممارس صحي')),
-      content: Form(key: formKey, child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextFormField(controller: staffId, decoration: InputDecoration(labelText: _t('معرّف حساب الممارس')),
-          validator: (v) => v == null || v.trim().isEmpty ? _t('هذا الحقل مطلوب') : null),
-        TextFormField(controller: jobTitle, decoration: InputDecoration(labelText: _t('المسمى الوظيفي')),
-          validator: (v) => v == null || v.trim().isEmpty ? _t('هذا الحقل مطلوب') : null),
-        const SizedBox(height: 8),
-        Text(_t('يجب أن يكون الحساب موثقاً. ستصل الدعوة إلى صاحب الحساب ليوافق عليها بنفسه.'),
-          style: Theme.of(context).textTheme.bodySmall),
-      ])),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t('إلغاء'))),
-        FilledButton(onPressed: () { if (formKey.currentState!.validate()) Navigator.pop(dialogContext, true); },
-          child: Text(_t('إرسال الدعوة'))),
-      ],
-    ));
+    var selectedDepartmentId = '';
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> departments = [];
+    try {
+      final result = await _db.collection('hospital_departments')
+          .where('hospitalId', isEqualTo: uid)
+          .where('isActive', isEqualTo: true).get();
+      departments = result.docs;
+    } catch (_) {
+      // Department selection is optional; invitation can still be sent.
+    }
+    final accepted = await showDialog<bool>(context: context, builder: (dialogContext) =>
+      StatefulBuilder(builder: (dialogContext, setDialogState) => AlertDialog(
+        title: Text(_t('دعوة ممارس صحي')),
+        content: Form(key: formKey, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextFormField(controller: staffId, decoration: InputDecoration(labelText: _t('معرّف حساب الممارس')),
+            validator: (v) => v == null || v.trim().isEmpty ? _t('هذا الحقل مطلوب') : null),
+          TextFormField(controller: jobTitle, decoration: InputDecoration(labelText: _t('المسمى الوظيفي')),
+            validator: (v) => v == null || v.trim().isEmpty ? _t('هذا الحقل مطلوب') : null),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            value: selectedDepartmentId,
+            decoration: InputDecoration(labelText: _t('القسم الطبي')),
+            items: [
+              DropdownMenuItem<String>(value: '', child: Text(_t('بدون قسم محدد'))),
+              ...departments.map((doc) => DropdownMenuItem<String>(
+                value: doc.id, child: Text(doc.data()['name']?.toString() ?? _t('قسم طبي')),
+              )),
+            ],
+            onChanged: (value) => setDialogState(() => selectedDepartmentId = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          Text(_t('يجب أن يكون الحساب موثقاً. ستصل الدعوة إلى صاحب الحساب ليوافق عليها بنفسه.'),
+            style: Theme.of(context).textTheme.bodySmall),
+        ]))),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t('إلغاء'))),
+          FilledButton(onPressed: () { if (formKey.currentState!.validate()) Navigator.pop(dialogContext, true); },
+            child: Text(_t('إرسال الدعوة'))),
+        ],
+      )),
+    );
     if (accepted == true) {
       await _runAction(() async {
         await _functions.httpsCallable('createHospitalStaffInvitation').call({
-          'staffId': staffId.text.trim(), 'jobTitle': jobTitle.text.trim(), 'isPublic': true,
+          'staffId': staffId.text.trim(), 'jobTitle': jobTitle.text.trim(),
+          'departmentId': selectedDepartmentId, 'isPublic': true,
         });
       }, _t('تم إرسال الدعوة للممارس'));
     }
