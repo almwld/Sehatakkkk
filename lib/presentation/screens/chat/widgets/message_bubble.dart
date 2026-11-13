@@ -156,8 +156,12 @@ class _MessageBubbleState extends State<MessageBubble> {
         return _withStatus(_buildVideo(m['videoUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? ''));
       case 'audio':
         final url = m['audioUrl']?.toString() ?? m['fileUrl']?.toString() ?? m['text']?.toString() ?? '';
-        // Preserve the player's natural dimensions. Only the outer shell is
-        // shared with text messages so the bubble color stays identical.
+        // AudioWaveformBubble contains an Expanded player timeline. It must
+        // receive a finite width: this Row is shrink-wrapped, so leaving the
+        // player unconstrained makes its inner RenderFlex collapse/overflow
+        // instead of painting the voice-message bubble.
+        final audioBubbleWidth =
+            (MediaQuery.of(context).size.width * .68).clamp(160.0, 260.0).toDouble();
         return Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -168,10 +172,13 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: _mediaStatus(m),
             ),
             _shell(
-              AudioWaveformBubble(
-                audioUrl: url,
-                isMe: widget.isMe,
-                isLocal: _isLocal(url),
+              SizedBox(
+                width: audioBubbleWidth,
+                child: AudioWaveformBubble(
+                  audioUrl: url,
+                  isMe: widget.isMe,
+                  isLocal: _isLocal(url),
+                ),
               ),
               dark,
             ),
