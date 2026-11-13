@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Story media is readable by signed-in users, matching the Firestore
+    // statuses collection visibility. Only the owning account may upload,
+    // replace, or delete files in its own status directory.
+    match /statuses/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.size <= 50 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*|video/.*');
+      allow delete: if request.auth != null
+        && request.auth.uid == userId;
+    }
+  }
+}
