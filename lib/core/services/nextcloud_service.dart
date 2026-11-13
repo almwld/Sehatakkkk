@@ -150,6 +150,9 @@ class NextcloudService {
     CancelToken? cancelToken,
   }) async {
     try {
+      // Some legacy feature entry points call uploadFile without an explicit
+      // loadConfig. Resolve the same shared secure config before rejecting.
+      if (!isConfigured) await loadConfig();
       _ensureConfigured();
       if (!await file.exists()) {
         return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
@@ -202,6 +205,7 @@ class NextcloudService {
   }
 
   Future<String?> createPublicShare(String remotePath) async {
+    if (!isConfigured) await loadConfig();
     _ensureConfigured();
     try {
       final response = await http.post(
