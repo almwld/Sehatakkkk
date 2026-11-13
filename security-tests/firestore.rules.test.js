@@ -110,12 +110,14 @@ test('hospital staff directory exposes only explicitly public staff profiles', a
       displayName: 'Synthetic Public Clinician',
       jobTitle: 'Consultant',
       isPublic: true,
+      status: 'active',
     });
     await setDoc(doc(db, 'hospital_staff/staff-private'), {
       hospitalId: 'hospital-1',
       displayName: 'Synthetic Private Employee',
       personalPhone: '+000000000',
       isPublic: false,
+      status: 'active',
     });
   });
   const publicDb = env.unauthenticatedContext().firestore();
