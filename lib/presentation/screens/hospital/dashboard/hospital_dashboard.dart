@@ -29,7 +29,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
       final firestore = FirebaseFirestore.instance;
       final hospitalDoc = await firestore.collection('hospitals').doc(user.uid).get();
       final bookingSnap = await firestore.collection('bookings').where('providerId', isEqualTo: user.uid).where('type', isEqualTo: 'hospital').orderBy('createdAt', descending: true).get();
-      final bookings = bookingSnap.docs.map((doc) => BookingModel.fromFirestore(doc.data(), doc.id)).toList();
+      final bookings = bookingSnap.docs.map((doc) { final data = Map<String, dynamic>.from(doc.data()); for (final key in ['bookingDate', 'createdAt', 'updatedAt']) { final value = data[key]; if (value is Timestamp) data[key] = value.toDate().toIso8601String(); else if (value is DateTime) data[key] = value.toIso8601String(); } return BookingModel.fromFirestore(data, doc.id); }).toList();
       if (!mounted) return;
       setState(() { _hospitalData = hospitalDoc.data(); _isOpen = _hospitalData?['isOpen'] as bool? ?? true; _bookings = bookings; });
       await _loadRevenue(user.uid);
@@ -50,7 +50,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(title: Text(_hospitalData?['name'] ?? _t('لوحة تحكم المستشفى')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [
-        Row(children: [Text(_t('مفتوح'), style: TextStyle(color: Colors.white70, fontSize: 12)), Switch(value: _isOpen, onChanged: (value) async { setState(() => _isOpen = value); if (user != null) await FirebaseFirestore.instance.collection('hospitals').doc(user.uid).update({'isOpen': value}); }, activeColor: Colors.green, inactiveThumbColor: Colors.red)]),
+        Row(children: [Text(_t('مفتوح'), style: TextStyle(color: Colors.white70, fontSize: 12)), Switch(value: _isOpen, onChanged: (value) async { final previous = _isOpen; setState(() => _isOpen = value); try { if (user != null) await FirebaseFirestore.instance.collection('hospitals').doc(user.uid).update({'isOpen': value, 'updatedAt': FieldValue.serverTimestamp()}); } catch (e) { if (mounted) { setState(() => _isOpen = previous); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر تحديث حالة المستشفى')))); } debugPrint('Hospital status update failed: $e'); } }, activeColor: Colors.green, inactiveThumbColor: Colors.red)]),
         IconButton(icon: const Icon(Icons.campaign), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdManagementScreen(providerId: user?.uid, providerName: _hospitalData?['name'], providerType: AdType.hospital)))),
         IconButton(icon: const Icon(Icons.calendar_today), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen()))),
       ]),
@@ -68,7 +68,82 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
   Widget _buildQuickCard(String title, String value, IconData icon, Color color) { final isDark = Theme.of(context).brightness == Brightness.dark; return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: color, size: 24), const SizedBox(height: 8), Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey))])); }
   Widget _buildBookingsTab() { if (_bookings.isEmpty) return Center(child: Text(AppStrings.of(context).translate('لا توجد حجوزات'))); return ListView.builder(padding: const EdgeInsets.all(16), itemCount: _bookings.length, itemBuilder: (_, index) { final booking = _bookings[index]; final color = _statusColor(booking.status); return Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(booking.userId.isEmpty ? _t('مريض') : booking.userId, style: const TextStyle(fontWeight: FontWeight.bold)), Text('${booking.bookingDate.day}/${booking.bookingDate.month}/${booking.bookingDate.year} - ${_formatTime(booking.bookingDate)}', style: const TextStyle(fontSize: 12, color: Colors.grey)), if (booking.notes?.isNotEmpty == true) Text(booking.notes!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.grey))])), Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(_statusText(booking.status), style: TextStyle(fontSize: 10, color: color)))]) ])); }); }
   String _formatTime(DateTime date) => '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  Widget _buildDepartmentsTab() { final departments = ['الطوارئ', 'الباطنية', 'الجراحة', 'الأطفال', 'النساء والولادة']; return ListView.builder(padding: const EdgeInsets.all(16), itemCount: departments.length, itemBuilder: (_, index) => ListTile(leading: const Icon(Icons.medical_services, color: AppColors.primary), title: Text(_t(departments[index])), subtitle: Text(_t('القسم متاح')), trailing: Switch(value: true, onChanged: (_) {}))); }
+  Widget _buildDepartmentsTab() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return Center(child: Text(_t('يجب تسجيل الدخول')));
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('hospital_departments').where('hospitalId', isEqualTo: uid).orderBy('name').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return Center(child: Text(_t('تعذر تحميل الأقسام')));
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final docs = snapshot.data!.docs;
+        return ListView(padding: const EdgeInsets.all(16), children: [
+          Align(alignment: AlignmentDirectional.centerEnd, child: FilledButton.icon(onPressed: _showAddDepartment, icon: const Icon(Icons.add), label: Text(_t('إضافة قسم')))),
+          if (docs.isEmpty) Padding(padding: const EdgeInsets.all(24), child: Text(_t('لم تتم إضافة أقسام بعد'), textAlign: TextAlign.center)),
+          ...docs.map((doc) {
+            final data = doc.data(); final active = data['isActive'] != false;
+            return Card(child: ListTile(leading: const Icon(Icons.medical_services, color: AppColors.primary),
+              title: Text(data['name']?.toString() ?? ''),
+              subtitle: Text(data['description']?.toString() ?? (active ? _t('القسم متاح') : _t('القسم متوقف'))),
+              trailing: Switch(value: active, onChanged: (value) => _setDepartmentActive(doc.reference, value)),
+              onLongPress: () => _deleteDepartment(doc.reference)));
+          }),
+        ]);
+      },
+    );
+  }
+
+  Future<void> _showAddDepartment() async {
+    final name = TextEditingController(); final description = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final save = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+      title: Text(_t('إضافة قسم جديد')),
+      content: Form(key: formKey, child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextFormField(controller: name, autofocus: true, decoration: InputDecoration(labelText: _t('اسم القسم')),
+          validator: (value) => value == null || value.trim().isEmpty ? _t('هذا الحقل مطلوب') : null),
+        TextFormField(controller: description, decoration: InputDecoration(labelText: _t('وصف القسم'))),
+      ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t('إلغاء'))),
+        FilledButton(onPressed: () { if (formKey.currentState!.validate()) Navigator.pop(dialogContext, true); }, child: Text(_t('حفظ'))),
+      ],
+    ));
+    if (save == true && name.text.trim().isNotEmpty) {
+      try { await FirebaseFirestore.instance.collection('hospital_departments').add({
+        'hospitalId': FirebaseAuth.instance.currentUser!.uid, 'name': name.text.trim(),
+        'description': description.text.trim(), 'isActive': true,
+        'createdAt': FieldValue.serverTimestamp(), 'updatedAt': FieldValue.serverTimestamp(),
+      }); } catch (error) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر حفظ القسم'))));
+        debugPrint('Create hospital department failed: $error');
+      }
+    }
+    name.dispose(); description.dispose();
+  }
+
+  Future<void> _setDepartmentActive(DocumentReference<Map<String, dynamic>> ref, bool value) async {
+    try { await ref.update({'isActive': value, 'updatedAt': FieldValue.serverTimestamp()}); }
+    catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر تحديث القسم'))));
+      debugPrint('Update hospital department failed: $error');
+    }
+  }
+
+  Future<void> _deleteDepartment(DocumentReference<Map<String, dynamic>> ref) async {
+    final confirm = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+      title: Text(_t('حذف القسم')), content: Text(_t('هل تريد حذف هذا القسم؟')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t('إلغاء'))),
+        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(_t('حذف'))),
+      ],
+    ));
+    if (confirm == true) {
+      try { await ref.delete(); } catch (error) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر حذف القسم'))));
+        debugPrint('Delete hospital department failed: $error');
+      }
+    }
+  }
   Widget _buildStatisticsTab() => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.bar_chart, size: 64, color: Colors.grey), const SizedBox(height: 16), Text('${_t('إجمالي الحجوزات')}: ${_bookings.length}'), const SizedBox(height: 8), Text('${_t('إجمالي الإيرادات')}: ${AppStrings.of(context).formatCurrency(_totalRevenue)}')]));
   @override void dispose() { _tabController.dispose(); super.dispose(); }
 }
