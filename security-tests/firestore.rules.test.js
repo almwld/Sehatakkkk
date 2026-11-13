@@ -102,6 +102,32 @@ test('hospital owners can manage only their own departments', async () => {
   await assertFails(setDoc(doc(owner, 'hospital_departments/forged-owner'), { hospitalId: 'hospital-2', name: 'Forged', isActive: true }));
 });
 
+test('hospital staff directory exposes only explicitly public staff profiles', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'hospital_staff/staff-public'), {
+      hospitalId: 'hospital-1',
+      displayName: 'Synthetic Public Clinician',
+      jobTitle: 'Consultant',
+      isPublic: true,
+    });
+    await setDoc(doc(db, 'hospital_staff/staff-private'), {
+      hospitalId: 'hospital-1',
+      displayName: 'Synthetic Private Employee',
+      personalPhone: '+000000000',
+      isPublic: false,
+    });
+  });
+  const publicDb = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(publicDb, 'hospital_staff/staff-public')));
+  await assertFails(getDoc(doc(publicDb, 'hospital_staff/staff-private')));
+  await assertFails(setDoc(doc(publicDb, 'hospital_staff/forged'), {
+    hospitalId: 'hospital-1',
+    displayName: 'Forged Profile',
+    isPublic: true,
+  }));
+});
+
 test('hospital owners can read and update only the status of their hospital bookings', async () => {
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
