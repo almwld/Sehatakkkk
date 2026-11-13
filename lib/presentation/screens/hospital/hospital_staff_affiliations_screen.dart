@@ -15,6 +15,7 @@ class _HospitalStaffAffiliationsScreenState extends State<HospitalStaffAffiliati
   final _db = FirebaseFirestore.instance;
   final _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
   bool _loadingRole = true, _isHospital = false, _busy = false;
+  final Set<String> _publicConsents = <String>{};
   String _t(String value) => AppStrings.of(context).translate(value);
 
   @override
@@ -79,7 +80,7 @@ class _HospitalStaffAffiliationsScreenState extends State<HospitalStaffAffiliati
       await _runAction(() async {
         await _functions.httpsCallable('createHospitalStaffInvitation').call({
           'staffId': staffId.text.trim(), 'jobTitle': jobTitle.text.trim(),
-          'departmentId': selectedDepartmentId, 'isPublic': true,
+          'departmentId': selectedDepartmentId,
         });
       }, _t('تم إرسال الدعوة للممارس'));
     }
@@ -89,8 +90,11 @@ class _HospitalStaffAffiliationsScreenState extends State<HospitalStaffAffiliati
   Future<void> _respond(String invitationId, String decision) async {
     await _runAction(() async {
       await _functions.httpsCallable('respondHospitalStaffInvitation').call({
-        'invitationId': invitationId, 'decision': decision,
+        'invitationId': invitationId,
+        'decision': decision,
+        'publishProfile': decision == 'accept' && _publicConsents.contains(invitationId),
       });
+      _publicConsents.remove(invitationId);
     }, decision == 'accept' ? _t('تم قبول الانتساب') : _t('تم رفض الدعوة'));
   }
 
@@ -182,18 +186,29 @@ class _HospitalStaffAffiliationsScreenState extends State<HospitalStaffAffiliati
           if (snapshot.data!.docs.isEmpty) return _empty(_t('لا توجد دعوات معلقة'));
           return Column(children: snapshot.data!.docs.map((doc) {
             final data = doc.data();
-            return Card(child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.local_hospital_outlined)),
-              title: Text((data['hospitalName'] ?? '').toString().isNotEmpty ? data['hospitalName'].toString() : _t('مستشفى')),
-              subtitle: Text((data['jobTitle'] ?? '').toString() + '\n' + (data['hospitalId'] ?? '').toString()),
-              isThreeLine: true,
-              trailing: Wrap(spacing: 2, children: [
-                IconButton(tooltip: _t('قبول'), onPressed: _busy ? null : () => _respond(doc.id, 'accept'),
-                  icon: const Icon(Icons.check_circle, color: Colors.green)),
-                IconButton(tooltip: _t('رفض'), onPressed: _busy ? null : () => _respond(doc.id, 'reject'),
-                  icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent)),
-              ]),
-            ));
+            return Card(child: Column(mainAxisSize: MainAxisSize.min, children: [
+              ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.local_hospital_outlined)),
+                title: Text((data['hospitalName'] ?? '').toString().isNotEmpty ? data['hospitalName'].toString() : _t('مستشفى')),
+                subtitle: Text((data['jobTitle'] ?? '').toString() + '\n' + (data['hospitalId'] ?? '').toString()),
+                isThreeLine: true,
+                trailing: Wrap(spacing: 2, children: [
+                  IconButton(tooltip: _t('قبول'), onPressed: _busy ? null : () => _respond(doc.id, 'accept'),
+                    icon: const Icon(Icons.check_circle, color: Colors.green)),
+                  IconButton(tooltip: _t('رفض'), onPressed: _busy ? null : () => _respond(doc.id, 'reject'),
+                    icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent)),
+                ]),
+              ),
+              CheckboxListTile(
+                dense: true,
+                value: _publicConsents.contains(doc.id),
+                onChanged: _busy ? null : (value) => setState(() {
+                  if (value == true) { _publicConsents.add(doc.id); } else { _publicConsents.remove(doc.id); }
+                }),
+                title: Text(_t('أوافق على إظهار اسمي ومسمّاي الوظيفي في دليل المستشفى العام')),
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+            ]));
           }).toList());
         },
       ),
