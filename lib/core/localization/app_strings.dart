@@ -5333,6 +5333,7 @@ class AppStrings {
       'القسم الطبي': ['Medical department', 'Service médical'],
       'بدون قسم محدد': ['No specific department', 'Aucun service spécifié'],
       'قسم طبي': ['Medical department', 'Service médical'],
+      'أوافق على إظهار اسمي ومسمّاي الوظيفي في دليل المستشفى العام': ['I agree to show my name and job title in the public hospital directory', 'J’accepte que mon nom et mon intitulé de poste apparaissent dans l’annuaire public de l’hôpital'],
       'تم قبول الانتساب': ['Affiliation accepted', 'Affiliation acceptée'],
       'تم رفض الدعوة': ['Invitation declined', 'Invitation refusée'],
       'إنهاء الانتساب': ['End affiliation', 'Mettre fin à l’affiliation'],
