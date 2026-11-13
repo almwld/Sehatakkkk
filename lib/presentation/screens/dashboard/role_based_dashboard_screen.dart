@@ -50,7 +50,18 @@ class _RoleBasedDashboardScreenState extends State<RoleBasedDashboardScreen> {
             ),
           );
         }
-        final rawRole=snapshot.data!.data()?['role']?.toString().trim()??'user';
+        final profile = snapshot.data!.data() ?? const <String, dynamic>{};
+        final rawRole = (profile['role'] ?? profile['type'] ?? profile['accountType'] ?? profile['userType'])?.toString().trim() ?? '';
+        if (rawRole.isEmpty) {
+          return const Scaffold(
+            body: Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('نوع الحساب غير محدد. تواصل مع الدعم لتصحيح بيانات الدور.'),
+              ),
+            ),
+          );
+        }
         final normalized=rawRole.toLowerCase();
         final role=normalized=='superadmin'?'superAdmin':normalized;
         if(role=='user'||role=='patient')return const PatientDashboard();
