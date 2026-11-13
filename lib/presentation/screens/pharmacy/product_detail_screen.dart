@@ -38,17 +38,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
+          MedicineImage(
+            imagePath: imageUrl,
             width: double.infinity,
             height: 250,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: AppImage(imageUrl: imageUrl, fit: BoxFit.contain),
-            ),
           ),
           const SizedBox(height: 16),
           Text(product.name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
