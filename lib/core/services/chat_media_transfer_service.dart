@@ -246,53 +246,55 @@ class ChatMediaTransferService {
     final type = job['type']?.toString() ?? 'file';
     if (_isCancelled(id)) throw MediaUploadCancelled();
 
+    // Never reuse historical Firebase Storage media references. Re-upload
+    // from the durable local outbox copy into the single approved media store.
+    if (remotePath?.startsWith('firebase://') == true ||
+        (url?.contains('firebasestorage.googleapis.com') == true)) {
+      remotePath = null;
+      url = null;
+    }
+
     if (url == null || url.isEmpty) {
-      // Legacy outbox rows may contain Firebase Storage references. They are
-      // never reused: media is re-uploaded to Nextcloud from its durable local copy.
-      if (remotePath?.startsWith('firebase://') == true ||
-          (url?.contains('firebasestorage.googleapis.com') == true)) {
-        remotePath = null;
-        url = null;
-      }
       final nextcloud = NextcloudService();
-        await nextcloud.loadConfig();
-        NextcloudUploadResult upload;
-        try {
-          upload = await nextcloud.uploadFile(
-            file: file,
-            path: 'chats/${job['chat_id']}/${job['folder']}',
-            fileName: job['file_name']?.toString(),
-            cancelToken: _cancelToken(id),
-            onProgress: (sent, total) {
-              if (total > 0) {
-                unawaited(db.update('media_outbox', {
-                  'status': 'uploading',
-                  'progress': (sent / total).clamp(0.0, 1.0),
-                  'updated_at': DateTime.now().millisecondsSinceEpoch,
-                }, where: 'id = ?', whereArgs: [id]));
-              }
-            },
-            createShare: true,
-          );
-        } catch (e) {
-          if (_isCancelled(id)) throw MediaUploadCancelled();
-          upload = NextcloudUploadResult(success: false, error: e.toString());
-        }
+      await nextcloud.loadConfig();
+      NextcloudUploadResult upload;
+      try {
+        upload = await nextcloud.uploadFile(
+          file: file,
+          path: 'chats/${job['chat_id']}/${job['folder']}',
+          fileName: job['file_name']?.toString(),
+          cancelToken: _cancelToken(id),
+          onProgress: (sent, total) {
+            if (total > 0) {
+              unawaited(db.update('media_outbox', {
+                'status': 'uploading',
+                'progress': (sent / total).clamp(0.0, 1.0),
+                'updated_at': DateTime.now().millisecondsSinceEpoch,
+              }, where: 'id = ?', whereArgs: [id]));
+            }
+          },
+          createShare: true,
+        );
+      } catch (e) {
         if (_isCancelled(id)) throw MediaUploadCancelled();
-        if (upload.success && upload.path != null) {
-          remotePath = upload.path;
-          url = upload.url;
-          if (url == null || url.isEmpty) {
-            url = await _retryShare(nextcloud, remotePath!);
-          }
-          if (url != null && url.isNotEmpty) {
-            final reachable = await nextcloud.verifyPublicUrl(url);
-            if (!reachable) url = null;
-          }
-        }
+        upload = NextcloudUploadResult(success: false, error: e.toString());
+      }
+      if (_isCancelled(id)) throw MediaUploadCancelled();
+
+      if (upload.success && upload.path != null) {
+        remotePath = upload.path;
+        url = upload.url;
         if (url == null || url.isEmpty) {
-          throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
+          url = await _retryShare(nextcloud, remotePath!);
         }
+        if (url != null && url.isNotEmpty) {
+          final reachable = await nextcloud.verifyPublicUrl(url);
+          if (!reachable) url = null;
+        }
+      }
+
+      if (url == null || url.isEmpty) {
+        throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
       }
     }
 
