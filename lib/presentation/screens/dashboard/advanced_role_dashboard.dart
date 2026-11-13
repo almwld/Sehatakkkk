@@ -24,10 +24,10 @@ class AdvancedRoleDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (role == 'doctor') return const _DoctorControlCenter();
-    if (role == 'pharmacy' || role == 'pharmacist' || role == 'pharmacyOwner') return const PharmacyDashboard();
+    if (role == 'pharmacy' || role == 'pharmacist' || role == 'pharmacyowner') return const PharmacyDashboard();
     if (role == 'paramedic') return const ParamedicFieldScreen();
     if (role == 'lab') return const LabDashboardScreen();
-    if (['hospital','clinic','medical_center','dental','dentist','ophthalmology','optometrist','nurse','midwife','physiotherapist','veterinarian'].contains(role)) return _FacilityControlCenter(role: role);
+    if (['hospital','clinic','medical_center','dental','dentist','ophthalmology','eye_clinic','optometrist','nurse','midwife','physiotherapist','veterinarian'].contains(role)) return _FacilityControlCenter(role: role);
     if (role == 'superAdmin') return const SuperAdminDashboard();
     if (role == 'admin') return const _AdminControlCenter();
     return _ProviderControlCenter(role: role);
