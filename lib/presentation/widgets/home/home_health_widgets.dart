@@ -136,7 +136,7 @@ class HomeHealthWidgets extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                     color: isDark ? Colors.white : const Color(0xFF212121)))),
         TextButton(
-            onPressed: () => onNavigate(AppRouter.dashboard),
+            onPressed: () => onNavigate(AppRouter.health),
             child: Text(_t(context, 'عرض الكل'),
                 style: TextStyle(
                     color: AppColors.primary,
