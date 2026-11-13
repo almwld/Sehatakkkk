@@ -17,6 +17,7 @@ import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
 import 'package:sehatak/presentation/screens/lab/lab_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 import 'package:sehatak/presentation/screens/hospital/dashboard/hospital_dashboard.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_staff_affiliations_screen.dart';
 
 class AdvancedRoleDashboardScreen extends StatelessWidget {
   final String role;
@@ -231,7 +232,9 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
         ]),const SizedBox(height:12),
         _section('الإجازات',[...vacations.asMap().entries.map((e)=>ListTile(contentPadding:EdgeInsets.zero,title:Text(vacationLabel(e.value)),trailing:IconButton(onPressed:()=>setState(()=>vacations.removeAt(e.key)),icon:const Icon(Icons.delete_outline)))),OutlinedButton.icon(onPressed:addVacation,icon:const Icon(Icons.add),label:Text(AppStrings.of(context).translate('إضافة إجازة')))]),
         const SizedBox(height:12),_section('المرضى',[_patients()]),const SizedBox(height:18),
-        SizedBox(height:54,child:FilledButton.icon(onPressed:saving?null:save,icon:const Icon(Icons.save),label:Text(AppStrings.of(context).translate(saving?'جارٍ الحفظ...':'حفظ كل إعدادات الطبيب'))))
+        SizedBox(height:54,child:FilledButton.icon(onPressed:saving?null:save,icon:const Icon(Icons.save),label:Text(AppStrings.of(context).translate(saving?'جارٍ الحفظ...':'حفظ كل إعدادات الطبيب')))),
+        const SizedBox(height:10),
+        OutlinedButton.icon(onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const HospitalStaffAffiliationsScreen())),icon:const Icon(Icons.apartment),label:Text(AppStrings.of(context).translate('انتساباتي المهنية')))
       ])
     );
   }
@@ -294,6 +297,8 @@ class _ProviderControlCenterState extends State<_ProviderControlCenter>{
         ]),
         const SizedBox(height: 12),
         SizedBox(height: 52, child: FilledButton.icon(onPressed: saving ? null : save, icon: const Icon(Icons.save), label: Text(AppStrings.of(context).translate(saving ? 'جارٍ الحفظ...' : 'حفظ الإعدادات')))),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HospitalStaffAffiliationsScreen())), icon: const Icon(Icons.apartment), label: Text(AppStrings.of(context).translate('انتساباتي المهنية'))),
       ]),
     );
   }
