@@ -465,3 +465,55 @@ test('community likes require an atomic owned liked-post edge and counters only 
   await assertSucceeds(updateDoc(doc(other, 'community_posts/post-1'), { shares: 1 }));
   await assertSucceeds(updateDoc(doc(other, 'community_posts/post-1'), { comments: 1 }));
 });
+
+
+test('hospital staff directory exposes only active public affiliation projections', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'hospital_staff/public-active'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1',
+      displayName: 'Synthetic Verified Clinician', isPublic: true, status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff/private-active'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-2',
+      displayName: 'Private Clinician', isPublic: false, status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff/public-ended'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-3',
+      displayName: 'Former Clinician', isPublic: true, status: 'ended',
+    });
+  });
+  const publicDb = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(publicDb, 'hospital_staff/public-active')));
+  await assertFails(getDoc(doc(publicDb, 'hospital_staff/private-active')));
+  await assertFails(getDoc(doc(publicDb, 'hospital_staff/public-ended')));
+  await assertFails(setDoc(doc(publicDb, 'hospital_staff/forged'), {
+    hospitalId: 'hospital-1', staffId: 'attacker', displayName: 'Forged',
+    isPublic: true, status: 'active',
+  }));
+});
+
+test('private hospital staff links and invitations are readable only by their parties and server-writable', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'hospital_staff_links/link-1'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1', status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff_invitations/invite-1'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1', status: 'pending',
+    });
+  });
+  const hospital = env.authenticatedContext('hospital-1').firestore();
+  const staff = env.authenticatedContext('doctor-1').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(hospital, 'hospital_staff_links/link-1')));
+  await assertSucceeds(getDoc(doc(staff, 'hospital_staff_links/link-1')));
+  await assertFails(getDoc(doc(outsider, 'hospital_staff_links/link-1')));
+  await assertSucceeds(getDoc(doc(hospital, 'hospital_staff_invitations/invite-1')));
+  await assertSucceeds(getDoc(doc(staff, 'hospital_staff_invitations/invite-1')));
+  await assertFails(getDoc(doc(outsider, 'hospital_staff_invitations/invite-1')));
+  await assertFails(setDoc(doc(hospital, 'hospital_staff_invitations/forged'), {
+    hospitalId: 'hospital-1', staffId: 'patient-a', status: 'accepted',
+  }));
+  await assertFails(updateDoc(doc(staff, 'hospital_staff_links/link-1'), { status: 'ended' }));
+});
