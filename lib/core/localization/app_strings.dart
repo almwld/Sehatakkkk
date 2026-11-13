@@ -2513,6 +2513,7 @@ class AppStrings {
       'تعذر إتمام الدفع، حاول مرة أخرى': ['Could not complete payment. Please try again.', 'Impossible de finaliser le paiement. Réessayez.'],
       'رصيد المحفظة غير كافٍ أو المحفظة غير مفعلة': ['Insufficient wallet balance or the wallet is inactive', 'Solde insuffisant ou portefeuille inactif'],
       'لديك اشتراك نشط بالفعل': ['You already have an active subscription', 'Vous avez déjà un abonnement actif'],
+      'اشتراك نشط': ['Active subscription', 'Abonnement actif'],
       'الباقة المطلوبة غير موجودة': ['The requested plan was not found', 'L’offre demandée est introuvable'],
       'تعذر إتمام عملية الاشتراك': ['Could not complete the subscription', 'Impossible de finaliser l’abonnement'],
       'مراجعة ودفع الاشتراك': ['Review and pay for subscription', 'Vérifier et payer l’abonnement'],
@@ -5320,7 +5321,6 @@ class AppStrings {
       'طلب صيدلية جديد': ['New pharmacy order', 'Nouvelle commande de pharmacie'],
       'لديك طلب مدفوع جديد يحتاج إلى التأكيد.': ['You have a new paid order that needs confirmation.', 'Vous avez une nouvelle commande payée à confirmer.'],
       'لديك طلب جديد يحتاج إلى التأكيد.': ['You have a new order that needs confirmation.', 'Vous avez une nouvelle commande à confirmer.'],
-      'اشتراك نشط': ['Active subscription', 'Abonnement actif'],
     };
 
     final entry = translations[value];
