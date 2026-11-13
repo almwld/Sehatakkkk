@@ -21,7 +21,7 @@ class _RoleBasedDashboardScreenState extends State<RoleBasedDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final user=FirebaseAuth.instance.currentUser;
-    if(user==null)return const PatientDashboard();
+    if(user==null)return const Scaffold(body: Center(child: Text('يجب تسجيل الدخول لعرض لوحة التحكم.')));
     return StreamBuilder<DocumentSnapshot<Map<String,dynamic>>>(
       stream:FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder:(context,snapshot){
@@ -40,7 +40,17 @@ class _RoleBasedDashboardScreenState extends State<RoleBasedDashboardScreen> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        final rawRole=snapshot.data?.data()?['role']?.toString().trim()??'user';
+        if (snapshot.data == null || !snapshot.data!.exists) {
+          return const Scaffold(
+            body: Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('تعذر العثور على ملف الحساب. أعد تسجيل الدخول أو تواصل مع الدعم.'),
+              ),
+            ),
+          );
+        }
+        final rawRole=snapshot.data!.data()?['role']?.toString().trim()??'user';
         final normalized=rawRole.toLowerCase();
         final role=normalized=='superadmin'?'superAdmin':normalized;
         if(role=='user'||role=='patient')return const PatientDashboard();
