@@ -176,7 +176,7 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
                     builder: (context, positionSnapshot) {
                       final position = positionSnapshot.data ?? Duration.zero;
                       final maxMs = duration.inMilliseconds;
-                      final progress = maxMs > 0
+                      final progress = (maxMs > 0
                           ? (position.inMilliseconds / maxMs).clamp(0.0, 1.0)
                           : 0.0).toDouble();
                       return Column(
