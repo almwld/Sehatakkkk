@@ -108,6 +108,13 @@ class StatusService {
     // This is the shared Nextcloud singleton used by chat and settings.
     // Load its secure credentials before every upload; never fall back to Firebase.
     await _nextcloud.loadConfig();
+    if (_nextcloud.baseUrl.isEmpty ||
+        _nextcloud.username.isEmpty ||
+        _nextcloud.password.isEmpty) {
+      throw StateError(
+        'إعدادات Nextcloud غير محفوظة أو غير مكتملة على هذا الجهاز. لا يمكن نشر الحالة دون خادم الوسائط المعتمد.',
+      );
+    }
     final extension = file.path.contains('.') ? file.path.split('.').last.toLowerCase() : (type == 'video' ? 'mp4' : 'jpg');
     final safeExtension = RegExp(r'^[a-z0-9]{1,8}$').hasMatch(extension)
         ? extension
@@ -120,7 +127,9 @@ class StatusService {
       createShare: true,
     );
     if (!result.success || result.url == null || result.url!.isEmpty) {
-      throw StateError(result.error ?? 'تعذر رفع الحالة إلى Nextcloud.');
+      final message = (result.error ?? 'تعذر رفع الحالة إلى Nextcloud.')
+          .replaceFirst(RegExp(r'^(Bad state: )+'), '');
+      throw StateError(message);
     }
 
     // Publish metadata only after the actual public URL is reachable.
