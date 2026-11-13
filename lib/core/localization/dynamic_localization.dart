@@ -47,8 +47,14 @@ String localizedField(
   }
   final translations = data['translations'];
   if (translations is Map) {
-    final translated = _nonEmpty(translations[language]);
+    final translatedEntry = translations[language];
+    final translated = _nonEmpty(translatedEntry);
     if (translated != null) return translated;
+    if (translatedEntry is Map) {
+      final nested = _nonEmpty(translatedEntry[field]) ??
+          localizedValue(translatedEntry, locale, fallback: fallback);
+      if (nested != null && nested.isNotEmpty) return nested;
+    }
   }
   return localizedValue(data[field], locale, fallback: fallback);
 }
