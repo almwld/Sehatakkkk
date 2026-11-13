@@ -5,7 +5,7 @@ import {
   assertSucceeds,
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 
 const projectId = 'demo-sehatak-firestore-security';
 const rules = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
@@ -514,6 +514,10 @@ test('private hospital staff links and invitations are readable only by their pa
   await assertSucceeds(getDoc(doc(hospital, 'hospital_staff_invitations/invite-1')));
   await assertSucceeds(getDoc(doc(staff, 'hospital_staff_invitations/invite-1')));
   await assertFails(getDoc(doc(outsider, 'hospital_staff_invitations/invite-1')));
+  await assertSucceeds(getDocs(query(collection(hospital, 'hospital_staff_links'), where('hospitalId', '==', 'hospital-1'))));
+  await assertSucceeds(getDocs(query(collection(staff, 'hospital_staff_links'), where('staffId', '==', 'doctor-1'))));
+  await assertSucceeds(getDocs(query(collection(staff, 'hospital_staff_invitations'), where('staffId', '==', 'doctor-1'))));
+  await assertFails(getDocs(query(collection(outsider, 'hospital_staff_links'), where('hospitalId', '==', 'hospital-1'))));
   await assertFails(setDoc(doc(hospital, 'hospital_staff_invitations/forged'), {
     hospitalId: 'hospital-1', staffId: 'patient-a', status: 'accepted',
   }));
