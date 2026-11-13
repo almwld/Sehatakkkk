@@ -42,7 +42,9 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      _isConnected = await _nextcloud.checkServerStatus();
+      // A reachable status.php is not enough: media uploads also require
+      // valid WebDAV/OCS credentials.
+      _isConnected = await _nextcloud.testAuth();
     } catch (_) {
       _isConnected = false;
     }
