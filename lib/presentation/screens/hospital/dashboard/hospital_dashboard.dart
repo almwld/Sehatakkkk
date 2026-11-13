@@ -79,7 +79,52 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
   bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
   Widget _buildBookingPreview(BookingModel booking) { final color = _statusColor(booking.status); return Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: Row(children: [const CircleAvatar(child: Icon(Icons.person)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(booking.userId.isEmpty ? _t('مريض') : booking.userId, style: const TextStyle(fontWeight: FontWeight.bold)), Text('${booking.bookingDate.day}/${booking.bookingDate.month}/${booking.bookingDate.year}', style: const TextStyle(fontSize: 12, color: Colors.grey))])), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(_statusText(booking.status), style: TextStyle(fontSize: 10, color: color)))])); }
   Widget _buildQuickCard(String title, String value, IconData icon, Color color) { final isDark = Theme.of(context).brightness == Brightness.dark; return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: color, size: 24), const SizedBox(height: 8), Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey))])); }
-  Widget _buildBookingsTab() { if (_bookings.isEmpty) return Center(child: Text(AppStrings.of(context).translate('لا توجد حجوزات'))); return ListView.builder(padding: const EdgeInsets.all(16), itemCount: _bookings.length, itemBuilder: (_, index) { final booking = _bookings[index]; final color = _statusColor(booking.status); return Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(booking.userId.isEmpty ? _t('مريض') : booking.userId, style: const TextStyle(fontWeight: FontWeight.bold)), Text('${booking.bookingDate.day}/${booking.bookingDate.month}/${booking.bookingDate.year} - ${_formatTime(booking.bookingDate)}', style: const TextStyle(fontSize: 12, color: Colors.grey)), if (booking.notes?.isNotEmpty == true) Text(booking.notes!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.grey))])), Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(_statusText(booking.status), style: TextStyle(fontSize: 10, color: color)))]) ])); }); }
+  Widget _buildBookingsTab() {
+    if (_bookings.isEmpty) return Center(child: Text(_t('لا توجد حجوزات')));
+    return ListView.builder(padding: const EdgeInsets.all(16), itemCount: _bookings.length, itemBuilder: (_, index) {
+      final booking = _bookings[index]; final color = _statusColor(booking.status);
+      return Card(margin: const EdgeInsets.only(bottom: 8), child: ListTile(
+        leading: const CircleAvatar(child: Icon(Icons.person)),
+        title: Text(booking.userId.isEmpty ? _t('مريض') : booking.userId),
+        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('${booking.bookingDate.day}/${booking.bookingDate.month}/${booking.bookingDate.year} - ${_formatTime(booking.bookingDate)}'),
+          if (booking.notes?.isNotEmpty == true) Text(booking.notes!, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(_statusText(booking.status), style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+        ]),
+        trailing: PopupMenuButton<String>(
+          tooltip: _t('تحديث حالة الحجز'),
+          onSelected: (status) => _updateBookingStatus(booking, status),
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 'confirmed', child: Text(_t('تأكيد الحجز'))),
+            PopupMenuItem(value: 'completed', child: Text(_t('تحديد كمكتمل'))),
+            PopupMenuItem(value: 'cancelled', child: Text(_t('إلغاء الحجز'))),
+          ],
+        ),
+      ));
+    });
+  }
+
+  Future<void> _updateBookingStatus(BookingModel booking, String status) async {
+    try {
+      await FirebaseFirestore.instance.collection('bookings').doc(booking.id).update({
+        'status': status, 'updatedAt': FieldValue.serverTimestamp(),
+      });
+      if (!mounted) return;
+      setState(() {
+        final index = _bookings.indexWhere((item) => item.id == booking.id);
+        if (index >= 0) {
+          final old = _bookings[index];
+          _bookings[index] = BookingModel(id: old.id, userId: old.userId, type: old.type,
+            providerId: old.providerId, providerName: old.providerName, bookingDate: old.bookingDate,
+            notes: old.notes, status: status, createdAt: old.createdAt, updatedAt: DateTime.now());
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم تحديث حالة الحجز'))));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر تحديث حالة الحجز'))));
+      debugPrint('Update hospital booking status failed: $error');
+    }
+  }
   String _formatTime(DateTime date) => '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   Widget _buildDepartmentsTab() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
