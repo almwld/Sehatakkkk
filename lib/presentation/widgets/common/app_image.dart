@@ -234,12 +234,26 @@ class MedicineImage extends StatelessWidget {
   const MedicineImage({super.key, required this.imagePath, this.width, this.height});
 
   @override
-  Widget build(BuildContext context) => AppImage(
-        imageUrl: imagePath,
+  Widget build(BuildContext context) => Container(
         width: width,
         height: height,
-        fit: BoxFit.contain,
-        borderRadius: BorderRadius.circular(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: AppImage(
+          imageUrl: imagePath,
+          width: width,
+          height: height,
+          fit: BoxFit.contain,
+          placeholder: Container(color: Colors.white),
+          errorWidget: Container(
+            color: Colors.white,
+            alignment: Alignment.center,
+            child: const Icon(Icons.medication_outlined, color: Color(0xFF9CA3AF)),
+          ),
+        ),
       );
 }
 
