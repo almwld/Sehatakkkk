@@ -678,3 +678,168 @@ exports.getSuperAdminDailyReport = onCall(async (request) => {
   await db.collection('admin_daily_reports').doc(since.toISOString().slice(0,10)).set({date:since.toISOString().slice(0,10),totalActions:snap.size,actions:counts,generatedBy:uid,generatedAt:FieldValue.serverTimestamp()},{merge:true});
   return {date:since.toISOString().slice(0,10),totalActions:snap.size,actions:counts};
 });
+
+
+// Hospital <-> professional many-to-many affiliation workflow.
+// Private invitations/links are written only by this trusted backend. The
+// hospital_staff collection is a minimal public projection, never an HR record.
+const STAFF_ROLES = new Set([
+  'doctor', 'nurse', 'midwife', 'physiotherapist', 'paramedic',
+  'pharmacist', 'dentist', 'optometrist'
+]);
+async function requireVerifiedHospital(uid) {
+  const [userSnap, hospitalSnap] = await Promise.all([
+    db.collection('users').doc(uid).get(),
+    db.collection('hospitals').doc(uid).get(),
+  ]);
+  if (!userSnap.exists || userSnap.data().role !== 'hospital'
+      || !hospitalSnap.exists
+      || hospitalSnap.data().isVerified !== true
+      || hospitalSnap.data().isPublished !== true) {
+    throw new HttpsError('permission-denied', 'يجب أن يكون حساب المستشفى موثقاً ومنشوراً');
+  }
+  return hospitalSnap.data();
+}
+function staffLinkId(hospitalId, staffId) {
+  return digest(hospitalId + ':' + staffId);
+}
+
+exports.createHospitalStaffInvitation = onCall(async (request) => {
+  const hospitalId = requireAuth(request);
+  const hospital = await requireVerifiedHospital(hospitalId);
+  const staffId = text(request.data.staffId, 'staffId', 128);
+  const jobTitle = text(request.data.jobTitle, 'jobTitle', 100);
+  const departmentId = String(request.data.departmentId || '').trim().slice(0, 128);
+  const isPublic = request.data.isPublic !== false;
+  if (staffId === hospitalId) throw new HttpsError('invalid-argument', 'لا يمكن ربط حساب المستشفى بنفسه');
+  const [staffSnap, linkSnap] = await Promise.all([
+    db.collection('users').doc(staffId).get(),
+    db.collection('hospital_staff_links').doc(staffLinkId(hospitalId, staffId)).get(),
+  ]);
+  if (!staffSnap.exists) throw new HttpsError('not-found', 'الحساب المهني غير موجود');
+  const staff = staffSnap.data();
+  if (!STAFF_ROLES.has(String(staff.role || '')) || staff.isVerified !== true
+      || staff.verificationStatus !== 'approved') {
+    throw new HttpsError('failed-precondition', 'يجب أن يكون الحساب المهني موثقاً ومعتمداً أولاً');
+  }
+  if (linkSnap.exists && linkSnap.data().status === 'active') {
+    throw new HttpsError('already-exists', 'هذا المهني مرتبط بالمستشفى بالفعل');
+  }
+  const invitationId = staffLinkId(hospitalId, staffId);
+  const invitationRef = db.collection('hospital_staff_invitations').doc(invitationId);
+  const existing = await invitationRef.get();
+  if (existing.exists && existing.data().status === 'pending') {
+    throw new HttpsError('already-exists', 'هناك دعوة معلقة لهذا المهني');
+  }
+  await invitationRef.set({
+    hospitalId, hospitalName: String(hospital.name || hospital.facilityName || '').slice(0, 160),
+    staffId, staffRole: staff.role, jobTitle, departmentId,
+    isPublic, status: 'pending', invitedBy: hospitalId,
+    createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
+  });
+  await db.collection('notifications').add({
+    userId: staffId, type: 'hospital_staff_invitation',
+    title: 'دعوة انتساب إلى مستشفى',
+    body: 'لديك دعوة انتساب مهني جديدة. افتح صفحة الانتسابات لمراجعتها.',
+    invitationId, hospitalId, isRead: false, createdAt: FieldValue.serverTimestamp(),
+  });
+  return { invitationId, status: 'pending' };
+});
+
+exports.respondHospitalStaffInvitation = onCall(async (request) => {
+  const staffId = requireAuth(request);
+  const invitationId = text(request.data.invitationId, 'invitationId', 128);
+  const decision = text(request.data.decision, 'decision', 10);
+  if (!['accept', 'reject'].includes(decision)) throw new HttpsError('invalid-argument', 'قرار الدعوة غير صالح');
+  const invitationRef = db.collection('hospital_staff_invitations').doc(invitationId);
+  await db.runTransaction(async (tx) => {
+    const invitationSnap = await tx.get(invitationRef);
+    if (!invitationSnap.exists) throw new HttpsError('not-found', 'الدعوة غير موجودة');
+    const invitation = invitationSnap.data();
+    if (invitation.staffId !== staffId || invitation.status !== 'pending') {
+      throw new HttpsError('permission-denied', 'لا تملك صلاحية معالجة هذه الدعوة أو أنها عولجت مسبقاً');
+    }
+    const [staffSnap, hospitalSnap] = await Promise.all([
+      tx.get(db.collection('users').doc(staffId)),
+      tx.get(db.collection('hospitals').doc(invitation.hospitalId)),
+    ]);
+    if (!staffSnap.exists || staffSnap.data().isVerified !== true
+        || staffSnap.data().verificationStatus !== 'approved'
+        || !STAFF_ROLES.has(String(staffSnap.data().role || ''))) {
+      throw new HttpsError('failed-precondition', 'لم يعد الحساب مستوفياً لشروط الانتساب المهني');
+    }
+    if (!hospitalSnap.exists || hospitalSnap.data().isVerified !== true
+        || hospitalSnap.data().isPublished !== true) {
+      throw new HttpsError('failed-precondition', 'المستشفى غير موثق أو غير منشور حالياً');
+    }
+    const now = FieldValue.serverTimestamp();
+    tx.update(invitationRef, {status: decision === 'accept' ? 'accepted' : 'rejected', respondedAt: now, updatedAt: now});
+    if (decision === 'accept') {
+      const staff = staffSnap.data();
+      const hospital = hospitalSnap.data();
+      const linkId = staffLinkId(invitation.hospitalId, staffId);
+      const linkRef = db.collection('hospital_staff_links').doc(linkId);
+      const publicRef = db.collection('hospital_staff').doc(linkId);
+      const departmentRef = invitation.departmentId
+        ? db.collection('hospital_departments').doc(invitation.departmentId) : null;
+      let departmentName = '';
+      if (departmentRef) {
+        const departmentSnap = await tx.get(departmentRef);
+        if (departmentSnap.exists && departmentSnap.data().hospitalId === invitation.hospitalId) {
+          departmentName = String(departmentSnap.data().name || '').slice(0, 100);
+        }
+      }
+      const doctorRef = db.collection('doctors').doc(staffId);
+      const doctorSnap = staff.role === 'doctor' ? await tx.get(doctorRef) : null;
+      const displayName = String(
+        (doctorSnap && doctorSnap.exists && doctorSnap.data().name)
+        || staff.name || staff.displayName || 'ممارس صحي'
+      ).slice(0, 120);
+      const photoUrl = String(
+        (doctorSnap && doctorSnap.exists && (doctorSnap.data().photoUrl || doctorSnap.data().imageUrl))
+        || staff.photoUrl || staff.imageUrl || ''
+      ).slice(0, 1000);
+      tx.set(linkRef, {
+        hospitalId: invitation.hospitalId, staffId, staffRole: staff.role,
+        jobTitle: invitation.jobTitle, departmentId: invitation.departmentId || '',
+        departmentName, status: 'active', isPublic: invitation.isPublic === true,
+        acceptedAt: now, updatedAt: now,
+      });
+      if (invitation.isPublic === true) {
+        tx.set(publicRef, {
+          hospitalId: invitation.hospitalId, staffId, staffRole: staff.role,
+          displayName, jobTitle: invitation.jobTitle, departmentId: invitation.departmentId || '',
+          departmentName, photoUrl, isVerified: true, isPublic: true,
+          status: 'active', hospitalName: String(hospital.name || '').slice(0, 160),
+          createdAt: now, updatedAt: now,
+        });
+      }
+    }
+  });
+  return {invitationId, status: decision === 'accept' ? 'accepted' : 'rejected'};
+});
+
+exports.endHospitalStaffAffiliation = onCall(async (request) => {
+  const actorId = requireAuth(request);
+  const hospitalId = text(request.data.hospitalId, 'hospitalId', 128);
+  const staffId = text(request.data.staffId, 'staffId', 128);
+  if (actorId !== hospitalId && actorId !== staffId) {
+    throw new HttpsError('permission-denied', 'لا تملك صلاحية إنهاء هذا الانتساب');
+  }
+  if (actorId === hospitalId) await requireVerifiedHospital(hospitalId);
+  const linkId = staffLinkId(hospitalId, staffId);
+  const linkRef = db.collection('hospital_staff_links').doc(linkId);
+  const publicRef = db.collection('hospital_staff').doc(linkId);
+  await db.runTransaction(async (tx) => {
+    const linkSnap = await tx.get(linkRef);
+    if (!linkSnap.exists || linkSnap.data().status !== 'active') {
+      throw new HttpsError('not-found', 'الانتساب النشط غير موجود');
+    }
+    if (linkSnap.data().hospitalId !== hospitalId || linkSnap.data().staffId !== staffId) {
+      throw new HttpsError('permission-denied', 'بيانات الانتساب غير متطابقة');
+    }
+    tx.update(linkRef, {status: 'ended', endedBy: actorId, endedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()});
+    tx.delete(publicRef);
+  });
+  return {linkId, status: 'ended'};
+});
