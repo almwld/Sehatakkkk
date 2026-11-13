@@ -554,6 +554,7 @@ service cloud.firestore {
       allow read: if resource.data.isPublic == true && resource.data.status == 'active';
       allow write: if false;
     }
+    // Party-scoped list queries must constrain hospitalId or staffId to the caller.
     // Private affiliation records are visible only to the two parties.
     match /hospital_staff_links/{linkId} {
       allow read: if isSignedIn()
