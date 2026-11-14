@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:just_audio/just_audio.dart';
@@ -138,8 +139,10 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 14),
-                    const Text(
-                      'منصة الرعاية الصحية اليمنية المتكاملة',
+                    Text(
+                      AppStrings.of(context).translate(
+                        'منصة الرعاية الصحية اليمنية المتكاملة',
+                      ),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white70, fontSize: 13),
                     ),
