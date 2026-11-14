@@ -1,5 +1,3 @@
-import 'dart:math';
-
 /// =============================================
 ///   SEHTAK AI - محرك الذكاء الاصطناعي المحلي
 ///   يعمل بالكامل داخل المنصة بدون إنترنت
@@ -10,98 +8,6 @@ class LocalMedicalAI {
   factory LocalMedicalAI() => _instance;
   LocalMedicalAI._internal();
 
-  final Random _random = Random();
-
-  // ========== قاعدة الأدوية ==========
-  final Map<String, Map<String, String>> _drugsDb = {
-    'باراسيتامول': {
-      'category': 'مسكن ألم وخافض حرارة',
-      'dose': '500-1000mg كل 6-8 ساعات',
-      'pregnancy': 'آمن',
-      'sideEffects': 'نادر: حساسية',
-      'notes': 'لا يتعارض مع المعدة'
-    },
-    'ايبوبروفين': {
-      'category': 'مضاد التهاب',
-      'dose': '200-400mg كل 6-8 ساعات',
-      'pregnancy': 'غير آمن',
-      'sideEffects': 'حرقة معدة، قرحة',
-      'notes': 'يؤخذ مع الطعام'
-    },
-    'اموكسيسيلين': {
-      'category': 'مضاد حيوي',
-      'dose': '500mg كل 8 ساعات',
-      'pregnancy': 'آمن نسبياً',
-      'sideEffects': 'إسهال، حساسية',
-      'notes': 'أكمل الكورس كاملاً'
-    },
-    'اوميبرازول': {
-      'category': 'مثبط مضخة بروتون',
-      'dose': '20-40mg يومياً',
-      'pregnancy': 'باستشارة طبيب',
-      'sideEffects': 'صداع، إسهال',
-      'notes': 'يؤخذ قبل الأكل'
-    },
-    'ميتفورمين': {
-      'category': 'خافض سكر',
-      'dose': '500-850mg مع الأكل',
-      'pregnancy': 'باستشارة طبيب',
-      'sideEffects': 'غثيان، إسهال',
-      'notes': 'يبدأ بجرعة منخفضة'
-    },
-    'سيتريزين': {
-      'category': 'مضاد حساسية',
-      'dose': '10mg يومياً',
-      'pregnancy': 'باستشارة طبيب',
-      'sideEffects': 'نعاس، جفاف فم',
-      'notes': 'الجيل الثاني - أقل تهدئة'
-    },
-  };
-
-  // ========== قاعدة الأمراض ==========
-  final Map<String, Map<String, String>> _diseasesDb = {
-    'ارتفاع ضغط الدم': {
-      'category': 'قلب وأوعية',
-      'symptoms': 'صداع، دوخة، نزيف أنف',
-      'treatment': 'أدوية خافضة، تقليل ملح، رياضة',
-      'prevention': 'غذاء صحي، وزن مثالي',
-      'normalRange': 'أقل من 120/80'
-    },
-    'السكري': {
-      'category': 'غدد صماء',
-      'symptoms': 'عطش، تبول كثير، جوع',
-      'treatment': 'ميتفورمين، أنسولين، حمية',
-      'prevention': 'وزن صحي، رياضة، تغذية',
-      'normalRange': 'سكر صائم <100'
-    },
-  };
-
-  // ========== 30 تخصص طبي ==========
-  final Map<String, List<String>> _specializations = {
-    'الطب العصبي': ['صداع', 'دوار', 'دوخة', 'تشنج', 'صرع', 'تنميل'],
-    'الصدرية والقلب': ['صدر', 'قلب', 'ضيق تنفس', 'سعال', 'خفقان'],
-    'الجهاز الهضمي': ['بطن', 'معدة', 'إسهال', 'غثيان', 'حرقة'],
-    'الجلدية': ['طفح', 'حكة', 'احمرار', 'تورم', 'بثور'],
-    'العظام والمفاصل': ['عظام', 'مفاصل', 'ظهر', 'رقبة', 'ركبة'],
-    'الصحة النفسية': ['قلق', 'اكتئاب', 'أرق', 'توتر', 'خوف'],
-    'طب الأطفال': ['طفل', 'رضيع', 'حمى', 'تسنين', 'مغص'],
-    'طب العيون': ['عين', 'رؤية', 'غشاوة', 'دموع'],
-    'الطب العام': ['حرارة', 'تعب', 'إرهاق', 'ضعف'],
-  };
-
-  // ========== 100+ نصيحة ==========
-  final List<String> _tips = [
-    'اشرب 8-10 أكواب ماء يومياً',
-    'مارس المشي 30 دقيقة يومياً',
-    'تناول 5 حصص خضار وفواكه',
-    'نم 7-8 ساعات ليلاً',
-    'قلل استهلاك الملح',
-    'تجنب التدخين والكحول',
-    'افحص ضغط الدم شهرياً',
-    'افحص السكر.ينوياً',
-    'استخدم واقي شمس',
-    'اغسل يديك بانتظام',
-  ];
 
   // ========== خدمة منصة ==========
   final Map<String, String> _appHelp = {
@@ -112,106 +18,28 @@ class LocalMedicalAI {
     'طوارئ': 'اضغط SOS أو اذهب للطوارئ > اتصل مباشرة',
   };
 
-  /// ========== تحليل الأعراض والفرز ==========
-  Map<String, dynamic> triage(String symptoms, {String? bodyPart}) {
-    String bestSpec = 'الطب العام';
-    int maxScore = 0;
-    List<String> matched = [];
+  /// Legacy triage is deliberately disabled until its rules have clinical provenance.
+  Map<String, dynamic> triage(String symptoms, {String? bodyPart}) => {
+        'specialization': 'غير متاح',
+        'urgency': 'unassessed',
+        'action': 'لا يمكن تقييم الأعراض من هذا المسار القديم. استخدم المساعد الصحي الأساسي أو تواصل مع مختص صحي.',
+        'timeframe': '',
+        'confidence': 0.0,
+        'matched_symptoms': const <String>[],
+      };
 
-    for (var entry in _specializations.entries) {
-      int score = 0;
-      for (var keyword in entry.value) {
-        if (symptoms.contains(keyword)) {
-          score++;
-          matched.add(keyword);
-        }
-      }
-      if (score > maxScore) {
-        maxScore = score;
-        bestSpec = entry.key;
-      }
-    }
+  /// This legacy path no longer returns possible conditions or treatments.
+  Map<String, dynamic> symptomChecker(String symptoms, {String? bodyPart}) => {
+        'triage': triage(symptoms, bodyPart: bodyPart),
+        'possible_conditions': const <Map<String, String>>[],
+        'notes': 'لا تتوفر هنا نتائج تشخيصية موثقة. استخدم المساعد الصحي الأساسي أو تواصل مع مختص صحي.',
+      };
 
-    // تحديد الطوارئ
-    String urgency = 'low';
-    final highKeywords = ['شديد', 'حادث', 'نزيف', 'اختناق', 'غيبوبة'];
-    final mediumKeywords = ['متوسط', 'مستمر', 'متكرر'];
-    if (highKeywords.any((k) => symptoms.contains(k))) urgency = 'high';
-    else if (mediumKeywords.any((k) => symptoms.contains(k))) urgency = 'medium';
+  /// Legacy bundled drug details are withheld until clinically reviewed.
+  Map<String, dynamic>? drugInfo(String drugName) => null;
 
-    String action;
-    String timeframe;
-    if (urgency == 'high') {
-      action = '🚨 استشارة فورية أو زيارة مستشفى';
-      timeframe = 'فوري';
-    } else if (urgency == 'medium') {
-      action = '📅 استشارة طبية خلال 24-48 ساعة';
-      timeframe = 'خلال 24 ساعة';
-    } else {
-      action = '🏠 مراقبة منزلية، راجع إذا استمرت';
-      timeframe = '3-5 أيام';
-    }
-
-    return {
-      'specialization': bestSpec,
-      'urgency': urgency,
-      'action': action,
-      'timeframe': timeframe,
-      'confidence': (0.7 + (maxScore * 0.08)).clamp(0.0, 0.95),
-      'matched_symptoms': matched.take(5).toList(),
-    };
-  }
-
-  /// ========== فحص أعراض شامل ==========
-  Map<String, dynamic> symptomChecker(String symptoms, {String? bodyPart}) {
-    final triageResult = triage(symptoms, bodyPart: bodyPart);
-    
-    // حالات محتملة حسب التخصص
-    final conditions = <String, List<Map<String, String>>>{
-      'الطب العصبي': [
-        {'name': 'صداع توتري', 'prob': 'مرتفع', 'treatment': 'راحة، مسكنات'},
-        {'name': 'شقيقة', 'prob': 'متوسط', 'treatment': 'غرفة مظلمة، مسكنات'},
-      ],
-      'الصدرية والقلب': [
-        {'name': 'التهاب شعب', 'prob': 'متوسط', 'treatment': 'مضاد حيوي'},
-        {'name': 'ارتجاع مريئي', 'prob': 'متوسط', 'treatment': 'مضاد حموضة'},
-      ],
-      'الجهاز الهضمي': [
-        {'name': 'التهاب معدي', 'prob': 'مرتفع', 'treatment': 'سوائل، راحة'},
-        {'name': 'قولون عصبي', 'prob': 'متوسط', 'treatment': 'ألياف، بروبيوتك'},
-      ],
-      'الطب العام': [
-        {'name': 'نزلة برد', 'prob': 'مرتفع', 'treatment': 'راحة، سوائل'},
-        {'name': 'إرهاق عام', 'prob': 'متوسط', 'treatment': 'نوم، تغذية'},
-      ],
-    };
-
-    return {
-      'triage': triageResult,
-      'possible_conditions': conditions[triageResult['specialization']] ?? conditions['الطب العام']!,
-      'notes': '⚠️ هذا تشخيص أولي فقط، راجع الطبيب للتشخيص الدقيق',
-    };
-  }
-
-  /// ========== معلومات دواء ==========
-  Map<String, dynamic>? drugInfo(String drugName) {
-    for (var entry in _drugsDb.entries) {
-      if (drugName.contains(entry.key)) {
-        return {'name': entry.key, ...entry.value};
-      }
-    }
-    return null;
-  }
-
-  /// ========== معلومات مرض ==========
-  Map<String, dynamic>? diseaseInfo(String diseaseName) {
-    for (var entry in _diseasesDb.entries) {
-      if (diseaseName.contains(entry.key)) {
-        return {'name': entry.key, ...entry.value};
-      }
-    }
-    return null;
-  }
+  /// Legacy disease details remain unavailable pending clinical review.
+  Map<String, dynamic>? diseaseInfo(String diseaseName) => null;
 
   /// ========== مساعدة في المنصة ==========
   String? appHelp(String query) {
@@ -223,8 +51,8 @@ class LocalMedicalAI {
     return null;
   }
 
-  /// ========== نصيحة عشوائية ==========
-  String randomTip() => _tips[_random.nextInt(_tips.length)];
+  /// No unsourced health tip is generated by this legacy path.
+  String randomTip() => 'لا تتوفر نصيحة صحية موثقة في هذا المسار القديم.';
 
   /// ========== مساعد ذكي للمحادثة ==========
   String chatbotRespond(String message) {
@@ -234,7 +62,7 @@ class LocalMedicalAI {
     }
     // طوارئ
     if (RegExp(r'طوارئ|emergency|نزيف|اختناق').hasMatch(message)) {
-      return '🚨 اتصل فوراً: 1122\nاذهب لأقرب مستشفى\nاستخدم زر SOS في التطبيق';
+      return 'قد تكون الحالة طارئة. توجّه إلى أقرب قسم طوارئ أو اتصل بخدمات الطوارئ المحلية الآن.';
     }
     // أعراض
     if (RegExp(r'عندي|اعاني|احس|اشعر|الم|وجع').hasMatch(message)) {
@@ -246,13 +74,7 @@ class LocalMedicalAI {
     }
     // أدوية
     if (RegExp(r'دواء|علاج|باراسيتامول|ايبوبروفين').hasMatch(message)) {
-      for (var drug in _drugsDb.keys) {
-        if (message.contains(drug)) {
-          final info = _drugsDb[drug]!;
-          return '💊 $drug\n📋 ${info['category']}\n💉 ${info['dose']}\n⚠️ ${info['pregnancy']}';
-        }
-      }
-      return '💊 اكتب اسم الدواء للمعلومات. مثال: "باراسيتامول"';
+      return 'لا أعرض جرعات أو تعليمات استعمال دواء من قاعدة غير مراجعة. تحقق من النشرة الرسمية واستشر الطبيب أو الصيدلي.';
     }
     // خدمات
     if (RegExp(r'كيف|طريقة').hasMatch(message)) {
@@ -263,6 +85,6 @@ class LocalMedicalAI {
       }
     }
     // افتراضي
-    return 'شكراً لتواصلك! 🙏\n\n$randomTip()\n\nللمساعدة اكتب: أعراض، أدوية، باقات، خدمات';
+    return 'لم أجد مادة موثقة لهذا السؤال في هذا المسار القديم. استخدم المساعد الصحي الأساسي أو تواصل مع مختص صحي.';
   }
 }

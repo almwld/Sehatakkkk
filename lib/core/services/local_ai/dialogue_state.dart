@@ -55,10 +55,16 @@ class LocalDialogueState {
         ..addAll((data['slots'] as Map? ?? const {}).map(
           (key, value) => MapEntry('$key', '$value'),
         ));
+      final restoredMessages = (data['recentUserMessages'] as List? ?? const [])
+          .map((e) => '$e')
+          .toList();
       recentUserMessages
         ..clear()
-        ..addAll((data['recentUserMessages'] as List? ?? const [])
-            .map((e) => '$e'));
+        ..addAll(restoredMessages.skip(
+          restoredMessages.length > _maxTurns
+              ? restoredMessages.length - _maxTurns
+              : 0,
+        ));
     } catch (_) {
       // Corrupt local memory is non-critical; start a clean session.
       await clear();

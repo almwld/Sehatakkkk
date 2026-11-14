@@ -32,13 +32,13 @@ class ChatBot {
       };
     }
 
-    final sourced = MedicalKnowledgeCatalog.answer(input, lang);
-    if (sourced != null) return sourced;
-
     final safety = MedicalSafetyEngine.assess(input, languageCode: lang);
     if (safety.emergency) {
       return {'response': safety.response, 'type': 'emergency'};
     }
+
+    final sourced = MedicalKnowledgeCatalog.answer(input, lang);
+    if (sourced != null) return sourced;
 
     final symptom = SymptomInterpreter.analyze(input, languageCode: lang);
     if (symptom != null) {
