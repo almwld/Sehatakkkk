@@ -266,18 +266,23 @@ class _MoreScreenState extends State<MoreScreen>
     WidgetsBinding.instance.addObserver(this);
     _scrollController = widget.scrollController ?? ScrollController();
     _categoryPageController = PageController(initialPage: 0);
-    _scrollController.addListener(() {
-      if (mounted) {
-        setState(() {
-          _isScrolled = _scrollController.position.pixels > 20;
-        });
-      }
-    });
+    _scrollController.addListener(_handleScrollPosition);
+  }
+
+  void _handleScrollPosition() {
+    if (!mounted || !_scrollController.hasClients) return;
+    final nextIsScrolled = _scrollController.position.pixels > 20;
+    // Avoid rebuilding the entire More screen on every scroll pixel.
+    // The app bar only needs a rebuild when its elevation state changes.
+    if (nextIsScrolled != _isScrolled) {
+      setState(() => _isScrolled = nextIsScrolled);
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _scrollController.removeListener(_handleScrollPosition);
     if (widget.scrollController == null) {
       _scrollController.dispose();
     }
@@ -336,8 +341,11 @@ class _MoreScreenState extends State<MoreScreen>
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: RepaintBoundary(
+        child: SingleChildScrollView(
         controller: _scrollController,
+        physics: const ClampingScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,6 +378,7 @@ class _MoreScreenState extends State<MoreScreen>
             const SizedBox(height: 24),
             _buildLogoutButton(isDark),
           ],
+        ),
         ),
       ),
     );
