@@ -183,11 +183,9 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (_busy) return;
     final doctor = _doctor;
     if (doctor == null) return;
-    if (!doctor.isAvailable) {
-      ToastService.showInfo(_t('الطبيب غير متاح حاليًا'));
-      return;
-    }
-
+    // General appointment availability must not block direct calls.
+    // Call reception is handled by the incoming-call flow and the doctor's
+    // ability to accept/reject the call, independently of booking availability.
     final user = _auth.currentUser;
     final doctorUid = doctor.userId?.trim();
     if (user == null) {
