@@ -12,51 +12,6 @@ class LocalMedicalAI {
 
   final Random _random = Random();
 
-  // ========== قاعدة الأدوية ==========
-  final Map<String, Map<String, String>> _drugsDb = {
-    'باراسيتامول': {
-      'category': 'مسكن ألم وخافض حرارة',
-      'dose': '500-1000mg كل 6-8 ساعات',
-      'pregnancy': 'آمن',
-      'sideEffects': 'نادر: حساسية',
-      'notes': 'لا يتعارض مع المعدة'
-    },
-    'ايبوبروفين': {
-      'category': 'مضاد التهاب',
-      'dose': '200-400mg كل 6-8 ساعات',
-      'pregnancy': 'غير آمن',
-      'sideEffects': 'حرقة معدة، قرحة',
-      'notes': 'يؤخذ مع الطعام'
-    },
-    'اموكسيسيلين': {
-      'category': 'مضاد حيوي',
-      'dose': '500mg كل 8 ساعات',
-      'pregnancy': 'آمن نسبياً',
-      'sideEffects': 'إسهال، حساسية',
-      'notes': 'أكمل الكورس كاملاً'
-    },
-    'اوميبرازول': {
-      'category': 'مثبط مضخة بروتون',
-      'dose': '20-40mg يومياً',
-      'pregnancy': 'باستشارة طبيب',
-      'sideEffects': 'صداع، إسهال',
-      'notes': 'يؤخذ قبل الأكل'
-    },
-    'ميتفورمين': {
-      'category': 'خافض سكر',
-      'dose': '500-850mg مع الأكل',
-      'pregnancy': 'باستشارة طبيب',
-      'sideEffects': 'غثيان، إسهال',
-      'notes': 'يبدأ بجرعة منخفضة'
-    },
-    'سيتريزين': {
-      'category': 'مضاد حساسية',
-      'dose': '10mg يومياً',
-      'pregnancy': 'باستشارة طبيب',
-      'sideEffects': 'نعاس، جفاف فم',
-      'notes': 'الجيل الثاني - أقل تهدئة'
-    },
-  };
 
   // ========== قاعدة الأمراض ==========
   final Map<String, Map<String, String>> _diseasesDb = {
@@ -193,15 +148,8 @@ class LocalMedicalAI {
     };
   }
 
-  /// ========== معلومات دواء ==========
-  Map<String, dynamic>? drugInfo(String drugName) {
-    for (var entry in _drugsDb.entries) {
-      if (drugName.contains(entry.key)) {
-        return {'name': entry.key, ...entry.value};
-      }
-    }
-    return null;
-  }
+  /// Legacy bundled drug details are withheld until clinically reviewed.
+  Map<String, dynamic>? drugInfo(String drugName) => null;
 
   /// ========== معلومات مرض ==========
   Map<String, dynamic>? diseaseInfo(String diseaseName) {
@@ -234,7 +182,7 @@ class LocalMedicalAI {
     }
     // طوارئ
     if (RegExp(r'طوارئ|emergency|نزيف|اختناق').hasMatch(message)) {
-      return '🚨 اتصل فوراً: 1122\nاذهب لأقرب مستشفى\nاستخدم زر SOS في التطبيق';
+      return 'قد تكون الحالة طارئة. توجّه إلى أقرب قسم طوارئ أو اتصل بخدمات الطوارئ المحلية الآن.';
     }
     // أعراض
     if (RegExp(r'عندي|اعاني|احس|اشعر|الم|وجع').hasMatch(message)) {
@@ -246,13 +194,7 @@ class LocalMedicalAI {
     }
     // أدوية
     if (RegExp(r'دواء|علاج|باراسيتامول|ايبوبروفين').hasMatch(message)) {
-      for (var drug in _drugsDb.keys) {
-        if (message.contains(drug)) {
-          final info = _drugsDb[drug]!;
-          return '💊 $drug\n📋 ${info['category']}\n💉 ${info['dose']}\n⚠️ ${info['pregnancy']}';
-        }
-      }
-      return '💊 اكتب اسم الدواء للمعلومات. مثال: "باراسيتامول"';
+      return 'لا أعرض جرعات أو تعليمات استعمال دواء من قاعدة غير مراجعة. تحقق من النشرة الرسمية واستشر الطبيب أو الصيدلي.';
     }
     // خدمات
     if (RegExp(r'كيف|طريقة').hasMatch(message)) {
