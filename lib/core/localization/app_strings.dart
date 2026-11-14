@@ -117,6 +117,32 @@ class AppStrings {
       final days = daysMatch.group(1)!;
       return _pick(value, '$days days', '$days jours');
     }
+    const welcomePrefix = 'مرحباً، ';
+    if (value.startsWith(welcomePrefix)) {
+      final name = value.substring(welcomePrefix.length).trim();
+      return _pick(value, 'Hello, $name', 'Bonjour, $name');
+    }
+    final notificationCountMatch =
+        RegExp(r'^لديك (\d+) إشعار جديد$').firstMatch(value);
+    if (notificationCountMatch != null) {
+      final count = notificationCountMatch.group(1)!;
+      final french = count == '1'
+          ? 'Vous avez une nouvelle notification'
+          : 'Vous avez $count nouvelles notifications';
+      return _pick(value, 'You have $count new notifications', french);
+    }
+    final cartCountMatch =
+        RegExp(r'^لديك (\d+) عنصر في السلة$').firstMatch(value);
+    if (cartCountMatch != null) {
+      final count = cartCountMatch.group(1)!;
+      final english = count == '1'
+          ? 'You have 1 item in your cart'
+          : 'You have $count items in your cart';
+      final french = count == '1'
+          ? 'Vous avez 1 article dans votre panier'
+          : 'Vous avez $count articles dans votre panier';
+      return _pick(value, english, french);
+    }
     const doctorWelcomePrefix = 'مرحباً دكتور ';
     if (value.startsWith(doctorWelcomePrefix)) {
       final specialty = value.substring(doctorWelcomePrefix.length);
@@ -4079,6 +4105,7 @@ class AppStrings {
       'تم شراء دواء موصوف لأحد مرضاك': ['One of your patients purchased a prescribed medication', 'Un de vos patients a acheté un médicament prescrit'],
       'أكمل توثيق حسابك المهني ورفع مستنداتك حتى تتمكن من استخدام ميزات المنصة الخاصة بدورك.': ['Complete your professional verification and upload your documents to use the features available for your role.', 'Terminez la vérification de votre profil professionnel et téléversez vos documents pour utiliser les fonctionnalités liées à votre rôle.'],
       'لديك إشعار جديد': ['You have a new notification', 'Vous avez une nouvelle notification'],
+      'لا توجد إشعارات جديدة': ['No new notifications', 'Aucune nouvelle notification'],
       'لديك رسالة جديدة في الدردشة': ['You have a new chat message', 'Vous avez un nouveau message'],
       'تم تأكيد طلبك': ['Your order has been confirmed', 'Votre commande a été confirmée'],
       'تم تأكيد طلبك وسيبدأ تجهيزه.': ['Your order is confirmed and preparation will begin.', 'Votre commande est confirmée et sa préparation va commencer.'],
