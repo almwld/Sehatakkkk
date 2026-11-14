@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:sehatak/app_router.dart';
-import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/bloc/home/home_bloc.dart';
 import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:sehatak/bloc/home/home_state.dart';
@@ -173,9 +172,9 @@ class _HomeTabState extends State<HomeTab>
       decoration: const BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.vertical(bottom: Radius.circular(34))),
       child: Column(children: [
         Row(children: [
-          InkWell(onTap: () => _go(AppRouter.patientDashboard), borderRadius: BorderRadius.circular(24), child: CircleAvatar(radius: 23, backgroundColor: Colors.white24, child: Text(first, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)))),
+          InkWell(onTap: () => _go(AppRouter.profile), borderRadius: BorderRadius.circular(24), child: CircleAvatar(radius: 23, backgroundColor: Colors.white24, child: Text(first, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)))),
           const SizedBox(width: 12),
-          Expanded(child: InkWell(onTap: () => _go(AppRouter.patientDashboard), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizedBox(height: 3), Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]))),
+          Expanded(child: InkWell(onTap: () => _go(AppRouter.profile), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizedBox(height: 3), Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]))),
           _headerActionAsset('assets/icons/top_bar/notifications.png', AppRouter.notifications, Icons.notifications_none_rounded),
           const SizedBox(width: 8),
           _headerActionAsset('assets/icons/top_bar/Shopping cart.png', AppRouter.cart, Icons.shopping_cart_outlined),
