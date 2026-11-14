@@ -20,7 +20,28 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Stack(children: [
-            ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(16)), child: AppImage(imageUrl: product.resolvedImageUrl, height: 140, width: double.infinity, fit: BoxFit.cover)),
+            Container(
+              height: 140,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF24334D)
+                    : const Color(0xFFF7FAFA),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: AppImage(
+                  imageUrl: product.resolvedImageUrl,
+                  height: 140,
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
                         if (product.prescriptionRequired) Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)), child: Text(AppStrings.of(context).translate('وصفة'), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
             if (product.isDiscounted) Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.orange, Colors.red]), borderRadius: BorderRadius.circular(12)), child: Text('-${product.discount!.toInt()}%', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)))),
             if (!product.inStock) Positioned(bottom: 8, left: 0, right: 0, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), color: Colors.black.withOpacity(0.7), child: Center(child: Text(AppStrings.of(context).translate('غير متوفر'), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))))),
