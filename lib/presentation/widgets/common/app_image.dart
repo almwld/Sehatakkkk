@@ -67,7 +67,22 @@ class AppImage extends StatelessWidget {
         maxHeightDiskCache: maxHeightDiskCache,
         filterQuality: FilterQuality.medium,
         placeholder: (context, _) => placeholder ?? buildImageShimmer(context),
-        errorWidget: (context, _, __) => errorWidget ?? buildImageError(context),
+        errorWidget: (context, _, __) {
+          // If ImageKit background removal is unavailable for an asset,
+          // retry the original image rather than showing a broken-image state.
+          if (imageUrl.contains('?tr=e-bgremove')) {
+            final originalUrl = imageUrl.split('?').first;
+            return Image.network(
+              originalUrl,
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: (_, __, ___) =>
+                  errorWidget ?? buildImageError(context),
+            );
+          }
+          return errorWidget ?? buildImageError(context);
+        },
         fadeInDuration: const Duration(milliseconds: 320),
         fadeOutDuration: const Duration(milliseconds: 160),
       );
