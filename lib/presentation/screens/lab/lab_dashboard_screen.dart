@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -175,7 +176,7 @@ class _TestsTab extends StatelessWidget{
     body:StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
       stream:FirebaseFirestore.instance.collection('lab_tests').where('labId',isEqualTo:uid).snapshots(),
       builder:(context,s){
-        if(s.hasError)return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الفحوصات') + ': ' + s.error.toString()));
+        if(s.hasError){debugPrint('Lab tests stream failed: ${s.error}');return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الفحوصات')));}
         if(!s.hasData)return const Center(child:CircularProgressIndicator());
         final docs=[...s.data!.docs]..sort((a,b){
           final x=a.data()['createdAt'],y=b.data()['createdAt'];
@@ -184,9 +185,14 @@ class _TestsTab extends StatelessWidget{
         if(docs.isEmpty)return Center(child:Text(AppStrings.of(context).translate('لا توجد فحوصات — أضف أول فحص')));
         return ListView.builder(padding:const EdgeInsets.all(16),itemCount:docs.length,itemBuilder:(_,i){
           final d=docs[i].data();
+          final locale = AppStrings.of(context).locale;
+          final rawTestName = d['name']?.toString() ?? _t(context, 'فحص');
+          final testName = localizedField(d, 'name', locale, fallback: rawTestName);
+          final rawDuration = d['duration']?.toString() ?? '-';
+          final duration = localizedField(d, 'duration', locale, fallback: rawDuration);
           return Card(child:ListTile(leading:const Icon(Icons.science,color:AppColors.primary),
-            title:Text(d['name']?.toString()??_t(context,'فحص')),
-            subtitle:Text((d['price']??0).toString()+' '+_t(context,'ر.ي')+' • '+(d['duration']??'-').toString()),
+            title:Text(testName),
+            subtitle:Text((d['price']??0).toString()+' '+_t(context,'ر.ي')+' • '+duration),
             trailing:PopupMenuButton<String>(itemBuilder:(_)=>[
               PopupMenuItem(value:'edit',child:Text(_t(context,'تعديل'))),PopupMenuItem(value:'delete',child:Text(_t(context,'حذف')))],
               onSelected:(v)async{
@@ -217,11 +223,11 @@ class _BookingsTab extends StatelessWidget{
       if(!u.success||u.url==null)throw Exception(_t(context,'فشل رفع الملف'));
       await FirebaseFirestore.instance.collection('lab_bookings').doc(id).update({'resultUrl':u.url!,'status':'completed','completedAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp()});
       ToastService.showSuccess(_t(context,'تم إرسال النتيجة'));
-    }catch(e){ToastService.showError(_t(context,'فشل إرسال النتيجة')+': '+e.toString());}
+    }catch(e){debugPrint('Lab result upload failed: $e');ToastService.showError(_t(context,'فشل إرسال النتيجة'));}
   }
   Widget _list(String status)=>StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(
     stream:_stream(status),builder:(context,s){
-      if(s.hasError)return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الحجوزات') + ': ' + s.error.toString()));
+      if(s.hasError){debugPrint('Lab bookings stream failed: ${s.error}');return Center(child:Text(AppStrings.of(context).translate('تعذر تحميل الحجوزات')));}
       if(!s.hasData)return const Center(child:CircularProgressIndicator());
       final docs=[...s.data!.docs]..sort((a,b){
         final x=a.data()['createdAt'],y=b.data()['createdAt'];
@@ -251,9 +257,14 @@ class _SettingsTab extends StatelessWidget{
     builder:(context,s){
       if(!s.hasData)return const Center(child:CircularProgressIndicator());
       final d=s.data!.data()??{};
+      final locale = AppStrings.of(context).locale;
+      final rawLabName = d['name']?.toString() ?? _t(context, 'غير محدد');
+      final labName = localizedField(d, 'name', locale, fallback: rawLabName);
+      final rawAddress = d['address']?.toString() ?? d['location']?.toString() ?? _t(context, 'غير محدد');
+      final address = localizedField(d, 'address', locale, fallback: rawAddress);
       return ListView(padding:const EdgeInsets.all(16),children:[
-        ListTile(leading:const Icon(Icons.biotech),title:Text(_t(context,'اسم المختبر')),subtitle:Text(d['name']?.toString()??_t(context,'غير محدد'))),
-        ListTile(leading:const Icon(Icons.location_on_outlined),title:Text(_t(context,'العنوان')),subtitle:Text(d['address']?.toString()??d['location']?.toString()??_t(context,'غير محدد'))),
+        ListTile(leading:const Icon(Icons.biotech),title:Text(_t(context,'اسم المختبر')),subtitle:Text(labName)),
+        ListTile(leading:const Icon(Icons.location_on_outlined),title:Text(_t(context,'العنوان')),subtitle:Text(address)),
         ListTile(leading:const Icon(Icons.phone_outlined),title:Text(_t(context,'الهاتف')),subtitle:Text(d['phone']?.toString()??_t(context,'غير متوفر'))),
         ListTile(leading:const Icon(Icons.verified_outlined),title:Text(_t(context,'حالة التوثيق')),subtitle:Text(d['isVerified']==true?_t(context,'موثق'):_t(context,'قيد المراجعة'))),
       ]);
