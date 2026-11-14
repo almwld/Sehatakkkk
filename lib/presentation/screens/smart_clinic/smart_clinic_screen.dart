@@ -28,10 +28,6 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
     Future.delayed(const Duration(milliseconds: 800), () {
       final reply = _ai.chatbotRespond(text);
       String fullReply = reply;
-      if (RegExp(r'عندي|اعاني|احس|اشعر|الم|وجع|صداع|حرارة|سعال').hasMatch(text)) {
-        final triage = _ai.triage(text);
-        fullReply += '\n\n🔍 تحليل سريع:\n• التخصص: ${triage['specialization']}\n• الطوارئ: ${triage['urgency']}\n• الإجراء: ${triage['action']}';
-      }
       setState(() {
         _chat.add({'role': 'bot', 'text': fullReply});
         _isTyping = false;
