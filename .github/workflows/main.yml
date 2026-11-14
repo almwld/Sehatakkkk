@@ -5,6 +5,17 @@ permissions:
   contents: read
 
 on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'lib/**'
+      - 'assets/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'web/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/main.yml'
   push:
     branches: [ master, main ]
     paths:
@@ -24,6 +35,9 @@ concurrency:
 
 jobs:
   build:
+    # Build the active Sehatak feature PR without merging it into master.
+    # Keep this PR build scoped to the current integration branch.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'feat/home-section-order' }}
     runs-on: ubuntu-latest
 
     steps:
