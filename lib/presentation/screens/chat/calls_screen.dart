@@ -37,6 +37,7 @@ class _CallsScreenState extends State<CallsScreen> {
   }
 
   void _subscribeStatuses() {
+    _statusSubscription?.cancel();
     _statusSubscription = _statusService.streamActiveStatuses().listen(
       (items) {
         if (!mounted) return;
@@ -59,13 +60,10 @@ class _CallsScreenState extends State<CallsScreen> {
   }
 
   Future<void> _openAddStatus() async {
-    final created = await Navigator.push<bool>(
+    await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => const AddStatusScreen()),
     );
-    if (created == true && mounted) {
-      _subscribeStatuses();
-    }
   }
 
   Future<void> _openStatus(UserStatusModel status) async {
@@ -122,8 +120,7 @@ class _CallsScreenState extends State<CallsScreen> {
   }
 
   @override
-  Widget
-(BuildContext context) {
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
 
