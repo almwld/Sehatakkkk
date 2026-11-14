@@ -1,0 +1,159 @@
+name: Sehatak APK and AAB Size Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+          channel: stable
+          cache: true
+
+      - name: Restore Firebase config
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          set -euo pipefail
+          : "${GOOGLE_SERVICES_JSON:?Missing GOOGLE_SERVICES_JSON}"
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          python -m json.tool android/app/google-services.json >/dev/null
+
+      - name: Restore and validate release signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.SEHATAK_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.SEHATAK_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SEHATAK_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SEHATAK_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          : "${KEYSTORE_B64:?Missing release keystore}"
+          : "${STORE_PASSWORD:?Missing keystore password}"
+          : "${KEY_ALIAS:?Missing key alias}"
+          : "${KEY_PASSWORD:?Missing key password}"
+          install -d -m 700 android/keystore
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/keystore/sehatak-release.jks
+          test -s android/keystore/sehatak-release.jks
+          chmod 600 android/keystore/sehatak-release.jks
+          keytool -list -keystore android/keystore/sehatak-release.jks -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+          keytool -certreq -alias "$KEY_ALIAS" -keystore android/keystore/sehatak-release.jks -storepass "$STORE_PASSWORD" -keypass "$KEY_PASSWORD" -file android/keystore/.audit.csr >/dev/null
+          rm -f android/keystore/.audit.csr
+          {
+            echo "SEHATAK_KEYSTORE_FILE=$GITHUB_WORKSPACE/android/keystore/sehatak-release.jks"
+            echo "SEHATAK_KEYSTORE_PASSWORD=$STORE_PASSWORD"
+            echo "SEHATAK_KEY_ALIAS=$KEY_ALIAS"
+            echo "SEHATAK_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+
+      - name: Install dependencies and capture dependency graphs
+        run: |
+          set -euo pipefail
+          flutter pub get
+          mkdir -p build/size-audit
+          flutter pub deps --style=compact > build/size-audit/flutter-dependencies.txt
+          cd android
+          ./gradlew :app:dependencies --configuration releaseRuntimeClasspath > ../build/size-audit/android-release-dependencies.txt
+
+      - name: Build signed arm64 APK baseline
+        run: |
+          flutter build apk --release --split-per-abi --no-shrink \
+            --dart-define=BACKEND_URL=https://3o95ld48ul7e-production-djltc9sn.us-central1.suga.run \
+            --dart-define=LIVEKIT_TOKEN_SERVER_URL=https://3o95ld48ul7e-production-djltc9sn.us-central1.suga.run \
+            --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud \
+            --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
+            --dart-define=APP_NAME=صحتك_Sehatak \
+            --dart-define=APP_VERSION=1.1.1 \
+            --dart-define=APP_ENV=production
+
+      - name: Build signed AAB baseline with identical app configuration
+        run: |
+          flutter build appbundle --release --no-shrink \
+            --dart-define=BACKEND_URL=https://3o95ld48ul7e-production-djltc9sn.us-central1.suga.run \
+            --dart-define=LIVEKIT_TOKEN_SERVER_URL=https://3o95ld48ul7e-production-djltc9sn.us-central1.suga.run \
+            --dart-define=LIVEKIT_URL=wss://platformsehatak-z73p6n5m.livekit.cloud \
+            --dart-define=FIREBASE_PROJECT_ID=sehatak-platform \
+            --dart-define=APP_NAME=صحتك_Sehatak \
+            --dart-define=APP_VERSION=1.1.1 \
+            --dart-define=APP_ENV=production
+
+      - name: Verify signatures and create detailed archive report
+        run: |
+          set -euo pipefail
+          APK=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          test -s "$APK"
+          test -s "$AAB"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" "$ANDROID_SDK_ROOT/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -1)"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          jarsigner -verify -verbose -certs "$AAB" >/dev/null
+          python - "$APK" "$AAB" <<'PY'
+          import hashlib, json, sys, zipfile
+          from collections import defaultdict
+          from pathlib import Path
+          rows = []
+          for filename in sys.argv[1:]:
+              path = Path(filename)
+              groups = defaultdict(lambda: [0, 0, 0])
+              large = []
+              with zipfile.ZipFile(path) as archive:
+                  for item in archive.infolist():
+                      name = item.filename
+                      if name.endswith(".so"):
+                          group = "native"
+                          large.append((name, item.file_size, item.compress_size))
+                      elif name.endswith(".dex"):
+                          group = "dex"
+                      elif "assets/" in name:
+                          group = "assets"
+                      elif "/res/" in name or name.startswith("res/"):
+                          group = "resources"
+                      else:
+                          group = "other"
+                      groups[group][0] += 1
+                      groups[group][1] += item.compress_size
+                      groups[group][2] += item.file_size
+              rows.append({"file": filename, "size_bytes": path.stat().st_size,
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "groups": dict(groups),
+                "largest_native": sorted(large, key=lambda x: x[1], reverse=True)[:30]})
+          out = Path("build/size-audit")
+          out.mkdir(parents=True, exist_ok=True)
+          (out / "archive-analysis.json").write_text(json.dumps(rows, indent=2), encoding="utf-8")
+          lines = ["Sehatak APK and AAB size audit", ""]
+          for row in rows:
+              lines += [row["file"], "Size bytes: " + str(row["size_bytes"]), "SHA-256: " + row["sha256"], "",
+                "Category | Files | Compressed bytes | Uncompressed bytes"]
+              for key, values in sorted(row["groups"].items()):
+                  lines.append(f"{key} | {values[0]} | {values[1]} | {values[2]}")
+              lines += ["", "Largest native libraries (path | uncompressed | compressed)"]
+              lines += [f"{name} | {size} | {compressed}" for name, size, compressed in row["largest_native"]]
+              lines.append("")
+          (out / "archive-analysis.txt").write_text("\n".join(lines), encoding="utf-8")
+          print("\n".join(lines))
+          PY
+          sha256sum "$APK" "$AAB" > build/size-audit/SHA256SUMS.txt
+          du -b "$APK" "$AAB" > build/size-audit/file-sizes.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sehatak-apk-aab-size-audit
+          path: |
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+            build/size-audit/
+          if-no-files-found: error
+          retention-days: 30
