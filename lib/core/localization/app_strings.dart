@@ -129,7 +129,10 @@ class AppStrings {
       final french = count == '1'
           ? 'Vous avez une nouvelle notification'
           : 'Vous avez $count nouvelles notifications';
-      return _pick(value, 'You have $count new notifications', french);
+      final english = count == '1'
+          ? 'You have 1 new notification'
+          : 'You have $count new notifications';
+      return _pick(value, english, french);
     }
     final cartCountMatch =
         RegExp(r'^لديك (\d+) عنصر في السلة$').firstMatch(value);
