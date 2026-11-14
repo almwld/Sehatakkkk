@@ -55,7 +55,10 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
         Expanded(child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: _firestore.collection('reports').where('patientId', isEqualTo: user.uid).orderBy('createdAt', descending: true).snapshots(),
           builder: (context, snapshot) {
-            if (snapshot.hasError) return Center(child: Text('${_t('حدث خطأ')}: ${snapshot.error}'));
+            if (snapshot.hasError) {
+              debugPrint('Medical reports stream failed: ${snapshot.error}');
+              return Center(child: Text(_t('تعذر تحميل التقارير الطبية')));
+            }
             if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
             final query = _searchCtrl.text.trim().toLowerCase();
             final docs = (snapshot.data?.docs ?? []).where((doc) {

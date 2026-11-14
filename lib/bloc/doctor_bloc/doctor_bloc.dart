@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:sehatak/core/models/doctor_model.dart';
@@ -40,7 +41,7 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
 
   Future<void> _onRefreshDoctors(RefreshDoctors event, Emitter<DoctorState> emit) async {
     if (_firestore == null) {
-      emit(const DoctorError(message: 'الخدمة غير جاهزة بعد، حاول مرة أخرى.'));
+      emit(const DoctorError(message: 'تعذر تهيئة خدمة الأطباء، حاول مرة أخرى.'));
       return;
     }
     await _fetchDoctors(emit, showLoading: false);
@@ -72,7 +73,7 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
   Future<void> _fetchDoctors(Emitter<DoctorState> emit, {bool showLoading = true}) async {
     final firestore = _firestore;
     if (firestore == null) {
-      emit(const DoctorError(message: 'خدمة الأطباء غير جاهزة بعد.'));
+      emit(const DoctorError(message: 'تعذر تهيئة خدمة الأطباء، حاول مرة أخرى.'));
       return;
     }
 
@@ -95,7 +96,8 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
 
       emit(DoctorLoaded(doctors: _applyFilters()));
     } catch (e) {
-      emit(DoctorError(message: 'تعذر تحميل الأطباء: $e'));
+      debugPrint('Failed to load doctors: $e');
+      emit(const DoctorError(message: 'تعذر تحميل الأطباء، حاول مرة أخرى.'));
     }
   }
 

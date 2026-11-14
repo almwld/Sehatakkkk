@@ -662,7 +662,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+              _t(message),
               textAlign: TextAlign.center,
               maxLines: 4,
               overflow:

@@ -61,8 +61,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
+      debugPrint('Issue report submission failed: $e');
       if (mounted) {
-        ToastService.showError('❌ ${_t('فشل إرسال التقرير: ')}$e');
+        ToastService.showError('❌ ${_t('تعذر إرسال التقرير. حاول مرة أخرى.')}');
       }
     } finally {
       if (mounted) {

@@ -53,7 +53,8 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('${_t('حدث خطأ')}: ${snapshot.error}'));
+            debugPrint('Group consultations stream failed: ${snapshot.error}');
+            return Center(child: Text(_t('تعذر تحميل الاستشارات الجماعية')));
           }
 
           final consultations = snapshot.data?.docs ?? [];

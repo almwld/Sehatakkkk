@@ -331,7 +331,7 @@ class MessagesBloc
           add(
             _MessagesStreamError(
               chatId: event.chatId,
-              message: error.toString(),
+              message: 'تعذر تحميل الرسائل. حاول مرة أخرى.',
             ),
           );
         },
@@ -345,7 +345,7 @@ class MessagesBloc
     } catch (e) {
       emit(
         MessagesError(
-          message: e.toString(),
+          message: 'تعذر تحميل الرسائل. حاول مرة أخرى.',
         ),
       );
     }
@@ -644,7 +644,7 @@ class MessagesBloc
     } catch (e) {
       emit(
         MessagesError(
-          message: e.toString(),
+          message: 'تعذر إرسال الرسالة. حاول مرة أخرى.',
         ),
       );
     }
@@ -668,7 +668,7 @@ class MessagesBloc
     } catch (e) {
       emit(
         MessagesError(
-          message: e.toString(),
+          message: 'تعذر حذف الرسالة. حاول مرة أخرى.',
         ),
       );
     }
@@ -693,7 +693,7 @@ class MessagesBloc
     } catch (e) {
       emit(
         MessagesError(
-          message: e.toString(),
+          message: 'تعذر إضافة التفاعل. حاول مرة أخرى.',
         ),
       );
     }

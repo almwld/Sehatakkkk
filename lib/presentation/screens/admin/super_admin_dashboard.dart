@@ -37,7 +37,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
       final result=await _functions.httpsCallable('adminSendNotification').call(data);
       final count=(result.data as Map)['count']??0;
       _title.clear();_body.clear();ToastService.showSuccess(_t('تم إرسال الإشعار إلى ')+count.toString()+_t(' حساب'));
-    }catch(e){ToastService.showError(_t('تعذر إرسال الإشعار: ')+e.toString());}
+    }catch(e){debugPrint('Admin notification send failed: $e');ToastService.showError(_t('تعذر إرسال الإشعار. حاول مرة أخرى.'));}
     finally{if(mounted)setState(()=>_sending=false);}
   }
 
@@ -57,7 +57,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
 
   Future<void> _userAction(String uid,String action) async {
     try{await _functions.httpsCallable('adminUpdateUser').call({'userId':uid,'action':action});if(mounted)ToastService.showSuccess(_t('تم تنفيذ الإجراء'));}
-    catch(e){if(mounted)ToastService.showError(_t('تعذر تنفيذ الإجراء: ')+e.toString());}
+    catch(e){debugPrint('Admin user action failed: $e');if(mounted)ToastService.showError(_t('تعذر تنفيذ الإجراء. حاول مرة أخرى.'));}
   }
 
   @override Widget build(BuildContext context)=>Scaffold(
@@ -89,7 +89,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
   Widget _stat(String t,String v,IconData i)=>Card(child:Padding(padding:const EdgeInsets.all(14),child:Column(children:[Icon(i,color:AppColors.primary),const SizedBox(height:6),Text(v,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w900)),Text(t)])));
 
   Widget _users()=>StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('users').orderBy('createdAt',descending:true).limit(200).snapshots(),builder:(c,s){
-    if(s.hasError)return Center(child:Text(_t('تعذر تحميل المستخدمين: ')+s.error.toString()));
+    if(s.hasError){debugPrint('Admin users stream failed: ${s.error}');return Center(child:Text(_t('تعذر تحميل المستخدمين')));}
     if(!s.hasData)return const Center(child:CircularProgressIndicator());
     return ListView.separated(padding:const EdgeInsets.all(12),itemCount:s.data!.docs.length,separatorBuilder:(_,__)=>const SizedBox(height:6),itemBuilder:(c,i){
       final d=s.data!.docs[i],x=d.data(),uid=d.id,blocked=x['isSuspended']==true;
@@ -136,7 +136,8 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
       await _functions.httpsCallable('getSuperAdminDailyReport').call();
       if (mounted) ToastService.showSuccess(_t('تم إنشاء التقرير اليومي وتحديثه'));
     } catch (error) {
-      if (mounted) ToastService.showError(_t('تعذر إنشاء التقرير اليومي: ') + error.toString());
+      debugPrint('Daily admin report creation failed: $error');
+      if (mounted) ToastService.showError(_t('تعذر إنشاء التقرير اليومي. حاول مرة أخرى.'));
     } finally {
       if (mounted) setState(() => _reportLoading = false);
     }
@@ -157,7 +158,10 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> with SingleTi
     StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('admin_daily_reports').orderBy('date', descending: true).limit(14).snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return Card(child: Padding(padding: const EdgeInsets.all(12), child: Text(_t('تعذر تحميل التقارير: ') + snapshot.error.toString())));
+        if (snapshot.hasError) {
+          debugPrint('Admin reports stream failed: ${snapshot.error}');
+          return Card(child: Padding(padding: const EdgeInsets.all(12), child: Text(_t('تعذر تحميل تقارير الإدارة'))));
+        }
         if (!snapshot.hasData) return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
         if (snapshot.data!.docs.isEmpty) return Card(child: Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(_t('لا توجد تقارير محفوظة بعد')))));
         return Column(children: snapshot.data!.docs.map((doc) {

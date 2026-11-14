@@ -224,7 +224,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('${_t('خطأ')}: ${snapshot.error}'));
+          debugPrint('Blood donation stream failed: ${snapshot.error}');
+          return Center(child: Text(_t('تعذر تحميل بيانات التبرع بالدم')));
         }
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
