@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
@@ -61,7 +63,51 @@ class CustomBottomNavigationBar extends StatelessWidget {
   Widget _buildNavItem(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
     final color = isSelected ? AppColors.primary : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
-    return Expanded(child: GestureDetector(onTap: () => _handleTap(item), behavior: HitTestBehavior.opaque, child: SizedBox(height: _itemHeight, child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(item.icon, color: color, size: 19), const SizedBox(height: 2), Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: color)), const SizedBox(height: 1), AnimatedContainer(duration: const Duration(milliseconds: 200), width: isSelected ? 10 : 0, height: 2, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)))]))));
+    return Expanded(child: GestureDetector(onTap: () => _handleTap(item), behavior: HitTestBehavior.opaque, child: SizedBox(height: _itemHeight, child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(item.icon, color: color, size: 19), const SizedBox(height: 2), _buildItemLabel(item, color, isSelected), const SizedBox(height: 1), AnimatedContainer(duration: const Duration(milliseconds: 200), width: isSelected ? 10 : 0, height: 2, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)))]))));
+  }
+
+
+  Widget _buildItemLabel(NavItem item, Color color, bool isSelected) {
+    final style = TextStyle(
+      fontSize: 8,
+      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+      color: color,
+    );
+    if (item.index != 5) {
+      return Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
+    }
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
+    }
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data() ?? const <String, dynamic>{};
+        final role = (data['role'] ?? data['type'] ?? data['accountType'] ?? data['userType'] ?? '')
+            .toString().trim().toLowerCase();
+        var label = item.label;
+        final strings = AppStrings.of(context);
+        if (role == 'doctor' || role == 'dentist' || role == 'ophthalmology') {
+          label = strings.translate('ملف الطبيب');
+        } else if (role == 'pharmacist' || role == 'pharmacy' || role == 'pharmacyowner') {
+          label = strings.translate('ملف الصيدلي');
+        } else if (role == 'lab') {
+          label = strings.translate('ملف المختبر');
+        } else if (['hospital', 'clinic', 'medical_center', 'dental', 'eye_clinic'].contains(role)) {
+          label = strings.translate('ملف المنشأة');
+        } else if (role == 'paramedic') {
+          label = strings.translate('ملف المسعف');
+        } else if (role == 'admin' || role == 'superadmin') {
+          label = strings.translate('لوحة الإدارة');
+        } else if (role.isNotEmpty && role != 'user' && role != 'patient') {
+          label = strings.translate('ملفي المهني');
+        }
+        return Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
+      },
+    );
   }
 
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
