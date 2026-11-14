@@ -49,6 +49,7 @@ import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/screens/family/family_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
+import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
@@ -77,6 +78,7 @@ class AppRouter {
       chat = '/chat',
       more = '/more',
       dashboard = '/dashboard',
+      patientDashboard = '/patient-dashboard',
       profile = '/profile',
       appointments = '/appointments',
       notifications = '/notifications',
@@ -269,6 +271,10 @@ class AppRouter {
           builder: (_, __) => const RoleBasedDashboardScreen()),
       GoRoute(
           onExit: _returnToHome,
+          path: patientDashboard,
+          builder: (_, __) => const PatientDashboard()),
+      GoRoute(
+          onExit: _returnToHome,
           path: profile,
           builder: (_, __) => ScreenTours.wrapProfile(const PatientProfile())),
       GoRoute(
@@ -420,6 +426,10 @@ class AppRouter {
       case dashboard:
         return MaterialPageRoute(
             builder: (_) => const RoleBasedDashboardScreen(),
+            settings: routeSettings);
+      case patientDashboard:
+        return MaterialPageRoute(
+            builder: (_) => const PatientDashboard(),
             settings: routeSettings);
       case profile:
         return MaterialPageRoute(
