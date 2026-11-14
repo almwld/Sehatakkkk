@@ -110,7 +110,18 @@ class SymptomInterpreter {
 
     return {
       'symptoms': found,
-      'urgency': emergency ? (languageCode == 'fr' ? 'Urgent' : languageCode == 'en' ? 'Urgent' : 'عاجل') : (found.length >= 3 ? (languageCode == 'fr' ? 'À surveiller' : languageCode == 'en' ? 'Needs follow-up' : 'يحتاج متابعة') : (languageCode == 'fr' ? 'Probablement non urgent' : languageCode == 'en' ? 'Usually non-urgent' : 'غير طارئ غالباً')),
+      // A symptom count is not a validated triage score; do not infer non-emergency urgency.
+      'urgency': emergency
+          ? (languageCode == 'fr'
+              ? 'Urgent'
+              : languageCode == 'en'
+                  ? 'Urgent'
+                  : 'عاجل')
+          : (languageCode == 'fr'
+              ? 'Non évalué'
+              : languageCode == 'en'
+                  ? 'Not assessed'
+                  : 'غير مُقيّم'),
       'emergency': emergency,
       'specialties': specialties,
       'duration': duration,
