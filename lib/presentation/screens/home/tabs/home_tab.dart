@@ -136,8 +136,8 @@ class _HomeTabState extends State<HomeTab>
                   slivers: [
                     SliverToBoxAdapter(child: _header(state)),
                     SliverToBoxAdapter(child: _banner(state, dark)),
-                    SliverToBoxAdapter(child: _healthSummary(state, dark)),
                     SliverToBoxAdapter(child: _quickServices(dark)),
+                    SliverToBoxAdapter(child: _healthSummary(state, dark)),
                     SliverToBoxAdapter(child: _doctors(state, dark)),
                     SliverToBoxAdapter(child: _productsSection(dark)),
                     SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: AppStrings.of(context).translate('مستشفيات مميزة'), items: state.hospitals, isHospital: true, isDark: dark)),

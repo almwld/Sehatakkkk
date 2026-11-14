@@ -21,11 +21,49 @@ class _RoleBasedDashboardScreenState extends State<RoleBasedDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final user=FirebaseAuth.instance.currentUser;
-    if(user==null)return const PatientDashboard();
+    if(user==null)return const Scaffold(body: Center(child: Text('يجب تسجيل الدخول لعرض لوحة التحكم.')));
     return StreamBuilder<DocumentSnapshot<Map<String,dynamic>>>(
       stream:FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder:(context,snapshot){
-        final role=snapshot.data?.data()?['role']?.toString()??'user';
+        if(snapshot.hasError){
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text('تعذر تحميل صلاحيات الحساب. تحقق من الاتصال ثم أعد المحاولة.'),
+              ),
+            ),
+          );
+        }
+        if(!snapshot.hasData){
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.data == null || !snapshot.data!.exists) {
+          return const Scaffold(
+            body: Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('تعذر العثور على ملف الحساب. أعد تسجيل الدخول أو تواصل مع الدعم.'),
+              ),
+            ),
+          );
+        }
+        final profile = snapshot.data!.data() ?? const <String, dynamic>{};
+        final rawRole = (profile['role'] ?? profile['type'] ?? profile['accountType'] ?? profile['userType'])?.toString().trim() ?? '';
+        if (rawRole.isEmpty) {
+          return const Scaffold(
+            body: Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('نوع الحساب غير محدد. تواصل مع الدعم لتصحيح بيانات الدور.'),
+              ),
+            ),
+          );
+        }
+        final normalized=rawRole.toLowerCase();
+        final role=normalized=='superadmin'?'superAdmin':normalized;
         if(role=='user'||role=='patient')return const PatientDashboard();
         if(role!='admin'&&role!='superAdmin')WidgetsBinding.instance.addPostFrameCallback((_)=>_ensureNotice(role));
         return AdvancedRoleDashboardScreen(role:role);

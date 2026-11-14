@@ -71,9 +71,8 @@ class StatusService {
     if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
     if (stories.isEmpty) throw StateError('أضف محتوى واحداً على الأقل.');
 
-    // A status is published only after all media stories have already been
-    // uploaded and verified by uploadMediaStory. Firestore is the source of
-    // truth that makes the completed status visible to other users.
+    // Media must be uploaded and verified in Nextcloud before its metadata
+    // becomes visible in Firestore. Firestore never stores media bytes.
     final ref = _statuses.doc(user.uid);
     final existing = await ref.get();
     final existingModel = existing.exists ? UserStatusModel.fromDocument(existing) : null;
@@ -101,10 +100,26 @@ class StatusService {
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
+    if (type != 'image' && type != 'video') {
+      throw ArgumentError.value(type, 'type', 'نوع وسائط الحالة غير مدعوم');
+    }
+    if (!await file.exists()) throw StateError('ملف الحالة غير موجود.');
 
+    // This is the shared Nextcloud singleton used by chat and settings.
+    // Load its secure credentials before every upload; never fall back to Firebase.
     await _nextcloud.loadConfig();
-    final extension = file.path.contains('.') ? file.path.split('.').last : 'bin';
-    final name = 'story_${DateTime.now().millisecondsSinceEpoch}.$extension';
+    if (_nextcloud.baseUrl.isEmpty ||
+        _nextcloud.username.isEmpty ||
+        _nextcloud.password.isEmpty) {
+      throw StateError(
+        'إعدادات Nextcloud غير محفوظة أو غير مكتملة على هذا الجهاز. لا يمكن نشر الحالة دون خادم الوسائط المعتمد.',
+      );
+    }
+    final extension = file.path.contains('.') ? file.path.split('.').last.toLowerCase() : (type == 'video' ? 'mp4' : 'jpg');
+    final safeExtension = RegExp(r'^[a-z0-9]{1,8}$').hasMatch(extension)
+        ? extension
+        : (type == 'video' ? 'mp4' : 'jpg');
+    final name = 'story_${DateTime.now().millisecondsSinceEpoch}.$safeExtension';
     final result = await _nextcloud.uploadFile(
       file: file,
       path: 'stories/${user.uid}',
@@ -112,14 +127,15 @@ class StatusService {
       createShare: true,
     );
     if (!result.success || result.url == null || result.url!.isEmpty) {
-      throw StateError(result.error ?? 'تعذر رفع الحالة.');
+      final message = (result.error ?? 'تعذر رفع الحالة إلى Nextcloud.')
+          .replaceFirst(RegExp(r'^(Bad state: )+'), '');
+      throw StateError(message);
     }
 
-    // Do not publish the Firestore status until the Nextcloud public URL is
-    // reachable. This prevents broken media stories from becoming visible.
+    // Publish metadata only after the actual public URL is reachable.
     final verified = await _nextcloud.verifyPublicUrl(result.url!);
     if (!verified) {
-      throw StateError('تعذر تجهيز الوسائط للنشر.');
+      throw StateError('تم رفع الملف إلى Nextcloud لكن تعذر التحقق من رابط عرضه.');
     }
 
     return StoryItem(type: type, url: result.url!, duration: duration);

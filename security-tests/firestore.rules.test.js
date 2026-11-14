@@ -5,7 +5,7 @@ import {
   assertSucceeds,
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 
 const projectId = 'demo-sehatak-firestore-security';
 const rules = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
@@ -75,6 +75,73 @@ beforeEach(async () => {
 
 after(async () => {
   await env.cleanup();
+});
+
+test('hospital owners can toggle operating state but cannot change verification or publication fields', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'hospitals/hospital-1'), { name: 'Synthetic Hospital', isOpen: true, status: 'approved', isPublished: true });
+  });
+  const owner = env.authenticatedContext('hospital-1').firestore();
+  await assertSucceeds(updateDoc(doc(owner, 'hospitals/hospital-1'), { isOpen: false }));
+  await assertFails(updateDoc(doc(owner, 'hospitals/hospital-1'), { status: 'pending_review', isPublished: false }));
+});
+
+test('hospital owners can manage only their own departments', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'users/hospital-2'), { uid: 'hospital-2', role: 'hospital' });
+  });
+  const owner = env.authenticatedContext('hospital-1').firestore();
+  const otherOwner = env.authenticatedContext('hospital-2').firestore();
+  await assertSucceeds(setDoc(doc(owner, 'hospital_departments/department-1'), { hospitalId: 'hospital-1', name: 'Emergency', isActive: true }));
+  await assertSucceeds(updateDoc(doc(owner, 'hospital_departments/department-1'), { isActive: false }));
+  await assertFails(updateDoc(doc(otherOwner, 'hospital_departments/department-1'), { isActive: false }));
+  await assertFails(setDoc(doc(owner, 'hospital_departments/forged-owner'), { hospitalId: 'hospital-2', name: 'Forged', isActive: true }));
+});
+
+test('hospital staff directory exposes only explicitly public staff profiles', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'hospital_staff/staff-public'), {
+      hospitalId: 'hospital-1',
+      displayName: 'Synthetic Public Clinician',
+      jobTitle: 'Consultant',
+      isPublic: true,
+      status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff/staff-private'), {
+      hospitalId: 'hospital-1',
+      displayName: 'Synthetic Private Employee',
+      personalPhone: '+000000000',
+      isPublic: false,
+      status: 'active',
+    });
+  });
+  const publicDb = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(publicDb, 'hospital_staff/staff-public')));
+  await assertFails(getDoc(doc(publicDb, 'hospital_staff/staff-private')));
+  await assertFails(setDoc(doc(publicDb, 'hospital_staff/forged'), {
+    hospitalId: 'hospital-1',
+    displayName: 'Forged Profile',
+    isPublic: true,
+  }));
+});
+
+test('hospital owners can read and update only the status of their hospital bookings', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'bookings/booking-1'), { userId: 'patient-b', providerId: 'hospital-1', type: 'hospital', status: 'pending' });
+  });
+  const owner = env.authenticatedContext('hospital-1').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(owner, 'bookings/booking-1')));
+  await assertSucceeds(updateDoc(doc(owner, 'bookings/booking-1'), { status: 'confirmed' }));
+  await assertFails(updateDoc(doc(owner, 'bookings/booking-1'), { amount: 999999 }));
+  await assertFails(getDoc(doc(outsider, 'bookings/booking-1')));
 });
 
 test('a user can create a basic self-owned account', async () => {
@@ -399,4 +466,60 @@ test('community likes require an atomic owned liked-post edge and counters only 
   await assertFails(updateDoc(doc(other, 'community_posts/post-1'), { shares: 50 }));
   await assertSucceeds(updateDoc(doc(other, 'community_posts/post-1'), { shares: 1 }));
   await assertSucceeds(updateDoc(doc(other, 'community_posts/post-1'), { comments: 1 }));
+});
+
+
+test('hospital staff directory exposes only active public affiliation projections', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'hospital_staff/public-active'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1',
+      displayName: 'Synthetic Verified Clinician', isPublic: true, status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff/private-active'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-2',
+      displayName: 'Private Clinician', isPublic: false, status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff/public-ended'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-3',
+      displayName: 'Former Clinician', isPublic: true, status: 'ended',
+    });
+  });
+  const publicDb = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(publicDb, 'hospital_staff/public-active')));
+  await assertFails(getDoc(doc(publicDb, 'hospital_staff/private-active')));
+  await assertFails(getDoc(doc(publicDb, 'hospital_staff/public-ended')));
+  await assertFails(setDoc(doc(publicDb, 'hospital_staff/forged'), {
+    hospitalId: 'hospital-1', staffId: 'attacker', displayName: 'Forged',
+    isPublic: true, status: 'active',
+  }));
+});
+
+test('private hospital staff links and invitations are readable only by their parties and server-writable', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'hospital_staff_links/link-1'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1', status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff_invitations/invite-1'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1', status: 'pending',
+    });
+  });
+  const hospital = env.authenticatedContext('hospital-1').firestore();
+  const staff = env.authenticatedContext('doctor-1').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(hospital, 'hospital_staff_links/link-1')));
+  await assertSucceeds(getDoc(doc(staff, 'hospital_staff_links/link-1')));
+  await assertFails(getDoc(doc(outsider, 'hospital_staff_links/link-1')));
+  await assertSucceeds(getDoc(doc(hospital, 'hospital_staff_invitations/invite-1')));
+  await assertSucceeds(getDoc(doc(staff, 'hospital_staff_invitations/invite-1')));
+  await assertFails(getDoc(doc(outsider, 'hospital_staff_invitations/invite-1')));
+  await assertSucceeds(getDocs(query(collection(hospital, 'hospital_staff_links'), where('hospitalId', '==', 'hospital-1'))));
+  await assertSucceeds(getDocs(query(collection(staff, 'hospital_staff_links'), where('staffId', '==', 'doctor-1'))));
+  await assertSucceeds(getDocs(query(collection(staff, 'hospital_staff_invitations'), where('staffId', '==', 'doctor-1'))));
+  await assertFails(getDocs(query(collection(outsider, 'hospital_staff_links'), where('hospitalId', '==', 'hospital-1'))));
+  await assertFails(setDoc(doc(hospital, 'hospital_staff_invitations/forged'), {
+    hospitalId: 'hospital-1', staffId: 'patient-a', status: 'accepted',
+  }));
+  await assertFails(updateDoc(doc(staff, 'hospital_staff_links/link-1'), { status: 'ended' }));
 });

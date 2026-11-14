@@ -133,13 +133,13 @@ class AppAssets {
   static const String serviceAiAssistant = '${_imagesPath}services/ai_assistant.png';
   
   // ✅ أيقونات الدردشة
-  static const String chatAudioRecord = '${_imagesPath}chat/audio_record.png';
-  static const String chatCalendarBooking = '${_imagesPath}chat/calendar_booking.png';
-  static const String chatBubble = '${_imagesPath}chat/chat_bubble.png';
-  static const String chatMicrophone = '${_imagesPath}chat/microphone.png';
-  static const String chatPhoneCall = '${_imagesPath}chat/phone_call.png';
-  static const String chatPlayButton = '${_imagesPath}chat/play_button.png';
-  static const String chatVideoCall = '${_imagesPath}chat/video_call.png';
+  static const String chatAudioRecord = '${_imagesPath}chat/audio_record.webp';
+  static const String chatCalendarBooking = '${_imagesPath}chat/calendar_booking.webp';
+  static const String chatBubble = '${_imagesPath}chat/chat_bubble.webp';
+  static const String chatMicrophone = '${_imagesPath}chat/microphone.webp';
+  static const String chatPhoneCall = '${_imagesPath}chat/phone_call.webp';
+  static const String chatPlayButton = '${_imagesPath}chat/play_button.webp';
+  static const String chatVideoCall = '${_imagesPath}chat/video_call.webp';
   
   // ✅ أيقونات السوشيال ميديا
   static const String socialGoogle = '${_imagesPath}social/google.png';

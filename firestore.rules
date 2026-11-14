@@ -456,6 +456,24 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
+    match /bookings/{bookingId} {
+      allow read: if isSignedIn()
+        && (isAdmin() || resource.data.userId == request.auth.uid
+            || (resource.data.providerId == request.auth.uid
+                && resource.data.type == 'hospital'
+                && userExists(request.auth.uid)
+                && userData(request.auth.uid).role == 'hospital'));
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.providerId == request.auth.uid
+        && resource.data.type == 'hospital'
+        && userExists(request.auth.uid)
+        && userData(request.auth.uid).role == 'hospital'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status in ['pending', 'confirmed', 'completed', 'cancelled'];
+      allow delete: if isAdmin();
+    }
+
     match /appointments/{appointmentId} {
       allow get: if isSignedIn() 
         && (!exists(/databases/$(database)/documents/appointments/$(appointmentId))
@@ -521,7 +539,54 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid);
     }
     match /pharmacies/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /hospitals/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /hospitals/{id} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isSignedIn() && request.auth.uid == id
+            && userExists(request.auth.uid)
+            && userData(request.auth.uid).role == 'hospital'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isOpen', 'updatedAt'])
+            && request.resource.data.isOpen is bool);
+    }
+    // Public directory is a server-maintained projection with no private HR fields.
+    match /hospital_staff/{staffId} {
+      allow read: if resource.data.isPublic == true && resource.data.status == 'active';
+      allow write: if false;
+    }
+    // Party-scoped list queries must constrain hospitalId or staffId to the caller.
+    // Private affiliation records are visible only to the two parties.
+    match /hospital_staff_links/{linkId} {
+      allow read: if isSignedIn()
+        && (resource.data.hospitalId == request.auth.uid
+            || resource.data.staffId == request.auth.uid);
+      allow write: if false;
+    }
+    match /hospital_staff_invitations/{invitationId} {
+      allow read: if isSignedIn()
+        && (resource.data.hospitalId == request.auth.uid
+            || resource.data.staffId == request.auth.uid);
+      allow write: if false;
+    }
+    match /hospital_departments/{departmentId} {
+      allow read: if true;
+      allow create: if isSignedIn() && userExists(request.auth.uid)
+        && userData(request.auth.uid).role == 'hospital'
+        && request.resource.data.hospitalId == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.isActive == true;
+      allow update: if isSignedIn() && userExists(request.auth.uid)
+        && userData(request.auth.uid).role == 'hospital'
+        && resource.data.hospitalId == request.auth.uid
+        && request.resource.data.hospitalId == resource.data.hospitalId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isActive', 'updatedAt'])
+        && request.resource.data.isActive is bool;
+      allow delete: if isSignedIn() && userExists(request.auth.uid)
+        && userData(request.auth.uid).role == 'hospital'
+        && resource.data.hospitalId == request.auth.uid;
+    }
     match /products/{id} {
       allow read: if true;
       allow create: if isSignedIn() && (request.resource.data.sellerId == request.auth.uid || request.resource.data.pharmacyId == request.auth.uid || (request.resource.data.pharmacyId is string && exists(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)) && get(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)).data.ownerId == request.auth.uid));
@@ -715,7 +780,11 @@ service cloud.firestore {
     }
 
     match /payments/{paymentId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn()
+        && (resource.data.userId == request.auth.uid
+            || (resource.data.providerId == request.auth.uid
+                && userExists(request.auth.uid)
+                && userData(request.auth.uid).role == 'hospital'));
       allow write: if false;
     }
 
