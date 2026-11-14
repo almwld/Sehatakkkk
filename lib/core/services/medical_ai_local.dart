@@ -35,37 +35,6 @@ class LocalMedicalAI {
         'notes': 'لا تتوفر هنا نتائج تشخيصية موثقة. استخدم المساعد الصحي الأساسي أو تواصل مع مختص صحي.',
       };
 
-  /// ========== فحص أعراض شامل ==========
-  Map<String, dynamic> symptomChecker(String symptoms, {String? bodyPart}) {
-    final triageResult = triage(symptoms, bodyPart: bodyPart);
-    
-    // حالات محتملة حسب التخصص
-    final conditions = <String, List<Map<String, String>>>{
-      'الطب العصبي': [
-        {'name': 'صداع توتري', 'prob': 'مرتفع', 'treatment': 'راحة، مسكنات'},
-        {'name': 'شقيقة', 'prob': 'متوسط', 'treatment': 'غرفة مظلمة، مسكنات'},
-      ],
-      'الصدرية والقلب': [
-        {'name': 'التهاب شعب', 'prob': 'متوسط', 'treatment': 'مضاد حيوي'},
-        {'name': 'ارتجاع مريئي', 'prob': 'متوسط', 'treatment': 'مضاد حموضة'},
-      ],
-      'الجهاز الهضمي': [
-        {'name': 'التهاب معدي', 'prob': 'مرتفع', 'treatment': 'سوائل، راحة'},
-        {'name': 'قولون عصبي', 'prob': 'متوسط', 'treatment': 'ألياف، بروبيوتك'},
-      ],
-      'الطب العام': [
-        {'name': 'نزلة برد', 'prob': 'مرتفع', 'treatment': 'راحة، سوائل'},
-        {'name': 'إرهاق عام', 'prob': 'متوسط', 'treatment': 'نوم، تغذية'},
-      ],
-    };
-
-    return {
-      'triage': triageResult,
-      'possible_conditions': conditions[triageResult['specialization']] ?? conditions['الطب العام']!,
-      'notes': '⚠️ هذا تشخيص أولي فقط، راجع الطبيب للتشخيص الدقيق',
-    };
-  }
-
   /// Legacy bundled drug details are withheld until clinically reviewed.
   Map<String, dynamic>? drugInfo(String drugName) => null;
 
