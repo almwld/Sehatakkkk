@@ -1,5 +1,3 @@
-import 'dart:math';
-
 /// =============================================
 ///   SEHTAK AI - محرك الذكاء الاصطناعي المحلي
 ///   يعمل بالكامل داخل المنصة بدون إنترنت
@@ -10,53 +8,6 @@ class LocalMedicalAI {
   factory LocalMedicalAI() => _instance;
   LocalMedicalAI._internal();
 
-  final Random _random = Random();
-
-
-  // ========== قاعدة الأمراض ==========
-  final Map<String, Map<String, String>> _diseasesDb = {
-    'ارتفاع ضغط الدم': {
-      'category': 'قلب وأوعية',
-      'symptoms': 'صداع، دوخة، نزيف أنف',
-      'treatment': 'أدوية خافضة، تقليل ملح، رياضة',
-      'prevention': 'غذاء صحي، وزن مثالي',
-      'normalRange': 'أقل من 120/80'
-    },
-    'السكري': {
-      'category': 'غدد صماء',
-      'symptoms': 'عطش، تبول كثير، جوع',
-      'treatment': 'ميتفورمين، أنسولين، حمية',
-      'prevention': 'وزن صحي، رياضة، تغذية',
-      'normalRange': 'سكر صائم <100'
-    },
-  };
-
-  // ========== 30 تخصص طبي ==========
-  final Map<String, List<String>> _specializations = {
-    'الطب العصبي': ['صداع', 'دوار', 'دوخة', 'تشنج', 'صرع', 'تنميل'],
-    'الصدرية والقلب': ['صدر', 'قلب', 'ضيق تنفس', 'سعال', 'خفقان'],
-    'الجهاز الهضمي': ['بطن', 'معدة', 'إسهال', 'غثيان', 'حرقة'],
-    'الجلدية': ['طفح', 'حكة', 'احمرار', 'تورم', 'بثور'],
-    'العظام والمفاصل': ['عظام', 'مفاصل', 'ظهر', 'رقبة', 'ركبة'],
-    'الصحة النفسية': ['قلق', 'اكتئاب', 'أرق', 'توتر', 'خوف'],
-    'طب الأطفال': ['طفل', 'رضيع', 'حمى', 'تسنين', 'مغص'],
-    'طب العيون': ['عين', 'رؤية', 'غشاوة', 'دموع'],
-    'الطب العام': ['حرارة', 'تعب', 'إرهاق', 'ضعف'],
-  };
-
-  // ========== 100+ نصيحة ==========
-  final List<String> _tips = [
-    'اشرب 8-10 أكواب ماء يومياً',
-    'مارس المشي 30 دقيقة يومياً',
-    'تناول 5 حصص خضار وفواكه',
-    'نم 7-8 ساعات ليلاً',
-    'قلل استهلاك الملح',
-    'تجنب التدخين والكحول',
-    'افحص ضغط الدم شهرياً',
-    'افحص السكر.ينوياً',
-    'استخدم واقي شمس',
-    'اغسل يديك بانتظام',
-  ];
 
   // ========== خدمة منصة ==========
   final Map<String, String> _appHelp = {
@@ -67,55 +18,22 @@ class LocalMedicalAI {
     'طوارئ': 'اضغط SOS أو اذهب للطوارئ > اتصل مباشرة',
   };
 
-  /// ========== تحليل الأعراض والفرز ==========
-  Map<String, dynamic> triage(String symptoms, {String? bodyPart}) {
-    String bestSpec = 'الطب العام';
-    int maxScore = 0;
-    List<String> matched = [];
+  /// Legacy triage is deliberately disabled until its rules have clinical provenance.
+  Map<String, dynamic> triage(String symptoms, {String? bodyPart}) => {
+        'specialization': 'غير متاح',
+        'urgency': 'unassessed',
+        'action': 'لا يمكن تقييم الأعراض من هذا المسار القديم. استخدم المساعد الصحي الأساسي أو تواصل مع مختص صحي.',
+        'timeframe': '',
+        'confidence': 0.0,
+        'matched_symptoms': const <String>[],
+      };
 
-    for (var entry in _specializations.entries) {
-      int score = 0;
-      for (var keyword in entry.value) {
-        if (symptoms.contains(keyword)) {
-          score++;
-          matched.add(keyword);
-        }
-      }
-      if (score > maxScore) {
-        maxScore = score;
-        bestSpec = entry.key;
-      }
-    }
-
-    // تحديد الطوارئ
-    String urgency = 'low';
-    final highKeywords = ['شديد', 'حادث', 'نزيف', 'اختناق', 'غيبوبة'];
-    final mediumKeywords = ['متوسط', 'مستمر', 'متكرر'];
-    if (highKeywords.any((k) => symptoms.contains(k))) urgency = 'high';
-    else if (mediumKeywords.any((k) => symptoms.contains(k))) urgency = 'medium';
-
-    String action;
-    String timeframe;
-    if (urgency == 'high') {
-      action = '🚨 استشارة فورية أو زيارة مستشفى';
-      timeframe = 'فوري';
-    } else if (urgency == 'medium') {
-      action = '📅 استشارة طبية خلال 24-48 ساعة';
-      timeframe = 'خلال 24 ساعة';
-    } else {
-      action = '🏠 مراقبة منزلية، راجع إذا استمرت';
-      timeframe = '3-5 أيام';
-    }
-
-    return {
-      'specialization': bestSpec,
-      'urgency': urgency,
-      'action': action,
-      'timeframe': timeframe,
-      'confidence': (0.7 + (maxScore * 0.08)).clamp(0.0, 0.95),
-      'matched_symptoms': matched.take(5).toList(),
-    };
-  }
+  /// This legacy path no longer returns possible conditions or treatments.
+  Map<String, dynamic> symptomChecker(String symptoms, {String? bodyPart}) => {
+        'triage': triage(symptoms, bodyPart: bodyPart),
+        'possible_conditions': const <Map<String, String>>[],
+        'notes': 'لا تتوفر هنا نتائج تشخيصية موثقة. استخدم المساعد الصحي الأساسي أو تواصل مع مختص صحي.',
+      };
 
   /// ========== فحص أعراض شامل ==========
   Map<String, dynamic> symptomChecker(String symptoms, {String? bodyPart}) {
@@ -151,15 +69,8 @@ class LocalMedicalAI {
   /// Legacy bundled drug details are withheld until clinically reviewed.
   Map<String, dynamic>? drugInfo(String drugName) => null;
 
-  /// ========== معلومات مرض ==========
-  Map<String, dynamic>? diseaseInfo(String diseaseName) {
-    for (var entry in _diseasesDb.entries) {
-      if (diseaseName.contains(entry.key)) {
-        return {'name': entry.key, ...entry.value};
-      }
-    }
-    return null;
-  }
+  /// Legacy disease details remain unavailable pending clinical review.
+  Map<String, dynamic>? diseaseInfo(String diseaseName) => null;
 
   /// ========== مساعدة في المنصة ==========
   String? appHelp(String query) {
@@ -171,8 +82,8 @@ class LocalMedicalAI {
     return null;
   }
 
-  /// ========== نصيحة عشوائية ==========
-  String randomTip() => _tips[_random.nextInt(_tips.length)];
+  /// No unsourced health tip is generated by this legacy path.
+  String randomTip() => 'لا تتوفر نصيحة صحية موثقة في هذا المسار القديم.';
 
   /// ========== مساعد ذكي للمحادثة ==========
   String chatbotRespond(String message) {
@@ -205,6 +116,6 @@ class LocalMedicalAI {
       }
     }
     // افتراضي
-    return 'شكراً لتواصلك! 🙏\n\n$randomTip()\n\nللمساعدة اكتب: أعراض، أدوية، باقات، خدمات';
+    return 'لم أجد مادة موثقة لهذا السؤال في هذا المسار القديم. استخدم المساعد الصحي الأساسي أو تواصل مع مختص صحي.';
   }
 }
