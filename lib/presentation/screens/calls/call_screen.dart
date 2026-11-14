@@ -116,8 +116,8 @@ class _CallScreenState extends State<CallScreen>
                   },
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'متصل',
+                Text(
+                  AppStrings.of(context).translate('متصل'),
                   style: TextStyle(
                     fontSize: 28,
                     color: Colors.white,
@@ -147,7 +147,7 @@ class _CallScreenState extends State<CallScreen>
                     ),
                     _buildControlButton(
                       icon: Icons.call_end,
-                      label: 'إنهاء',
+                      label: AppStrings.of(context).translate('إنهاء'),
                       color: Colors.red,
                       onTap: () {
                         _callService.endCall(widget.callId);
@@ -157,7 +157,9 @@ class _CallScreenState extends State<CallScreen>
                     if (widget.isVideo)
                       _buildControlButton(
                         icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
-                        label: _isCameraOn ? 'كاميرا' : 'إيقاف',
+                        label: AppStrings.of(context).translate(
+                          _isCameraOn ? 'كاميرا' : 'إيقاف',
+                        ),
                         color: _isCameraOn ? Colors.blue : Colors.red,
                         onTap: () {
                           setState(() => _isCameraOn = !_isCameraOn);
