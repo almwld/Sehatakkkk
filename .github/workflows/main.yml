@@ -17,7 +17,7 @@ on:
       - 'pubspec.lock'
       - '.github/workflows/main.yml'
   push:
-    branches: [ master, main ]
+    branches: [ master, main, feat/home-section-order ]
     paths:
       - 'lib/**'
       - 'assets/**'
