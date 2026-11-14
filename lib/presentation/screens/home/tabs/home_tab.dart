@@ -276,13 +276,24 @@ class _HomeTabState extends State<HomeTab>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Center(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(14),
-                              child: AppImage(
-                                imageUrl: imageUrl,
-                                height: 100,
-                                width: 100,
-                                fit: BoxFit.contain,
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: dark
+                                    ? const Color(0xFF173737)
+                                    : const Color(0xFFF7FAFA),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: AppImage(
+                                  imageUrl: imageUrl,
+                                  height: 100,
+                                  width: 100,
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                             ),
                           ),
