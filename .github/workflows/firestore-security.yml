@@ -46,6 +46,8 @@ jobs:
         run: |
           node --check functions/index.js
           node --check backend/src/routes/lab-results.routes.js
+          node --check functions/pharmacy_marketplace_functions.js
+          node --check functions/pharmacy_order_workflow.js
           node --check functions/main.js
           node --check functions/commerce_functions.js
           node --check functions/lab_functions.js
