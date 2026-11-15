@@ -451,11 +451,10 @@ exports.updateDeliveryTracking = onCall(async (request) => {
     if (!companySnap.exists) throw new HttpsError('not-found', 'شركة التوصيل غير موجودة');
     const company = companySnap.data() || {};
     if (String(order.deliveryCompanyId || '') !== companyId || String(order.userId || '') !== String(delivery.userId || '')) throw new HttpsError('failed-precondition', 'سجل التوصيل غير مرتبط بالطلب المحدد');
-    const [adminUser, actorSnap] = await Promise.all([
-      isAdmin(uid),
-      tx.get(db.collection('users').doc(uid)),
-    ]);
-    if (!adminUser && (!actorSnap.exists || actorSnap.data().role !== 'delivery' || !isDeliveryCompanyOwner(company, uid, companyId))) {
+    const actorSnap = await tx.get(db.collection('users').doc(uid));
+    const actorRole = actorSnap.exists ? String(actorSnap.data().role || '') : '';
+    const adminUser = ['admin', 'superAdmin'].includes(actorRole);
+    if (!adminUser && (actorRole !== 'delivery' || !isDeliveryCompanyOwner(company, uid, companyId))) {
       throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور التوصيل ومرتبطاً بالشركة المسندة');
     }
     if (company.isActive !== true && !adminUser) throw new HttpsError('failed-precondition', 'شركة التوصيل غير نشطة');
