@@ -122,7 +122,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
             // معلومات إضافية
             _buildInfoRow('🏥 ${_localizedUiText(context, 'النوع')}', hospitalType),
             _buildInfoRow('🛏️ ${_localizedUiText(context, 'عدد الأسرة')}', '${hospital['beds'] ?? 100} ${_localizedUiText(context, 'سرير')}'),
-            _buildInfoRow('📞 ${_localizedUiText(context, 'الهاتف')}', hospital['phone'] ?? _localizedUiText(context, 'غير متوفر')),
+            _buildInfoRow('📞 ${_localizedUiText(context, 'الهاتف')}', (hospital['phone'] ?? hospital['phoneNumber'] ?? _localizedUiText(context, 'غير متوفر')).toString()),
 
             const SizedBox(height: 24),
 
@@ -157,7 +157,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       // الاتصال
-                      final phone = hospital['phone'] ?? '';
+                      final phone = (hospital['phone'] ?? hospital['phoneNumber'] ?? '').toString();
                       if (phone.isNotEmpty) {
                         // فتح تطبيق الهاتف
                       }
