@@ -2,7 +2,7 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {setGlobalOptions} = require('firebase-functions/v2/options');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
-const { canTransition, isPharmacyOwner } = require('./pharmacy_order_workflow');
+const { canTransition, isPharmacyOwner, isPharmacyRole } = require('./pharmacy_order_workflow');
 const { canDeliveryTransition, isDeliveryCompanyOwner } = require('./delivery_workflow');
 const {appointmentInstantFromDateMarker} = require('./appointment-date');
 
@@ -26,7 +26,6 @@ function text(value, field, max = 500) {
   return result;
 }
 function digest(value) { return crypto.createHash('sha256').update(value).digest('hex').slice(0, 40); }
-function isPharmacyRole(role) { return ['pharmacy', 'pharmacist', 'pharmacyowner', 'pharmacy_owner'].includes(String(role || '').trim().toLowerCase()); }
 async function isAdmin(uid) {
   const snap = await db.collection('users').doc(uid).get();
   return snap.exists && ['admin','superAdmin'].includes(snap.data().role);
