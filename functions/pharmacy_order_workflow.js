@@ -14,6 +14,10 @@ function canTransition(current, next) {
   return (PHARMACY_ORDER_TRANSITIONS[String(current || '')] || []).includes(String(next || ''));
 }
 
+function isAdminRole(role) {
+  return ['admin', 'superadmin'].includes(String(role || '').trim().toLowerCase());
+}
+
 function isPharmacyRole(role) {
   return ['pharmacy', 'pharmacist', 'pharmacyowner', 'pharmacy_owner'].includes(String(role || '').trim().toLowerCase());
 }
@@ -23,4 +27,4 @@ function isPharmacyOwner(pharmacy, uid, pharmacyId) {
   return [pharmacy.ownerId, pharmacy.userId, pharmacyId].some(value => String(value || '') === String(uid));
 }
 
-module.exports = { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner, isPharmacyRole };
+module.exports = { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner, isPharmacyRole, isAdminRole };
