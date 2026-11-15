@@ -362,6 +362,8 @@ class _MoreScreenState extends State<MoreScreen>
             ),
             const SizedBox(height: 12),
             _buildVitalsGrid(isDark),
+            const SizedBox(height: 12),
+            _buildQuickMeasurementEntry(isDark),
             const SizedBox(height: 32),
             Text(
               AppStrings.of(context).translate('الخدمات'),
@@ -416,6 +418,72 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
+  Widget _buildQuickMeasurementEntry(bool isDark) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => showModalBottomSheet<void>(
+          context: context,
+          showDragHandle: true,
+          isScrollControlled: true,
+          builder: (sheetContext) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.of(context).translate('إضافة قياس صحي'),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.of(context).translate('اختر نوع القياس لإدخال قراءة جديدة'),
+                    style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  _quickMeasurementTile(sheetContext, Icons.monitor_heart_outlined, 'ضغط الدم', const BloodPressureScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.water_drop_outlined, 'سكر الدم', const GlucoseTrackerScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.monitor_weight_outlined, 'الوزن', const WeightTrackerScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.favorite_border, 'النبض', const HeartRateScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.bedtime_outlined, 'النوم', const SleepTrackerScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.directions_walk_outlined, 'الخطوات', const StepTrackerScreen()),
+                ],
+              ),
+            ),
+          ),
+        ),
+        icon: const Icon(Icons.add_circle_outline),
+        label: Text(AppStrings.of(context).translate('إضافة قياس صحي')),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: BorderSide(color: AppColors.primary.withOpacity(.45)),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
+  Widget _quickMeasurementTile(
+    BuildContext sheetContext,
+    IconData icon,
+    String title,
+    Widget screen,
+  ) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(AppStrings.of(context).translate(title)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        Navigator.of(sheetContext).pop();
+        _navigateTo(screen);
+      },
+    );
+  }
+
   Widget _buildVitalsCards(bool isDark, Map<String, String> values) {
     return GridView.builder(
       shrinkWrap: true,
@@ -441,14 +509,63 @@ class _MoreScreenState extends State<MoreScreen>
               border: Border.all(color: (vital['color'] as Color).withOpacity(.18)),
             ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildIcon(vital['icon'] as String, size: 48),
-                const SizedBox(height: 6),
-                Text(AppStrings.of(context).translate(value), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: vital['color'] as Color), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
-                Text(AppStrings.of(context).translate(vital['unit'] as String), style: TextStyle(fontSize: 9, color: isDark ? Colors.grey[400] : Colors.grey[600])),
-                const SizedBox(height: 2),
-                Text(AppStrings.of(context).translate(label), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: isDark ? Colors.grey[300] : Colors.grey[700]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                _buildIcon(vital['icon'] as String, size: 36),
+                const SizedBox(height: 4),
+                Flexible(
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 24),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: value == 'غير متوفر'
+                          ? (isDark ? Colors.white.withOpacity(.07) : Colors.grey.withOpacity(.10))
+                          : (vital['color'] as Color).withOpacity(.10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      AppStrings.of(context).translate(value),
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: value == 'غير متوفر' ? 11 : 13,
+                        fontWeight: value == 'غير متوفر' ? FontWeight.w500 : FontWeight.bold,
+                        color: value == 'غير متوفر'
+                            ? (isDark ? Colors.grey[300] : Colors.grey[600])
+                            : vital['color'] as Color,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  AppStrings.of(context).translate(vital['unit'] as String),
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  AppStrings.of(context).translate(label),
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.grey[200] : Colors.grey[700],
+                  ),
+                ),
               ],
             ),
           ),
