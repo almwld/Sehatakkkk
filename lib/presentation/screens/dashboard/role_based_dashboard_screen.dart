@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/presentation/screens/dashboard/advanced_role_dashboard.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 
@@ -21,14 +22,58 @@ class _RoleBasedDashboardScreenState extends State<RoleBasedDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final user=FirebaseAuth.instance.currentUser;
-    if(user==null)return const PatientDashboard();
-    return StreamBuilder<DocumentSnapshot<Map<String,dynamic>>>(
-      stream:FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
-      builder:(context,snapshot){
-        final role=snapshot.data?.data()?['role']?.toString()??'user';
-        if(role=='user'||role=='patient')return const PatientDashboard();
-        if(role!='admin'&&role!='superAdmin')WidgetsBinding.instance.addPostFrameCallback((_)=>_ensureNotice(role));
-        return AdvancedRoleDashboardScreen(role:role);
+    final strings = AppStrings.of(context);
+    if (user == null) {
+      return Scaffold(
+        body: Center(child: Text(strings.translate('يجب تسجيل الدخول لعرض لوحة التحكم'))),
+      );
+    }
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(strings.translate('تعذر تحميل صلاحيات الحساب. تحقق من الاتصال ثم أعد المحاولة.')),
+              ),
+            ),
+          );
+        }
+        if (!snapshot.hasData) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        if (!snapshot.data!.exists) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(strings.translate('تعذر العثور على ملف الحساب. أعد تسجيل الدخول أو تواصل مع الدعم.')),
+              ),
+            ),
+          );
+        }
+        final profile = snapshot.data!.data() ?? const <String, dynamic>{};
+        final rawRole = (profile['role'] ?? profile['type'] ?? profile['accountType'] ?? profile['userType'])
+            ?.toString().trim() ?? '';
+        if (rawRole.isEmpty) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(strings.translate('نوع الحساب غير محدد. تواصل مع الدعم لتصحيح بيانات الدور.')),
+              ),
+            ),
+          );
+        }
+        final normalized = rawRole.toLowerCase();
+        final role = normalized == 'superadmin' ? 'superAdmin' : normalized;
+        if (role == 'user' || role == 'patient') return const PatientDashboard();
+        if (role != 'admin' && role != 'superAdmin') {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _ensureNotice(role));
+        }
+        return AdvancedRoleDashboardScreen(role: role);
       },
     );
   }
