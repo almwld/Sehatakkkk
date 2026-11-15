@@ -25,15 +25,17 @@ class _HospitalScreenState extends State<HospitalScreen> {
 
   Future<void> _load() async {
     try {
-      final s = await FirebaseFirestore.instance.collection('hospitals').where('cityNormalized', isEqualTo: 'صنعاء').get();
+      final s = await FirebaseFirestore.instance.collection('hospitals').get();
       if (mounted) setState(() => _items = s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
-    } catch (_) {
+    } catch (error, stack) {
+      debugPrint('Hospital directory load failed: $error');
+      debugPrintStack(stackTrace: stack);
       if (mounted) setState(() => _items = []);
     } finally { if (mounted) setState(() => _loading = false); }
   }
 
   String _img(Map<String, dynamic> h, int i) {
-    final value = '${h['imageUrl'] ?? h['image'] ?? ''}';
+    final value = '${h['imageUrl'] ?? h['image'] ?? h['photoUrl'] ?? ''}';
     if (value.startsWith('http')) return value;
     return [ImageKit.hospital1, ImageKit.hospital2, ImageKit.hospital3][i % 3];
   }
