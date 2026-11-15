@@ -41,8 +41,9 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
         });
       },
       onError: (error) {
+        debugPrint('Voice assistant speech recognition failed: $error');
         setState(() {
-          _text = '${AppStrings.of(context).translate('حدث خطأ:')} $error';
+          _text = _t('تعذر التعرف على الصوت. حاول مرة أخرى.');
           _isListening = false;
         });
       },
