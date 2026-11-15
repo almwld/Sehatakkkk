@@ -8,7 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/patient/patient_medical_history.dart';
@@ -334,17 +334,26 @@ class _PatientDashboardState extends State<PatientDashboard> {
         return;
       }
 
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('users/${user.uid}/avatar.jpg');
-      
-      await ref.putFile(File(image.path));
-      final downloadUrl = await ref.getDownloadURL();
-      
+      final nextcloud = NextcloudService();
+      await nextcloud.loadConfig();
+      final upload = await nextcloud.uploadFile(
+        file: File(image.path),
+        path: 'profiles/${user.uid}',
+        fileName: 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        createShare: true,
+      );
+      final downloadUrl = upload.url;
+      if (!upload.success || downloadUrl == null || downloadUrl.isEmpty) {
+        throw StateError(upload.error ?? 'تعذر رفع الصورة إلى Nextcloud');
+      }
+      if (!await nextcloud.verifyPublicUrl(downloadUrl)) {
+        throw StateError('تم رفع الصورة لكن تعذر التحقق من رابط عرضها');
+      }
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .update({'avatar': downloadUrl});
+          .set({'avatar': downloadUrl}, SetOptions(merge: true));
       
       setState(() {
         _userAvatar = downloadUrl;

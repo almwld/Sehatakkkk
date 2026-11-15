@@ -5419,6 +5419,9 @@ class AppStrings {
       'تعذر تحميل بيانات الكادر الصحي': ['Could not load healthcare staff', 'Impossible de charger le personnel de santé'],
       'لم تُنشر ملفات الكادر الصحي لهذا المستشفى بعد': ['No healthcare staff profiles have been published for this hospital yet', 'Aucun profil du personnel de santé n’a encore été publié pour cet hôpital'],
       'عضو الكادر الصحي': ['Healthcare staff member', 'Membre du personnel de santé'],
+      'كلمة مرور التطبيق': ['App password', 'Mot de passe d’application'],
+      'أنشئ كلمة مرور تطبيق من إعدادات الأمان في حساب Nextcloud': ['Create an app password in your Nextcloud account security settings', 'Créez un mot de passe d’application dans les paramètres de sécurité de votre compte Nextcloud'],
+      'يرجى إدخال كلمة مرور التطبيق': ['Please enter the app password', 'Veuillez saisir le mot de passe d’application'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {

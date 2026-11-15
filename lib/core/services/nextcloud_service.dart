@@ -22,42 +22,63 @@ class NextcloudService {
   String username = '';
   String password = '';
 
+  /// Read credentials as one snapshot. Every feature uses this singleton and
+  /// the same secure-storage keys, so no feature owns a separate config copy.
   Future<void> loadConfig() async {
-    baseUrl = (await _storage.read(key: 'sehatak.nextcloud.base_url') ?? '')
-        .trim()
-        .replaceFirst(RegExp(r'/$'), '');
-    username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
-    password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
-    debugPrint('📡 NC config: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
+    final values = await Future.wait<String?>([
+      _storage.read(key: 'sehatak.nextcloud.base_url'),
+      _storage.read(key: 'sehatak.nextcloud.username'),
+      _storage.read(key: 'sehatak.nextcloud.app_password'),
+    ]);
+    baseUrl = (values[0] ?? '').trim().replaceFirst(RegExp(r'/$'), '');
+    username = (values[1] ?? '').trim();
+    password = values[2] ?? '';
+    debugPrint('Nextcloud configuration loaded: ${isConfigured ? 'ready' : 'incomplete'}');
   }
+
+  bool get isConfigured =>
+      baseUrl.isNotEmpty && username.isNotEmpty && password.isNotEmpty;
 
   Future<void> updateConfig({
     required String baseUrl,
     required String username,
     required String password,
   }) async {
-    this.baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), '');
+    final normalizedUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), '');
+    final uri = Uri.tryParse(normalizedUrl);
+    if (uri == null ||
+        !uri.hasAuthority ||
+        uri.host.isEmpty ||
+        (uri.scheme != 'https' && uri.scheme != 'http')) {
+      throw ArgumentError('أدخل عنوان Nextcloud صالحاً يبدأ بـ https:// أو http://');
+    }
+    if (username.trim().isEmpty || password.isEmpty) {
+      throw ArgumentError('اسم المستخدم وكلمة مرور تطبيق Nextcloud مطلوبان');
+    }
+    await _storage.write(key: 'sehatak.nextcloud.base_url', value: normalizedUrl);
+    await _storage.write(key: 'sehatak.nextcloud.username', value: username.trim());
+    await _storage.write(key: 'sehatak.nextcloud.app_password', value: password);
+    this.baseUrl = normalizedUrl;
     this.username = username.trim();
     this.password = password;
-    await _storage.write(key: 'sehatak.nextcloud.base_url', value: this.baseUrl);
-    await _storage.write(key: 'sehatak.nextcloud.username', value: this.username);
-    await _storage.write(key: 'sehatak.nextcloud.app_password', value: this.password);
   }
 
   Future<void> clearConfig() async {
-    baseUrl = '';
-    username = '';
-    password = '';
     await Future.wait([
       _storage.delete(key: 'sehatak.nextcloud.base_url'),
       _storage.delete(key: 'sehatak.nextcloud.username'),
       _storage.delete(key: 'sehatak.nextcloud.app_password'),
     ]);
+    baseUrl = '';
+    username = '';
+    password = '';
   }
 
   void _ensureConfigured() {
     if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
-      throw StateError('خادم الوسائط غير مهيأ: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
+      throw StateError(
+        'إعدادات خادم Nextcloud غير مكتملة. تحقق من عنوان الخادم واسم المستخدم وكلمة مرور التطبيق في إعدادات Nextcloud.',
+      );
     }
   }
 
@@ -129,6 +150,9 @@ class NextcloudService {
     CancelToken? cancelToken,
   }) async {
     try {
+      // Some legacy feature entry points call uploadFile without an explicit
+      // loadConfig. Resolve the same shared secure config before rejecting.
+      if (!isConfigured) await loadConfig();
       _ensureConfigured();
       if (!await file.exists()) {
         return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
@@ -139,8 +163,7 @@ class NextcloudService {
       final remotePath = '$logicalDirectory/$name';
       final davUrl = _davUrl(remotePath);
       final fileLength = await file.length();
-      debugPrint('📤 PUT: $davUrl');
-      debugPrint('📤 file size: $fileLength');
+      debugPrint('Nextcloud upload started ($fileLength bytes).');
 
       await _ensureDirectories(logicalDirectory);
 
@@ -171,19 +194,18 @@ class NextcloudService {
         publicUrl = await createPublicShare(remotePath);
         if (publicUrl == null || publicUrl.isEmpty) shareError = 'تم رفع الملف بنجاح، لكن رابط الوصول لم يجهز بعد';
       } catch (e, st) {
-        debugPrint('❌ createPublicShare failed: $e');
-        debugPrint('❌ stack: $st');
+        debugPrint('Nextcloud public-share creation failed.');
         shareError = 'تم رفع الملف بنجاح، وتعذر تجهيز رابط الوصول: $e';
       }
       return NextcloudUploadResult(success: true, url: publicUrl, path: remotePath, fileName: name, error: shareError, shareReady: publicUrl != null && publicUrl.isNotEmpty);
     } catch (e, st) {
-      debugPrint('❌ uploadFile failed: $e');
-      debugPrint('❌ stack: $st');
+      debugPrint('Nextcloud upload failed: ${e.runtimeType}.');
       return NextcloudUploadResult(success: false, error: e.toString());
     }
   }
 
   Future<String?> createPublicShare(String remotePath) async {
+    if (!isConfigured) await loadConfig();
     _ensureConfigured();
     try {
       final response = await http.post(
@@ -192,8 +214,6 @@ class NextcloudService {
         body: {'path': '/${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
       );
       debugPrint('🔗 Share status: ${response.statusCode}');
-      final bodyPreview = response.body.substring(0, response.body.length > 200 ? 200 : response.body.length);
-      debugPrint('🔗 Share body: $bodyPreview');
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -204,8 +224,7 @@ class NextcloudService {
 
       return '${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
     } catch (e, st) {
-      debugPrint('❌ createPublicShare failed: $e');
-      debugPrint('❌ stack: $st');
+      debugPrint('Nextcloud share request failed: ${e.runtimeType}.');
       return null;
     }
   }
@@ -228,8 +247,8 @@ class NextcloudService {
         final contentLength = response.contentLength;
         final contentType = response.headers['content-type'];
         debugPrint(
-          '🔗 verifyPublicUrl hop=$hop status=$status url=$current '
-          'location=${location ?? '(none)'} contentType=${contentType ?? '(none)'}',
+          'Nextcloud URL verification hop=$hop status=$status '
+          'contentType=${contentType ?? '(none)'}',
         );
 
         if (status == 200 || status == 206) {
@@ -241,7 +260,7 @@ class NextcloudService {
           await response.stream.listen(null).cancel();
           final next = current.resolve(location);
           if (next.host != current.host) {
-            debugPrint('❌ verifyPublicUrl rejected cross-host redirect: ${next.host}');
+            debugPrint('Nextcloud URL verification rejected a cross-host redirect.');
             return false;
           }
           current = next;
@@ -252,11 +271,10 @@ class NextcloudService {
         return false;
       }
 
-      debugPrint('❌ verifyPublicUrl exceeded redirect limit url=$url');
+      debugPrint('Nextcloud URL verification exceeded the redirect limit.');
       return false;
     } catch (e, st) {
-      debugPrint('❌ verifyPublicUrl failed for $url: $e');
-      debugPrint('❌ stack: $st');
+      debugPrint('Nextcloud URL verification failed: ${e.runtimeType}.');
       return false;
     } finally {
       client.close();
