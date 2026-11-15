@@ -627,25 +627,6 @@ service cloud.firestore {
             || resource.data.staffId == request.auth.uid);
       allow write: if false;
     }
-    match /hospital_departments/{departmentId}
-    // Public directory is a minimal server-maintained projection.
-    match /hospital_staff/{staffId} {
-      allow read: if resource.data.isPublic == true && resource.data.status == 'active';
-      allow write: if false;
-    }
-    // Private affiliations and invitations are readable only by their parties.
-    match /hospital_staff_links/{linkId} {
-      allow read: if isSignedIn()
-        && (resource.data.hospitalId == request.auth.uid
-            || resource.data.staffId == request.auth.uid);
-      allow write: if false;
-    }
-    match /hospital_staff_invitations/{invitationId} {
-      allow read: if isSignedIn()
-        && (resource.data.hospitalId == request.auth.uid
-            || resource.data.staffId == request.auth.uid);
-      allow write: if false;
-    }
     match /hospital_departments/{departmentId} {
       allow read: if true;
       allow create: if isSignedIn() && userExists(request.auth.uid)

@@ -595,7 +595,7 @@ class _HomeTabState extends State<HomeTab>
           final postCategory = localizedCategory == null
               ? null
               : localizedCategory == rawCategory
-                  ? _t(rawCategory)
+                  ? _t(rawCategory!)
                   : localizedCategory;
           final post = CommunityPostModel(id: '${data['id'] ?? data['postId'] ?? ''}', userId: '${data['userId'] ?? ''}', userName: '${data['userName'] ?? AppStrings.of(context).translate('مستخدم')}', title: postTitle, content: postContent, imageUrl: data['imageUrl']?.toString(), images: (data['images'] as List?)?.map((e) => e.toString()).toList(), category: postCategory, likes: (data['likes'] as num?)?.toInt() ?? 0, comments: (data['comments'] as num?)?.toInt() ?? 0, shares: (data['shares'] as num?)?.toInt() ?? 0, isVerified: data['isVerified'] == true, createdAt: createdAt);
           return Padding(padding: const EdgeInsets.only(bottom: 12), child: _HomeCommunityPost(post: post, dark: dark));
