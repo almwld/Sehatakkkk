@@ -16,6 +16,9 @@ service cloud.firestore {
     function isDoctorUser(userId) { return userExists(userId) && userData(userId).role == 'doctor'; }
     function isVerifiedDoctor(userId) { return isDoctorUser(userId) && userData(userId).isVerified == true; }
     function isLabAccount(userId) { return userExists(userId) && userData(userId).role == 'lab'; }
+    function isPharmacyAccount(userId) {
+      return userExists(userId) && userData(userId).role in ['pharmacy', 'pharmacist', 'pharmacyOwner', 'pharmacyowner', 'pharmacy_owner'];
+    }
     function isVerifiedLabAccount(userId) {
       return isLabAccount(userId)
         && userData(userId).isVerified == true
@@ -577,8 +580,11 @@ service cloud.firestore {
     match /prescriptions/{id} {
       function isAssignedPharmacyOwner() {
         return isSignedIn()
+          && isPharmacyAccount(request.auth.uid)
           && resource.data.get('pharmacyId', null) is string
           && exists(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId))
+          && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('status', '') == 'approved'
+          && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('isActive', false) == true
           && (
             get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('ownerId', '') == request.auth.uid
             || get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('userId', '') == request.auth.uid
@@ -733,8 +739,11 @@ service cloud.firestore {
     match /orders/{orderId} {
       function isAssignedPharmacyOwner() {
         return isSignedIn()
+          && isPharmacyAccount(request.auth.uid)
           && resource.data.get('pharmacyId', null) is string
           && exists(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId))
+          && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('status', '') == 'approved'
+          && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('isActive', false) == true
           && (
             get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('ownerId', '') == request.auth.uid
             || get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.get('userId', '') == request.auth.uid

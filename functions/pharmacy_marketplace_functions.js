@@ -10,7 +10,7 @@ function quantity(value) { const n = Number(value); if (!Number.isFinite(n) || n
 async function userData(uid) { const s = await db.collection('users').doc(uid).get(); return s.exists ? s.data() : {}; }
 async function assertAdmin(uid) { const u = await userData(uid); if (!['admin', 'super_admin'].includes(String(u.role || '').toLowerCase())) throw new HttpsError('permission-denied', 'هذه العملية للإدارة فقط'); return u; }
 async function pharmacyRef(id) { const ref = db.collection('pharmacies').doc(id); const s = await ref.get(); if (!s.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة'); return {ref, data: s.data()}; }
-async function assertPharmacyOwner(uid, id, approved = true) { const r = await pharmacyRef(id); if (r.data.ownerId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذه الصيدلية'); if (approved && r.data.status !== 'approved') throw new HttpsError('failed-precondition', 'الصيدلية لم تعتمد بعد'); return r; }
+async function assertPharmacyOwner(uid, id, approved = true) { const [r, user] = await Promise.all([pharmacyRef(id), userData(uid)]); if (!['pharmacy', 'pharmacist', 'pharmacyowner', 'pharmacy_owner'].includes(String(user.role || '').trim().toLowerCase())) throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور صيدلية'); if (r.data.ownerId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذه الصيدلية'); if (approved && (r.data.status !== 'approved' || r.data.isActive === false)) throw new HttpsError('failed-precondition', 'الصيدلية لم تعتمد بعد أو تم إيقافها'); return r; }
 function safeId(raw, fallback) { const id = String(raw ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 120); return id || fallback; }
 
 exports.uploadImageKitImage = onCall(async request => {
@@ -37,7 +37,7 @@ exports.uploadImageKitImage = onCall(async request => {
 
 exports.createPharmacyProfile = onCall(async request => {
   const uid = auth(request); const user = await userData(uid);
-  if (!['pharmacy','pharmacist','pharmacy_owner'].includes(String(user.role || '').toLowerCase())) throw new HttpsError('permission-denied','حساب الصيدلية يجب أن يكون من نوع صيدلية');
+  if (!['pharmacy','pharmacist','pharmacyowner','pharmacy_owner'].includes(String(user.role || '').toLowerCase())) throw new HttpsError('permission-denied','حساب الصيدلية يجب أن يكون من نوع صيدلية');
   const name=clean(request.data.name,'name',160), phone=clean(request.data.phone,'phone',40), address=clean(request.data.address,'address',300), licenseNumber=clean(request.data.licenseNumber,'licenseNumber',120,false);
   const existing=await db.collection('pharmacies').where('ownerId','==',uid).limit(1).get(); if(!existing.empty) return {pharmacyId:existing.docs[0].id,status:existing.docs[0].data().status};
   const ref=db.collection('pharmacies').doc(); await ref.set({pharmacyId:ref.id,ownerId:uid,name,phone,address,licenseNumber:licenseNumber||null,status:'pending',isActive:false,createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()}); return {pharmacyId:ref.id,status:'pending'};

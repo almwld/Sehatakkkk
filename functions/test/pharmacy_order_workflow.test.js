@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner } = require('../pharmacy_order_workflow');
+const { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner, isPharmacyRole } = require('../pharmacy_order_workflow');
 
 test('pharmacy workflow permits only the expected forward transitions', () => {
   assert.deepEqual(PHARMACY_ORDER_TRANSITIONS.pending, ['confirmed', 'cancelled']);
@@ -31,4 +31,13 @@ test('pharmacy ownership accepts only the pharmacy owner, user or exact pharmacy
   assert.equal(isPharmacyOwner({}, 'pharmacy-1', 'pharmacy-1'), true);
   assert.equal(isPharmacyOwner({ ownerId: 'owner-1' }, 'intruder', 'pharmacy-1'), false);
   assert.equal(isPharmacyOwner(null, 'owner-1', 'pharmacy-1'), false);
+});
+
+test('pharmacy role aliases match the account roles used by app registration and dashboards', () => {
+  for (const role of ['pharmacy', 'pharmacist', 'pharmacyOwner', 'pharmacy_owner']) {
+    assert.equal(isPharmacyRole(role), true, role);
+  }
+  for (const role of ['user', 'doctor', 'lab', 'delivery', 'admin', '']) {
+    assert.equal(isPharmacyRole(role), false, role);
+  }
 });

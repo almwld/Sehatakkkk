@@ -2,7 +2,7 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {setGlobalOptions} = require('firebase-functions/v2/options');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
-const { canTransition, isPharmacyOwner } = require('./pharmacy_order_workflow');
+const { canTransition, isPharmacyOwner, isPharmacyRole } = require('./pharmacy_order_workflow');
 const { canDeliveryTransition, isDeliveryCompanyOwner } = require('./delivery_workflow');
 const {appointmentInstantFromDateMarker} = require('./appointment-date');
 
@@ -362,8 +362,13 @@ exports.reviewPharmacyPrescription = onCall(async (request) => {
   const note = String(request.data.note || '').trim().slice(0, 1000);
   const prescriptionRef = db.collection('prescriptions').doc(prescriptionId);
   await db.runTransaction(async (tx) => {
-    const prescriptionSnap = await tx.get(prescriptionRef);
+    const [prescriptionSnap, actorSnap] = await Promise.all([
+      tx.get(prescriptionRef), tx.get(db.collection('users').doc(uid)),
+    ]);
     if (!prescriptionSnap.exists) throw new HttpsError('not-found', 'الوصفة غير موجودة');
+    if (!actorSnap.exists || !isPharmacyRole(actorSnap.data().role)) {
+      throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور صيدلية معتمد');
+    }
     const prescription = prescriptionSnap.data() || {};
     const pharmacyId = validId(prescription.pharmacyId, 'pharmacyId');
     const pharmacyRef = db.collection('pharmacies').doc(pharmacyId);
@@ -392,9 +397,14 @@ exports.assignDeliveryCompany = onCall(async (request) => {
   const orderRef = db.collection('orders').doc(orderId);
   const companyRef = db.collection('delivery_companies').doc(companyId);
   await db.runTransaction(async (tx) => {
-    const [orderSnap, companySnap] = await Promise.all([tx.get(orderRef), tx.get(companyRef)]);
+    const [orderSnap, companySnap, actorSnap] = await Promise.all([
+      tx.get(orderRef), tx.get(companyRef), tx.get(db.collection('users').doc(uid)),
+    ]);
     if (!orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
     if (!companySnap.exists) throw new HttpsError('not-found', 'شركة التوصيل غير موجودة');
+    if (!actorSnap.exists || !isPharmacyRole(actorSnap.data().role)) {
+      throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور صيدلية معتمد');
+    }
     const order = orderSnap.data() || {};
     const company = companySnap.data() || {};
     if (order.type !== 'pharmacy') throw new HttpsError('failed-precondition', 'هذا ليس طلب صيدلية');
@@ -488,8 +498,12 @@ exports.updatePharmacyOrderStatus = onCall(async (request) => {
   if (!allowedStatuses.includes(nextStatus)) throw new HttpsError('invalid-argument', 'حالة الطلب غير مسموحة من لوحة الصيدلية');
   const orderRef = db.collection('orders').doc(orderId);
   await db.runTransaction(async (tx) => {
-    const orderSnap = await tx.get(orderRef);
+    const [orderSnap, actorSnap] = await Promise.all([
+      tx.get(orderRef), tx.get(db.collection('users').doc(uid)),
+    ]);
     if (!orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
+    const actorRole = actorSnap.exists ? actorSnap.data().role : '';
+    if (!isPharmacyRole(actorRole)) throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور صيدلية معتمد');
     const order = orderSnap.data() || {};
     if (order.type !== 'pharmacy') throw new HttpsError('failed-precondition', 'هذا ليس طلب صيدلية');
     const pharmacyId = validId(order.pharmacyId, 'pharmacyId');
