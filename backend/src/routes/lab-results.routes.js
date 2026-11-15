@@ -45,8 +45,16 @@ router.post('/:bookingId', upload.single('file'), async (req, res) => {
 
     const db = getFirestore();
     const bookingRef = db.collection('lab_bookings').doc(bookingId);
-    const bookingSnapshot = await bookingRef.get();
+    const [bookingSnapshot, actorSnapshot, labSnapshot] = await Promise.all([
+      bookingRef.get(),
+      db.collection('users').doc(uid).get(),
+      db.collection('labs').doc(uid).get(),
+    ]);
     if (!bookingSnapshot.exists) return res.status(404).json({ success: false, message: 'Booking not found.' });
+    if (!actorSnapshot.exists || actorSnapshot.data().role !== 'lab' || actorSnapshot.data().isVerified !== true
+        || !labSnapshot.exists || labSnapshot.data().userId !== uid || labSnapshot.data().isVerified !== true) {
+      return res.status(403).json({ success: false, message: 'A verified laboratory account is required.' });
+    }
 
     const booking = bookingSnapshot.data() || {};
     if (String(booking.labId || '') !== uid) return res.status(403).json({ success: false, message: 'This booking is not assigned to your laboratory.' });
@@ -98,11 +106,22 @@ router.get('/:bookingId/download', async (req, res) => {
     if (!uid) return res.status(401).json({ success: false, message: 'Authentication required.' });
     if (!validBookingId(bookingId)) return res.status(400).json({ success: false, message: 'Invalid booking ID.' });
 
-    const snapshot = await getFirestore().collection('lab_bookings').doc(bookingId).get();
+    const db = getFirestore();
+    const snapshot = await db.collection('lab_bookings').doc(bookingId).get();
     if (!snapshot.exists) return res.status(404).json({ success: false, message: 'Booking not found.' });
     const booking = snapshot.data() || {};
-    if (String(booking.patientId || '') !== uid && String(booking.labId || '') !== uid) {
-      return res.status(403).json({ success: false, message: 'You are not allowed to access this result.' });
+    const isPatient = String(booking.patientId || '') === uid;
+    if (!isPatient) {
+      const [actorSnapshot, labSnapshot] = await Promise.all([
+        db.collection('users').doc(uid).get(),
+        db.collection('labs').doc(uid).get(),
+      ]);
+      const isVerifiedLab = actorSnapshot.exists && actorSnapshot.data().role === 'lab'
+        && actorSnapshot.data().isVerified === true && labSnapshot.exists
+        && labSnapshot.data().userId === uid && labSnapshot.data().isVerified === true;
+      if (!isVerifiedLab || String(booking.labId || '') !== uid) {
+        return res.status(403).json({ success: false, message: 'You are not allowed to access this result.' });
+      }
     }
     const remotePath = String(booking.resultRemotePath || '');
     const expectedPrefix = String(nextcloud.rootPath || 'Sehatak') + '/lab_results_' + String(booking.labId || '') + '/' + bookingId + '_';
