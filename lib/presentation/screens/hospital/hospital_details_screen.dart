@@ -22,7 +22,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hospital = widget.hospitalData ?? {};
+    final hospital = widget.hospitalData ?? <String, dynamic>{};
     final locale = AppStrings.of(context).locale;
     final hospitalName = localizedField(hospital, 'name', locale, fallback: _localizedUiText(context, 'اسم المستشفى'));
     final hospitalLocation = localizedField(
@@ -49,7 +49,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: AppImage(
-                imageUrl: hospital['image'] ?? '',
+                imageUrl: (hospital['imageUrl'] ?? hospital['image'] ?? hospital['photoUrl'] ?? '').toString(),
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -99,15 +99,15 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: (hospital['open'] ?? true)
+                    color: _isOpen(hospital)
                         ? Colors.green.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '${(hospital['open'] ?? true) ? '🟢 ' : '🔴 '}${_localizedUiText(context, (hospital['open'] ?? true) ? 'مفتوح' : 'مغلق')}',
+                    ' ${_isOpen(hospital) ? '🟢 ' : '🔴 '}${_localizedUiText(context, _isOpen(hospital) ? 'مفتوح' : 'مغلق')}',
                     style: TextStyle(
-                      color: (hospital['open'] ?? true) ? Colors.green : Colors.red,
+                      color: _isOpen(hospital) ? Colors.green : Colors.red,
                       fontSize: 14,
                     ),
                   ),
@@ -179,6 +179,14 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
         ),
       ),
     );
+  }
+
+  bool _isOpen(Map<String, dynamic> hospital) {
+    final value = hospital['open'] ?? hospital['isOpen'];
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) return ['true', '1', 'yes', 'open'].contains(value.toLowerCase().trim());
+    return true;
   }
 
   Widget _buildInfoRow(String label, String value) {
