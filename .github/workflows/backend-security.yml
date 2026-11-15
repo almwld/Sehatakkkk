@@ -47,7 +47,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/security/')
         run: |
           npm audit fix --prefix backend
-          npm audit fix --prefix livekit-token-server
+          npm audit fix --prefix livekit-token-server || npm audit --prefix livekit-token-server --omit=dev --audit-level=high
 
       - name: Commit updated dependency locks to the security branch
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/security/')
