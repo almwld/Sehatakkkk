@@ -4,6 +4,7 @@ const crypto = require('crypto');
 
 const db = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;
+const { isAdminRole } = require('./pharmacy_order_workflow');
 
 function requireAuth(request) {
   if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'يجب تسجيل الدخول أولاً');
@@ -13,7 +14,7 @@ function requireAuth(request) {
 async function isAdmin(uid) {
   const snap = await db.collection('users').doc(uid).get();
   const role = String(snap.data()?.role || '').toLowerCase();
-  if (!['admin', 'super_admin'].includes(role)) {
+  if (!isAdminRole(role)) {
     throw new HttpsError('permission-denied', 'هذه العملية للإدارة فقط');
   }
 }
