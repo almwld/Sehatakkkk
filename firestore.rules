@@ -26,7 +26,7 @@ service cloud.firestore {
     function isVerifiedDoctor(userId) { return isDoctorUser(userId) && userData(userId).isVerified == true; }
     function isLabAccount(userId) { return userExists(userId) && userData(userId).role == 'lab'; }
     function isPharmacyAccount(userId) {
-      return userExists(userId) && userData(userId).role in ['pharmacy', 'pharmacist', 'pharmacyOwner', 'pharmacyowner', 'pharmacy_owner'];
+      return userExists(userId) && userData(userId).role in ['pharmacy', 'pharmacist', 'pharmacyOwner', 'pharmacyowner', 'pharmacy_owner', 'pharmacy-owner', 'pharmacy owner'];
     }
     function isVerifiedLabAccount(userId) {
       return isLabAccount(userId)
