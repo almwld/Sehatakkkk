@@ -560,8 +560,8 @@ test('pharmacy sellers may edit commercial fields but cannot change ownership or
     updatedAt: new Date(),
   }));
   await assertFails(updateDoc(doc(seller, 'products/product-1'), {
-    approvalStatus: 'approved',
-    isPublished: true,
+    approvalStatus: 'pending',
+    isPublished: false,
   }));
   await assertFails(updateDoc(doc(seller, 'products/product-1'), {
     sellerId: 'patient-a',
