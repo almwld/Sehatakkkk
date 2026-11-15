@@ -187,6 +187,9 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
 
             const SizedBox(height: 24),
 
+            _publicStaffDirectory(),
+            const SizedBox(height: 20),
+
             // أزرار الإجراءات
             Row(
               children: [
@@ -241,6 +244,110 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
       ),
     );
   }
+
+
+  Widget _publicStaffDirectory() {
+    final hospitalId = widget.hospitalId;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _localizedUiText(context, 'الأقسام الطبية'),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection('hospital_departments')
+              .where('hospitalId', isEqualTo: hospitalId)
+              .where('isActive', isEqualTo: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Text(_localizedUiText(context, 'تعذر تحميل الأقسام حالياً'));
+            }
+            if (!snapshot.hasData) {
+              return const Padding(
+                padding: EdgeInsets.all(12),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              );
+            }
+            final departments = snapshot.data!.docs;
+            if (departments.isEmpty) {
+              return Text(_localizedUiText(context, 'لم تُنشر أقسام طبية لهذا المستشفى بعد'));
+            }
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: departments.map((doc) {
+                final name = doc.data()['name']?.toString().trim() ?? '';
+                if (name.isEmpty) return const SizedBox.shrink();
+                return Chip(
+                  avatar: const Icon(Icons.medical_services_outlined, size: 16),
+                  label: Text(name),
+                );
+              }).toList(),
+            );
+          },
+        ),
+        const SizedBox(height: 18),
+        Text(
+          _localizedUiText(context, 'الكادر الصحي'),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection('hospital_staff')
+              .where('hospitalId', isEqualTo: hospitalId)
+              .where('isPublic', isEqualTo: true)
+              .where('status', isEqualTo: 'active')
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Text(_localizedUiText(context, 'تعذر تحميل بيانات الكادر الصحي'));
+            }
+            if (!snapshot.hasData) {
+              return const Padding(
+                padding: EdgeInsets.all(12),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              );
+            }
+            final staff = snapshot.data!.docs;
+            if (staff.isEmpty) {
+              return Text(_localizedUiText(context, 'لم تُنشر ملفات الكادر الصحي لهذا المستشفى بعد'));
+            }
+            return Column(
+              children: staff.map((doc) {
+                final data = doc.data();
+                final name = (data['displayName'] ?? '').toString().trim();
+                final title = (data['jobTitle'] ?? '').toString().trim();
+                final department = (data['departmentName'] ?? '').toString().trim();
+                final details = [title, department]
+                    .where((value) => value.isNotEmpty)
+                    .join(' • ');
+                return Card(
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.medical_services_outlined),
+                    ),
+                    title: Text(name.isEmpty
+                        ? _localizedUiText(context, 'عضو الكادر الصحي')
+                        : name),
+                    subtitle: details.isEmpty ? null : Text(details),
+                    trailing: data['isVerified'] == true
+                        ? const Icon(Icons.verified, color: AppColors.primary)
+                        : null,
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
 
   bool _isOpen(Map<String, dynamic> hospital) {
     final value = hospital['open'] ?? hospital['isOpen'];
