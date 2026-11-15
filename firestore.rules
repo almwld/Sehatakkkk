@@ -112,6 +112,16 @@ service cloud.firestore {
       match /medications/{medicationId} { allow read, write: if isSelf(userId); }
       match /medications_history/{entryId} { allow read, write: if isSelf(userId); }
 
+      match /saved_statuses/{statusId} {
+        allow read: if isSelf(userId);
+        allow create, update: if isSelf(userId)
+          && request.resource.data.userId is string
+          && request.resource.data.stories is list
+          && request.resource.data.stories.size() > 0
+          && request.resource.data.stories.size() <= 100;
+        allow delete: if isSelf(userId);
+      }
+
       match /favorites/{doctorId} {
         allow read: if isSelf(userId);
         allow create: if isSelf(userId) && request.resource.data.doctorId == doctorId;
