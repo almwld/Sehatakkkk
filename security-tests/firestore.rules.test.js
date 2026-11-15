@@ -599,3 +599,21 @@ test('internal notification delivery logs are not readable by ordinary signed-in
   await assertFails(getDoc(doc(owner, 'notifications_log/log-1')));
   await assertFails(getDoc(doc(admin, 'notifications_log/log-1')));
 });
+
+
+test('patients and laboratories cannot forge lab booking prices or payment status', async () => {
+  const patient = env.authenticatedContext('patient-b').firestore();
+  const labOwner = env.authenticatedContext('lab-owner').firestore();
+  await assertFails(updateDoc(doc(patient, 'lab_bookings/booking-1'), {
+    totalPrice: 1,
+  }));
+  await assertFails(updateDoc(doc(patient, 'lab_bookings/booking-1'), {
+    paymentStatus: 'paid',
+  }));
+  await assertFails(updateDoc(doc(labOwner, 'lab_bookings/booking-1'), {
+    totalPrice: 1,
+  }));
+  await assertFails(updateDoc(doc(labOwner, 'lab_bookings/booking-1'), {
+    paymentStatus: 'paid',
+  }));
+});
