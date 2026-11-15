@@ -5422,6 +5422,10 @@ class AppStrings {
       'كلمة مرور التطبيق': ['App password', 'Mot de passe d’application'],
       'أنشئ كلمة مرور تطبيق من إعدادات الأمان في حساب Nextcloud': ['Create an app password in your Nextcloud account security settings', 'Créez un mot de passe d’application dans les paramètres de sécurité de votre compte Nextcloud'],
       'يرجى إدخال كلمة مرور التطبيق': ['Please enter the app password', 'Veuillez saisir le mot de passe d’application'],
+      'يجب تسجيل الدخول لعرض لوحة التحكم': ['Please sign in to view the dashboard', 'Veuillez vous connecter pour afficher le tableau de bord'],
+      'تعذر تحميل صلاحيات الحساب. تحقق من الاتصال ثم أعد المحاولة.': ['Could not load account permissions. Check your connection and try again.', 'Impossible de charger les autorisations du compte. Vérifiez votre connexion et réessayez.'],
+      'تعذر العثور على ملف الحساب. أعد تسجيل الدخول أو تواصل مع الدعم.': ['The account profile could not be found. Sign in again or contact support.', 'Le profil du compte est introuvable. Reconnectez-vous ou contactez l’assistance.'],
+      'نوع الحساب غير محدد. تواصل مع الدعم لتصحيح بيانات الدور.': ['The account type is missing. Contact support to correct the account role.', 'Le type de compte est manquant. Contactez l’assistance pour corriger le rôle du compte.'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
