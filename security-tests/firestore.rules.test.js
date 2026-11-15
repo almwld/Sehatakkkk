@@ -70,6 +70,12 @@ beforeEach(async () => {
     await setDoc(doc(db, 'users/untrusted-company-owner'), {
       uid: 'untrusted-company-owner', role: 'user', isVerified: false,
     });
+    await setDoc(doc(db, 'users/pharmacy-owner'), {
+      uid: 'pharmacy-owner', role: 'pharmacist', isVerified: true,
+    });
+    await setDoc(doc(db, 'users/untrusted-pharmacy-owner'), {
+      uid: 'untrusted-pharmacy-owner', role: 'user', isVerified: false,
+    });
     await setDoc(doc(db, 'shared_records/share-1'), {
       recordId: 'record-1',
       sharedBy: 'patient-a',
@@ -346,14 +352,18 @@ test('pharmacy order reads are scoped to patient and assigned pharmacy owner; cl
     await setDoc(doc(db, 'pharmacies/pharmacy-1'), { ownerId: 'pharmacy-owner', status: 'approved', isActive: true });
     await setDoc(doc(db, 'orders/order-1'), { userId: 'patient-b', pharmacyId: 'pharmacy-1', providerId: 'pharmacy-owner', type: 'pharmacy', status: 'pending', total: 500 });
     await setDoc(doc(db, 'orders/order-paid'), { userId: 'patient-b', pharmacyId: 'pharmacy-1', providerId: 'pharmacy-owner', type: 'pharmacy', status: 'pending', paymentStatus: 'paid', total: 500 });
+    await setDoc(doc(db, 'pharmacies/pharmacy-2'), { ownerId: 'untrusted-pharmacy-owner', status: 'approved', isActive: true });
+    await setDoc(doc(db, 'orders/order-untrusted-pharmacy'), { userId: 'patient-b', pharmacyId: 'pharmacy-2', providerId: 'untrusted-pharmacy-owner', type: 'pharmacy', status: 'pending', total: 500 });
   });
   const patient = env.authenticatedContext('patient-b').firestore();
   const owner = env.authenticatedContext('pharmacy-owner').firestore();
   const outsider = env.authenticatedContext('patient-a').firestore();
   const admin = env.authenticatedContext('platform-admin').firestore();
+  const untrustedOwner = env.authenticatedContext('untrusted-pharmacy-owner').firestore();
   await assertSucceeds(getDoc(doc(patient, 'orders/order-1')));
   await assertSucceeds(getDoc(doc(owner, 'orders/order-1')));
   await assertFails(getDoc(doc(outsider, 'orders/order-1')));
+  await assertFails(getDoc(doc(untrustedOwner, 'orders/order-untrusted-pharmacy')));
   await assertFails(updateDoc(doc(owner, 'orders/order-1'), { status: 'confirmed' }));
   await assertFails(updateDoc(doc(patient, 'orders/order-1'), { status: 'confirmed' }));
   await assertSucceeds(updateDoc(doc(patient, 'orders/order-1'), { status: 'cancelled' }));
@@ -365,14 +375,18 @@ test('prescription review is private to patient and linked pharmacy and cannot b
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
     await setDoc(doc(db, 'pharmacies/pharmacy-1'), { ownerId: 'pharmacy-owner', status: 'approved', isActive: true });
+    await setDoc(doc(db, 'pharmacies/pharmacy-2'), { ownerId: 'untrusted-pharmacy-owner', status: 'approved', isActive: true });
     await setDoc(doc(db, 'prescriptions/prescription-1'), { userId: 'patient-b', patientId: 'patient-b', pharmacyId: 'pharmacy-1', status: 'pending', fileRemotePath: 'Sehatak/prescriptions_patient-b/prescription-1/file.pdf' });
+    await setDoc(doc(db, 'prescriptions/prescription-untrusted'), { userId: 'patient-b', patientId: 'patient-b', pharmacyId: 'pharmacy-2', status: 'pending' });
   });
   const patient = env.authenticatedContext('patient-b').firestore();
   const owner = env.authenticatedContext('pharmacy-owner').firestore();
   const outsider = env.authenticatedContext('patient-a').firestore();
+  const untrustedOwner = env.authenticatedContext('untrusted-pharmacy-owner').firestore();
   await assertSucceeds(getDoc(doc(patient, 'prescriptions/prescription-1')));
   await assertSucceeds(getDoc(doc(owner, 'prescriptions/prescription-1')));
   await assertFails(getDoc(doc(outsider, 'prescriptions/prescription-1')));
+  await assertFails(getDoc(doc(untrustedOwner, 'prescriptions/prescription-untrusted')));
   await assertFails(updateDoc(doc(owner, 'prescriptions/prescription-1'), { status: 'approved' }));
   await assertFails(setDoc(doc(patient, 'prescriptions/forged-approved'), { userId: 'patient-b', patientId: 'patient-b', pharmacyId: 'pharmacy-1', status: 'approved' }));
   await assertSucceeds(setDoc(doc(patient, 'prescriptions/prescription-2'), { userId: 'patient-b', patientId: 'patient-b', pharmacyId: 'pharmacy-1', status: 'pending' }));
