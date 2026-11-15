@@ -2,7 +2,7 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {setGlobalOptions} = require('firebase-functions/v2/options');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
-const { canTransition, isPharmacyOwner, isPharmacyRole, isAdminRole } = require('./pharmacy_order_workflow');
+const { canTransition, isPharmacyOwner, isPharmacyRole, isAdminRole, isSuperAdminRole } = require('./pharmacy_order_workflow');
 const { canDeliveryTransition, isDeliveryCompanyOwner } = require('./delivery_workflow');
 const {appointmentInstantFromDateMarker} = require('./appointment-date');
 
@@ -208,7 +208,7 @@ exports.ensureVerificationNotice = onCall(async (request) => {
   const userSnap=await db.collection('users').doc(uid).get();
   if(!userSnap.exists) throw new HttpsError('not-found','حساب المستخدم غير موجود');
   const user=userSnap.data()||{}, role=String(user.role||'user');
-  if(['user','patient','admin','superAdmin'].includes(role) || user.isVerified===true) return {shown:false};
+  if(['user','patient'].includes(role) || isAdminRole(role) || user.isVerified===true) return {shown:false};
   const existing=await db.collection('notifications').where('userId','==',uid).where('type','==','verification_required').limit(1).get();
   if(existing.empty) await db.collection('notifications').add({userId:uid,type:'verification_required',title:'يجب توثيق حسابك',body:'أكمل توثيق حسابك المهني ورفع مستنداتك حتى تتمكن من استخدام ميزات المنصة الخاصة بدورك.',role,isRead:false,action:'verification',createdAt:FieldValue.serverTimestamp()});
   return {shown:true};
@@ -222,7 +222,7 @@ exports.submitVerificationRequest = onCall(async (request) => {
     const [userSnap,existingSnap]=await Promise.all([tx.get(userRef),tx.get(requestRef)]);
     if(!userSnap.exists)throw new HttpsError('not-found','حساب المستخدم غير موجود');
     const user=userSnap.data();role=String(user.role||'user');
-    if(['user','admin','superAdmin'].includes(role))throw new HttpsError('failed-precondition','هذا الحساب لا يحتاج إلى طلب توثيق مهني');
+    if(['user','patient'].includes(role) || isAdminRole(role))throw new HttpsError('failed-precondition','هذا الحساب لا يحتاج إلى طلب توثيق مهني');
     if(user.isVerified===true)throw new HttpsError('failed-precondition','الحساب موثق بالفعل');
     if(existingSnap.exists&&existingSnap.data().status==='pending')throw new HttpsError('failed-precondition','طلب التوثيق قيد المراجعة');
     if(!String(profile.fullName||'').trim())throw new HttpsError('invalid-argument','الاسم الكامل مطلوب');
@@ -234,13 +234,13 @@ exports.submitVerificationRequest = onCall(async (request) => {
     tx.set(requestRef,{requestId:uid,userId:uid,name:user.name||user.displayName||'',email:user.email||'',phone:user.phone||'',role,specialty:user.specialty||'',licenseNumber:String(profile.licenseNumber),experience:String(profile.experience),profile,documents,status:'pending',submittedAt:now,updatedAt:now},{merge:true});
     tx.update(userRef,{verificationStatus:'pending',isVerified:false,updatedAt:now});
   });
-  const admins=await db.collection('users').where('role','in',['admin','superAdmin']).get();
+  const admins=await db.collection('users').where('role','in',['admin','superAdmin','superadmin','super_admin','super-admin']).get();
   if(!admins.empty){const batch=db.batch();admins.docs.forEach(adminDoc=>batch.set(db.collection('notifications').doc(),{userId:adminDoc.id,type:'verification_request',title:'طلب توثيق حساب جديد',body:'طلب توثيق جديد لدور '+role+' يحتاج إلى المراجعة.',verificationRequestId:uid,role,isRead:false,createdAt:FieldValue.serverTimestamp()}));await batch.commit();}
   return {status:'pending',requestId:uid};
 });
 exports.reviewVerificationRequest = onCall(async (request) => {
   const adminUid=requireAuth(request);if(!(await isAdmin(adminUid)))throw new HttpsError('permission-denied','صلاحية المدير مطلوبة');const requestId=text(request.data.requestId,'requestId',128);const decision=text(request.data.decision,'decision',20);if(!['approve','reject'].includes(decision))throw new HttpsError('invalid-argument','قرار غير صالح');const requestRef=db.collection('verification_requests').doc(requestId);const userRef=db.collection('users').doc(requestId);let status='rejected';
-  await db.runTransaction(async(tx)=>{const [reqSnap,userSnap]=await Promise.all([tx.get(requestRef),tx.get(userRef)]);if(!reqSnap.exists||!userSnap.exists)throw new HttpsError('not-found','طلب التوثيق أو الحساب غير موجود');const req=reqSnap.data(),user=userSnap.data();if(req.userId!==requestId)throw new HttpsError('failed-precondition','طلب التوثيق غير صالح');if(['user','admin','superAdmin'].includes(String(user.role||'')))throw new HttpsError('failed-precondition','هذا الدور لا يدعم التوثيق المهني');if(req.status!=='pending')throw new HttpsError('failed-precondition','تمت معالجة الطلب مسبقاً');const approved=decision==='approve';status=approved?'approved':'rejected';const now=FieldValue.serverTimestamp();tx.update(requestRef,{status,reviewedBy:adminUid,reviewedAt:now,updatedAt:now});tx.update(userRef,{isVerified:approved,verificationStatus:status,isAvailable:approved,updatedAt:now});if(String(user.role||'')==='doctor'){const doctorRef=db.collection('doctors').doc(requestId);const doctorSnap=await tx.get(doctorRef);if(doctorSnap.exists)tx.update(doctorRef,{isVerified:approved,verificationStatus:status,isAvailable:approved,isOnline:false,verifiedAt:approved?now:null,verifiedBy:adminUid,updatedAt:now});}const roleName=String(user.role||'');const facilityCollection=['lab'].includes(roleName)?'labs':['hospital'].includes(roleName)?'hospitals':['pharmacy','pharmacist','pharmacyOwner'].includes(roleName)?'pharmacies':['clinic','medical_center','dental','dentist','ophthalmology','eye_clinic','optometrist'].includes(roleName)?'health_facilities':null;if(facilityCollection){const ref=db.collection(facilityCollection).doc(requestId);const snap=await tx.get(ref);if(snap.exists)tx.update(ref,{isVerified:approved,verificationStatus:status,isPublished:approved,verifiedAt:approved?now:null,verifiedBy:adminUid,updatedAt:now});}});
+  await db.runTransaction(async(tx)=>{const [reqSnap,userSnap]=await Promise.all([tx.get(requestRef),tx.get(userRef)]);if(!reqSnap.exists||!userSnap.exists)throw new HttpsError('not-found','طلب التوثيق أو الحساب غير موجود');const req=reqSnap.data(),user=userSnap.data();if(req.userId!==requestId)throw new HttpsError('failed-precondition','طلب التوثيق غير صالح');if(['user','patient'].includes(String(user.role||'')) || isAdminRole(user.role))throw new HttpsError('failed-precondition','هذا الدور لا يدعم التوثيق المهني');if(req.status!=='pending')throw new HttpsError('failed-precondition','تمت معالجة الطلب مسبقاً');const approved=decision==='approve';status=approved?'approved':'rejected';const now=FieldValue.serverTimestamp();tx.update(requestRef,{status,reviewedBy:adminUid,reviewedAt:now,updatedAt:now});tx.update(userRef,{isVerified:approved,verificationStatus:status,isAvailable:approved,updatedAt:now});if(String(user.role||'')==='doctor'){const doctorRef=db.collection('doctors').doc(requestId);const doctorSnap=await tx.get(doctorRef);if(doctorSnap.exists)tx.update(doctorRef,{isVerified:approved,verificationStatus:status,isAvailable:approved,isOnline:false,verifiedAt:approved?now:null,verifiedBy:adminUid,updatedAt:now});}const roleName=String(user.role||'');const facilityCollection=['lab'].includes(roleName)?'labs':['hospital'].includes(roleName)?'hospitals':['pharmacy','pharmacist','pharmacyOwner'].includes(roleName)?'pharmacies':['clinic','medical_center','dental','dentist','ophthalmology','eye_clinic','optometrist'].includes(roleName)?'health_facilities':null;if(facilityCollection){const ref=db.collection(facilityCollection).doc(requestId);const snap=await tx.get(ref);if(snap.exists)tx.update(ref,{isVerified:approved,verificationStatus:status,isPublished:approved,verifiedAt:approved?now:null,verifiedBy:adminUid,updatedAt:now});}});
   await db.collection('admin_audit_logs').add({actorId:adminUid,action:status==='approved'?'verification_approved':'verification_rejected',targetUserId:requestId,targetRole:String(user.role||''),requestId,createdAt:FieldValue.serverTimestamp()});
   await db.collection('notifications').add({userId:requestId,type:'verification_result',title:status==='approved'?'تم توثيق حسابك':'تم رفض طلب التوثيق',body:status==='approved'?'وافق مشرف المنصة على توثيق حسابك ويمكنك الآن استخدام ميزات دورك المهني.':'راجع متطلبات التوثيق وحدث بياناتك ثم أعد إرسال الطلب.',verificationStatus:status,isRead:false,createdAt:FieldValue.serverTimestamp()});return {requestId,status};
 });
@@ -463,7 +463,7 @@ exports.updateDeliveryTracking = onCall(async (request) => {
     if (String(order.deliveryCompanyId || '') !== companyId || String(order.userId || '') !== String(delivery.userId || '')) throw new HttpsError('failed-precondition', 'سجل التوصيل غير مرتبط بالطلب المحدد');
     const actorSnap = await tx.get(db.collection('users').doc(uid));
     const actorRole = actorSnap.exists ? String(actorSnap.data().role || '') : '';
-    const adminUser = ['admin', 'superAdmin'].includes(actorRole);
+    const adminUser = isAdminRole(actorRole);
     if (!adminUser && (actorRole !== 'delivery' || !isDeliveryCompanyOwner(company, uid, companyId))) {
       throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور التوصيل ومرتبطاً بالشركة المسندة');
     }
@@ -666,7 +666,7 @@ exports.adminUpdateUser = onCall(async (request) => {
   const snap = await userRef.get();
   if (!snap.exists) throw new HttpsError('not-found', 'المستخدم غير موجود');
   const current = snap.data() || {};
-  const isSuper = (await db.collection('users').doc(actorId).get()).data()?.role === 'superAdmin';
+  const isSuper = isSuperAdminRole((await db.collection('users').doc(actorId).get()).data()?.role);
   const updates = {updatedAt: FieldValue.serverTimestamp()};
   if (action === 'block' || action === 'unblock') updates.isSuspended = action === 'block';
   else if (action === 'verify') updates.isVerified = true;
@@ -679,7 +679,7 @@ exports.adminUpdateUser = onCall(async (request) => {
     const role = action.slice(5).trim();
     const allowed = ['user','doctor','pharmacist','pharmacyOwner','lab','hospital','clinic','medical_center','dentist','dental','ophthalmology','eye_clinic','optometrist','nurse','midwife','physiotherapist','paramedic','delivery','service','admin'];
     if (!allowed.includes(role)) throw new HttpsError('invalid-argument', 'الدور غير مسموح');
-    if (userId === actorId || role === 'superAdmin') throw new HttpsError('failed-precondition', 'لا يمكن تغيير صلاحية المدير الأعلى بهذه الطريقة');
+    if (userId === actorId || isSuperAdminRole(role)) throw new HttpsError('failed-precondition', 'لا يمكن تغيير صلاحية المدير الأعلى بهذه الطريقة');
     updates.role = role;
   } else throw new HttpsError('invalid-argument', 'إجراء المستخدم غير معروف');
   await userRef.set(updates, {merge: true});
@@ -689,7 +689,7 @@ exports.adminUpdateUser = onCall(async (request) => {
 
 exports.getSuperAdminDailyReport = onCall(async (request) => {
   const uid=requireAuth(request);const me=await db.collection('users').doc(uid).get();
-  if(!me.exists || me.data().role!=='superAdmin') throw new HttpsError('permission-denied','صلاحية المدير الأعلى مطلوبة');
+  if(!me.exists || !isSuperAdminRole(me.data().role)) throw new HttpsError('permission-denied','صلاحية المدير الأعلى مطلوبة');
   const since=new Date();since.setHours(0,0,0,0);
   const snap=await db.collection('admin_audit_logs').where('createdAt','>=',since).get();
   const counts={};snap.docs.forEach(d=>{const a=String(d.data().action||'unknown');counts[a]=(counts[a]||0)+1;});
