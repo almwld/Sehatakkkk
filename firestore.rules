@@ -573,9 +573,45 @@ service cloud.firestore {
     match /pharmacies/{id} { allow read: if true; allow write: if isAdmin(); }
     match /hospitals/{id} { allow read: if true; allow write: if isAdmin(); }
     match /products/{id} {
+      function isApprovedPharmacyOwner(pharmacyId) {
+        return isSignedIn()
+          && isPharmacyAccount(request.auth.uid)
+          && pharmacyId is string
+          && exists(/databases/$(database)/documents/pharmacies/$(pharmacyId))
+          && get(/databases/$(database)/documents/pharmacies/$(pharmacyId)).data.status == 'approved'
+          && get(/databases/$(database)/documents/pharmacies/$(pharmacyId)).data.get('isActive', true) == true
+          && (
+            get(/databases/$(database)/documents/pharmacies/$(pharmacyId)).data.get('ownerId', '') == request.auth.uid
+            || get(/databases/$(database)/documents/pharmacies/$(pharmacyId)).data.get('userId', '') == request.auth.uid
+            || pharmacyId == request.auth.uid
+          );
+      }
+
       allow read: if true;
-      allow create: if isSignedIn() && (request.resource.data.sellerId == request.auth.uid || request.resource.data.pharmacyId == request.auth.uid || (request.resource.data.pharmacyId is string && exists(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)) && get(/databases/$(database)/documents/pharmacies/$(request.resource.data.pharmacyId)).data.ownerId == request.auth.uid));
-      allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || resource.data.pharmacyId == request.auth.uid || (resource.data.pharmacyId is string && exists(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)) && get(/databases/$(database)/documents/pharmacies/$(resource.data.pharmacyId)).data.ownerId == request.auth.uid));
+
+      // Sellers may submit products only for an approved pharmacy. Review and
+      // publication flags are trusted-admin/backend controlled.
+      allow create: if isApprovedPharmacyOwner(request.resource.data.get('pharmacyId', null))
+        && request.resource.data.sellerId == request.auth.uid
+        && request.resource.data.get('approvalStatus', 'pending') == 'pending'
+        && request.resource.data.get('isPublished', false) == false
+        && !request.resource.data.keys().hasAny([
+          'approvedBy', 'approvedAt', 'publishedBy', 'publishedAt'
+        ]);
+
+      // Pharmacy owners may edit commercial details, but cannot change product
+      // ownership, moderation status, publication state, or trusted metadata.
+      allow update: if isApprovedPharmacyOwner(resource.data.pharmacyId)
+        && resource.data.sellerId == request.auth.uid
+        && request.resource.data.sellerId == resource.data.sellerId
+        && request.resource.data.pharmacyId == resource.data.pharmacyId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'category', 'price', 'offerPrice', 'discountPrice',
+          'stock', 'quantity', 'drugId', 'imageUrl', 'description', 'updatedAt'
+        ]);
+
+      allow delete: if isApprovedPharmacyOwner(resource.data.pharmacyId)
+        && resource.data.sellerId == request.auth.uid;
     }
     match /prescriptions/{id} {
       function isAssignedPharmacyOwner() {
