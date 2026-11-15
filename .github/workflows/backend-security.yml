@@ -1,0 +1,67 @@
+name: Sehatak Backend Security
+
+on:
+  push:
+    branches: [master, "security/**"]
+    paths:
+      - "backend/**"
+      - "livekit-token-server/**"
+      - "functions/**"
+      - "Dockerfile"
+      - ".github/workflows/backend-security.yml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "backend/**"
+      - "livekit-token-server/**"
+      - "functions/**"
+      - "Dockerfile"
+      - ".github/workflows/backend-security.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sehatak-backend-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            livekit-token-server/package-lock.json
+            functions/package-lock.json
+
+      - name: Install locked backend dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
+
+      - name: Install locked LiveKit dependencies
+        run: npm ci --prefix livekit-token-server --no-audit --no-fund
+
+      - name: Install locked Cloud Functions dependencies
+        run: npm ci --prefix functions --no-audit --no-fund
+
+      - name: Run backend security tests
+        run: npm test --prefix backend
+
+      - name: Run LiveKit security tests
+        run: npm run test:security --prefix livekit-token-server
+
+      - name: Audit backend production dependencies
+        run: npm audit --prefix backend --omit=dev --audit-level=high
+
+      - name: Audit LiveKit production dependencies
+        run: npm audit --prefix livekit-token-server --omit=dev --audit-level=high
+
+      - name: Audit Cloud Functions production dependencies
+        run: npm audit --prefix functions --omit=dev --audit-level=high

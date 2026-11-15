@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node server.js",
     "start:notifications": "node notification-server.js",
+    "test:security": "node --test security.test.js",
     "test:notifications": "node test-notification-integration.js",
     "test:backend": "bash tests/run-all.sh",
     "test:connection": "node tests/test-01-connection.js",

@@ -6,9 +6,26 @@ const express = require('express');
 const admin = require('firebase-admin');
 const { AccessToken } = require('livekit-server-sdk');
 const crypto = require('crypto');
+const {
+  createCorsMiddleware,
+  securityHeaders,
+  createRateLimiter,
+} = require('./security.middleware');
 require('dotenv').config();
 
 const app = express();
+const proxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS || '1', 10);
+if (!Number.isInteger(proxyHops) || proxyHops < 0 || proxyHops > 5) {
+  throw new Error('TRUST_PROXY_HOPS must be an integer between 0 and 5');
+}
+app.set('trust proxy', proxyHops);
+app.disable('x-powered-by');
+app.use(securityHeaders);
+app.use(createCorsMiddleware());
+app.use('/token', createRateLimiter({ windowMs: 60_000, max: 20 }));
+app.use('/media/upload', createRateLimiter({ windowMs: 60_000, max: 10 }));
+app.use('/media/share', createRateLimiter({ windowMs: 60_000, max: 10 }));
+app.use(createRateLimiter({ windowMs: 60_000, max: 120 }));
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 3000);
@@ -119,7 +136,7 @@ async function verifyFirebaseUser(req) {
     throw error;
   }
   try {
-    return await admin.auth().verifyIdToken(auth.substring(7));
+    return await admin.auth().verifyIdToken(auth.substring(7), true);
   } catch (_) {
     const error = new Error('Invalid Firebase ID token');
     error.statusCode = 401;

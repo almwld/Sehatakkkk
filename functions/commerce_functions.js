@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 const db = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;
 const crypto = require('crypto');
+const {resolveLabBookingPricing} = require('./lab_booking_pricing');
 function requireAuth(request) { if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'يجب تسجيل الدخول أولاً'); return request.auth.uid; }
 function amount(value, allowZero = false) { const n = Number(value); if (!Number.isFinite(n) || n < 0 || n > 100000000 || (!allowZero && n <= 0)) throw new HttpsError('invalid-argument', 'مبلغ غير صالح'); return Math.round(n * 100) / 100; }
 function text(value, field, max = 300) { const v = String(value ?? '').trim(); if (!v || v.length > max) throw new HttpsError('invalid-argument', `الحقل ${field} غير صالح`); return v; }
@@ -208,5 +209,53 @@ exports.checkoutCart = onCall(async (request) => {
   });
 });
 exports.activateSubscription = onCall(async (request) => { const uid = requireAuth(request); const planCode = text(request.data.planCode, 'planCode', 80); const billing = text(request.data.billing, 'billing', 20); if (!['monthly', 'annual'].includes(billing)) throw new HttpsError('invalid-argument', 'نوع الاشتراك غير صالح'); const plan = subscriptionCatalog[planCode]; if (!plan) throw new HttpsError('not-found', 'الباقة غير موجودة'); const price = billing === 'annual' ? plan.annual : plan.monthly; const idempotencyKey = text(request.data.idempotencyKey || `subscription|${uid}|${planCode}|${billing}|${Date.now()}`, 'idempotencyKey', 180); const subscriptionId = `sub_${uid}_${digest(idempotencyKey)}`; const subRef = db.collection('subscriptions').doc(subscriptionId); await db.runTransaction(async (tx) => { const existing = await tx.get(subRef); if (existing.exists) return; const active = await tx.get(db.collection('subscriptions').where('userId', '==', uid).where('status', '==', 'active').limit(1)); if (!active.empty) throw new HttpsError('already-exists', 'لديك اشتراك نشط بالفعل'); const payment = await chargeWallet(tx, uid, price, `اشتراك ${plan.name}`, `تفعيل ${plan.name} - ${billing === 'annual' ? 'سنوي' : 'شهري'}`, 'subscription', subscriptionId, {planCode, billing}, idempotencyKey); const now = FieldValue.serverTimestamp(); const start = new Date(); const end = new Date(start); if (billing === 'annual') end.setFullYear(end.getFullYear() + 1); else end.setMonth(end.getMonth() + 1); tx.set(subRef, {subscriptionId, userId: uid, planCode, planName: plan.name, billing, price, currency: 'YER', status: 'active', transactionId: payment.txId, startedAt: start, expiresAt: end, createdAt: now, updatedAt: now}); writeInvoice(tx, {uid, transactionId: payment.txId, orderId: subscriptionId, serviceType: 'subscription', subtotal: price, deliveryFee: 0, total: price, items: [{name: plan.name, quantity: 1, unitPrice: price, lineTotal: price}], title: `فاتورة اشتراك ${plan.name}`}); }); return {subscriptionId, status: 'active', price, currency: 'YER'}; });
-exports.payLabBooking = onCall(async (request) => { const uid = requireAuth(request); const bookingId = text(request.data.bookingId, 'bookingId', 150); const ref = db.collection('lab_bookings').doc(bookingId); const idempotencyKey = text(request.data.idempotencyKey || `lab|${uid}|${bookingId}`, 'idempotencyKey', 180); await db.runTransaction(async (tx) => { const snap = await tx.get(ref); if (!snap.exists) throw new HttpsError('not-found', 'حجز المختبر غير موجود'); const booking = snap.data(); if (booking.patientId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذا الحجز'); if (booking.paymentStatus === 'paid') return; const total = amount(booking.total ?? booking.totalPrice ?? booking.price); const payment = await chargeWallet(tx, uid, total, `حجز فحص ${booking.labName || ''}`, 'دفع حجز المختبر', 'lab', bookingId, {labId: booking.labId, testIds: booking.testIds || []}, idempotencyKey); tx.update(ref, {paymentStatus: 'paid', paymentMethod: 'wallet', transactionId: payment.txId, status: 'confirmed', updatedAt: FieldValue.serverTimestamp()}); writeInvoice(tx, {uid, transactionId: payment.txId, orderId: bookingId, serviceType: 'lab', subtotal: total, deliveryFee: 0, total, items: booking.tests || [], title: 'فاتورة حجز فحص مختبر'}); }); return {bookingId, status: 'paid'}; });
+exports.payLabBooking = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const bookingId = text(request.data.bookingId, 'bookingId', 150);
+  const ref = db.collection('lab_bookings').doc(bookingId);
+  const idempotencyKey = text(request.data.idempotencyKey || `lab|${uid}|${bookingId}`, 'idempotencyKey', 180);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) throw new HttpsError('not-found', 'حجز المختبر غير موجود');
+    const booking = snap.data();
+    if (booking.patientId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذا الحجز');
+    if (booking.paymentStatus === 'paid') return;
+
+    const labId = text(booking.labId, 'labId', 128);
+    const labSnap = await tx.get(db.collection('labs').doc(labId));
+    if (!labSnap.exists || labSnap.data().isVerified !== true) {
+      throw new HttpsError('failed-precondition', 'المختبر غير موثق أو غير متاح للدفع');
+    }
+
+    let pricing;
+    try {
+      pricing = resolveLabBookingPricing(labSnap.data(), booking);
+    } catch (error) {
+      throw new HttpsError('failed-precondition', 'تعذر التحقق من الفحوصات وأسعارها من سجل المختبر');
+    }
+    const total = amount(pricing.total);
+    const labName = String(labSnap.data().name || booking.labName || '');
+    const payment = await chargeWallet(
+      tx, uid, total, `حجز فحص ${labName}`, 'دفع حجز المختبر', 'lab', bookingId,
+      {labId, testIds: pricing.testIds}, idempotencyKey,
+    );
+    tx.update(ref, {
+      total,
+      totalPrice: total,
+      tests: pricing.tests,
+      testIds: pricing.testIds,
+      paymentStatus: 'paid',
+      paymentMethod: 'wallet',
+      transactionId: payment.txId,
+      status: 'confirmed',
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    writeInvoice(tx, {
+      uid, transactionId: payment.txId, orderId: bookingId, serviceType: 'lab',
+      subtotal: total, deliveryFee: 0, total, items: pricing.tests,
+      title: 'فاتورة حجز فحص مختبر',
+    });
+  });
+  return {bookingId, status: 'paid'};
+});
 exports.payAppointment = onCall(async (request) => { const uid = requireAuth(request); const appointmentId = text(request.data.appointmentId, 'appointmentId', 150); const ref = db.collection('appointments').doc(appointmentId); const idempotencyKey = text(request.data.idempotencyKey || `appointment|${uid}|${appointmentId}`, 'idempotencyKey', 180); await db.runTransaction(async (tx) => { const snap = await tx.get(ref); if (!snap.exists) throw new HttpsError('not-found', 'الموعد غير موجود'); const appointment = snap.data(); if (appointment.patientId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذا الموعد'); if (appointment.paymentStatus === 'paid') return; const doctorSnap = await tx.get(db.collection('doctors').doc(String(appointment.doctorId))); const fee = doctorSnap.exists ? Number(doctorSnap.data().consultationFee ?? doctorSnap.data().fee ?? 0) : 0; if (!Number.isFinite(fee) || fee <= 0) { tx.update(ref, {paymentStatus: 'not_required', updatedAt: FieldValue.serverTimestamp()}); return; } const payment = await chargeWallet(tx, uid, fee, `حجز مع ${appointment.doctorName || 'الطبيب'}`, 'دفع موعد طبي', 'appointment', appointmentId, {doctorId: appointment.doctorId, date: appointment.date, time: appointment.time}, idempotencyKey); tx.update(ref, {paymentStatus: 'paid', paymentMethod: 'wallet', transactionId: payment.txId, fee, updatedAt: FieldValue.serverTimestamp()}); writeInvoice(tx, {uid, transactionId: payment.txId, orderId: appointmentId, serviceType: 'appointment', subtotal: fee, deliveryFee: 0, total: fee, items: [{name: `حجز مع ${appointment.doctorName || 'الطبيب'}`, quantity: 1, unitPrice: fee, lineTotal: fee}], title: 'فاتورة حجز موعد طبي'}); }); return {appointmentId, status: 'paid'}; });

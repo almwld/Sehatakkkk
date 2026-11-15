@@ -4,13 +4,26 @@ const crypto = require('crypto');
 
 const nextcloud = require('../services/nextcloud.service');
 const { getFirestore } = require('../services/firebase.service');
+const { MAX_CHAT_FILE_BYTES, isAllowedChatFile } = require('../security/file-upload-policy');
 
 const router = express.Router();
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 100 * 1024 * 1024,
+    fileSize: MAX_CHAT_FILE_BYTES,
+    files: 1,
+    fields: 10,
+    parts: 12,
+    fieldSize: 10 * 1024,
+  },
+  fileFilter: (_req, file, done) => {
+    if (!isAllowedChatFile(file)) {
+      const error = new Error('Unsupported attachment type or file extension.');
+      error.status = 415;
+      return done(error);
+    }
+    return done(null, true);
   },
 });
 
@@ -36,7 +49,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
     if (
       typeof chatId !== 'string' ||
-      chatId.trim().length === 0
+      !/^[A-Za-z0-9_-]{1,150}$/.test(chatId.trim())
     ) {
       return res.status(400).json({
         success: false,

@@ -76,6 +76,12 @@ beforeEach(async () => {
     await setDoc(doc(db, 'users/untrusted-pharmacy-owner'), {
       uid: 'untrusted-pharmacy-owner', role: 'user', isVerified: false,
     });
+    await setDoc(doc(db, 'pharmacies/pharmacy-1'), {
+      ownerId: 'pharmacy-owner',
+      userId: 'pharmacy-owner',
+      status: 'approved',
+      isActive: true,
+    });
     await setDoc(doc(db, 'shared_records/share-1'), {
       recordId: 'record-1',
       sharedBy: 'patient-a',
@@ -97,6 +103,11 @@ beforeEach(async () => {
     await setDoc(doc(db, 'users/patient-b/following/patient-c'), {
       userId: 'patient-c',
       createdAt: new Date(),
+    });
+    await setDoc(doc(db, 'notifications_log/log-1'), {
+      userId: 'patient-b',
+      event: 'synthetic-delivery-event',
+      providerResponse: 'synthetic',
     });
   });
 });
@@ -499,5 +510,110 @@ test('chat messages require an existing parent chat and participant membership',
   }));
   await assertFails(setDoc(doc(outsider, 'chats/chat-1/messages/forged'), {
     senderId: 'patient-a', chatId: 'chat-1', timestamp: serverTimestamp(),
+  }));
+});
+
+
+test('pharmacy sellers can submit pending products but cannot self-approve or publish them', async () => {
+  const seller = env.authenticatedContext('pharmacy-owner').firestore();
+  await assertSucceeds(setDoc(doc(seller, 'products/pending-product'), {
+    name: 'Synthetic medicine',
+    category: 'medicine',
+    price: 100,
+    stock: 5,
+    pharmacyId: 'pharmacy-1',
+    sellerId: 'pharmacy-owner',
+    approvalStatus: 'pending',
+    isPublished: false,
+    isActive: true,
+  }));
+  await assertFails(setDoc(doc(seller, 'products/forged-approved-product'), {
+    name: 'Forged approved medicine',
+    price: 100,
+    stock: 5,
+    pharmacyId: 'pharmacy-1',
+    sellerId: 'pharmacy-owner',
+    approvalStatus: 'approved',
+    isPublished: true,
+    isActive: true,
+  }));
+});
+
+test('pharmacy sellers may edit commercial fields but cannot change ownership or moderation fields', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'products/product-1'), {
+      name: 'Synthetic medicine',
+      price: 100,
+      stock: 5,
+      pharmacyId: 'pharmacy-1',
+      sellerId: 'pharmacy-owner',
+      approvalStatus: 'approved',
+      isPublished: true,
+      isActive: true,
+    });
+  });
+  const seller = env.authenticatedContext('pharmacy-owner').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(updateDoc(doc(seller, 'products/product-1'), {
+    price: 120,
+    stock: 4,
+    updatedAt: new Date(),
+  }));
+  await assertFails(updateDoc(doc(seller, 'products/product-1'), {
+    approvalStatus: 'pending',
+    isPublished: false,
+  }));
+  await assertFails(updateDoc(doc(seller, 'products/product-1'), {
+    sellerId: 'patient-a',
+  }));
+  await assertFails(updateDoc(doc(outsider, 'products/product-1'), {
+    price: 1,
+  }));
+});
+
+test('unapproved or non-pharmacy accounts cannot create seller products', async () => {
+  const ordinary = env.authenticatedContext('patient-b').firestore();
+  const untrusted = env.authenticatedContext('untrusted-pharmacy-owner').firestore();
+  await assertFails(setDoc(doc(ordinary, 'products/ordinary-forged'), {
+    name: 'Forged product',
+    price: 10,
+    pharmacyId: 'pharmacy-1',
+    sellerId: 'patient-b',
+    approvalStatus: 'pending',
+    isPublished: false,
+  }));
+  await assertFails(setDoc(doc(untrusted, 'products/untrusted-forged'), {
+    name: 'Forged product',
+    price: 10,
+    pharmacyId: 'pharmacy-1',
+    sellerId: 'untrusted-pharmacy-owner',
+    approvalStatus: 'pending',
+    isPublished: false,
+  }));
+});
+
+
+test('internal notification delivery logs are not readable by ordinary signed-in clients', async () => {
+  const owner = env.authenticatedContext('patient-b').firestore();
+  const admin = env.authenticatedContext('platform-admin').firestore();
+  await assertFails(getDoc(doc(owner, 'notifications_log/log-1')));
+  await assertFails(getDoc(doc(admin, 'notifications_log/log-1')));
+});
+
+
+test('patients and laboratories cannot forge lab booking prices or payment status', async () => {
+  const patient = env.authenticatedContext('patient-b').firestore();
+  const labOwner = env.authenticatedContext('lab-owner').firestore();
+  await assertFails(updateDoc(doc(patient, 'lab_bookings/booking-1'), {
+    totalPrice: 1,
+  }));
+  await assertFails(updateDoc(doc(patient, 'lab_bookings/booking-1'), {
+    paymentStatus: 'paid',
+  }));
+  await assertFails(updateDoc(doc(labOwner, 'lab_bookings/booking-1'), {
+    totalPrice: 1,
+  }));
+  await assertFails(updateDoc(doc(labOwner, 'lab_bookings/booking-1'), {
+    paymentStatus: 'paid',
   }));
 });
