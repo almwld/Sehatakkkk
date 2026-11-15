@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_assets.dart';
@@ -13,6 +14,11 @@ class MedicationAlertsReportScreen extends StatefulWidget {
 
 class _MedicationAlertsReportScreenState extends State<MedicationAlertsReportScreen> {
   String _t(String value) => AppStrings.of(context).translate(value);
+
+  String _localizedAlertField(Map<String, dynamic> item, String field, {String fallback = ''}) {
+    final raw = item[field]?.toString() ?? '';
+    return localizedField(item, field, AppStrings.of(context).locale, fallback: fallback.isEmpty ? _t(raw) : fallback).trim();
+  }
 
   List<Map<String, dynamic>> _items = [];
   @override void initState() { super.initState(); _load(); }
@@ -50,14 +56,18 @@ class _MedicationAlertsReportScreenState extends State<MedicationAlertsReportScr
               itemCount: _items.length,
               itemBuilder: (_, i) {
                 final item = _items[i];
+                final name = _localizedAlertField(item, 'name', fallback: _t('دواء'));
+                final dose = _localizedAlertField(item, 'dose');
+                final time = _localizedAlertField(item, 'time');
+                final details = [dose, time].where((value) => value.isNotEmpty).join(' • ');
                 return Card(child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: AppColors.primary.withOpacity(.1),
                     child: SvgPicture.asset(AppAssets.medicineIcon, width: 25, height: 25,
                       colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn)),
                   ),
-                  title: Text((item['name'] ?? AppStrings.of(context).translate('دواء')).toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('${item['dose'] ?? ''} • ${item['time'] ?? ''}'),
+                  title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(details),
                   trailing: SvgPicture.asset(AppAssets.notificationBellIcon, width: 22, height: 22,
                     colorFilter: ColorFilter.mode(item['enabled'] == false ? Colors.grey : AppColors.primary, BlendMode.srcIn)),
                 ));
