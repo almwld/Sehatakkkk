@@ -72,10 +72,8 @@ class _AppointmentsScreenState
             .watchPatientAppointments(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return _buildErrorState(
-              isDark,
-              snapshot.error.toString(),
-            );
+            debugPrint('Patient appointments stream failed: ${snapshot.error}');
+            return _buildErrorState(isDark, '');
           }
 
           if (snapshot.connectionState ==

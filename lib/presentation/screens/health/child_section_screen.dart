@@ -24,7 +24,10 @@ class ChildSectionScreen extends StatelessWidget {
       body: StreamBuilder<ChildModel?>(
         stream: ChildService.instance.streamChild(childId),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text('${_t(context, 'تعذر تحميل الملف:')} ${snapshot.error}'));
+          if (snapshot.hasError) {
+            debugPrint('Child profile stream failed: ${snapshot.error}');
+            return Center(child: Text(_t(context, 'تعذر تحميل ملف الطفل')));
+          }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final child = snapshot.data;
           if (child == null) return Center(child: Text(_t(context, 'لم يُعثر على ملف الطفل')));

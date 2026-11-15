@@ -23,7 +23,10 @@ class FamilyDashboardScreen extends StatelessWidget {
       body: StreamBuilder<List<ChildModel>>(
         stream: ChildService.instance.streamChildren(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text(strings.translate('تعذر تحميل الأطفال: ')+snapshot.error.toString()));
+          if (snapshot.hasError) {
+            debugPrint('Family children stream failed: ${snapshot.error}');
+            return Center(child: Text(strings.translate('تعذر تحميل بيانات الأطفال')));
+          }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final children = snapshot.data!;
           if (children.isEmpty) {

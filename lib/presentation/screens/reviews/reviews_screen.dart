@@ -23,7 +23,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     return Scaffold(
       appBar: CustomAppBar(title: Text('${AppStrings.of(context).translate('تقييمات')} ${widget.targetName}'), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [if (!widget.isProvider) IconButton(icon: const Icon(Icons.add), onPressed: _showAddReviewDialog)]),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(stream: stream, builder: (context, snapshot) {
-        if (snapshot.hasError) return Center(child: Text('${AppStrings.of(context).translate('خطأ')}: ${snapshot.error}'));
+        if (snapshot.hasError) {
+          debugPrint('Reviews stream failed: ${snapshot.error}');
+          return Center(child: Text(AppStrings.of(context).translate('تعذر تحميل التقييمات')));
+        }
         if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
         final reviews = snapshot.data?.docs.map((d) => ReviewModel.fromFirestore(d.data(), d.id)).toList() ?? [];
         if (reviews.isEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_border, size: 64, color: Colors.grey), const SizedBox(height: 12), Text(AppStrings.of(context).translate('لا توجد تقييمات')), if (!widget.isProvider) ElevatedButton(onPressed: _showAddReviewDialog, child: Text(AppStrings.of(context).translate('أضف تقييمك')))]));

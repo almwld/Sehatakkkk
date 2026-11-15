@@ -33,7 +33,10 @@ class _AdManagementScreenState extends State<AdManagementScreen> {
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: stream,
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text('${_t('خطأ')}: ${snapshot.error}'));
+          if (snapshot.hasError) {
+            debugPrint('Advertisement stream failed: ${snapshot.error}');
+            return Center(child: Text(_t('تعذر تحميل الإعلانات')));
+          }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final ads = snapshot.data!.docs.map((d) => AdModel.fromFirestore(d.data(), d.id)).where((a) => _status == 'الكل' || a.statusText == _status).toList();
           return Column(children: [

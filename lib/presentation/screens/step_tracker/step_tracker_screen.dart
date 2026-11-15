@@ -92,7 +92,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
             _buildHero(isDark, progress),
             const SizedBox(height: 16),
             Row(children: [
-              Expanded(child: _metricCard('المسافة', _distance.toStringAsFixed(2) + ' كم', Icons.route_outlined, isDark)),
+              Expanded(child: _metricCard('المسافة', _distance.toStringAsFixed(2) + ' ' + _t('كم'), Icons.route_outlined, isDark)),
               const SizedBox(width: 10),
               Expanded(child: _metricCard('السعرات', _calories.toString() + ' kcal', Icons.local_fire_department_outlined, isDark)),
             ]),

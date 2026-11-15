@@ -39,10 +39,11 @@ class PatientPrescriptions extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            debugPrint('Patient prescriptions stream failed: ${snapshot.error}');
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Text(AppStrings.of(context).translate('تعذر تحميل الوصفات') + ': ${snapshot.error}'),
+                child: Text(AppStrings.of(context).translate('تعذر تحميل الوصفات')),
               ),
             );
           }

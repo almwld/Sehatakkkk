@@ -61,7 +61,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               stream: recordsQuery.snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-                if (snapshot.hasError) return Center(child: Text('${_t('حدث خطأ')}: ${snapshot.error}'));
+                if (snapshot.hasError) {
+                  debugPrint('Medical records stream failed: ${snapshot.error}');
+                  return Center(child: Text(_t('تعذر تحميل السجلات الطبية')));
+                }
                 var records = snapshot.data?.docs ?? <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                 final query = _searchCtrl.text.trim().toLowerCase();
                 if (query.isNotEmpty) {
