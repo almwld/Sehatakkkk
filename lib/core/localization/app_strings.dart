@@ -5426,6 +5426,23 @@ class AppStrings {
       'تعذر تحميل صلاحيات الحساب. تحقق من الاتصال ثم أعد المحاولة.': ['Could not load account permissions. Check your connection and try again.', 'Impossible de charger les autorisations du compte. Vérifiez votre connexion et réessayez.'],
       'تعذر العثور على ملف الحساب. أعد تسجيل الدخول أو تواصل مع الدعم.': ['The account profile could not be found. Sign in again or contact support.', 'Le profil du compte est introuvable. Reconnectez-vous ou contactez l’assistance.'],
       'نوع الحساب غير محدد. تواصل مع الدعم لتصحيح بيانات الدور.': ['The account type is missing. Contact support to correct the account role.', 'Le type de compte est manquant. Contactez l’assistance pour corriger le rôle du compte.'],
+      'تعذر تحديث حالة المستشفى': ['Could not update hospital availability', 'Impossible de mettre à jour la disponibilité de l’hôpital'],
+      'تحديث حالة الحجز': ['Update booking status', 'Mettre à jour le statut de réservation'],
+      'تحديد كمكتمل': ['Mark as completed', 'Marquer comme terminé'],
+      'إلغاء الحجز': ['Cancel booking', 'Annuler la réservation'],
+      'تعذر تحديث حالة الحجز': ['Could not update booking status', 'Impossible de mettre à jour le statut de réservation'],
+      'تعذر تحميل الأقسام': ['Could not load departments', 'Impossible de charger les services'],
+      'إضافة قسم': ['Add department', 'Ajouter un service'],
+      'لم تتم إضافة أقسام بعد': ['No departments have been added yet', 'Aucun service n’a encore été ajouté'],
+      'القسم متوقف': ['Department inactive', 'Service inactif'],
+      'إضافة قسم جديد': ['Add a new department', 'Ajouter un nouveau service'],
+      'اسم القسم': ['Department name', 'Nom du service'],
+      'وصف القسم': ['Department description', 'Description du service'],
+      'تعذر حفظ القسم': ['Could not save department', 'Impossible d’enregistrer le service'],
+      'تعذر تحديث القسم': ['Could not update department', 'Impossible de mettre à jour le service'],
+      'حذف القسم': ['Delete department', 'Supprimer le service'],
+      'هل تريد حذف هذا القسم؟': ['Do you want to delete this department?', 'Voulez-vous supprimer ce service ?'],
+      'تعذر حذف القسم': ['Could not delete department', 'Impossible de supprimer le service'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
