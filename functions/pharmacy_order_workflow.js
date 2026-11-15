@@ -15,7 +15,7 @@ function canTransition(current, next) {
 }
 
 function isAdminRole(role) {
-  const normalized = String(role || '').trim().toLowerCase().replace(/[\\s-]+/g, '_');
+  const normalized = String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
   return ['admin', 'superadmin', 'super_admin'].includes(normalized);
 }
 
