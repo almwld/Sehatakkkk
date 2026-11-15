@@ -68,8 +68,20 @@ class _RoleBasedDashboardScreenState extends State<RoleBasedDashboardScreen> {
           );
         }
         final normalized = rawRole.toLowerCase();
+        // Patient accounts may be stored using the Arabic role label by older
+        // registration flows. Treat those aliases exactly like "patient" so
+        // the My Health tab keeps the complete PatientDashboard, including
+        // the packages and subscriptions service.
+        const patientRoleAliases = <String>{
+          'user',
+          'patient',
+          'مريض',
+          'مستخدم',
+        };
         final role = normalized == 'superadmin' ? 'superAdmin' : normalized;
-        if (role == 'user' || role == 'patient') return const PatientDashboard();
+        if (patientRoleAliases.contains(normalized)) {
+          return const PatientDashboard();
+        }
         if (role != 'admin' && role != 'superAdmin') {
           WidgetsBinding.instance.addPostFrameCallback((_) => _ensureNotice(role));
         }
