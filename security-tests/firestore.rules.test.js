@@ -369,6 +369,9 @@ test('pharmacy order reads are scoped to patient and assigned pharmacy owner; cl
     await setDoc(doc(db, 'orders/order-1'), { userId: 'patient-b', pharmacyId: 'pharmacy-1', providerId: 'pharmacy-owner', type: 'pharmacy', status: 'pending', total: 500 });
     await setDoc(doc(db, 'orders/order-paid'), { userId: 'patient-b', pharmacyId: 'pharmacy-1', providerId: 'pharmacy-owner', type: 'pharmacy', status: 'pending', paymentStatus: 'paid', total: 500 });
     await setDoc(doc(db, 'pharmacies/pharmacy-2'), { ownerId: 'untrusted-pharmacy-owner', status: 'approved', isActive: true });
+    await setDoc(doc(db, 'users/pharmacy-owner-legacy'), { uid: 'pharmacy-owner-legacy', role: 'pharmacy-owner', isVerified: true });
+    await setDoc(doc(db, 'pharmacies/pharmacy-legacy'), { ownerId: 'pharmacy-owner-legacy', status: 'approved', isActive: true });
+    await setDoc(doc(db, 'orders/order-legacy-pharmacy'), { userId: 'patient-b', pharmacyId: 'pharmacy-legacy', providerId: 'pharmacy-owner-legacy', type: 'pharmacy', status: 'pending', total: 500 });
     await setDoc(doc(db, 'orders/order-untrusted-pharmacy'), { userId: 'patient-b', pharmacyId: 'pharmacy-2', providerId: 'untrusted-pharmacy-owner', type: 'pharmacy', status: 'pending', total: 500 });
   });
   const patient = env.authenticatedContext('patient-b').firestore();
@@ -376,10 +379,12 @@ test('pharmacy order reads are scoped to patient and assigned pharmacy owner; cl
   const outsider = env.authenticatedContext('patient-a').firestore();
   const admin = env.authenticatedContext('platform-admin').firestore();
   const untrustedOwner = env.authenticatedContext('untrusted-pharmacy-owner').firestore();
+  const legacyPharmacyOwner = env.authenticatedContext('pharmacy-owner-legacy').firestore();
   await assertSucceeds(getDoc(doc(patient, 'orders/order-1')));
   await assertSucceeds(getDoc(doc(owner, 'orders/order-1')));
   await assertFails(getDoc(doc(outsider, 'orders/order-1')));
   await assertFails(getDoc(doc(untrustedOwner, 'orders/order-untrusted-pharmacy')));
+  await assertSucceeds(getDoc(doc(legacyPharmacyOwner, 'orders/order-legacy-pharmacy')));
   await assertFails(updateDoc(doc(owner, 'orders/order-1'), { status: 'confirmed' }));
   await assertFails(updateDoc(doc(patient, 'orders/order-1'), { status: 'confirmed' }));
   await assertSucceeds(updateDoc(doc(patient, 'orders/order-1'), { status: 'cancelled' }));
