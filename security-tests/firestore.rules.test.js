@@ -104,6 +104,11 @@ beforeEach(async () => {
       userId: 'patient-c',
       createdAt: new Date(),
     });
+    await setDoc(doc(db, 'notifications_log/log-1'), {
+      userId: 'patient-b',
+      event: 'synthetic-delivery-event',
+      providerResponse: 'synthetic',
+    });
   });
 });
 
@@ -585,4 +590,12 @@ test('unapproved or non-pharmacy accounts cannot create seller products', async 
     approvalStatus: 'pending',
     isPublished: false,
   }));
+});
+
+
+test('internal notification delivery logs are not readable by ordinary signed-in clients', async () => {
+  const owner = env.authenticatedContext('patient-b').firestore();
+  const admin = env.authenticatedContext('platform-admin').firestore();
+  await assertFails(getDoc(doc(owner, 'notifications_log/log-1')));
+  await assertFails(getDoc(doc(admin, 'notifications_log/log-1')));
 });
