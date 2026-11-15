@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner, isPharmacyRole } = require('../pharmacy_order_workflow');
+const { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner, isPharmacyRole, isAdminRole } = require('../pharmacy_order_workflow');
 
 test('pharmacy workflow permits only the expected forward transitions', () => {
   assert.deepEqual(PHARMACY_ORDER_TRANSITIONS.pending, ['confirmed', 'cancelled']);
@@ -40,4 +40,12 @@ test('pharmacy role aliases match the account roles used by app registration and
   for (const role of ['user', 'doctor', 'lab', 'delivery', 'admin', '']) {
     assert.equal(isPharmacyRole(role), false, role);
   }
+});
+
+test('admin role checks match the canonical app role spelling', () => {
+  assert.equal(isAdminRole('admin'), true);
+  assert.equal(isAdminRole('superAdmin'), true);
+  assert.equal(isAdminRole('superadmin'), true);
+  assert.equal(isAdminRole('super_admin'), false);
+  assert.equal(isAdminRole('user'), false);
 });
