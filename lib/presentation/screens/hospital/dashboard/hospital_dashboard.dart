@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -52,6 +54,7 @@ class _HospitalDashboardState extends State<HospitalDashboard> with SingleTicker
       appBar: CustomAppBar(title: Text(_hospitalData?['name'] ?? _t('لوحة تحكم المستشفى')), backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, actions: [
         Row(children: [Text(_t('مفتوح'), style: TextStyle(color: Colors.white70, fontSize: 12)), Switch(value: _isOpen, onChanged: (value) async { setState(() => _isOpen = value); if (user != null) await FirebaseFirestore.instance.collection('hospitals').doc(user.uid).update({'isOpen': value}); }, activeColor: Colors.green, inactiveThumbColor: Colors.red)]),
         IconButton(icon: const Icon(Icons.campaign), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdManagementScreen(providerId: user?.uid, providerName: _hospitalData?['name'], providerType: AdType.hospital)))),
+        IconButton(icon: const Icon(Icons.groups_2_outlined), tooltip: _t('إدارة الكادر الصحي'), onPressed: () => context.push(AppRouter.professionalAffiliations)),
         IconButton(icon: const Icon(Icons.calendar_today), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen()))),
       ]),
       body: Column(children: [

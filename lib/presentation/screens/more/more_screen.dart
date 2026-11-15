@@ -1,5 +1,7 @@
+import 'package:sehatak/app_router.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -70,6 +72,8 @@ class MoreScreen extends StatefulWidget {
   @override
   State<MoreScreen> createState() => _MoreScreenState();
 }
+
+const Widget _professionalAffiliationsEntry = SizedBox.shrink();
 
 class _MoreScreenState extends State<MoreScreen>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
@@ -229,6 +233,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/ui/all_services.webp', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const AllServicesScreen()},
           {'icon': 'assets/images/services/ai_assistant.webp', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
           {'icon': 'assets/images/services/medical_community.webp', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const CommunityScreen()},
+          {'icon': 'assets/images/services/hospital.webp', 'title': 'الانتسابات المهنية', 'subtitle': 'دعواتك وارتباطاتك بالمنشآت الصحية', 'screen': _professionalAffiliationsEntry},
           {'icon': 'assets/images/services/packages.webp', 'title': 'الباقات الصحية', 'subtitle': 'عرض الباقات والاشتراكات', 'screen': const PackagesScreen()},
         ];
       default:
@@ -301,9 +306,10 @@ class _MoreScreenState extends State<MoreScreen>
   }
 
   void _navigateTo(Widget screen) {
-    // MoreScreen can be hosted inside the Home/GoRouter navigation tree.
-    // Always push service screens on the root navigator so they get a real
-    // full-screen route instead of being attached to a nested navigator.
+    if (identical(screen, _professionalAffiliationsEntry)) {
+      context.push(AppRouter.professionalAffiliations);
+      return;
+    }
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(builder: (_) => screen),
     );
