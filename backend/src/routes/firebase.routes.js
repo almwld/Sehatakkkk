@@ -4,38 +4,25 @@ const { getFirestore } = require('../services/firebase.service');
 const router = express.Router();
 
 /**
- * GET /api/firebase/health
- * اختبار اتصال Backend بـ Firestore
+ * Read-only dependency health check. Public health probes must not create or
+ * mutate Firestore documents on every unauthenticated request.
  */
-router.get('/health', async (req, res) => {
+router.get('/health', async (_req, res) => {
   try {
-    const db = getFirestore();
-
-    const testRef = db.collection('_system').doc('health');
-    await testRef.set({
-      service: 'sehatak-backend',
-      status: 'healthy',
-      updatedAt: new Date(),
-    }, { merge: true });
-
-    const snapshot = await testRef.get();
-
+    await getFirestore().collection('_system').limit(1).get();
     return res.json({
       success: true,
       firebase: true,
-      firestore: snapshot.exists,
+      firestore: true,
       message: 'Firestore connection successful',
     });
   } catch (error) {
-    console.error('========== FIREBASE ERROR ==========');
-    console.error(error);
-    console.error('====================================');
-
-    return res.status(500).json({
+    console.error('Firestore health check failed:', error.code || error.name || 'unknown');
+    return res.status(503).json({
       success: false,
       firebase: false,
       firestore: false,
-      message: 'Firestore connection failed',
+      message: 'Firestore health check unavailable',
     });
   }
 });
