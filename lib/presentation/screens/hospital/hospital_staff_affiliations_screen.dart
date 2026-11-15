@@ -205,7 +205,7 @@ class _HospitalStaffAffiliationsScreenState extends State<HospitalStaffAffiliati
                 onChanged: _busy ? null : (value) => setState(() {
                   if (value == true) { _publicConsents.add(doc.id); } else { _publicConsents.remove(doc.id); }
                 }),
-                title: Text(_t('أوافق على إظهار اسمي ومسمّاي الوظيفي في دليل المستشفى العام')),
+                title: Text(_t('أوافق على نشر اسمي ومسمّاي الوظيفي وقسمي ودوري المهني ضمن دليل المستشفى العام')),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
             ]));
