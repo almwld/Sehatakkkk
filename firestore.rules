@@ -581,6 +581,26 @@ service cloud.firestore {
     }
     match /pharmacies/{id} { allow read: if true; allow write: if isAdmin(); }
     match /hospitals/{id} { allow read: if true; allow write: if isAdmin(); }
+    // Public directory is a server-maintained projection with no private HR fields.
+    match /hospital_staff/{staffId} {
+      allow read: if resource.data.isPublic == true && resource.data.status == 'active';
+      allow write: if false;
+    }
+    // Party-scoped list queries must constrain hospitalId or staffId to the caller.
+    // Private affiliation records are visible only to the two parties.
+    match /hospital_staff_links/{linkId} {
+      allow read: if isSignedIn()
+        && (resource.data.hospitalId == request.auth.uid
+            || resource.data.staffId == request.auth.uid);
+      allow write: if false;
+    }
+    match /hospital_staff_invitations/{invitationId} {
+      allow read: if isSignedIn()
+        && (resource.data.hospitalId == request.auth.uid
+            || resource.data.staffId == request.auth.uid);
+      allow write: if false;
+    }
+    match /hospital_departments/{departmentId}
     match /products/{id} {
       function isApprovedPharmacyOwner(pharmacyId) {
         return isSignedIn()
