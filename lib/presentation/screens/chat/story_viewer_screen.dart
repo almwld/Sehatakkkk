@@ -31,6 +31,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   late int _currentIndex;
   bool _isPaused = false;
   bool _sendingReply = false;
+  bool _isSaved = false;
+  bool _savingStatus = false;
 
   StoryItem get _currentStory => widget.status.stories[_currentIndex];
 
@@ -45,6 +47,40 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     )..addStatusListener(_onProgressStatus);
     _progressController.forward();
     _statusService.markViewed(widget.status);
+    _loadSavedState();
+  }
+
+  Future<void> _loadSavedState() async {
+    try {
+      final saved = await _statusService.isStatusSaved(widget.status.id);
+      if (mounted) setState(() => _isSaved = saved);
+    } catch (_) {}
+  }
+
+  Future<void> _toggleSaved() async {
+    if (_savingStatus) return;
+    setState(() => _savingStatus = true);
+    try {
+      if (_isSaved) {
+        await _statusService.removeSavedStatus(widget.status.id);
+      } else {
+        await _statusService.saveStatus(widget.status);
+      }
+      if (mounted) {
+        setState(() => _isSaved = !_isSaved);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_t(_isSaved ? 'تم حفظ الحالة' : 'تمت إزالة الحالة من المحفوظات'))),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_t('تعذر حفظ الحالة') + ': $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingStatus = false);
+    }
   }
 
   void _onProgressStatus(AnimationStatus status) {
@@ -243,6 +279,13 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                 ),
               ],
             ),
+          ),
+          IconButton(
+            tooltip: _t(_isSaved ? 'إزالة من المحفوظات' : 'حفظ الحالة'),
+            onPressed: _savingStatus ? null : _toggleSaved,
+            icon: _savingStatus
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border, color: Colors.white),
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
