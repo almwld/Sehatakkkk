@@ -5449,6 +5449,16 @@ class AppStrings {
       'تشغيل الصوت': ['Unmute', 'Activer le son'],
       'كتم الصوت': ['Mute', 'Couper le son'],
       'تحميل التسجيل': ['Download recording', 'Télécharger l’enregistrement'],
+      'حفظ الحالة': ['Save story', 'Enregistrer le statut'],
+      'إزالة من المحفوظات': ['Remove from saved', 'Retirer des éléments enregistrés'],
+      'إزالة الحالة من المحفوظات': ['Story removed from saved', 'Statut retiré des éléments enregistrés'],
+      'تم حفظ الحالة': ['Story saved', 'Statut enregistré'],
+      'تعذر حفظ الحالة': ['Could not save story', 'Impossible d’enregistrer le statut'],
+      'الحالات المحفوظة': ['Saved stories', 'Statuts enregistrés'],
+      'يرجى تسجيل الدخول': ['Please sign in', 'Veuillez vous connecter'],
+      'تعذر تحميل الحالات المحفوظة': ['Could not load saved stories', 'Impossible de charger les statuts enregistrés'],
+      'لا توجد حالات محفوظة بعد': ['No saved stories yet', 'Aucun statut enregistré pour le moment'],
+      'عنصر محفوظ': ['saved item(s)', 'élément(s) enregistré(s)'],
       'إعدادات خادم Nextcloud غير مكتملة. افتح إعدادات Nextcloud واحفظ عنوان الخادم واسم المستخدم وكلمة مرور التطبيق قبل نشر الوسائط.': ['Nextcloud is not configured. Open Nextcloud settings and save the server URL, username, and app password before publishing media.', 'Nextcloud n’est pas configuré. Ouvrez les paramètres Nextcloud et enregistrez l’URL du serveur, le nom d’utilisateur et le mot de passe d’application avant de publier des médias.'],
     };
     final entry = translations[value];

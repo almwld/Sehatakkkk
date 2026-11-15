@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'package:sehatak/presentation/screens/chat/saved_statuses_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
@@ -213,6 +214,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/ui/download_data.webp', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
           {'icon': 'assets/images/ui/edit_button.webp', 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
           {'icon': 'assets/images/ui/favorites.webp', 'title': 'المفضلة', 'subtitle': 'إدارة المفضلة', 'screen': const FavoritesScreen()},
+          {'icon': 'assets/images/ui/favorites.webp', 'title': 'الحالات المحفوظة', 'subtitle': 'الرجوع إلى الحالات التي حفظتها', 'screen': const SavedStatusesScreen()},
         ];
       case 'خدمات طبية':
         return [
