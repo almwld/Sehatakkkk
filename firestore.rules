@@ -11,8 +11,17 @@ service cloud.firestore {
     function userExists(userId) { return exists(/databases/$(database)/documents/users/$(userId)); }
     function userData(userId) { return get(/databases/$(database)/documents/users/$(userId)).data; }
     function userDataAfter(userId) { return getAfter(/databases/$(database)/documents/users/$(userId)).data; }
-    function isAdmin() { return isSignedIn() && userExists(request.auth.uid) && (userData(request.auth.uid).role == 'admin' || userData(request.auth.uid).role == 'superAdmin'); }
-    function isSuperAdmin() { return isSignedIn() && userExists(request.auth.uid) && userData(request.auth.uid).role == 'superAdmin'; }
+    // Keep legacy role spellings aligned with the website's canonical role resolver.
+    // These values are never accepted by self-registration; privileged assignment
+    // remains restricted to trusted backend/admin flows.
+    function isAdmin() {
+      return isSignedIn() && userExists(request.auth.uid)
+        && userData(request.auth.uid).role in ['admin', 'superAdmin', 'superadmin', 'super_admin', 'super-admin'];
+    }
+    function isSuperAdmin() {
+      return isSignedIn() && userExists(request.auth.uid)
+        && userData(request.auth.uid).role in ['superAdmin', 'superadmin', 'super_admin', 'super-admin'];
+    }
     function isDoctorUser(userId) { return userExists(userId) && userData(userId).role == 'doctor'; }
     function isVerifiedDoctor(userId) { return isDoctorUser(userId) && userData(userId).isVerified == true; }
     function isLabAccount(userId) { return userExists(userId) && userData(userId).role == 'lab'; }
