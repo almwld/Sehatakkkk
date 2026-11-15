@@ -422,6 +422,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _doctorContactTile(DoctorModel doctor, bool isDark) {
+    final locale = AppStrings.of(context).locale.languageCode;
+    final doctorName = doctor.localized('name', locale);
+    final rawSpecialty = doctor.localized('specialty', locale);
+    final specialty = AppStrings.of(context).translate(rawSpecialty);
     final image = doctor.photoUrl ?? '';
     return Card(
       elevation: 0,
@@ -430,8 +434,8 @@ class _ChatScreenState extends State<ChatScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         leading: CircleAvatar(radius: 27, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: image.isNotEmpty ? NetworkImage(image) : null, child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null),
-        title: Text(doctor.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(doctor.specialty),
+        title: Text(doctorName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(specialty),
         trailing: TextButton(onPressed: _openingChat ? null : () => _openChat(doctor), child: Text(AppStrings.of(context).translate('محادثة'))),
         onTap: _openingChat ? null : () => _openChat(doctor),
       ),

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
+import 'package:sehatak/core/localization/dynamic_localization.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -57,8 +58,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         loaded.add({
           'id': doctor.id,
           'name': (data['name'] ?? AppStrings.of(context).translate('طبيب')).toString(),
-          'specialty': (data['specialty'] ?? AppStrings.of(context).translate('طبيب عام')).toString(),
+          'specialty': (data['specialty'] ?? 'طبيب عام').toString(),
           'photoUrl': ImageKit.doctorPhoto(data),
+          'sourceData': data,
         });
       }
 
@@ -99,7 +101,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     itemCount: _favorites.length,
                     itemBuilder: (context, index) {
                       final item = _favorites[index];
-                      final name = item['name'] as String;
+                      final sourceData = Map<String, dynamic>.from(item['sourceData'] as Map);
+                      final strings = AppStrings.of(context);
+                      final rawName = item['name'] as String;
+                      final name = localizedField(sourceData, 'name', strings.locale, fallback: rawName);
+                      final rawSpecialty = item['specialty'] as String;
+                      final localizedSpecialty = localizedField(sourceData, 'specialty', strings.locale, fallback: rawSpecialty);
+                      final specialty = localizedSpecialty == rawSpecialty
+                          ? strings.translate(rawSpecialty)
+                          : localizedSpecialty;
                       final photoUrl = item['photoUrl'] as String;
 
                       return ListTile(
@@ -108,7 +118,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           backgroundImage: NetworkImage(photoUrl.isNotEmpty ? photoUrl : ImageKit.doctor1),
                         ),
                         title: Text(name),
-                        subtitle: Text(item['specialty'] as String),
+                        subtitle: Text(specialty),
                         trailing: const Icon(Icons.favorite, color: Colors.red),
                         onTap: () async {
                           await Navigator.push(

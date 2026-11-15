@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -33,7 +35,8 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final posts = snapshot.docs.map(CommunityPostModel.fromFirestore).toList();
       emit(state.copyWith(status: CommunityStatus.loaded, posts: posts, hasMore: posts.length == event.limit, lastDocId: posts.isNotEmpty ? posts.last.id : null));
     } catch (e) {
-      emit(state.copyWith(status: CommunityStatus.error, errorMessage: 'فشل تحميل المنشورات: $e'));
+      debugPrint('Community feed load failed: $e');
+      emit(state.copyWith(status: CommunityStatus.error, errorMessage: 'تعذر تحميل المجتمع'));
     }
   }
 
@@ -63,7 +66,8 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final docRef = await _firestore.collection('community_posts').add({...post.toFirestore(), 'mediaNames': mediaNames, 'mediaCount': mediaUrls.length, 'mediaStorage': 'nextcloud', 'mediaOwnerId': user.uid});
       emit(state.copyWith(status: CommunityStatus.loaded, posts: [post.copyWith(id: docRef.id), ...state.posts], isUploading: false, uploadProgress: 0));
     } catch (e) {
-      emit(state.copyWith(status: CommunityStatus.error, errorMessage: 'فشل إنشاء المنشور: $e', isUploading: false, uploadProgress: 0));
+      debugPrint('Community post creation failed: $e');
+      emit(state.copyWith(status: CommunityStatus.error, errorMessage: 'فشل النشر', isUploading: false, uploadProgress: 0));
     }
   }
 
@@ -81,7 +85,8 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final posts = List<CommunityPostModel>.from(state.posts)..removeWhere((p) => p.id == event.postId);
       emit(state.copyWith(status: CommunityStatus.loaded, posts: posts));
     } catch (e) {
-      emit(state.copyWith(status: CommunityStatus.error, errorMessage: 'فشل حذف المنشور: $e'));
+      debugPrint('Community post deletion failed: $e');
+      emit(state.copyWith(status: CommunityStatus.error, errorMessage: 'حدث خطأ غير متوقع'));
     }
   }
 
