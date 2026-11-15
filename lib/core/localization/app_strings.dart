@@ -3970,6 +3970,7 @@ class AppStrings {
       'لم أفهم طلبك. يمكنك قول: أعراض، طبيب، موعد، دواء، تحليل، أو مساعدة': ['I didn’t understand. You can say: symptoms, doctor, appointment, medication, lab test, or help.', 'Je n’ai pas compris. Vous pouvez dire : symptômes, médecin, rendez-vous, médicament, analyse ou aide.'],
       'المساعد الصوتي': ['Voice assistant', 'Assistant vocal'],
       'جاري الاستماع...': ['Listening...', 'Écoute en cours…'],
+      'تعذر التعرف على الصوت. حاول مرة أخرى.': ['Speech recognition failed. Please try again.', 'La reconnaissance vocale a échoué. Veuillez réessayer.'],
       'اضغط للتحدث': ['Tap to speak', 'Appuyez pour parler'],
       'يمن إكسبر.ي': ['Yemen Express', 'Yemen Express'],
       'سرعة': ['Speed', 'Rapidité'],
