@@ -5378,8 +5378,6 @@ class AppStrings {
       'كم': ['km', 'km'],
       'السعر غير متاح': ['Price unavailable', 'Prix indisponible'],
       'تعذر إرسال التقرير. حاول مرة أخرى.': ['Could not submit the report. Please try again.', 'Impossible d’envoyer le rapport. Veuillez réessayer.'],
-    };
-
       'الانتسابات المهنية': ['Professional affiliations', 'Affiliations professionnelles'],
       'دعوة ممارس صحي': ['Invite a healthcare professional', 'Inviter un professionnel de santé'],
       'معرّف حساب الممارس': ['Professional account ID', 'Identifiant du compte professionnel'],
@@ -5452,6 +5450,7 @@ class AppStrings {
       'كتم الصوت': ['Mute', 'Couper le son'],
       'تحميل التسجيل': ['Download recording', 'Télécharger l’enregistrement'],
       'إعدادات خادم Nextcloud غير مكتملة. افتح إعدادات Nextcloud واحفظ عنوان الخادم واسم المستخدم وكلمة مرور التطبيق قبل نشر الوسائط.': ['Nextcloud is not configured. Open Nextcloud settings and save the server URL, username, and app password before publishing media.', 'Nextcloud n’est pas configuré. Ouvrez les paramètres Nextcloud et enregistrez l’URL du serveur, le nom d’utilisateur et le mot de passe d’application avant de publier des médias.'],
+    };
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
