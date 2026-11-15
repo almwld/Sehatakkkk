@@ -12,50 +12,64 @@ on:
     branches: [master]
     paths:
       - "backend/**"
+      - "livekit-token-server/**"
+      - "Dockerfile"
       - ".github/workflows/backend-security.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: sehatak-backend-security-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  livekit-security-tests:
+  security:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: livekit-token-server
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: livekit-token-server/package-lock.json
-      - name: Install locked dependencies
-        run: npm ci
-      - name: Run LiveKit security tests
-        run: npm run test:security
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
 
-  security-tests:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-      - name: Install locked dependencies
-        run: npm ci
+      - name: Install backend locked dependencies
+        run: npm ci --prefix backend
+
+      - name: Generate LiveKit dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --prefix livekit-token-server
+
+      - name: Install LiveKit locked dependencies
+        run: npm ci --prefix livekit-token-server
+
+      - name: Apply compatible security dependency updates
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/security/')
+        run: |
+          npm audit fix --prefix backend
+          npm audit fix --prefix livekit-token-server
+
+      - name: Commit updated dependency locks to the security branch
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/security/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/package.json backend/package-lock.json livekit-token-server/package.json livekit-token-server/package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "fix(security): update vulnerable Node dependencies"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
       - name: Run backend security tests
-        run: npm test
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+        run: npm test --prefix backend
+
+      - name: Run LiveKit security tests
+        run: npm run test:security --prefix livekit-token-server
+
+      - name: Audit backend production dependencies
+        run: npm audit --prefix backend --omit=dev --audit-level=high
+
+      - name: Audit LiveKit production dependencies
+        run: npm audit --prefix livekit-token-server --omit=dev --audit-level=high
