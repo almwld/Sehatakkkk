@@ -5443,6 +5443,14 @@ class AppStrings {
       'حذف القسم': ['Delete department', 'Supprimer le service'],
       'هل تريد حذف هذا القسم؟': ['Do you want to delete this department?', 'Voulez-vous supprimer ce service ?'],
       'تعذر حذف القسم': ['Could not delete department', 'Impossible de supprimer le service'],
+      'تعذر تشغيل التسجيل': ['Could not play recording', 'Impossible de lire l’enregistrement'],
+      'خيارات التسجيل الصوتي': ['Voice recording options', 'Options de l’enregistrement vocal'],
+      'سرعة 1×': ['Speed 1×', 'Vitesse 1×'],
+      'سرعة 1.5×': ['Speed 1.5×', 'Vitesse 1,5×'],
+      'سرعة 2×': ['Speed 2×', 'Vitesse 2×'],
+      'تشغيل الصوت': ['Unmute', 'Activer le son'],
+      'كتم الصوت': ['Mute', 'Couper le son'],
+      'تحميل التسجيل': ['Download recording', 'Télécharger l’enregistrement'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
