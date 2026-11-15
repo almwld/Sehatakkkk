@@ -182,16 +182,16 @@ class LocalStorageService {
           'name': drug['name'],
           'name_en': drug['name_en'] ?? '',
           'category': drug['category'] ?? '',
-          'dose_adult': drug['dose_adult'] ?? '',
-          'dose_child': drug['dose_child'] ?? '',
-          'max_daily': drug['max_daily'] ?? '',
+          'dose_adult': '',
+          'dose_child': '',
+          'max_daily': '',
           'pregnancy': drug['pregnancy'] ?? '',
           'breastfeeding': drug['breastfeeding'] ?? '',
           'side_effects': drug['side_effects'] ?? '',
           'interactions': drug['interactions'] ?? '',
           'contraindications': drug['contraindications'] ?? '',
           'notes': drug['notes'] ?? '',
-          'overdose': drug['overdose'] ?? '',
+          'overdose': '',
           'forms': jsonEncode(drug['forms'] ?? []),
           'brands': jsonEncode(drug['brands'] ?? []),
           'updated_at': DateTime.now().millisecondsSinceEpoch,
@@ -215,12 +215,20 @@ class LocalStorageService {
         limit: 1,
       );
       if (result.isEmpty) return null;
-      return result.first;
+      return _hideUnverifiedDosage(result.first);
     } catch (e) {
       print('❌ Error getting drug: $e');
       return null;
     }
   }
+
+  Map<String, dynamic> _hideUnverifiedDosage(Map<String, dynamic> drug) => {
+        ...drug,
+        'dose_adult': '',
+        'dose_child': '',
+        'max_daily': '',
+        'overdose': '',
+      };
 
   Future<List<Map<String, dynamic>>> searchDrugs(String query) async {
     if (!_isInitialized) await initialize();
@@ -232,7 +240,7 @@ class LocalStorageService {
         whereArgs: ['%$query%', '%$query%', '%$query%'],
         limit: 10,
       );
-      return result;
+      return result.map(_hideUnverifiedDosage).toList();
     } catch (e) {
       print('❌ Error searching drugs: $e');
       return [];
