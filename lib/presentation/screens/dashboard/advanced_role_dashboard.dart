@@ -16,6 +16,7 @@ import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
 import 'package:sehatak/presentation/screens/lab/lab_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
+import 'package:sehatak/presentation/screens/hospital/dashboard/hospital_dashboard.dart';
 
 class AdvancedRoleDashboardScreen extends StatelessWidget {
   final String role;
@@ -23,13 +24,15 @@ class AdvancedRoleDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (role == 'doctor') return const _DoctorControlCenter();
-    if (role == 'pharmacy' || role == 'pharmacist' || role == 'pharmacyOwner') return const PharmacyDashboard();
-    if (role == 'paramedic') return const ParamedicFieldScreen();
-    if (role == 'lab') return const LabDashboardScreen();
-    if (['hospital','clinic','medical_center','dental','dentist','ophthalmology','optometrist','nurse','midwife','physiotherapist','veterinarian'].contains(role)) return _FacilityControlCenter(role: role);
-    if (role == 'superAdmin') return const SuperAdminDashboard();
-    if (role == 'admin') return const _AdminControlCenter();
+    final normalizedRole = role.trim().toLowerCase();
+    if (normalizedRole == 'hospital') return const HospitalDashboard();
+    if (normalizedRole == 'doctor') return const _DoctorControlCenter();
+    if (normalizedRole == 'pharmacy' || normalizedRole == 'pharmacist' || normalizedRole == 'pharmacyowner') return const PharmacyDashboard();
+    if (normalizedRole == 'paramedic') return const ParamedicFieldScreen();
+    if (normalizedRole == 'lab') return const LabDashboardScreen();
+    if (['clinic','medical_center','dental','dentist','ophthalmology','optometrist','nurse','midwife','physiotherapist','veterinarian'].contains(normalizedRole)) return _FacilityControlCenter(role: role);
+    if (normalizedRole == 'superadmin') return const SuperAdminDashboard();
+    if (normalizedRole == 'admin') return const _AdminControlCenter();
     return _ProviderControlCenter(role: role);
   }
 }
