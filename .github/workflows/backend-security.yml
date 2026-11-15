@@ -5,6 +5,8 @@ on:
     branches: [master, "security/**"]
     paths:
       - "backend/**"
+      - "livekit-token-server/**"
+      - "Dockerfile"
       - ".github/workflows/backend-security.yml"
   pull_request:
     branches: [master]
@@ -20,6 +22,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  livekit-security-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: livekit-token-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: livekit-token-server/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run LiveKit security tests
+        run: npm run test:security
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
   security-tests:
     runs-on: ubuntu-latest
     defaults:
