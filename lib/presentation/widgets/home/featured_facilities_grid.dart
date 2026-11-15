@@ -4,7 +4,6 @@ import 'package:sehatak/core/localization/dynamic_localization.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_details_screen.dart';
-import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 import 'package:sehatak/presentation/screens/lab/lab_detail_screen.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
