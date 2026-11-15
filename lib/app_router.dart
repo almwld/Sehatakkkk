@@ -42,6 +42,7 @@ import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart'
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_details_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/lab/lab_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
@@ -72,6 +73,7 @@ class AppRouter {
       pharmacy = '/pharmacy',
       labs = '/labs',
       hospitals = '/hospitals',
+      hospitalDetails = '/hospital/:id',
       chat = '/chat',
       more = '/more',
       dashboard = '/dashboard',
@@ -231,7 +233,19 @@ class AppRouter {
           path: labs,
           builder: (_, __) => ScreenTours.wrapLabs(const LabsListScreen())),
       GoRoute(
-          onExit: _returnToHome,path: hospitals, builder: (_, __) => const HospitalScreen()),
+          onExit: _returnToHome,
+          path: hospitals,
+          builder: (_, __) => const HospitalScreen()),
+      GoRoute(
+          onExit: _returnToHome,
+          path: hospitalDetails,
+          builder: (_, state) {
+            final extra = (state.extra as Map?)?.cast<String, dynamic>();
+            return HospitalDetailsScreen(
+              hospitalId: state.pathParameters['id'] ?? '',
+              hospitalData: extra,
+            );
+          }),
       GoRoute(
           onExit: _returnToHome,path: chat, builder: (_, __) => const ChatScreen()),
       GoRoute(

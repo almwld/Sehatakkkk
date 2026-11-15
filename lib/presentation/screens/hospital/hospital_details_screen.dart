@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/localization/dynamic_localization.dart';
@@ -19,10 +20,48 @@ class HospitalDetailsScreen extends StatefulWidget {
 }
 
 class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
+  Map<String, dynamic>? _hospitalData;
+  bool _loading = false;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _hospitalData = widget.hospitalData;
+    if (_hospitalData == null) _loadHospital();
+  }
+
+  Future<void> _loadHospital() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('hospitals')
+          .doc(widget.hospitalId)
+          .get();
+      if (!snapshot.exists) {
+        throw StateError('Hospital document was not found');
+      }
+      if (!mounted) return;
+      setState(() => _hospitalData = {
+        'id': snapshot.id,
+        ...?snapshot.data(),
+      });
+    } catch (error, stack) {
+      debugPrint('Hospital details load failed: $error');
+      debugPrintStack(stackTrace: stack);
+      if (mounted) setState(() => _loadError = error.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hospital = widget.hospitalData ?? {};
+    final hospital = _hospitalData ?? <String, dynamic>{};
     final locale = AppStrings.of(context).locale;
     final hospitalName = localizedField(hospital, 'name', locale, fallback: _localizedUiText(context, 'اسم المستشفى'));
     final hospitalLocation = localizedField(
@@ -40,7 +79,29 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : _loadError != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, size: 42, color: Colors.redAccent),
+                        const SizedBox(height: 12),
+                        Text(_localizedUiText(context, 'تعذر تحميل بيانات المستشفى')),
+                        const SizedBox(height: 12),
+                        ElevatedButton.icon(
+                          onPressed: _loadHospital,
+                          icon: const Icon(Icons.refresh),
+                          label: Text(_localizedUiText(context, 'إعادة المحاولة')),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,7 +110,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: AppImage(
-                imageUrl: hospital['image'] ?? '',
+                imageUrl: (hospital['imageUrl'] ?? hospital['image'] ?? hospital['photoUrl'] ?? '').toString(),
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -99,15 +160,15 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: (hospital['open'] ?? true)
+                    color: _isOpen(hospital)
                         ? Colors.green.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '${(hospital['open'] ?? true) ? '🟢 ' : '🔴 '}${_localizedUiText(context, (hospital['open'] ?? true) ? 'مفتوح' : 'مغلق')}',
+                    ' ${_isOpen(hospital) ? '🟢 ' : '🔴 '}${_localizedUiText(context, _isOpen(hospital) ? 'مفتوح' : 'مغلق')}',
                     style: TextStyle(
-                      color: (hospital['open'] ?? true) ? Colors.green : Colors.red,
+                      color: _isOpen(hospital) ? Colors.green : Colors.red,
                       fontSize: 14,
                     ),
                   ),
@@ -122,7 +183,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
             // معلومات إضافية
             _buildInfoRow('🏥 ${_localizedUiText(context, 'النوع')}', hospitalType),
             _buildInfoRow('🛏️ ${_localizedUiText(context, 'عدد الأسرة')}', '${hospital['beds'] ?? 100} ${_localizedUiText(context, 'سرير')}'),
-            _buildInfoRow('📞 ${_localizedUiText(context, 'الهاتف')}', hospital['phone'] ?? _localizedUiText(context, 'غير متوفر')),
+            _buildInfoRow('📞 ${_localizedUiText(context, 'الهاتف')}', (hospital['phone'] ?? hospital['phoneNumber'] ?? _localizedUiText(context, 'غير متوفر')).toString()),
 
             const SizedBox(height: 24),
 
@@ -157,7 +218,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       // الاتصال
-                      final phone = hospital['phone'] ?? '';
+                      final phone = (hospital['phone'] ?? hospital['phoneNumber'] ?? '').toString();
                       if (phone.isNotEmpty) {
                         // فتح تطبيق الهاتف
                       }
@@ -179,6 +240,14 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
         ),
       ),
     );
+  }
+
+  bool _isOpen(Map<String, dynamic> hospital) {
+    final value = hospital['open'] ?? hospital['isOpen'];
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) return ['true', '1', 'yes', 'open'].contains(value.toLowerCase().trim());
+    return true;
   }
 
   Widget _buildInfoRow(String label, String value) {
