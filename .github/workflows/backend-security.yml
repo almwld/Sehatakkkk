@@ -43,11 +43,18 @@ jobs:
       - name: Install LiveKit locked dependencies
         run: npm ci --prefix livekit-token-server
 
+      - name: Generate Cloud Functions dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --prefix functions
+
+      - name: Install Cloud Functions locked dependencies
+        run: npm ci --prefix functions
+
       - name: Apply compatible security dependency updates
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/security/')
         run: |
           npm audit fix --prefix backend
           npm audit fix --prefix livekit-token-server || npm audit --prefix livekit-token-server --omit=dev --audit-level=high
+          npm audit fix --prefix functions || npm audit --prefix functions --omit=dev --audit-level=high
 
       - name: Commit updated dependency locks to the security branch
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/security/')
@@ -56,7 +63,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add backend/package.json backend/package-lock.json livekit-token-server/package.json livekit-token-server/package-lock.json
+          git add backend/package.json backend/package-lock.json livekit-token-server/package.json livekit-token-server/package-lock.json functions/package.json functions/package-lock.json
           if ! git diff --cached --quiet; then
             git commit -m "fix(security): update vulnerable Node dependencies"
             git push origin "HEAD:${GITHUB_REF_NAME}"
@@ -73,3 +80,6 @@ jobs:
 
       - name: Audit LiveKit production dependencies
         run: npm audit --prefix livekit-token-server --omit=dev --audit-level=high
+
+      - name: Audit Cloud Functions production dependencies
+        run: npm audit --prefix functions --omit=dev --audit-level=high
