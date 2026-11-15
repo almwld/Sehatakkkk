@@ -71,14 +71,20 @@ exports.createLabBooking = onCall(async (request) => {
   if (!testIds.length) throw new HttpsError('invalid-argument', 'اختر فحصًا واحدًا على الأقل');
   if (testIds.length > 20) throw new HttpsError('invalid-argument', 'عدد الفحوصات كبير جدًا');
   const labRef = db.collection('labs').doc(labId);
+  const labOwnerRef = db.collection('users').doc(labId);
   const patientRef = db.collection('users').doc(uid);
   const bookingRef = db.collection('lab_bookings').doc();
   await db.runTransaction(async (tx) => {
-    const [labSnap, patientSnap] = await Promise.all([tx.get(labRef), tx.get(patientRef)]);
+    const [labSnap, labOwnerSnap, patientSnap] = await Promise.all([
+      tx.get(labRef), tx.get(labOwnerRef), tx.get(patientRef),
+    ]);
     if (!labSnap.exists) throw new HttpsError('not-found', 'المختبر غير موجود');
     if (!patientSnap.exists) throw new HttpsError('failed-precondition', 'حساب المريض غير موجود');
+    if (!labOwnerSnap.exists || labOwnerSnap.data().role !== 'lab' || labOwnerSnap.data().isVerified !== true) {
+      throw new HttpsError('failed-precondition', 'حساب المختبر غير موثق أو لا يحمل دور المختبر');
+    }
     const lab = labSnap.data();
-    if (lab.isVerified !== true) throw new HttpsError('failed-precondition', 'لا يمكن الحجز في مختبر غير موثق');
+    if (lab.userId !== labId || lab.isVerified !== true) throw new HttpsError('failed-precondition', 'لا يمكن الحجز في مختبر غير موثق');
     const tests = Array.isArray(lab.tests) ? lab.tests : [];
     const selected = testIds.map((id) => tests.find((t) => t && typeof t === 'object' && String(t.id || '') === id)).filter(Boolean);
     if (selected.length !== testIds.length) throw new HttpsError('not-found', 'أحد الفحوصات غير متوفر في هذا المختبر');
