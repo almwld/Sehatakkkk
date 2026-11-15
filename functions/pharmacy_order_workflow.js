@@ -15,7 +15,8 @@ function canTransition(current, next) {
 }
 
 function isAdminRole(role) {
-  return ['admin', 'superadmin'].includes(String(role || '').trim().toLowerCase());
+  const normalized = String(role || '').trim().toLowerCase().replace(/[\\s-]+/g, '_');
+  return ['admin', 'superadmin', 'super_admin'].includes(normalized);
 }
 
 function isPharmacyRole(role) {
