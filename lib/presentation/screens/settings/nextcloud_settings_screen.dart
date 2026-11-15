@@ -29,22 +29,25 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
 
   Future<void> _loadConfig() async {
     await _nextcloud.loadConfig();
+    if (!mounted) return;
     setState(() {
       _baseUrlController.text = _nextcloud.baseUrl;
       _usernameController.text = _nextcloud.username;
       _passwordController.text = _nextcloud.password;
     });
-    _checkConnection();
+    await _checkConnection();
   }
 
   Future<void> _checkConnection() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      _isConnected = await _nextcloud.checkServerStatus();
-    } catch (e) {
+      final serverReachable = await _nextcloud.checkServerStatus();
+      _isConnected = serverReachable && await _nextcloud.testAuth();
+    } catch (_) {
       _isConnected = false;
     }
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _saveConfig() async {
@@ -56,7 +59,7 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
       await _nextcloud.updateConfig(
         baseUrl: _baseUrlController.text.trim(),
         username: _usernameController.text.trim(),
-        password: _passwordController.text.trim(),
+        password: _passwordController.text,
       );
 
       await _checkConnection();
@@ -70,7 +73,15 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
       ToastService.showError('${_t('فشل حفظ الإعدادات:')} $e');
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  @override
+  void dispose() {
+    _baseUrlController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -215,15 +226,15 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
                 controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: _t('كلمة المرور'),
+                  labelText: _t('كلمة مرور التطبيق'),
                   hintText: '••••••••',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock_rounded),
-                  helperText: _t('كلمة مرور مستخدم Nextcloud'),
+                  helperText: _t('أنشئ كلمة مرور تطبيق من إعدادات الأمان في حساب Nextcloud'),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return _t('يرجى إدخال كلمة المرور');
+                    return _t('يرجى إدخال كلمة مرور التطبيق');
                   }
                   return null;
                 },
