@@ -18,11 +18,11 @@ test('CORS allows configured web origins and non-browser clients, but rejects un
     CORS_ALLOWED_ORIGINS: 'https://sehatak.web.app,https://portal.example.test',
   });
   options.origin('https://sehatak.web.app', (error, allowed) => {
-    assert.equal(error, undefined);
+    assert.equal(error, null);
     assert.equal(allowed, true);
   });
   options.origin(undefined, (error, allowed) => {
-    assert.equal(error, undefined);
+    assert.equal(error, null);
     assert.equal(allowed, true);
   });
   options.origin('https://attacker.example', (error) => {
