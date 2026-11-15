@@ -34,7 +34,7 @@ test('pharmacy ownership accepts only the pharmacy owner, user or exact pharmacy
 });
 
 test('pharmacy role aliases match the account roles used by app registration and dashboards', () => {
-  for (const role of ['pharmacy', 'pharmacist', 'pharmacyOwner', 'pharmacy_owner']) {
+  for (const role of ['pharmacy', 'pharmacist', 'pharmacyOwner', 'pharmacyowner', 'pharmacy_owner', 'pharmacy-owner', 'pharmacy owner']) {
     assert.equal(isPharmacyRole(role), true, role);
   }
   for (const role of ['user', 'doctor', 'lab', 'delivery', 'admin', '']) {
