@@ -143,9 +143,9 @@ class LocalAiIntentEngine {
         .replaceAll('ئ', 'ي')
         .replaceAll('ک', 'ك')
         .replaceAll('ی', 'ي')
-        .replaceAll(RegExp(r'[\\u064B-\\u065F\\u0670\\u0640]'), '')
+        .replaceAll(RegExp(r'[\u064B-\u065F\u0670\u0640]'), '')
         .replaceAll(RegExp(r'[،,؛;.!؟?]+'), ' ')
-        .replaceAll(RegExp(r'\\s+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }
 }
