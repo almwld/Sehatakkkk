@@ -2,13 +2,14 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
 const db = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;
+const { isAdminRole } = require('./pharmacy_order_workflow');
 
 function auth(request) { if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'يجب تسجيل الدخول أولاً'); return request.auth.uid; }
 function clean(value, field, max = 200, required = true) { const v = String(value ?? '').trim(); if (required && (!v || v.length > max)) throw new HttpsError('invalid-argument', `الحقل ${field} غير صالح`); return v.slice(0, max); }
 function money(value) { const n = Number(value); if (!Number.isFinite(n) || n <= 0 || n > 100000000) throw new HttpsError('invalid-argument', 'السعر غير صالح'); return Math.round(n * 100) / 100; }
 function quantity(value) { const n = Number(value); if (!Number.isFinite(n) || n < 0 || n > 100000) throw new HttpsError('invalid-argument', 'المخزون غير صالح'); return Math.floor(n); }
 async function userData(uid) { const s = await db.collection('users').doc(uid).get(); return s.exists ? s.data() : {}; }
-async function assertAdmin(uid) { const u = await userData(uid); if (!['admin', 'super_admin'].includes(String(u.role || '').toLowerCase())) throw new HttpsError('permission-denied', 'هذه العملية للإدارة فقط'); return u; }
+async function assertAdmin(uid) { const u = await userData(uid); if (!isAdminRole(u.role)) throw new HttpsError('permission-denied', 'هذه العملية للإدارة فقط'); return u; }
 async function pharmacyRef(id) { const ref = db.collection('pharmacies').doc(id); const s = await ref.get(); if (!s.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة'); return {ref, data: s.data()}; }
 async function assertPharmacyOwner(uid, id, approved = true) { const [r, user] = await Promise.all([pharmacyRef(id), userData(uid)]); if (!['pharmacy', 'pharmacist', 'pharmacyowner', 'pharmacy_owner'].includes(String(user.role || '').trim().toLowerCase())) throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور صيدلية'); if (r.data.ownerId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذه الصيدلية'); if (approved && (r.data.status !== 'approved' || r.data.isActive === false)) throw new HttpsError('failed-precondition', 'الصيدلية لم تعتمد بعد أو تم إيقافها'); return r; }
 function safeId(raw, fallback) { const id = String(raw ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 120); return id || fallback; }
