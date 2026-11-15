@@ -20,7 +20,7 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
   void _seeAll(BuildContext context) {
     if (onSeeAll != null) { onSeeAll!(); return; }
     if (isHospital) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HospitalScreen()));
+      AppRouter.router.push(AppRouter.hospitals);
     } else {
       AppRouter.router.push(AppRouter.labs);
     }
