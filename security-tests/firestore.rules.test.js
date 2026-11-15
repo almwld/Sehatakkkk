@@ -5,7 +5,7 @@ import {
   assertSucceeds,
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 
 const projectId = 'demo-sehatak-firestore-security';
 const rules = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
@@ -52,6 +52,24 @@ beforeEach(async () => {
       role: 'superAdmin',
       name: 'Synthetic Super Admin',
     });
+    await setDoc(doc(db, 'users/lab-owner'), {
+      uid: 'lab-owner', role: 'lab', isVerified: true, name: 'Synthetic Lab',
+    });
+    await setDoc(doc(db, 'labs/lab-owner'), {
+      userId: 'lab-owner', name: 'Synthetic Verified Lab', isVerified: true,
+    });
+    await setDoc(doc(db, 'users/lab-pending'), {
+      uid: 'lab-pending', role: 'lab', isVerified: false,
+    });
+    await setDoc(doc(db, 'labs/lab-pending'), {
+      userId: 'lab-pending', name: 'Synthetic Pending Lab', isVerified: false,
+    });
+    await setDoc(doc(db, 'users/delivery-owner'), {
+      uid: 'delivery-owner', role: 'delivery', isVerified: false,
+    });
+    await setDoc(doc(db, 'users/untrusted-company-owner'), {
+      uid: 'untrusted-company-owner', role: 'user', isVerified: false,
+    });
     await setDoc(doc(db, 'shared_records/share-1'), {
       recordId: 'record-1',
       sharedBy: 'patient-a',
@@ -60,6 +78,10 @@ beforeEach(async () => {
     });
     await setDoc(doc(db, 'chats/chat-1'), {
       participants: ['patient-a', 'patient-b'],
+    });
+    await setDoc(doc(db, 'chats/chat-1/messages/message-1'), {
+      senderId: 'patient-a', receiverId: 'patient-b', chatId: 'chat-1',
+      text: 'Synthetic message', timestamp: new Date(), isRead: false,
     });
     await setDoc(doc(db, 'chats/chat-1/presence/patient-b'), {
       isOnline: true,
@@ -302,7 +324,7 @@ test('delivery tracking is readable only by the owner of its linked order', asyn
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
     await setDoc(doc(db, 'orders/order-1'), { userId: 'patient-b', total: 5000 });
-    await setDoc(doc(db, 'delivery_companies/company-1'), { ownerId: 'delivery-owner', isActive: true });
+    await setDoc(doc(db, 'delivery_companies/company-1'), { ownerId: 'delivery-owner', userId: 'delivery-owner', isActive: true });
     await setDoc(doc(db, 'deliveries/order-1'), { status: 'shipping', currentStep: 2, companyId: 'company-1' });
   });
   const owner = env.authenticatedContext('patient-b').firestore();
@@ -399,4 +421,69 @@ test('community likes require an atomic owned liked-post edge and counters only 
   await assertFails(updateDoc(doc(other, 'community_posts/post-1'), { shares: 50 }));
   await assertSucceeds(updateDoc(doc(other, 'community_posts/post-1'), { shares: 1 }));
   await assertSucceeds(updateDoc(doc(other, 'community_posts/post-1'), { comments: 1 }));
+});
+
+test('laboratory profiles and tests are restricted to lab-role owners; unverified labs cannot publish active tests', async () => {
+  const verifiedLab = env.authenticatedContext('lab-owner').firestore();
+  const pendingLab = env.authenticatedContext('lab-pending').firestore();
+  const ordinaryUser = env.authenticatedContext('patient-b').firestore();
+  await assertSucceeds(setDoc(doc(verifiedLab, 'lab_tests/lab-test-1'), {
+    labId: 'lab-owner', name: 'CBC', price: 1000, isActive: true,
+  }));
+  await assertFails(setDoc(doc(ordinaryUser, 'lab_tests/forged-test'), {
+    labId: 'patient-b', name: 'Forged', price: 1, isActive: true,
+  }));
+  await assertFails(setDoc(doc(pendingLab, 'lab_tests/pending-active'), {
+    labId: 'lab-pending', name: 'Not approved', price: 1, isActive: true,
+  }));
+  await assertSucceeds(setDoc(doc(pendingLab, 'lab_tests/pending-draft'), {
+    labId: 'lab-pending', name: 'Draft', price: 1, isActive: false,
+  }));
+  await assertFails(setDoc(doc(ordinaryUser, 'labs/patient-b'), {
+    userId: 'patient-b', name: 'Forged laboratory', isVerified: false,
+  }));
+  await assertFails(updateDoc(doc(verifiedLab, 'labs/lab-owner'), { isVerified: false }));
+});
+
+test('lab bookings are private to the patient, verified lab owner and admins', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'lab_bookings/booking-1'), {
+      patientId: 'patient-b', labId: 'lab-owner', status: 'pending',
+      totalPrice: 1000, tests: [{ id: 'lab-test-1', price: 1000 }],
+    });
+  });
+  const patient = env.authenticatedContext('patient-b').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  const lab = env.authenticatedContext('lab-owner').firestore();
+  const pendingLab = env.authenticatedContext('lab-pending').firestore();
+  await assertSucceeds(getDoc(doc(patient, 'lab_bookings/booking-1')));
+  await assertSucceeds(getDoc(doc(lab, 'lab_bookings/booking-1')));
+  await assertFails(getDoc(doc(outsider, 'lab_bookings/booking-1')));
+  await assertFails(getDoc(doc(pendingLab, 'lab_bookings/booking-1')));
+  await assertSucceeds(updateDoc(doc(lab, 'lab_bookings/booking-1'), {
+    status: 'confirmed', updatedAt: new Date(),
+  }));
+  await assertFails(updateDoc(doc(outsider, 'lab_bookings/booking-1'), {
+    status: 'completed',
+  }));
+  await assertFails(setDoc(doc(outsider, 'lab_bookings/forged-booking'), {
+    patientId: 'patient-b', labId: 'lab-owner', status: 'pending',
+  }));
+  await assertFails(setDoc(doc(patient, 'lab_bookings/unverified-lab-booking'), {
+    patientId: 'patient-b', labId: 'lab-pending', status: 'pending',
+  }));
+});
+
+test('chat messages require an existing parent chat and participant membership', async () => {
+  const participant = env.authenticatedContext('patient-b').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(participant, 'chats/chat-1/messages/message-1')));
+  await assertFails(getDoc(doc(outsider, 'chats/chat-1/messages/message-1')));
+  await assertFails(getDoc(doc(participant, 'chats/missing-chat')));
+  await assertFails(setDoc(doc(participant, 'chats/missing-chat/messages/forged'), {
+    senderId: 'patient-b', chatId: 'missing-chat', timestamp: serverTimestamp(),
+  }));
+  await assertFails(setDoc(doc(outsider, 'chats/chat-1/messages/forged'), {
+    senderId: 'patient-a', chatId: 'chat-1', timestamp: serverTimestamp(),
+  }));
 });
