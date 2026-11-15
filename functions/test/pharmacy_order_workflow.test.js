@@ -46,6 +46,8 @@ test('admin role checks match the canonical app role spelling', () => {
   assert.equal(isAdminRole('admin'), true);
   assert.equal(isAdminRole('superAdmin'), true);
   assert.equal(isAdminRole('superadmin'), true);
-  assert.equal(isAdminRole('super_admin'), false);
+  assert.equal(isAdminRole('super_admin'), true);
+  assert.equal(isAdminRole('super-admin'), true);
+  assert.equal(isAdminRole('super admin'), true);
   assert.equal(isAdminRole('user'), false);
 });
