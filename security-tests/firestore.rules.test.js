@@ -476,7 +476,7 @@ test('lab bookings are private to the patient, verified lab owner and admins', a
 
 test('chat messages require an existing parent chat and participant membership', async () => {
   const participant = env.authenticatedContext('patient-b').firestore();
-  const outsider = env.authenticatedContext('patient-a').firestore();
+  const outsider = env.authenticatedContext('patient-c').firestore();
   await assertSucceeds(getDoc(doc(participant, 'chats/chat-1/messages/message-1')));
   await assertFails(getDoc(doc(outsider, 'chats/chat-1/messages/message-1')));
   await assertFails(getDoc(doc(participant, 'chats/missing-chat')));
