@@ -63,6 +63,9 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
     if (raw.contains('Media body is required') || raw.contains('media body')) {
       return _t('اختر صورة أو فيديو قبل إرسال الحالة.');
     }
+    if (raw.contains('إعدادات Nextcloud') || raw.contains('خادم Nextcloud')) {
+      return _t('إعدادات خادم Nextcloud غير مكتملة. افتح إعدادات Nextcloud واحفظ عنوان الخادم واسم المستخدم وكلمة مرور التطبيق قبل نشر الوسائط.');
+    }
     if (raw.contains('permission') || raw.contains('إذن')) {
       return _t('تعذر الوصول إلى الوسائط. تحقق من أذونات الصور والفيديو.');
     }

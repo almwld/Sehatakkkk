@@ -5451,6 +5451,7 @@ class AppStrings {
       'تشغيل الصوت': ['Unmute', 'Activer le son'],
       'كتم الصوت': ['Mute', 'Couper le son'],
       'تحميل التسجيل': ['Download recording', 'Télécharger l’enregistrement'],
+      'إعدادات خادم Nextcloud غير مكتملة. افتح إعدادات Nextcloud واحفظ عنوان الخادم واسم المستخدم وكلمة مرور التطبيق قبل نشر الوسائط.': ['Nextcloud is not configured. Open Nextcloud settings and save the server URL, username, and app password before publishing media.', 'Nextcloud n’est pas configuré. Ouvrez les paramètres Nextcloud et enregistrez l’URL du serveur, le nom d’utilisateur et le mot de passe d’application avant de publier des médias.'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
