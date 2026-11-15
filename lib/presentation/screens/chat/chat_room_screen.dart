@@ -18,6 +18,7 @@ import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/core/services/status_service.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/message_search_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';
@@ -531,13 +532,47 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             isOutgoing: true)));
   }
 
-  void _profile() {
-    if (widget.otherUserId.trim().isEmpty) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PatientProfile(userId: widget.otherUserId),
-      ),
-    );
+  Future<void> _profile() async {
+    final otherUserId = widget.otherUserId.trim();
+    if (otherUserId.isEmpty || !mounted) return;
+
+    // Chat participants are user accounts. Resolve the recipient's role before
+    // choosing the public-facing profile page; never use the signed-in user's
+    // role or uid for this navigation.
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final results = await Future.wait([
+        firestore.collection('users').doc(otherUserId).get(),
+        firestore.collection('doctors').doc(otherUserId).get(),
+      ]);
+      if (!mounted) return;
+
+      final userData = results[0].data() ?? <String, dynamic>{};
+      final doctorExists = results[1].exists;
+      final role = (userData['role'] ??
+              userData['type'] ??
+              userData['accountType'] ??
+              userData['userType'] ??
+              '')
+          .toString()
+          .trim()
+          .toLowerCase();
+      final isDoctor = doctorExists ||
+          role == 'doctor' ||
+          role == 'طبيب' ||
+          role == 'دكتور';
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => isDoctor
+              ? DoctorDetailsScreen(doctorId: otherUserId)
+              : PatientProfile(userId: otherUserId),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ToastService.showError(_t('تعذر تحميل الملف الشخصي'));
+    }
   }
 
   Future<void> _openOtherUserStatus(UserStatusModel status) async { if (!mounted || status.stories.isEmpty) return; await Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status))); }
