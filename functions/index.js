@@ -362,8 +362,13 @@ exports.reviewPharmacyPrescription = onCall(async (request) => {
   const note = String(request.data.note || '').trim().slice(0, 1000);
   const prescriptionRef = db.collection('prescriptions').doc(prescriptionId);
   await db.runTransaction(async (tx) => {
-    const prescriptionSnap = await tx.get(prescriptionRef);
+    const [prescriptionSnap, actorSnap] = await Promise.all([
+      tx.get(prescriptionRef), tx.get(db.collection('users').doc(uid)),
+    ]);
     if (!prescriptionSnap.exists) throw new HttpsError('not-found', 'الوصفة غير موجودة');
+    if (!actorSnap.exists || !isPharmacyRole(actorSnap.data().role)) {
+      throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور صيدلية معتمد');
+    }
     const prescription = prescriptionSnap.data() || {};
     const pharmacyId = validId(prescription.pharmacyId, 'pharmacyId');
     const pharmacyRef = db.collection('pharmacies').doc(pharmacyId);
