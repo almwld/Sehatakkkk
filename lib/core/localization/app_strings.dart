@@ -5412,6 +5412,13 @@ class AppStrings {
       'لا توجد انتسابات نشطة': ['There are no active affiliations', 'Aucune affiliation active'],
       'دعواتك وارتباطاتك بالمنشآت الصحية': ['Your invitations and affiliations with healthcare facilities', 'Vos invitations et affiliations avec les établissements de santé'],
       'إدارة الكادر الصحي': ['Manage healthcare staff', 'Gérer le personnel de santé'],
+      'الأقسام الطبية': ['Medical departments', 'Services médicaux'],
+      'تعذر تحميل الأقسام حالياً': ['Could not load departments right now', 'Impossible de charger les services pour le moment'],
+      'لم تُنشر أقسام طبية لهذا المستشفى بعد': ['No medical departments have been published for this hospital yet', 'Aucun service médical n’a encore été publié pour cet hôpital'],
+      'الكادر الصحي': ['Healthcare staff', 'Personnel de santé'],
+      'تعذر تحميل بيانات الكادر الصحي': ['Could not load healthcare staff', 'Impossible de charger le personnel de santé'],
+      'لم تُنشر ملفات الكادر الصحي لهذا المستشفى بعد': ['No healthcare staff profiles have been published for this hospital yet', 'Aucun profil du personnel de santé n’a encore été publié pour cet hôpital'],
+      'عضو الكادر الصحي': ['Healthcare staff member', 'Membre du personnel de santé'],
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
