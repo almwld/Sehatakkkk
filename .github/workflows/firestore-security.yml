@@ -48,6 +48,7 @@ jobs:
           node --check backend/src/routes/lab-results.routes.js
           node --check functions/pharmacy_marketplace_functions.js
           node --check functions/pharmacy_order_workflow.js
+          node --check functions/catalog_import_v2.js
           node --check functions/main.js
           node --check functions/commerce_functions.js
           node --check functions/lab_functions.js
