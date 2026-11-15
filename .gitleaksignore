@@ -1,0 +1,25 @@
+# Known public Firebase client API keys (not server credentials). Restrict these keys
+# by application referrer and permitted APIs in Google Cloud Console; do not rotate
+# them as if they were private service-account credentials.
+9fc2e3bd7dff7003b7bc17ee3b46b04b4797478a:android/app/google-services.json:gcp-api-key:39
+bffe2ca90d1b928fa20aac0f10813b64eeef7c18:android/app/google-services.json:generic-api-key:39
+71f93d64fc46045323db546259e508a40a7dd1da:android/app/google-services.json:gcp-api-key:23
+4a15b7a1b3f6c351fd840e13e0fa8f602396e93b:.github/workflows/main.yml:gcp-api-key:73
+a000b242ef7798d325aa2fcc808b33aed1168a06:.github/workflows/main.yml:gcp-api-key:49
+b228d53fc65af698adcb6bf49a857e7d22b76d0c:.github/workflows/main.yml:gcp-api-key:49
+94ac45fabc34f03e6c7e910cdb1a29ecdac75f64:.github/workflows/main.yml:gcp-api-key:83
+ec22581ef997b20934b52201879f5d722061dda7:.github/workflows/main.yml:gcp-api-key:49
+a05c945f3fab7ed26f332802f3c18c0836e202e3:.github/workflows/main.yml:gcp-api-key:130
+1412fc73f48c71be5f325bd07744432cde9f7bbc:android/app/google-services.json.backup-before-google:gcp-api-key:18
+1412fc73f48c71be5f325bd07744432cde9f7bbc:android/app/google-services.json.backup-before-google-final:gcp-api-key:31
+af22919b34788f9967939e1eaff3a8f0ffd0b80e:android/app/google-services.json:gcp-api-key:1
+78abc910ab5d983ed8d397a80793f15bfb174a14:.env:gcp-api-key:19
+811d542b4c41020e26e51b84112823e123b7299e:.env:gcp-api-key:5
+13e171130c6cc3e85e0662997ad283637bc47451:lib/firebase_options.dart:gcp-api-key:6
+0b55d6ee0b139a3624e29f718318aff9418dd937:android/app/google-services.json:gcp-api-key:18
+0b55d6ee0b139a3624e29f718318aff9418dd937:.github/workflows/main.yml:gcp-api-key:49
+0b55d6ee0b139a3624e29f718318aff9418dd937:lib/main.dart:gcp-api-key:20
+
+# False positives: stable local notification action identifier, not a credential.
+9e069175d5f3016f8ffd6c9863dd02c5086666ee:lib/core/services/notification_service.dart:generic-api-key:39
+8e8a697c87189be38fdcf0759e7238c4276f46ed:lib/core/services/notification_service.dart:generic-api-key:39
