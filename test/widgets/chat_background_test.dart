@@ -1,41 +1,51 @@
 // ============================================================
-// 📁 test/widgets/chat_background_test.dart
-// 🧪 اختبارات Chat Background Widget
+// ChatBackground widget tests
 // ============================================================
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';
 
+const _testWallpaper = '''
+<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+  <rect width="10" height="10" fill="#ffffff"/>
+</svg>
+''';
+
+class _WallpaperAssetBundle extends CachingAssetBundle {
+  @override
+  Future<ByteData> load(String key) async {
+    return ByteData.view(Uint8List.fromList(utf8.encode(_testWallpaper)).buffer);
+  }
+}
+
+Widget _testApp(Widget child) {
+  return DefaultAssetBundle(
+    bundle: _WallpaperAssetBundle(),
+    child: MaterialApp(
+      home: Scaffold(body: ChatBackground(child: child)),
+    ),
+  );
+}
+
 void main() {
   testWidgets('ChatBackground renders child correctly', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: ChatBackground(
-            child: Text('Test Child'),
-          ),
-        ),
-      ),
-    );
+    await tester.pumpWidget(_testApp(const Text('Test Child')));
+    await tester.pump();
 
     expect(find.text('Test Child'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('ChatBackground renders wallpaper layer', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: ChatBackground(
-            child: SizedBox.shrink(),
-          ),
-        ),
-      ),
-    );
+    await tester.pumpWidget(_testApp(const SizedBox.shrink()));
+    await tester.pump();
 
-    // The test host can contain another Stack (for example from MaterialApp
-    // internals). Scope the assertion to ChatBackground itself so the test
-    // verifies the widget we own rather than assuming Stack is globally unique.
+    // Scope assertions to ChatBackground rather than MaterialApp internals.
     final background = find.byType(ChatBackground);
     expect(background, findsOneWidget);
     expect(
@@ -46,5 +56,6 @@ void main() {
       find.descendant(of: background, matching: find.byType(IgnorePointer)),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
   });
 }
