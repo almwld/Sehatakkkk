@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
@@ -44,15 +45,17 @@ class HomeAppBar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isLoggedIn ? 'مرحباً، $userName 👋' : 'منصة صحتك',
+                        AppStrings.of(context).translate(
+                          isLoggedIn ? 'مرحباً، $userName' : 'منصة صحتك',
+                        ) + (isLoggedIn ? ' 👋' : ''),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Text(
-                        'كيف تشعر اليوم؟',
+                      Text(
+                        AppStrings.of(context).translate('كيف تشعر اليوم؟'),
                         style: TextStyle(color: Colors.white70),
                       ),
                     ],
@@ -62,9 +65,11 @@ class HomeAppBar extends StatelessWidget {
                   context,
                   ImageKit.notificationIcon,
                   notificationCount,
-                  notificationCount > 0
-                      ? 'لديك $notificationCount إشعار جديد'
-                      : 'لا توجد إشعارات جديدة',
+                  AppStrings.of(context).translate(
+                    notificationCount > 0
+                        ? 'لديك $notificationCount إشعار جديد'
+                        : 'لا توجد إشعارات جديدة',
+                  ),
                   () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -76,9 +81,11 @@ class HomeAppBar extends StatelessWidget {
                   context,
                   ImageKit.cartIcon,
                   cartItemCount,
-                  cartItemCount > 0
-                      ? 'لديك $cartItemCount عنصر في السلة'
-                      : 'السلة فارغة',
+                  AppStrings.of(context).translate(
+                    cartItemCount > 0
+                        ? 'لديك $cartItemCount عنصر في السلة'
+                        : 'السلة فارغة',
+                  ),
                   () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const CartScreen()),

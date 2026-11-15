@@ -130,8 +130,8 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'إنشاء منشور جديد',
+            Text(
+              _t('إنشاء منشور جديد'),
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -392,7 +392,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            post['role'],
+                            _t(post['role'] as String),
                             style: TextStyle(
                               fontSize: 8,
                               color: roleColor,
@@ -402,7 +402,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
                       ],
                     ),
                     Text(
-                      post['time'],
+                      _t(post['time'] as String),
                       style: TextStyle(
                         fontSize: 10,
                         color: AppColors.grey,
@@ -418,7 +418,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  post['type'],
+                  _t(post['type'] as String),
                   style: TextStyle(
                     fontSize: 8,
                     color: color,
@@ -429,7 +429,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
           ),
           const SizedBox(height: 10),
           Text(
-            post['content'],
+            _t(post['content'] as String),
             style: const TextStyle(fontSize: 13, height: 1.6),
           ),
           const SizedBox(height: 12),
