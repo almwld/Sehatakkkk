@@ -5,7 +5,7 @@ import {
   assertSucceeds,
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 
 const projectId = 'demo-sehatak-firestore-security';
 const rules = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
@@ -637,4 +637,108 @@ test('patients and laboratories cannot forge lab booking prices or payment statu
   await assertFails(updateDoc(doc(labOwner, 'lab_bookings/booking-1'), {
     paymentStatus: 'paid',
   }));
+});
+
+
+test('hospital owners can toggle only their operating state', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'hospitals/hospital-1'), { name: 'Synthetic Hospital', isOpen: true, isVerified: true, isPublished: true });
+  });
+  const owner = env.authenticatedContext('hospital-1').firestore();
+  await assertSucceeds(updateDoc(doc(owner, 'hospitals/hospital-1'), { isOpen: false }));
+  await assertFails(updateDoc(doc(owner, 'hospitals/hospital-1'), { isVerified: false }));
+  await assertFails(updateDoc(doc(owner, 'hospitals/hospital-1'), { name: 'Forged Hospital' }));
+});
+
+test('hospital departments are scoped to their owning hospital', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'users/hospital-2'), { uid: 'hospital-2', role: 'hospital' });
+  });
+  const owner = env.authenticatedContext('hospital-1').firestore();
+  const other = env.authenticatedContext('hospital-2').firestore();
+  await assertSucceeds(setDoc(doc(owner, 'hospital_departments/department-1'), {
+    hospitalId: 'hospital-1', name: 'Emergency', isActive: true,
+  }));
+  await assertSucceeds(updateDoc(doc(owner, 'hospital_departments/department-1'), { isActive: false }));
+  await assertFails(updateDoc(doc(other, 'hospital_departments/department-1'), { isActive: false }));
+  await assertFails(setDoc(doc(owner, 'hospital_departments/forged'), {
+    hospitalId: 'hospital-2', name: 'Forged', isActive: true,
+  }));
+});
+
+test('public hospital staff directory exposes only active, consented projections', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'hospital_staff/public-active'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1', displayName: 'Synthetic Clinician',
+      isPublic: true, status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff/private-active'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-2', personalPhone: '+000000000',
+      isPublic: false, status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff/public-ended'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-3', isPublic: true, status: 'ended',
+    });
+  });
+  const publicDb = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(publicDb, 'hospital_staff/public-active')));
+  await assertFails(getDoc(doc(publicDb, 'hospital_staff/private-active')));
+  await assertFails(getDoc(doc(publicDb, 'hospital_staff/public-ended')));
+  await assertFails(setDoc(doc(publicDb, 'hospital_staff/forged'), {
+    hospitalId: 'hospital-1', staffId: 'attacker', isPublic: true, status: 'active',
+  }));
+});
+
+test('hospital staff links and invitations are private to their two parties and server-writable', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'hospital_staff_links/link-1'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1', status: 'active',
+    });
+    await setDoc(doc(db, 'hospital_staff_invitations/invite-1'), {
+      hospitalId: 'hospital-1', staffId: 'doctor-1', status: 'pending',
+    });
+  });
+  const hospital = env.authenticatedContext('hospital-1').firestore();
+  const staff = env.authenticatedContext('doctor-1').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(hospital, 'hospital_staff_links/link-1')));
+  await assertSucceeds(getDoc(doc(staff, 'hospital_staff_links/link-1')));
+  await assertFails(getDoc(doc(outsider, 'hospital_staff_links/link-1')));
+  await assertSucceeds(getDoc(doc(hospital, 'hospital_staff_invitations/invite-1')));
+  await assertSucceeds(getDoc(doc(staff, 'hospital_staff_invitations/invite-1')));
+  await assertFails(getDoc(doc(outsider, 'hospital_staff_invitations/invite-1')));
+  await assertSucceeds(getDocs(query(collection(hospital, 'hospital_staff_links'), where('hospitalId', '==', 'hospital-1'))));
+  await assertSucceeds(getDocs(query(collection(staff, 'hospital_staff_links'), where('staffId', '==', 'doctor-1'))));
+  await assertSucceeds(getDocs(query(collection(staff, 'hospital_staff_invitations'), where('staffId', '==', 'doctor-1'))));
+  await assertFails(setDoc(doc(hospital, 'hospital_staff_invitations/forged'), {
+    hospitalId: 'hospital-1', staffId: 'patient-a', status: 'accepted',
+  }));
+  await assertFails(updateDoc(doc(staff, 'hospital_staff_links/link-1'), { status: 'ended' }));
+});
+
+test('hospital providers can read their bookings and payments but cannot alter payment records', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/hospital-1'), { uid: 'hospital-1', role: 'hospital' });
+    await setDoc(doc(db, 'bookings/booking-1'), {
+      userId: 'patient-b', providerId: 'hospital-1', type: 'hospital', status: 'pending',
+    });
+    await setDoc(doc(db, 'payments/payment-1'), {
+      userId: 'patient-b', providerId: 'hospital-1', amount: 100,
+    });
+  });
+  const hospital = env.authenticatedContext('hospital-1').firestore();
+  const outsider = env.authenticatedContext('patient-a').firestore();
+  await assertSucceeds(getDoc(doc(hospital, 'bookings/booking-1')));
+  await assertSucceeds(updateDoc(doc(hospital, 'bookings/booking-1'), { status: 'confirmed' }));
+  await assertFails(updateDoc(doc(hospital, 'bookings/booking-1'), { amount: 999999 }));
+  await assertSucceeds(getDoc(doc(hospital, 'payments/payment-1')));
+  await assertFails(getDoc(doc(outsider, 'bookings/booking-1')));
+  await assertFails(updateDoc(doc(hospital, 'payments/payment-1'), { amount: 1 }));
 });
