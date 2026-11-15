@@ -362,6 +362,8 @@ class _MoreScreenState extends State<MoreScreen>
             ),
             const SizedBox(height: 12),
             _buildVitalsGrid(isDark),
+            const SizedBox(height: 12),
+            _buildQuickMeasurementEntry(isDark),
             const SizedBox(height: 32),
             Text(
               AppStrings.of(context).translate('الخدمات'),
@@ -412,6 +414,72 @@ class _MoreScreenState extends State<MoreScreen>
           'النبض': d['heartRate'] != null ? '${d['heartRate']}' : 'غير متوفر',
           'الماء': 'غير متوفر',
         });
+      },
+    );
+  }
+
+  Widget _buildQuickMeasurementEntry(bool isDark) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => showModalBottomSheet<void>(
+          context: context,
+          showDragHandle: true,
+          isScrollControlled: true,
+          builder: (sheetContext) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.of(context).translate('إضافة قياس صحي'),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.of(context).translate('اختر نوع القياس لإدخال قراءة جديدة'),
+                    style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  _quickMeasurementTile(sheetContext, Icons.monitor_heart_outlined, 'ضغط الدم', const BloodPressureScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.water_drop_outlined, 'سكر الدم', const GlucoseTrackerScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.monitor_weight_outlined, 'الوزن', const WeightTrackerScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.favorite_border, 'النبض', const HeartRateScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.bedtime_outlined, 'النوم', const SleepTrackerScreen()),
+                  _quickMeasurementTile(sheetContext, Icons.directions_walk_outlined, 'الخطوات', const StepTrackerScreen()),
+                ],
+              ),
+            ),
+          ),
+        ),
+        icon: const Icon(Icons.add_circle_outline),
+        label: Text(AppStrings.of(context).translate('إضافة قياس صحي')),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: BorderSide(color: AppColors.primary.withOpacity(.45)),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
+  Widget _quickMeasurementTile(
+    BuildContext sheetContext,
+    IconData icon,
+    String title,
+    Widget screen,
+  ) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(AppStrings.of(context).translate(title)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        Navigator.of(sheetContext).pop();
+        _navigateTo(screen);
       },
     );
   }
