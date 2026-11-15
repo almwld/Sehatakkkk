@@ -301,7 +301,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                 final category = localizedCategory == null
                     ? null
                     : localizedCategory == rawCategory
-                        ? strings.translate(rawCategory)
+                        ? strings.translate(rawCategory!)
                         : localizedCategory;
                 final localizedPost = rawPost.copyWith(
                   title: localizedField(data, 'title', locale, fallback: rawPost.title),
