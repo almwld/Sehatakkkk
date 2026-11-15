@@ -78,6 +78,15 @@ app.use((error, _req, res, _next) => {
   if (error.code === 'CORS_ORIGIN_DENIED') {
     return res.status(403).json({ success: false, message: 'Origin is not allowed.' });
   }
+  if (error.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ success: false, message: 'Uploaded file exceeds the allowed size.' });
+  }
+  if (error.status === 415) {
+    return res.status(415).json({ success: false, message: 'Unsupported upload file type.' });
+  }
+  if (error.code === 'LIMIT_UNEXPECTED_FILE' || error.code === 'LIMIT_PART_COUNT') {
+    return res.status(400).json({ success: false, message: 'Invalid multipart upload.' });
+  }
   if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
     return res.status(400).json({ success: false, message: 'Invalid JSON body.' });
   }
