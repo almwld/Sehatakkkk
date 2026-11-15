@@ -441,14 +441,63 @@ class _MoreScreenState extends State<MoreScreen>
               border: Border.all(color: (vital['color'] as Color).withOpacity(.18)),
             ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildIcon(vital['icon'] as String, size: 48),
-                const SizedBox(height: 6),
-                Text(AppStrings.of(context).translate(value), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: vital['color'] as Color), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
-                Text(AppStrings.of(context).translate(vital['unit'] as String), style: TextStyle(fontSize: 9, color: isDark ? Colors.grey[400] : Colors.grey[600])),
-                const SizedBox(height: 2),
-                Text(AppStrings.of(context).translate(label), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: isDark ? Colors.grey[300] : Colors.grey[700]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                _buildIcon(vital['icon'] as String, size: 36),
+                const SizedBox(height: 4),
+                Flexible(
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 24),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: value == 'غير متوفر'
+                          ? (isDark ? Colors.white.withOpacity(.07) : Colors.grey.withOpacity(.10))
+                          : (vital['color'] as Color).withOpacity(.10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      AppStrings.of(context).translate(value),
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: value == 'غير متوفر' ? 11 : 13,
+                        fontWeight: value == 'غير متوفر' ? FontWeight.w500 : FontWeight.bold,
+                        color: value == 'غير متوفر'
+                            ? (isDark ? Colors.grey[300] : Colors.grey[600])
+                            : vital['color'] as Color,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  AppStrings.of(context).translate(vital['unit'] as String),
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  AppStrings.of(context).translate(label),
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.grey[200] : Colors.grey[700],
+                  ),
+                ),
               ],
             ),
           ),
