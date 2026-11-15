@@ -668,7 +668,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
           // 🗺️ الخريطة الصحية — عرض كامل للمساحة المتاحة أسفل أدوات البحث
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+              padding: const EdgeInsets.fromLTRB(5, 4, 5, 6),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Stack(
@@ -777,20 +777,23 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                         ),
                       ),
                     ),
+                    // Required OpenStreetMap attribution, kept compact so it
+                    // does not cover the map or compete with facility controls.
                     Positioned(
-                      bottom: 10,
-                      right: 10,
-                      left: 10,
+                      left: 8,
+                      bottom: 8,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.black87 : Colors.white.withOpacity(.94),
-                          borderRadius: BorderRadius.circular(10),
+                          color: isDark
+                              ? Colors.black.withOpacity(0.72)
+                              : Colors.white.withOpacity(0.88),
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          child: Text(_t('بيانات المنشآت من صحتك • الخرائط من OpenStreetMap'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          child: Text(
+                            '© OpenStreetMap contributors',
+                            style: TextStyle(fontSize: 9, color: Colors.black87),
                           ),
                         ),
                       ),
