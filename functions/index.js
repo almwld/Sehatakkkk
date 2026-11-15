@@ -26,6 +26,7 @@ function text(value, field, max = 500) {
   return result;
 }
 function digest(value) { return crypto.createHash('sha256').update(value).digest('hex').slice(0, 40); }
+function isPharmacyRole(role) { return ['pharmacy', 'pharmacist', 'pharmacyowner', 'pharmacy_owner'].includes(String(role || '').trim().toLowerCase()); }
 async function isAdmin(uid) {
   const snap = await db.collection('users').doc(uid).get();
   return snap.exists && ['admin','superAdmin'].includes(snap.data().role);
@@ -392,9 +393,14 @@ exports.assignDeliveryCompany = onCall(async (request) => {
   const orderRef = db.collection('orders').doc(orderId);
   const companyRef = db.collection('delivery_companies').doc(companyId);
   await db.runTransaction(async (tx) => {
-    const [orderSnap, companySnap] = await Promise.all([tx.get(orderRef), tx.get(companyRef)]);
+    const [orderSnap, companySnap, actorSnap] = await Promise.all([
+      tx.get(orderRef), tx.get(companyRef), tx.get(db.collection('users').doc(uid)),
+    ]);
     if (!orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
     if (!companySnap.exists) throw new HttpsError('not-found', 'شركة التوصيل غير موجودة');
+    if (!actorSnap.exists || !isPharmacyRole(actorSnap.data().role)) {
+      throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور صيدلية معتمد');
+    }
     const order = orderSnap.data() || {};
     const company = companySnap.data() || {};
     if (order.type !== 'pharmacy') throw new HttpsError('failed-precondition', 'هذا ليس طلب صيدلية');
@@ -488,8 +494,12 @@ exports.updatePharmacyOrderStatus = onCall(async (request) => {
   if (!allowedStatuses.includes(nextStatus)) throw new HttpsError('invalid-argument', 'حالة الطلب غير مسموحة من لوحة الصيدلية');
   const orderRef = db.collection('orders').doc(orderId);
   await db.runTransaction(async (tx) => {
-    const orderSnap = await tx.get(orderRef);
+    const [orderSnap, actorSnap] = await Promise.all([
+      tx.get(orderRef), tx.get(db.collection('users').doc(uid)),
+    ]);
     if (!orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
+    const actorRole = actorSnap.exists ? actorSnap.data().role : '';
+    if (!isPharmacyRole(actorRole)) throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور صيدلية معتمد');
     const order = orderSnap.data() || {};
     if (order.type !== 'pharmacy') throw new HttpsError('failed-precondition', 'هذا ليس طلب صيدلية');
     const pharmacyId = validId(order.pharmacyId, 'pharmacyId');
