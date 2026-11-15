@@ -52,6 +52,11 @@ beforeEach(async () => {
       role: 'superAdmin',
       name: 'Synthetic Super Admin',
     });
+    await setDoc(doc(db, 'users/platform-super-admin-alias'), {
+      uid: 'platform-super-admin-alias',
+      role: 'super_admin',
+      name: 'Synthetic Super Admin Alias',
+    });
     await setDoc(doc(db, 'users/lab-owner'), {
       uid: 'lab-owner', role: 'lab', isVerified: true, name: 'Synthetic Lab',
     });
@@ -196,6 +201,17 @@ test('an admin can update non-privileged user profile fields', async () => {
 test('a superAdmin can assign a privileged role', async () => {
   const db = env.authenticatedContext('platform-super-admin').firestore();
   await assertSucceeds(updateDoc(doc(db, 'users/patient-b'), {
+    role: 'admin',
+  }));
+});
+
+test('legacy super_admin spelling has the same Firestore administration boundary', async () => {
+  const db = env.authenticatedContext('platform-super-admin-alias').firestore();
+  await assertSucceeds(getDoc(doc(db, 'users/patient-b')));
+  await assertSucceeds(updateDoc(doc(db, 'users/patient-b'), {
+    role: 'admin',
+  }));
+  await assertFails(updateDoc(doc(db, 'users/platform-super-admin-alias'), {
     role: 'admin',
   }));
 });
