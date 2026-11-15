@@ -28,4 +28,4 @@ function isPharmacyOwner(pharmacy, uid, pharmacyId) {
   return [pharmacy.ownerId, pharmacy.userId, pharmacyId].some(value => String(value || '') === String(uid));
 }
 
-module.exports = { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner, isPharmacyRole, isAdminRole };
+module.exports = { PHARMACY_ORDER_TRANSITIONS, canTransition, isPharmacyOwner, isPharmacyRole, isAdminRole, isSuperAdminRole };
