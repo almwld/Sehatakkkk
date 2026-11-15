@@ -451,8 +451,13 @@ exports.updateDeliveryTracking = onCall(async (request) => {
     if (!companySnap.exists) throw new HttpsError('not-found', 'شركة التوصيل غير موجودة');
     const company = companySnap.data() || {};
     if (String(order.deliveryCompanyId || '') !== companyId || String(order.userId || '') !== String(delivery.userId || '')) throw new HttpsError('failed-precondition', 'سجل التوصيل غير مرتبط بالطلب المحدد');
-    const adminUser = await isAdmin(uid);
-    if (!adminUser && !isDeliveryCompanyOwner(company, uid, companyId)) throw new HttpsError('permission-denied', 'لا تملك صلاحية تحديث هذا التوصيل');
+    const [adminUser, actorSnap] = await Promise.all([
+      isAdmin(uid),
+      tx.get(db.collection('users').doc(uid)),
+    ]);
+    if (!adminUser && (!actorSnap.exists || actorSnap.data().role !== 'delivery' || !isDeliveryCompanyOwner(company, uid, companyId))) {
+      throw new HttpsError('permission-denied', 'يجب أن يكون الحساب بدور التوصيل ومرتبطاً بالشركة المسندة');
+    }
     if (company.isActive !== true && !adminUser) throw new HttpsError('failed-precondition', 'شركة التوصيل غير نشطة');
     if (!canDeliveryTransition(String(delivery.status || ''), nextStatus)) throw new HttpsError('failed-precondition', 'لا يمكن الانتقال إلى حالة التوصيل المطلوبة');
     if (nextStatus === 'picked_up' && order.status !== 'ready') throw new HttpsError('failed-precondition', 'يجب أن يكون الطلب جاهزاً قبل استلامه');
