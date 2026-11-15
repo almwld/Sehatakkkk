@@ -1,6 +1,7 @@
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -309,9 +310,6 @@ class _MoreScreenState extends State<MoreScreen>
       context.push(AppRouter.professionalAffiliations);
       return;
     }
-    // MoreScreen can be hosted inside the Home/GoRouter navigation tree.
-    // Always push service screens on the root navigator so they get a real
-    // full-screen route instead of being attached to a nested navigator.
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(builder: (_) => screen),
     );
