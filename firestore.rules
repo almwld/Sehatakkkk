@@ -15,6 +15,14 @@ service cloud.firestore {
     function isSuperAdmin() { return isSignedIn() && userExists(request.auth.uid) && userData(request.auth.uid).role == 'superAdmin'; }
     function isDoctorUser(userId) { return userExists(userId) && userData(userId).role == 'doctor'; }
     function isVerifiedDoctor(userId) { return isDoctorUser(userId) && userData(userId).isVerified == true; }
+    function isLabAccount(userId) { return userExists(userId) && userData(userId).role == 'lab'; }
+    function isVerifiedLabAccount(userId) {
+      return isLabAccount(userId)
+        && userData(userId).isVerified == true
+        && exists(/databases/$(database)/documents/labs/$(userId))
+        && get(/databases/$(database)/documents/labs/$(userId)).data.userId == userId
+        && get(/databases/$(database)/documents/labs/$(userId)).data.isVerified == true;
+    }
 
     // ═══════════════════════════════════════════════════════════
     // USERS
@@ -157,10 +165,10 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════
     match /chats/{chatId} {
       // ✅ get: وثيقة محددة
-      allow get: if isSignedIn() 
-        && (!exists(/databases/$(database)/documents/chats/$(chatId))
-            || (resource.data.participants is list
-                && request.auth.uid in resource.data.participants));
+      allow get: if isSignedIn()
+        && exists(/databases/$(database)/documents/chats/$(chatId))
+        && resource.data.participants is list
+        && request.auth.uid in resource.data.participants;
       
       // Queries must prove that every returned chat belongs to the caller.
       // This works with the existing arrayContains(participants, uid) queries.
@@ -203,11 +211,15 @@ service cloud.firestore {
       }
 
       match /messages/{messageId} {
-        allow read: if isSignedIn() 
-          && (!exists(/databases/$(database)/documents/chats/$(chatId))
-              || request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants);
-        
+        allow read: if isSignedIn()
+          && exists(/databases/$(database)/documents/chats/$(chatId))
+          && get(/databases/$(database)/documents/chats/$(chatId)).data.participants is list
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+
         allow create: if isSignedIn()
+          && exists(/databases/$(database)/documents/chats/$(chatId))
+          && get(/databases/$(database)/documents/chats/$(chatId)).data.participants is list
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
           && request.resource.data.senderId == request.auth.uid
           && request.resource.data.chatId == chatId
           && request.resource.data.timestamp == request.time;
@@ -487,29 +499,63 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════
     match /labs/{labId} {
       allow read: if true;
-      allow create, update: if isSignedIn() && request.auth.uid == labId;
+      // A laboratory profile can only be created by an account whose trusted role is lab.
+      // Verification fields are server/admin-owned and cannot be self-assigned.
+      allow create: if isSelf(labId)
+        && isLabAccount(request.auth.uid)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.get('isVerified', false) == false
+        && !request.resource.data.keys().hasAny(['verifiedBy', 'verifiedAt']);
+      allow update: if isSelf(labId)
+        && isLabAccount(request.auth.uid)
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'isVerified', 'verificationStatus', 'verifiedBy', 'verifiedAt'
+        ]);
       allow delete: if isAdmin();
     }
     match /lab_tests/{testId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.labId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.labId == request.auth.uid;
+      allow create: if isSignedIn()
+        && isLabAccount(request.auth.uid)
+        && exists(/databases/$(database)/documents/labs/$(request.auth.uid))
+        && get(/databases/$(database)/documents/labs/$(request.auth.uid)).data.userId == request.auth.uid
+        && request.resource.data.labId == request.auth.uid
+        && (request.resource.data.get('isActive', false) != true || isVerifiedLabAccount(request.auth.uid));
+      allow update: if isSignedIn()
+        && isLabAccount(request.auth.uid)
+        && resource.data.labId == request.auth.uid
+        && request.resource.data.labId == resource.data.labId
+        && (request.resource.data.get('isActive', false) != true || isVerifiedLabAccount(request.auth.uid));
+      allow delete: if isSignedIn()
+        && isLabAccount(request.auth.uid)
+        && resource.data.labId == request.auth.uid;
     }
     match /lab_bookings/{bookingId} {
-      allow read: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.labId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      allow read: if isSignedIn()
+        && (resource.data.patientId == request.auth.uid
+            || (resource.data.labId == request.auth.uid && isVerifiedLabAccount(request.auth.uid))
+            || isAdmin());
+      // Patients may book only with an approved, verified laboratory account.
+      allow create: if isSignedIn()
+        && request.resource.data.patientId == request.auth.uid
+        && request.resource.data.labId is string
+        && isVerifiedLabAccount(request.resource.data.labId);
       // Keep booking ownership immutable. Patients may only cancel their own booking;
-      // the assigned lab may update workflow/result fields, never patientId or labId.
+      // the assigned, verified lab may update workflow/result fields.
       allow update: if isAdmin()
         || (isSignedIn()
             && resource.data.patientId == request.auth.uid
             && request.resource.data.patientId == resource.data.patientId
             && request.resource.data.labId == resource.data.labId
+            && resource.data.status in ['pending', 'confirmed']
             && request.resource.data.status == 'cancelled'
             && request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['status', 'notes', 'updatedAt']))
         || (isSignedIn()
             && resource.data.labId == request.auth.uid
+            && isVerifiedLabAccount(request.auth.uid)
             && request.resource.data.patientId == resource.data.patientId
             && request.resource.data.labId == resource.data.labId
             && request.resource.data.status in ['pending', 'confirmed', 'sampleTaken', 'processing', 'completed', 'cancelled']
@@ -518,7 +564,8 @@ service cloud.firestore {
               'results', 'resultFile', 'resultUrl', 'resultRemotePath',
               'resultFileName', 'resultMimeType', 'resultSize', 'completedAt'
             ]));
-      allow delete: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid);
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource.data.patientId == request.auth.uid && resource.data.status == 'pending');
     }
     match /pharmacies/{id} { allow read: if true; allow write: if isAdmin(); }
     match /hospitals/{id} { allow read: if true; allow write: if isAdmin(); }
@@ -665,6 +712,8 @@ service cloud.firestore {
     match /deliveries/{orderId} {
       function isAssignedDeliveryCompanyOwner() {
         return isSignedIn()
+          && userExists(request.auth.uid)
+          && userData(request.auth.uid).role == 'delivery'
           && resource.data.get('companyId', null) is string
           && exists(/databases/$(database)/documents/delivery_companies/$(resource.data.companyId))
           && (
