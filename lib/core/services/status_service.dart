@@ -141,6 +141,49 @@ class StatusService {
     return StoryItem(type: type, url: result.url!, duration: duration);
   }
 
+  CollectionReference<Map<String, dynamic>> _savedStatuses(String uid) =>
+      _firestore.collection('users').doc(uid).collection('saved_statuses');
+
+  Future<bool> isStatusSaved(String statusId) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || statusId.trim().isEmpty) return false;
+    final saved = await _savedStatuses(uid).doc(statusId).get();
+    return saved.exists;
+  }
+
+  Future<void> saveStatus(UserStatusModel status) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) throw StateError('يجب تسجيل الدخول لحفظ الحالة.');
+    if (status.stories.isEmpty) throw StateError('لا توجد محتويات لحفظها.');
+    await _savedStatuses(uid).doc(status.id).set({
+      'userId': status.userId,
+      'userName': status.userName,
+      'userImage': status.userImage,
+      'stories': status.stories.map((story) => story.toMap()).toList(),
+      'createdAt': Timestamp.fromDate(status.createdAt),
+      'expiresAt': Timestamp.fromDate(status.expiresAt),
+      'savedAt': FieldValue.serverTimestamp(),
+      'sourceStatusId': status.id,
+    });
+  }
+
+  Future<void> removeSavedStatus(String statusId) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    await _savedStatuses(uid).doc(statusId).delete();
+  }
+
+  Stream<List<UserStatusModel>> streamSavedStatuses() {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return Stream.value(const <UserStatusModel>[]);
+    return _savedStatuses(uid).orderBy('savedAt', descending: true).snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((document) => UserStatusModel.fromDocument(document))
+          .where((status) => status.stories.isNotEmpty)
+          .toList(),
+    );
+  }
+
   Future<void> markViewed(UserStatusModel status) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null || uid == status.userId) return;
