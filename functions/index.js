@@ -754,12 +754,16 @@ exports.createHospitalStaffInvitation = onCall(async (request) => {
     status: 'pending', invitedBy: hospitalId,
     createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
   });
-  await db.collection('notifications').add({
-    userId: staffId, type: 'hospital_staff_invitation',
-    title: 'دعوة انتساب إلى مستشفى',
-    body: 'لديك دعوة انتساب مهني جديدة. افتح صفحة الانتسابات لمراجعتها.',
-    invitationId, hospitalId, isRead: false, createdAt: FieldValue.serverTimestamp(),
-  });
+  try {
+    await db.collection('notifications').add({
+      userId: staffId, type: 'hospital_staff_invitation',
+      title: 'دعوة انتساب إلى مستشفى',
+      body: 'لديك دعوة انتساب مهني جديدة. افتح صفحة الانتسابات لمراجعتها.',
+      invitationId, hospitalId, isRead: false, createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.warn('[HospitalStaff] Invitation notification could not be created.');
+  }
   return { invitationId, status: 'pending' };
 });
 
@@ -817,10 +821,6 @@ exports.respondHospitalStaffInvitation = onCall(async (request) => {
         (doctorSnap && doctorSnap.exists && doctorSnap.data().name)
         || staff.name || staff.displayName || 'ممارس صحي'
       ).slice(0, 120);
-      const photoUrl = String(
-        (doctorSnap && doctorSnap.exists && (doctorSnap.data().photoUrl || doctorSnap.data().imageUrl))
-        || staff.photoUrl || staff.imageUrl || ''
-      ).slice(0, 1000);
       tx.set(linkRef, {
         hospitalId: invitation.hospitalId, hospitalName: String(hospital.name || '').slice(0, 160),
         staffId, staffRole: staff.role, displayName,
@@ -832,7 +832,7 @@ exports.respondHospitalStaffInvitation = onCall(async (request) => {
         tx.set(publicRef, {
           hospitalId: invitation.hospitalId, staffRole: staff.role,
           displayName, jobTitle: invitation.jobTitle, departmentId: invitation.departmentId || '',
-          departmentName, photoUrl, isVerified: true, isPublic: true,
+          departmentName, isVerified: true, isPublic: true,
           status: 'active', hospitalName: String(hospital.name || '').slice(0, 160),
           createdAt: now, updatedAt: now,
         });
