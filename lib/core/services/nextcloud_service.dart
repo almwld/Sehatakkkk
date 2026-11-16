@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sehatak/core/config/livekit_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -150,15 +152,34 @@ class NextcloudService {
     CancelToken? cancelToken,
   }) async {
     try {
-      // Some legacy feature entry points call uploadFile without an explicit
-      // loadConfig. Resolve the same shared secure config before rejecting.
-      if (!isConfigured) await loadConfig();
-      _ensureConfigured();
       if (!await file.exists()) {
         return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
       }
       final name = _cleanPart(fileName ?? file.path.split(Platform.pathSeparator).last);
       if (name.isEmpty) return const NextcloudUploadResult(success: false, error: 'اسم الملف غير صالح');
+
+      // Production media credentials belong to the server, not the installed
+      // APK. Use the authenticated media gateway first so reinstalling the app
+      // or switching devices never requires users to re-enter Nextcloud secrets.
+      final serverResult = await _uploadViaBackend(
+        file: file,
+        path: path,
+        fileName: name,
+        createShare: createShare,
+        onProgress: onProgress,
+      );
+      if (serverResult != null) return serverResult;
+
+      // Backward-compatible fallback for installations that intentionally
+      // configured a private Nextcloud endpoint on-device.
+      if (!isConfigured) await loadConfig();
+      if (!isConfigured) {
+        return const NextcloudUploadResult(
+          success: false,
+          error: 'تعذر الوصول إلى خادم الوسائط. تحقق من اتصال الإنترنت ثم أعد المحاولة.',
+        );
+      }
+      _ensureConfigured();
       final logicalDirectory = _platformPath(path);
       final remotePath = '$logicalDirectory/$name';
       final davUrl = _davUrl(remotePath);
@@ -201,6 +222,221 @@ class NextcloudService {
     } catch (e, st) {
       debugPrint('Nextcloud upload failed: ${e.runtimeType}.');
       return NextcloudUploadResult(success: false, error: e.toString());
+    }
+  }
+
+  Future<NextcloudUploadResult?> _uploadViaBackend({
+    required File file,
+    required String path,
+    required String fileName,
+    required bool createShare,
+    void Function(int, int)? onProgress,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+
+    try {
+      final token = await user.getIdToken();
+      if (token == null || token.isEmpty) return null;
+      final base = LiveKitConfig.tokenServerUrl.replaceFirst(RegExp(r'/
+    if (!isConfigured) await loadConfig();
+    _ensureConfigured();
+    try {
+      final response = await http.post(
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
+        headers: _headers(),
+        body: {'path': '/${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
+      );
+      debugPrint('🔗 Share status: ${response.statusCode}');
+      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final ocs = body['ocs'] as Map<String, dynamic>?;
+      final data = ocs?['data'] as Map<String, dynamic>?;
+      final shareUrl = data?['url']?.toString();
+      if (shareUrl == null || shareUrl.isEmpty) return null;
+
+      return '${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
+    } catch (e, st) {
+      debugPrint('Nextcloud share request failed: ${e.runtimeType}.');
+      return null;
+    }
+  }
+
+  /// Verifies the same redirect behavior used by media players.
+  /// The server returns 303 -> public.php/dav -> 200 for a normal GET.
+  /// A Range request returns 500 on this server, so verification must not
+  /// force a Range header.
+  Future<bool> verifyPublicUrl(String url) async {
+    final client = http.Client();
+    var current = Uri.parse(url);
+    try {
+      for (var hop = 0; hop <= 5; hop++) {
+        final request = http.Request('GET', current)
+          ..followRedirects = false
+          ..maxRedirects = 0;
+        final response = await client.send(request).timeout(const Duration(seconds: 20));
+        final status = response.statusCode;
+        final location = response.headers['location'];
+        final contentLength = response.contentLength;
+        final contentType = response.headers['content-type'];
+        debugPrint(
+          'Nextcloud URL verification hop=$hop status=$status '
+          'contentType=${contentType ?? '(none)'}',
+        );
+
+        if (status == 200 || status == 206) {
+          await response.stream.listen(null).cancel();
+          return contentLength == null || contentLength > 0;
+        }
+
+        if (status >= 300 && status < 400 && location != null && location.isNotEmpty) {
+          await response.stream.listen(null).cancel();
+          final next = current.resolve(location);
+          if (next.host != current.host) {
+            debugPrint('Nextcloud URL verification rejected a cross-host redirect.');
+            return false;
+          }
+          current = next;
+          continue;
+        }
+
+        await response.stream.listen(null).cancel();
+        return false;
+      }
+
+      debugPrint('Nextcloud URL verification exceeded the redirect limit.');
+      return false;
+    } catch (e, st) {
+      debugPrint('Nextcloud URL verification failed: ${e.runtimeType}.');
+      return false;
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<bool> checkServerStatus() async {
+    try {
+      if (baseUrl.isEmpty) return false;
+      final response = await http.get(Uri.parse('${_normalizedBase()}/status.php'));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> testAuth() async {
+    try {
+      _ensureConfigured();
+      final response = await http.get(
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'),
+        headers: _headers(),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
+class NextcloudUploadResult {
+  final bool success;
+  final String? url;
+  final String? path;
+  final String? fileName;
+  final String? error;
+  final bool shareReady;
+
+  const NextcloudUploadResult({
+    required this.success,
+    this.url,
+    this.path,
+    this.fileName,
+    this.error,
+    this.shareReady = false,
+  });
+}
+), '');
+      final length = await file.length();
+      final response = await _dio.post<dynamic>(
+        '$base/media/upload',
+        data: file.openRead(),
+        queryParameters: {
+          'path': path,
+          'fileName': fileName,
+          'mimeType': 'application/octet-stream',
+          'createShare': createShare ? 'true' : 'false',
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': length.toString(),
+          },
+          responseType: ResponseType.json,
+          validateStatus: (status) => status != null && status >= 200 && status < 300,
+        ),
+        onSendProgress: onProgress,
+      );
+
+      final body = response.data is Map
+          ? Map<String, dynamic>.from(response.data as Map)
+          : <String, dynamic>{};
+      if (body['success'] != true) {
+        throw StateError(body['message']?.toString() ?? 'فشل خادم الوسائط في رفع الملف');
+      }
+      final fileData = body['file'] is Map
+          ? Map<String, dynamic>.from(body['file'] as Map)
+          : <String, dynamic>{};
+      final remotePath = fileData['remotePath']?.toString();
+      var publicUrl = fileData['url']?.toString();
+      if (publicUrl != null && publicUrl.isEmpty) publicUrl = null;
+
+      // The upload can succeed even when Nextcloud's first share request is
+      // temporarily unavailable. Retry sharing separately; never upload the
+      // same media a second time just because link creation failed.
+      if (createShare && (publicUrl == null || publicUrl.isEmpty) &&
+          remotePath != null && remotePath.isNotEmpty) {
+        for (var attempt = 0; attempt < 3; attempt++) {
+          try {
+            final share = await _dio.post<dynamic>(
+              '$base/media/share',
+              data: {'remotePath': remotePath},
+              options: Options(
+                headers: {'Authorization': 'Bearer $token'},
+                responseType: ResponseType.json,
+                validateStatus: (status) => status != null && status >= 200 && status < 300,
+              ),
+            );
+            final shareBody = share.data is Map
+                ? Map<String, dynamic>.from(share.data as Map)
+                : <String, dynamic>{};
+            final candidate = shareBody['url']?.toString();
+            if (candidate != null && candidate.isNotEmpty) {
+              publicUrl = candidate;
+              break;
+            }
+          } catch (_) {
+            if (attempt < 2) {
+              await Future<void>.delayed(Duration(seconds: attempt + 1));
+            }
+          }
+        }
+      }
+
+      return NextcloudUploadResult(
+        success: true,
+        url: publicUrl,
+        path: remotePath,
+        fileName: fileName,
+        shareReady: publicUrl != null && publicUrl.isNotEmpty,
+        error: createShare && (publicUrl == null || publicUrl.isEmpty)
+            ? 'تم رفع الملف بنجاح، لكن تعذر إنشاء رابط المشاركة. أعد المحاولة بعد قليل.'
+            : null,
+      );
+    } catch (error) {
+      debugPrint('Server media upload unavailable: ${error.runtimeType}.');
+      return null;
     }
   }
 
