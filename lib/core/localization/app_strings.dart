@@ -3374,6 +3374,7 @@ class AppStrings {
       'ملاحظات': ['Notes', 'Notes'],
       'الملفات الطبية': ['Medical records', 'Dossiers médicaux'],
       'يرجى تسجيل الدخول': ['Please sign in', 'Veuillez vous connecter'],
+      'يجب تسجيل الدخول لعرض الملف': ['Please sign in to view the profile', 'Veuillez vous connecter pour afficher le profil'],
       'حدث خطأ': ['An error occurred', 'Une erreur est survenue'],
       'لا توجد ملفات طبية': ['No medical records', 'Aucun dossier médical'],
       'ابحث عن ملف طبي...': ['Search medical records...', 'Rechercher dans les dossiers médicaux…'],
