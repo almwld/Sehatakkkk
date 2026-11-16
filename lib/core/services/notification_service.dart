@@ -37,7 +37,20 @@ void notificationActionBackgroundHandler(NotificationResponse response) async {
   }
 }
 
+const _legacyPendingReplyKey = 'pending_notification_replies_v1';
 const _pendingReplyStorageNamespace = 'sehatak.pending_notification_replies.v1';
+
+Future<List<String>> _readPendingReplies(SharedPreferences prefs) async {
+  final current = prefs.getStringList(_pendingReplyStorageNamespace);
+  if (current != null) return current;
+
+  // Preserve queued notification replies created by earlier app versions.
+  final legacy = prefs.getStringList(_legacyPendingReplyKey);
+  if (legacy == null) return <String>[];
+  await prefs.setStringList(_pendingReplyStorageNamespace, legacy);
+  await prefs.remove(_legacyPendingReplyKey);
+  return legacy;
+}
 
 Future<Map<String, dynamic>?> _decodeNotificationEnvelope(String? payload) async {
   if (payload == null || payload.trim().isEmpty) return null;
@@ -58,7 +71,7 @@ Future<void> _queuePendingReply({
 }) async {
   if (uid.isEmpty || chatId.isEmpty || text.trim().isEmpty) return;
   final prefs = await SharedPreferences.getInstance();
-  final raw = prefs.getStringList(_pendingReplyStorageNamespace) ?? <String>[];
+  final raw = await _readPendingReplies(prefs);
   raw.add(jsonEncode(<String, dynamic>{
     'uid': uid,
     'chatId': chatId,
