@@ -1,0 +1,18 @@
+title = "Sehatak Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+# Firebase Android/iOS client API keys are public app identifiers. They are
+# intentionally embedded in generated client configuration and are not server
+# credentials. Scope this exception to the exact generated Firebase files and
+# the Google API-key format; all other findings remain blocking.
+[[allowlists]]
+description = "Firebase client configuration API keys"
+paths = [
+  '''^android/app/google-services\.json$''',
+  '''^lib/firebase_options\.dart$''',
+]
+regexes = [
+  '''AIza[0-9A-Za-z_-]{35}''',
+]
