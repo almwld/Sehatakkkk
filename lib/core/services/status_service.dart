@@ -105,16 +105,8 @@ class StatusService {
     }
     if (!await file.exists()) throw StateError('ملف الحالة غير موجود.');
 
-    // This is the shared Nextcloud singleton used by chat and settings.
-    // Load its secure credentials before every upload; never fall back to Firebase.
-    await _nextcloud.loadConfig();
-    if (_nextcloud.baseUrl.isEmpty ||
-        _nextcloud.username.isEmpty ||
-        _nextcloud.password.isEmpty) {
-      throw StateError(
-        'إعدادات Nextcloud غير محفوظة أو غير مكتملة على هذا الجهاز. لا يمكن نشر الحالة دون خادم الوسائط المعتمد.',
-      );
-    }
+    // Credentials are resolved by NextcloudService through the authenticated
+    // server media gateway. The app must not require local Nextcloud secrets.
     final extension = file.path.contains('.') ? file.path.split('.').last.toLowerCase() : (type == 'video' ? 'mp4' : 'jpg');
     final safeExtension = RegExp(r'^[a-z0-9]{1,8}$').hasMatch(extension)
         ? extension
