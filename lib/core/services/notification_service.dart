@@ -37,7 +37,7 @@ void notificationActionBackgroundHandler(NotificationResponse response) async {
   }
 }
 
-const _pendingReplyKey = 'sehatak.pending_notification_replies.v1';
+const _pendingReplyStorageNamespace = 'sehatak.pending_notification_replies.v1';
 
 Future<Map<String, dynamic>?> _decodeNotificationEnvelope(String? payload) async {
   if (payload == null || payload.trim().isEmpty) return null;
@@ -58,7 +58,7 @@ Future<void> _queuePendingReply({
 }) async {
   if (uid.isEmpty || chatId.isEmpty || text.trim().isEmpty) return;
   final prefs = await SharedPreferences.getInstance();
-  final raw = prefs.getStringList(_pendingReplyKey) ?? <String>[];
+  final raw = prefs.getStringList(_pendingReplyStorageNamespace) ?? <String>[];
   raw.add(jsonEncode(<String, dynamic>{
     'uid': uid,
     'chatId': chatId,
@@ -66,14 +66,14 @@ Future<void> _queuePendingReply({
     'replyToId': replyToId,
     'createdAt': DateTime.now().toUtc().toIso8601String(),
   }));
-  await prefs.setStringList(_pendingReplyKey, raw);
+  await prefs.setStringList(_pendingReplyStorageNamespace, raw);
 }
 
 Future<void> flushPendingNotificationReplies() async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null || uid.isEmpty) return;
   final prefs = await SharedPreferences.getInstance();
-  final raw = prefs.getStringList(_pendingReplyKey) ?? <String>[];
+  final raw = prefs.getStringList(_pendingReplyStorageNamespace) ?? <String>[];
   if (raw.isEmpty) return;
   final remaining = <String>[];
   for (final item in raw) {
@@ -95,7 +95,7 @@ Future<void> flushPendingNotificationReplies() async {
       remaining.add(item);
     }
   }
-  await prefs.setStringList(_pendingReplyKey, remaining);
+  await prefs.setStringList(_pendingReplyStorageNamespace, remaining);
 }
 
 Future<void> handleCallNotificationAction({
