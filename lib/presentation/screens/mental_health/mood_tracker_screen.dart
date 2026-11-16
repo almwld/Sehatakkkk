@@ -63,7 +63,7 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> {
       const SizedBox(height: 20),
       TextField(controller: _note, maxLines: 4, decoration: InputDecoration(labelText: _t(context, 'ملاحظات اليوم'), hintText: _t(context, 'اكتب ما تريد تذكره...'), border: const OutlineInputBorder())),
       const SizedBox(height: 16),
-      ElevatedButton(onPressed: _saving ? null : _saveMood, child: Text(_t(context, _saving ? 'جاري الحفظ...' : 'حفظ الحالة'))),
+      ElevatedButton(onPressed: _saving ? null : _saveMood, child: Text(_t(context, _saving ? 'جاري الحفظ...' : 'حفظ'))),
       const SizedBox(height: 20),
       Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(_t(context, 'التتبع يساعدك على ملاحظة الأنماط مع الوقت، لكنه ليس أداة لتشخيص الاكتئاب أو أي اضطراب نفسي.')))),
     ]),
