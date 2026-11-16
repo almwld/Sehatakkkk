@@ -262,7 +262,12 @@ class NextcloudService {
 
     try {
       final token = await user.getIdToken();
-      if (token == null || token.isEmpty) return null;
+      if (token == null || token.isEmpty) {
+        return const NextcloudUploadResult(
+          success: false,
+          error: 'تعذر التحقق من جلسة الدخول لرفع الوسائط.',
+        );
+      }
       final configuredBase = LiveKitConfig.tokenServerUrl;
       final base = configuredBase.endsWith('/')
           ? configuredBase.substring(0, configuredBase.length - 1)
@@ -344,10 +349,17 @@ class NextcloudService {
             : null,
       );
     } catch (error) {
-      debugPrint('Server media upload unavailable: ' + error.runtimeType.toString());
-      return null;
+      // Once an authenticated upload request has been attempted, never fall
+      // back to a second upload: a timeout may happen after Nextcloud stored
+      // the bytes but before the client received the response.
+      debugPrint('Server media upload failed: ' + error.runtimeType.toString());
+      return NextcloudUploadResult(
+        success: false,
+        error: 'تعذر تأكيد نتيجة رفع الملف إلى خادم الوسائط. تحقق من الاتصال قبل إعادة المحاولة.',
+      );
     }
   }
+
   Future<String?> createPublicShare(String remotePath) async {
     if (!isConfigured) await loadConfig();
     _ensureConfigured();
