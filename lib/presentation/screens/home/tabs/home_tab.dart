@@ -247,8 +247,7 @@ class _HomeTabState extends State<HomeTab>
                       : AppImage(imageUrl: image, height: 62, width: 62, fit: BoxFit.cover),
                 ),
                 const SizedBox(width: 8),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(doctorName, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [                  Text(doctorName, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
                   const SizedBox(height: 3),
                   Text(specialty, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: AppColors.primary)),
                   if (doctor['rating'] != null) ...[
@@ -290,7 +289,7 @@ class _HomeTabState extends State<HomeTab>
                     child: Container(
                       width: 154,
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -299,9 +298,7 @@ class _HomeTabState extends State<HomeTab>
                               width: 100,
                               height: 100,
                               decoration: BoxDecoration(
-                                color: dark
-                                    ? const Color(0xFF173737)
-                                    : const Color(0xFFF7FAFA),
+                                color: const Color(0xFFF7FAFA),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               clipBehavior: Clip.antiAlias,
@@ -317,7 +314,7 @@ class _HomeTabState extends State<HomeTab>
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: dark ? Colors.white : _text)),
+                          Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: _text)),
                           const Spacer(),
                           Text('${product.price} $_currency', style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900)),
                         ],
@@ -497,8 +494,7 @@ class _HomeTabState extends State<HomeTab>
                       ? title
                       : localizedField(
                           item,
-                          titleField,
-                          locale,
+                          titleField,                          locale,
                           fallback: item[titleField]?.toString() ?? title,
                         );
                   final subtitleField = item.containsKey(subtitleKey)
