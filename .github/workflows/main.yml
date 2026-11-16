@@ -294,10 +294,19 @@ jobs:
             f"estimated byte savings: {saved}"
         )
 
-        remaining = list(root.rglob("*.png"))
+        # The Play Store listing icon is an intentional PNG source asset. It is
+        # uploaded to the store separately and is not part of Flutter's WebP
+        # runtime asset conversion.
+        intentional_pngs = {
+            root / "branding" / "play_store_icon_512.png",
+        }
+        remaining = [
+            path for path in root.rglob("*.png")
+            if path not in intentional_pngs
+        ]
         if remaining:
             raise SystemExit(
-                "PNG assets remain under assets/: " +
+                "Unconverted PNG assets remain under assets/: " +
                 ", ".join(map(str, remaining))
             )
 
