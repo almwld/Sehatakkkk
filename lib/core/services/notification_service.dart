@@ -37,7 +37,7 @@ void notificationActionBackgroundHandler(NotificationResponse response) async {
   }
 }
 
-const _pendingReplyKey = 'pending_notification_replies_v1';
+const _pendingReplyKey = 'sehatak.pending_notification_replies.v1';
 
 Future<Map<String, dynamic>?> _decodeNotificationEnvelope(String? payload) async {
   if (payload == null || payload.trim().isEmpty) return null;
