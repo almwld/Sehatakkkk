@@ -144,13 +144,28 @@ async function verifyFirebaseUser(req) {
   }
 }
 
+async function requireFirebaseUser(req, res, next) {
+  try {
+    req.firebaseUser = await verifyFirebaseUser(req);
+    next();
+  } catch (error) {
+    const status = Number(error.statusCode) || 401;
+    return res.status(status).json({
+      success: false,
+      message: status >= 500 ? 'تعذر التحقق من جلسة المستخدم' : error.message,
+    });
+  }
+}
+
 app.get('/health', (_req, res) => res.json({ success: true, service: 'sehatak-livekit-token-server' }));
 app.post(
   '/media/upload',
+  // Authenticate before buffering up to 100 MB of request data.
+  requireFirebaseUser,
   express.raw({ type: 'application/octet-stream', limit: MAX_MEDIA_BYTES }),
   async (req, res) => {
     try {
-      const decodedToken = await verifyFirebaseUser(req);
+      const decodedToken = req.firebaseUser;
       if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
         return res.status(400).json({ success: false, message: 'Media body is required' });
       }
