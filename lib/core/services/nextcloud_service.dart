@@ -8,6 +8,31 @@ import 'package:sehatak/core/config/livekit_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+String _mediaMimeType(String fileName) {
+  final extension = fileName.split('.').last.toLowerCase();
+  const types = <String, String>{
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+    'heic': 'image/heic',
+    'heif': 'image/heif',
+    'mp4': 'video/mp4',
+    'm4v': 'video/x-m4v',
+    'mov': 'video/quicktime',
+    'webm': 'video/webm',
+    '3gp': 'video/3gpp',
+    'mp3': 'audio/mpeg',
+    'm4a': 'audio/mp4',
+    'aac': 'audio/aac',
+    'wav': 'audio/wav',
+    'ogg': 'audio/ogg',
+    'pdf': 'application/pdf',
+  };
+  return types[extension] ?? 'application/octet-stream';
+}
+
 class NextcloudService {
   static final NextcloudService _instance = NextcloudService._internal();
   factory NextcloudService() => _instance;
@@ -249,7 +274,7 @@ class NextcloudService {
         queryParameters: {
           'path': path,
           'fileName': fileName,
-          'mimeType': 'application/octet-stream',
+          'mimeType': _mediaMimeType(fileName),
           'createShare': createShare ? 'true' : 'false',
         },
         options: Options(
