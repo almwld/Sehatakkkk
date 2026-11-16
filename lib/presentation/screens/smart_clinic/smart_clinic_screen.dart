@@ -30,8 +30,18 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
       String fullReply = reply;
       if (RegExp(r'عندي|اعاني|احس|اشعر|الم|وجع|صداع|حرارة|سعال').hasMatch(text)) {
         final triage = _ai.triage(text);
-        final urgencyLabel = switch (triage['urgency']) { 'high' => 'مرتفع', 'medium' => 'متوسط', _ => 'منخفض' };
-        fullReply += '\n\n${_t('تحليل سريع:')}\n• ${_t('التخصص:')} ${_t(triage['specialization'].toString())}\n• ${_t('الطوارئ:')} ${_t(urgencyLabel)}\n• ${_t('الإجراء:')} ${_t(triage['action'].toString())}';
+        final languageCode = AppStrings.of(context).locale.languageCode;
+        final urgencyLabel = switch (triage['urgency']) {
+          'high' => _t('مرتفع'),
+          'medium' => _t('متوسط'),
+          'unassessed' => languageCode == 'fr'
+              ? 'Non évalué'
+              : (languageCode == 'en' ? 'Not assessed' : 'غير مُقيّم'),
+          _ => languageCode == 'fr'
+              ? 'Non évalué'
+              : (languageCode == 'en' ? 'Not assessed' : 'غير مُقيّم'),
+        };
+        fullReply += '\n\n${_t('تحليل سريع:')}\n• ${_t('التخصص:')} ${_t(triage['specialization'].toString())}\n• ${_t('الطوارئ:')} $urgencyLabel\n• ${_t('الإجراء:')} ${_t(triage['action'].toString())}';
       }
       setState(() {
         _chat.add({'role': 'bot', 'text': fullReply});
