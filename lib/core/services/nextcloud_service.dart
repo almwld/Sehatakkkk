@@ -238,125 +238,10 @@ class NextcloudService {
     try {
       final token = await user.getIdToken();
       if (token == null || token.isEmpty) return null;
-      final base = LiveKitConfig.tokenServerUrl.replaceFirst(RegExp(r'/
-    if (!isConfigured) await loadConfig();
-    _ensureConfigured();
-    try {
-      final response = await http.post(
-        Uri.parse('${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
-        headers: _headers(),
-        body: {'path': '/${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
-      );
-      debugPrint('🔗 Share status: ${response.statusCode}');
-      if (response.statusCode < 200 || response.statusCode >= 300) return null;
-
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final ocs = body['ocs'] as Map<String, dynamic>?;
-      final data = ocs?['data'] as Map<String, dynamic>?;
-      final shareUrl = data?['url']?.toString();
-      if (shareUrl == null || shareUrl.isEmpty) return null;
-
-      return '${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
-    } catch (e, st) {
-      debugPrint('Nextcloud share request failed: ${e.runtimeType}.');
-      return null;
-    }
-  }
-
-  /// Verifies the same redirect behavior used by media players.
-  /// The server returns 303 -> public.php/dav -> 200 for a normal GET.
-  /// A Range request returns 500 on this server, so verification must not
-  /// force a Range header.
-  Future<bool> verifyPublicUrl(String url) async {
-    final client = http.Client();
-    var current = Uri.parse(url);
-    try {
-      for (var hop = 0; hop <= 5; hop++) {
-        final request = http.Request('GET', current)
-          ..followRedirects = false
-          ..maxRedirects = 0;
-        final response = await client.send(request).timeout(const Duration(seconds: 20));
-        final status = response.statusCode;
-        final location = response.headers['location'];
-        final contentLength = response.contentLength;
-        final contentType = response.headers['content-type'];
-        debugPrint(
-          'Nextcloud URL verification hop=$hop status=$status '
-          'contentType=${contentType ?? '(none)'}',
-        );
-
-        if (status == 200 || status == 206) {
-          await response.stream.listen(null).cancel();
-          return contentLength == null || contentLength > 0;
-        }
-
-        if (status >= 300 && status < 400 && location != null && location.isNotEmpty) {
-          await response.stream.listen(null).cancel();
-          final next = current.resolve(location);
-          if (next.host != current.host) {
-            debugPrint('Nextcloud URL verification rejected a cross-host redirect.');
-            return false;
-          }
-          current = next;
-          continue;
-        }
-
-        await response.stream.listen(null).cancel();
-        return false;
-      }
-
-      debugPrint('Nextcloud URL verification exceeded the redirect limit.');
-      return false;
-    } catch (e, st) {
-      debugPrint('Nextcloud URL verification failed: ${e.runtimeType}.');
-      return false;
-    } finally {
-      client.close();
-    }
-  }
-
-  Future<bool> checkServerStatus() async {
-    try {
-      if (baseUrl.isEmpty) return false;
-      final response = await http.get(Uri.parse('${_normalizedBase()}/status.php'));
-      return response.statusCode == 200;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<bool> testAuth() async {
-    try {
-      _ensureConfigured();
-      final response = await http.get(
-        Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'),
-        headers: _headers(),
-      );
-      return response.statusCode == 200;
-    } catch (_) {
-      return false;
-    }
-  }
-}
-
-class NextcloudUploadResult {
-  final bool success;
-  final String? url;
-  final String? path;
-  final String? fileName;
-  final String? error;
-  final bool shareReady;
-
-  const NextcloudUploadResult({
-    required this.success,
-    this.url,
-    this.path,
-    this.fileName,
-    this.error,
-    this.shareReady = false,
-  });
-}
-), '');
+      final configuredBase = LiveKitConfig.tokenServerUrl;
+      final base = configuredBase.endsWith('/')
+          ? configuredBase.substring(0, configuredBase.length - 1)
+          : configuredBase;
       final length = await file.length();
       final response = await _dio.post<dynamic>(
         '$base/media/upload',
@@ -392,9 +277,8 @@ class NextcloudUploadResult {
       var publicUrl = fileData['url']?.toString();
       if (publicUrl != null && publicUrl.isEmpty) publicUrl = null;
 
-      // The upload can succeed even when Nextcloud's first share request is
-      // temporarily unavailable. Retry sharing separately; never upload the
-      // same media a second time just because link creation failed.
+      // Retry link creation separately. Never upload the same media twice
+      // because Nextcloud's initial public-share request was unavailable.
       if (createShare && (publicUrl == null || publicUrl.isEmpty) &&
           remotePath != null && remotePath.isNotEmpty) {
         for (var attempt = 0; attempt < 3; attempt++) {
@@ -435,11 +319,10 @@ class NextcloudUploadResult {
             : null,
       );
     } catch (error) {
-      debugPrint('Server media upload unavailable: ${error.runtimeType}.');
+      debugPrint('Server media upload unavailable: ' + error.runtimeType.toString());
       return null;
     }
   }
-
   Future<String?> createPublicShare(String remotePath) async {
     if (!isConfigured) await loadConfig();
     _ensureConfigured();
