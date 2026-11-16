@@ -16,3 +16,15 @@ paths = [
 regexes = [
   '''AIza[0-9A-Za-z_-]{35}''',
 ]
+
+
+# This legacy SharedPreferences key is a local queue namespace, not a credential.
+# It is read only to migrate pending notification replies from older app builds.
+[[allowlists]]
+description = "Legacy notification reply preference key"
+paths = [
+  '''^lib/core/services/notification_service\.dart$''',
+]
+regexes = [
+  '''pending_notification_replies_v1''',
+]
