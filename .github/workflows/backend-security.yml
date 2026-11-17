@@ -54,6 +54,9 @@ jobs:
       - name: Run backend security tests
         run: npm test --prefix backend
 
+      - name: Check LiveKit server syntax
+        run: node --check livekit-token-server/server.js && node --check livekit-token-server/media-path.js
+
       - name: Run LiveKit security tests
         run: npm run test:security --prefix livekit-token-server
 
