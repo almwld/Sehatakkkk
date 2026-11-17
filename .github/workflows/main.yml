@@ -518,3 +518,4 @@ jobs:
         name: app-x86_64-release
         path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
+# Rebuild trigger: preserve approved branding assets and Flutter 3.16.0.
