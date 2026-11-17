@@ -403,16 +403,84 @@ class _MessageBubbleState extends State<MessageBubble> {
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : const Color(0xFF20312F));
 
     Future<File?> _downloadRemote() async {
-      if (url.isEmpty || _isLocal(url)) return File(url.replaceFirst('file://', ''));
-      try {
-        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
-        if (response.statusCode < 200 || response.statusCode >= 300) return null;
-        final dir = await getTemporaryDirectory();
-        final file = File('${dir.path}/${DateTime.now().microsecondsSinceEpoch}_$name');
-        await file.writeAsBytes(response.bodyBytes, flush: true);
-        return file;
-      } catch (_) {
+      if (url.isEmpty) return null;
+      if (_isLocal(url)) {
+        final local = File(url.replaceFirst('file://', ''));
+        return await local.exists() ? local : null;
+      }
+
+      final initialUri = Uri.tryParse(url);
+      if (initialUri == null ||
+          (initialUri.scheme != 'https' && initialUri.scheme != 'http') ||
+          initialUri.host.isEmpty) {
         return null;
+      }
+
+      final safeName = name.replaceAll(RegExp(r'[/\\\\\\x00-\\x1F]'), '_');
+      final dir = await getTemporaryDirectory();
+      final target = File(
+        '${dir.path}/${DateTime.now().microsecondsSinceEpoch}_$safeName',
+      );
+      final client = http.Client();
+      var current = initialUri;
+      IOSink? sink;
+      try {
+        // Nextcloud public shares commonly answer with HTTP 303 before
+        // streaming the actual file. Follow that redirect explicitly so the
+        // final response can be validated and large files are never buffered
+        // entirely in memory.
+        for (var hop = 0; hop <= 5; hop++) {
+          final request = http.Request('GET', current)
+            ..followRedirects = false
+            ..maxRedirects = 0;
+          final response = await client.send(request).timeout(
+            const Duration(minutes: 2),
+          );
+
+          if (response.statusCode >= 300 && response.statusCode < 400) {
+            final location = response.headers['location'];
+            await response.stream.listen(null).cancel();
+            if (location == null || location.isEmpty || hop == 5) {
+              return null;
+            }
+            final next = current.resolve(location);
+            // A public share must not redirect a download to an unrelated
+            // host. This also prevents a stored message URL from becoming an
+            // arbitrary cross-origin fetch.
+            if (next.host != initialUri.host ||
+                (next.scheme != 'https' && next.scheme != 'http')) {
+              return null;
+            }
+            current = next;
+            continue;
+          }
+
+          if (response.statusCode < 200 || response.statusCode >= 300) {
+            await response.stream.listen(null).cancel();
+            return null;
+          }
+
+          sink = target.openWrite();
+          await response.stream.pipe(sink);
+          await sink.flush();
+          await sink.close();
+          sink = null;
+          if (await target.exists() && await target.length() > 0) {
+            return target;
+          }
+          return null;
+        }
+        return null;
+      } catch (_) {
+        try {
+          await sink?.close();
+        } catch (_) {}
+        try {
+          if (await target.exists()) await target.delete();
+        } catch (_) {}
+        return null;
+      } finally {
+        client.close();
       }
     }
 
