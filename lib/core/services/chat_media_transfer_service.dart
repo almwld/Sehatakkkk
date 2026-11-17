@@ -273,6 +273,7 @@ class ChatMediaTransferService {
         throw StateError('تعذر إنشاء رابط مشاركة للملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إعادة رفعه');
       }
 
+      if (url == null || url.isEmpty) {
       NextcloudUploadResult upload;
       try {
         upload = await nextcloud.uploadFile(
@@ -321,6 +322,7 @@ class ChatMediaTransferService {
 
       if (url == null || url.isEmpty) {
         throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
+      }
       }
     }
 
