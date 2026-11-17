@@ -461,14 +461,15 @@ class _MessageBubbleState extends State<MessageBubble> {
           }
 
           sink = target.openWrite();
-          await response.stream.pipe(sink);
+          await for (final chunk in response.stream.timeout(
+            const Duration(minutes: 2),
+          )) {
+            sink.add(chunk);
+          }
           await sink.flush();
           await sink.close();
           sink = null;
-          if (await target.exists() && await target.length() > 0) {
-            return target;
-          }
-          return null;
+          return await target.exists() ? target : null;
         }
         return null;
       } catch (_) {
