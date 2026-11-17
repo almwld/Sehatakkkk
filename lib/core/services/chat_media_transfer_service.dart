@@ -267,7 +267,7 @@ class ChatMediaTransferService {
         }
       }
 
-      if (remotePath != null && remotePath.isNotEmpty) {
+      if ((url == null || url.isEmpty) && remotePath != null && remotePath.isNotEmpty) {
         // The bytes are already stored remotely. Keep retrying share creation
         // rather than creating duplicate remote objects on every outbox run.
         throw StateError('تعذر إنشاء رابط مشاركة للملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إعادة رفعه');
@@ -300,6 +300,15 @@ class ChatMediaTransferService {
 
       if (upload.success && upload.path != null) {
         remotePath = upload.path;
+        // Persist the remote object before share verification. If OCS share
+        // creation fails, the next worker run can retry sharing this object
+        // without uploading duplicate bytes.
+        await db.update('media_outbox', {
+          'status': 'share_pending',
+          'remote_path': remotePath,
+          'remote_url': null,
+          'updated_at': DateTime.now().millisecondsSinceEpoch,
+        }, where: 'id = ?', whereArgs: [id]);
         url = upload.url;
         if (url == null || url.isEmpty) {
           url = await _retryShare(nextcloud, remotePath!);
