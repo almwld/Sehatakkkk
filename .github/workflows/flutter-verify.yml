@@ -41,3 +41,5 @@ jobs:
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
       - name: Run tests
         run: flutter test --no-pub
+
+# Verification trigger: rerun analysis and tests for the current master state.
