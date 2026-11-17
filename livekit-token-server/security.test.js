@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createCorsMiddleware, securityHeaders, createRateLimiter } = require('./security.middleware');
+const { isSafeOwnedNextcloudPath } = require('./media-path');
 
 function response() {
   return {
@@ -65,4 +66,28 @@ test('rate limiter blocks requests beyond its budget and resets the window', () 
   limiter(req, response(), next);
   assert.equal(passed, 2);
   limiter.close();
+});
+
+
+test('Nextcloud share paths are confined to the authenticated owner', () => {
+  assert.equal(
+    isSafeOwnedNextcloudPath('Sehatak/users/user-1/chats/chat-1/audio/file.m4a', 'user-1'),
+    true,
+  );
+  assert.equal(
+    isSafeOwnedNextcloudPath('Sehatak/users/another-user/chats/chat-1/file.pdf', 'user-1'),
+    false,
+  );
+  assert.equal(
+    isSafeOwnedNextcloudPath('Sehatak/users/user-1/../another-user/file.pdf', 'user-1'),
+    false,
+  );
+  assert.equal(
+    isSafeOwnedNextcloudPath('Sehatak/users/user-1/chats//file.pdf', 'user-1'),
+    false,
+  );
+  assert.equal(
+    isSafeOwnedNextcloudPath('Sehatak/users/user-1/file.pdf', 'user-1'),
+    false,
+  );
 });
