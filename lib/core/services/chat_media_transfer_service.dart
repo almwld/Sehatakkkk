@@ -267,11 +267,13 @@ class ChatMediaTransferService {
         }
       }
 
-      NextcloudUploadResult upload = const NextcloudUploadResult(
-        success: false,
-        error: 'تعذر إنشاء رابط مشاركة للملف الموجود',
-      );
-      if (url == null || url.isEmpty) {
+      if (remotePath != null && remotePath.isNotEmpty) {
+        // The bytes are already stored remotely. Keep retrying share creation
+        // rather than creating duplicate remote objects on every outbox run.
+        throw StateError('تعذر إنشاء رابط مشاركة للملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إعادة رفعه');
+      }
+
+      NextcloudUploadResult upload;
       try {
         upload = await nextcloud.uploadFile(
           file: file,
@@ -310,7 +312,6 @@ class ChatMediaTransferService {
 
       if (url == null || url.isEmpty) {
         throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
-      }
       }
     }
 
