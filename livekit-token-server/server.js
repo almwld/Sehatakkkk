@@ -242,8 +242,19 @@ app.post(
 app.post('/media/share', async (req, res) => {
   try {
     const decodedToken = await verifyFirebaseUser(req);
-    const remotePath = String(req.body?.remotePath || '').replace(/^\/+/, '');
+    const remotePath = String(req.body?.remotePath || '').replace(/^\\/+/, '');
+    const segments = remotePath.split('/');
     const prefix = 'Sehatak/users/' + sanitizePathPart(decodedToken.uid) + '/';
+    const unsafePath = !remotePath ||
+      segments.length < 5 ||
+      segments.length > 24 ||
+      segments.some((part) =>
+        !part || part === '.' || part === '..' ||
+        part.includes('\\\\') || /[\\x00-\\x1f]/.test(part)
+      );
+    if (unsafePath) {
+      return res.status(400).json({ success: false, message: 'مسار الملف غير صالح' });
+    }
     if (!remotePath.startsWith(prefix)) {
       return res.status(403).json({ success: false, message: 'ليس لديك صلاحية مشاركة هذا الملف' });
     }
