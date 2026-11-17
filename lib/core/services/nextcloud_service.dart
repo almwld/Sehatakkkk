@@ -175,6 +175,7 @@ class NextcloudService {
     void Function(int, int)? onProgress,
     bool createShare = true,
     CancelToken? cancelToken,
+    String? chatId,
   }) async {
     try {
       if (!await file.exists()) {
@@ -190,6 +191,7 @@ class NextcloudService {
         file: file,
         path: path,
         fileName: name,
+        chatId: chatId,
         createShare: createShare,
         onProgress: onProgress,
       );
@@ -254,6 +256,7 @@ class NextcloudService {
     required File file,
     required String path,
     required String fileName,
+    String? chatId,
     required bool createShare,
     void Function(int, int)? onProgress,
   }) async {
@@ -278,6 +281,7 @@ class NextcloudService {
         data: file.openRead(),
         queryParameters: {
           'path': path,
+          if (chatId != null && chatId.isNotEmpty) 'chatId': chatId,
           'fileName': fileName,
           'mimeType': _mediaMimeType(fileName),
           'createShare': createShare ? 'true' : 'false',
@@ -358,6 +362,42 @@ class NextcloudService {
         error: 'تعذر تأكيد نتيجة رفع الملف إلى خادم الوسائط. تحقق من الاتصال قبل إعادة المحاولة.',
       );
     }
+  }
+
+  /// Creates a public share through the authenticated server gateway for
+  /// server-owned media. Legacy device-owned paths keep the old direct OCS
+  /// route so existing installations and older messages remain readable.
+  Future<String?> createShareForMedia(String remotePath) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid ?? '';
+    final ownerPrefix = 'Sehatak/users/' + uid + '/';
+    if (uid.isNotEmpty && remotePath.startsWith(ownerPrefix)) {
+      try {
+        final token = await user!.getIdToken();
+        if (token == null || token.isEmpty) return null;
+        final configuredBase = LiveKitConfig.tokenServerUrl;
+        final base = configuredBase.endsWith('/')
+            ? configuredBase.substring(0, configuredBase.length - 1)
+            : configuredBase;
+        final response = await _dio.post<dynamic>(
+          base + '/media/share',
+          data: {'remotePath': remotePath},
+          options: Options(
+            headers: {'Authorization': 'Bearer ' + token},
+            responseType: ResponseType.json,
+            validateStatus: (status) => status != null && status >= 200 && status < 300,
+          ),
+        );
+        final body = response.data is Map
+            ? Map<String, dynamic>.from(response.data as Map)
+            : <String, dynamic>{};
+        final url = body['url']?.toString();
+        return url == null || url.isEmpty ? null : url;
+      } catch (_) {
+        return null;
+      }
+    }
+    return createPublicShare(remotePath);
   }
 
   Future<String?> createPublicShare(String remotePath) async {

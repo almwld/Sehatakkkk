@@ -256,12 +256,30 @@ class ChatMediaTransferService {
 
     if (url == null || url.isEmpty) {
       final nextcloud = NextcloudService();
-      await nextcloud.loadConfig();
+      // A previous attempt may have stored the object successfully but failed
+      // while creating/verifying its public share. Reuse that object first;
+      // never upload the same bytes again merely because share creation failed.
+      if (remotePath != null && remotePath.isNotEmpty) {
+        url = await _retryShare(nextcloud, remotePath);
+        if (url != null && url.isNotEmpty &&
+            !await nextcloud.verifyPublicUrl(url)) {
+          url = null;
+        }
+      }
+
+      if ((url == null || url.isEmpty) && remotePath != null && remotePath.isNotEmpty) {
+        // The bytes are already stored remotely. Keep retrying share creation
+        // rather than creating duplicate remote objects on every outbox run.
+        throw StateError('تعذر إنشاء رابط مشاركة للملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إعادة رفعه');
+      }
+
+      if (url == null || url.isEmpty) {
       NextcloudUploadResult upload;
       try {
         upload = await nextcloud.uploadFile(
           file: file,
           path: 'chats/${job['chat_id']}/${job['folder']}',
+          chatId: job['chat_id']?.toString(),
           fileName: job['file_name']?.toString(),
           cancelToken: _cancelToken(id),
           onProgress: (sent, total) {
@@ -283,6 +301,15 @@ class ChatMediaTransferService {
 
       if (upload.success && upload.path != null) {
         remotePath = upload.path;
+        // Persist the remote object before share verification. If OCS share
+        // creation fails, the next worker run can retry sharing this object
+        // without uploading duplicate bytes.
+        await db.update('media_outbox', {
+          'status': 'share_pending',
+          'remote_path': remotePath,
+          'remote_url': null,
+          'updated_at': DateTime.now().millisecondsSinceEpoch,
+        }, where: 'id = ?', whereArgs: [id]);
         url = upload.url;
         if (url == null || url.isEmpty) {
           url = await _retryShare(nextcloud, remotePath!);
@@ -295,6 +322,7 @@ class ChatMediaTransferService {
 
       if (url == null || url.isEmpty) {
         throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
+      }
       }
     }
 
@@ -338,7 +366,7 @@ class ChatMediaTransferService {
 
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
     for (var i = 0; i < 3; i++) {
-      final url = await service.createPublicShare(remotePath);
+      final url = await service.createShareForMedia(remotePath);
       if (url != null && url.isNotEmpty) return url;
       await Future<void>.delayed(Duration(seconds: 2 * (i + 1)));
     }
