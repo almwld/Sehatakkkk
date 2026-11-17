@@ -175,6 +175,7 @@ class NextcloudService {
     void Function(int, int)? onProgress,
     bool createShare = true,
     CancelToken? cancelToken,
+    String? chatId,
   }) async {
     try {
       if (!await file.exists()) {
@@ -190,6 +191,7 @@ class NextcloudService {
         file: file,
         path: path,
         fileName: name,
+        chatId: chatId,
         createShare: createShare,
         onProgress: onProgress,
       );
@@ -254,6 +256,7 @@ class NextcloudService {
     required File file,
     required String path,
     required String fileName,
+    String? chatId,
     required bool createShare,
     void Function(int, int)? onProgress,
   }) async {
@@ -278,6 +281,7 @@ class NextcloudService {
         data: file.openRead(),
         queryParameters: {
           'path': path,
+          if (chatId != null && chatId.isNotEmpty) 'chatId': chatId,
           'fileName': fileName,
           'mimeType': _mediaMimeType(fileName),
           'createShare': createShare ? 'true' : 'false',
@@ -358,6 +362,157 @@ class NextcloudService {
         error: 'تعذر تأكيد نتيجة رفع الملف إلى خادم الوسائط. تحقق من الاتصال قبل إعادة المحاولة.',
       );
     }
+  }
+
+  /// Creates a public share through the authenticated server gateway for
+  /// server-owned media. Legacy device-owned paths keep the old direct OCS
+  /// route so existing installations and older messages remain readable.
+  Future<String?> createShareForMedia(String remotePath) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid ?? '';
+    final ownerPrefix = 'Sehatak/users/$uid/';
+    if (uid.isNotEmpty && remotePath.startsWith(ownerPrefix)) {
+      try {
+        final token = await user!.getIdToken();
+        if (token == null || token.isEmpty) return null;
+        final base = LiveKitConfig.tokenServerUrl.replaceFirst(RegExp(r'/
+    if (!isConfigured) await loadConfig();
+    _ensureConfigured();
+    try {
+      final response = await http.post(
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
+        headers: _headers(),
+        body: {'path': '/${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
+      );
+      debugPrint('🔗 Share status: ${response.statusCode}');
+      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final ocs = body['ocs'] as Map<String, dynamic>?;
+      final data = ocs?['data'] as Map<String, dynamic>?;
+      final shareUrl = data?['url']?.toString();
+      if (shareUrl == null || shareUrl.isEmpty) return null;
+
+      return '${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
+    } catch (e, st) {
+      debugPrint('Nextcloud share request failed: ${e.runtimeType}.');
+      return null;
+    }
+  }
+
+  /// Verifies the same redirect behavior used by media players.
+  /// The server returns 303 -> public.php/dav -> 200 for a normal GET.
+  /// A Range request returns 500 on this server, so verification must not
+  /// force a Range header.
+  Future<bool> verifyPublicUrl(String url) async {
+    final client = http.Client();
+    var current = Uri.parse(url);
+    try {
+      for (var hop = 0; hop <= 5; hop++) {
+        final request = http.Request('GET', current)
+          ..followRedirects = false
+          ..maxRedirects = 0;
+        final response = await client.send(request).timeout(const Duration(seconds: 20));
+        final status = response.statusCode;
+        final location = response.headers['location'];
+        final contentLength = response.contentLength;
+        final contentType = response.headers['content-type'];
+        debugPrint(
+          'Nextcloud URL verification hop=$hop status=$status '
+          'contentType=${contentType ?? '(none)'}',
+        );
+
+        if (status == 200 || status == 206) {
+          await response.stream.listen(null).cancel();
+          return contentLength == null || contentLength > 0;
+        }
+
+        if (status >= 300 && status < 400 && location != null && location.isNotEmpty) {
+          await response.stream.listen(null).cancel();
+          final next = current.resolve(location);
+          if (next.host != current.host) {
+            debugPrint('Nextcloud URL verification rejected a cross-host redirect.');
+            return false;
+          }
+          current = next;
+          continue;
+        }
+
+        await response.stream.listen(null).cancel();
+        return false;
+      }
+
+      debugPrint('Nextcloud URL verification exceeded the redirect limit.');
+      return false;
+    } catch (e, st) {
+      debugPrint('Nextcloud URL verification failed: ${e.runtimeType}.');
+      return false;
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<bool> checkServerStatus() async {
+    try {
+      if (baseUrl.isEmpty) return false;
+      final response = await http.get(Uri.parse('${_normalizedBase()}/status.php'));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> testAuth() async {
+    try {
+      _ensureConfigured();
+      final response = await http.get(
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'),
+        headers: _headers(),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
+class NextcloudUploadResult {
+  final bool success;
+  final String? url;
+  final String? path;
+  final String? fileName;
+  final String? error;
+  final bool shareReady;
+
+  const NextcloudUploadResult({
+    required this.success,
+    this.url,
+    this.path,
+    this.fileName,
+    this.error,
+    this.shareReady = false,
+  });
+}
+), '');
+        final response = await _dio.post<dynamic>(
+          '$base/media/share',
+          data: {'remotePath': remotePath},
+          options: Options(
+            headers: {'Authorization': 'Bearer $token'},
+            responseType: ResponseType.json,
+            validateStatus: (status) => status != null && status >= 200 && status < 300,
+          ),
+        );
+        final body = response.data is Map
+            ? Map<String, dynamic>.from(response.data as Map)
+            : <String, dynamic>{};
+        final url = body['url']?.toString();
+        return url == null || url.isEmpty ? null : url;
+      } catch (_) {
+        return null;
+      }
+    }
+    return createPublicShare(remotePath);
   }
 
   Future<String?> createPublicShare(String remotePath) async {
