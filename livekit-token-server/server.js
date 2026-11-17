@@ -242,7 +242,7 @@ app.post(
 app.post('/media/share', async (req, res) => {
   try {
     const decodedToken = await verifyFirebaseUser(req);
-    const remotePath = String(req.body?.remotePath || '').replace(/^\\/+/, '');
+    const remotePath = String(req.body?.remotePath || '').replace(/^\/+/, '');
     const segments = remotePath.split('/');
     const prefix = 'Sehatak/users/' + sanitizePathPart(decodedToken.uid) + '/';
     const unsafePath = !remotePath ||
@@ -250,7 +250,7 @@ app.post('/media/share', async (req, res) => {
       segments.length > 24 ||
       segments.some((part) =>
         !part || part === '.' || part === '..' ||
-        part.includes('\\\\') || /[\\x00-\\x1f]/.test(part)
+        part.includes('\\') || /[\x00-\x1f]/.test(part)
       );
     if (unsafePath) {
       return res.status(400).json({ success: false, message: 'مسار الملف غير صالح' });
