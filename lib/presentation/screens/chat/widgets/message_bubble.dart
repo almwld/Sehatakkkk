@@ -416,7 +416,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         return null;
       }
 
-      final safeName = name.replaceAll(RegExp(r'[/\\\\\\x00-\\x1F]'), '_');
+      final safeName = name.replaceAll('/', '_').replaceAll(r'\\', '_');
       final dir = await getTemporaryDirectory();
       final target = File(
         '${dir.path}/${DateTime.now().microsecondsSinceEpoch}_$safeName',
