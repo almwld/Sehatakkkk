@@ -262,6 +262,7 @@ class ChatMediaTransferService {
         upload = await nextcloud.uploadFile(
           file: file,
           path: 'chats/${job['chat_id']}/${job['folder']}',
+          chatId: job['chat_id']?.toString(),
           fileName: job['file_name']?.toString(),
           cancelToken: _cancelToken(id),
           onProgress: (sent, total) {
@@ -338,7 +339,7 @@ class ChatMediaTransferService {
 
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
     for (var i = 0; i < 3; i++) {
-      final url = await service.createPublicShare(remotePath);
+      final url = await service.createShareForMedia(remotePath);
       if (url != null && url.isNotEmpty) return url;
       await Future<void>.delayed(Duration(seconds: 2 * (i + 1)));
     }
