@@ -271,7 +271,7 @@ class _AuthScreenState extends State<AuthScreen>
     _authLogoController = AnimationController(vsync: this);
     _showIntroSplash = widget.showIntroSplash;
     if (_showIntroSplash) {
-      _introSplashTimer = Timer(const Duration(seconds: 3), () {
+      _introSplashTimer = Timer(const Duration(milliseconds: 3500), () {
         if (mounted) setState(() => _showIntroSplash = false);
       });
     }
