@@ -256,8 +256,22 @@ class ChatMediaTransferService {
 
     if (url == null || url.isEmpty) {
       final nextcloud = NextcloudService();
-      await nextcloud.loadConfig();
-      NextcloudUploadResult upload;
+      // A previous attempt may have stored the object successfully but failed
+      // while creating/verifying its public share. Reuse that object first;
+      // never upload the same bytes again merely because share creation failed.
+      if (remotePath != null && remotePath.isNotEmpty) {
+        url = await _retryShare(nextcloud, remotePath);
+        if (url != null && url.isNotEmpty &&
+            !await nextcloud.verifyPublicUrl(url)) {
+          url = null;
+        }
+      }
+
+      NextcloudUploadResult upload = const NextcloudUploadResult(
+        success: false,
+        error: 'تعذر إنشاء رابط مشاركة للملف الموجود',
+      );
+      if (url == null || url.isEmpty) {
       try {
         upload = await nextcloud.uploadFile(
           file: file,
@@ -296,6 +310,7 @@ class ChatMediaTransferService {
 
       if (url == null || url.isEmpty) {
         throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
+      }
       }
     }
 
