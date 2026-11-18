@@ -201,7 +201,7 @@ class MedicineDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '$price ر.ي',
+                          AppStrings.of(context).formatCurrency(price),
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -256,8 +256,8 @@ class MedicineDetailScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   _buildInfoRow(context, 'التصنيف', category, isDark),
                   _buildInfoRow(context, 'التصنيف الفرعي', subcategory, isDark),
-                  _buildInfoRow(context, 'السعر', '$price ريال', isDark),
-                  _buildInfoRow(context, 'التقييم', '$rating من 5', isDark),
+                  _buildInfoRow(context, 'السعر', AppStrings.of(context).formatCurrency(price), isDark),
+                  _buildInfoRow(context, 'التقييم', '$rating / 5', isDark),
                   _buildInfoRow(context, 'الوصفة الطبية', requiresPrescription ? 'مطلوبة' : 'غير مطلوبة', isDark),
                   _buildInfoRow(context, 'التوفر', inStock ? 'متوفر' : 'غير متوفر', isDark),
                   const SizedBox(height: 32),
