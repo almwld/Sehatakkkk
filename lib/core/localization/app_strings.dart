@@ -5460,6 +5460,15 @@ class AppStrings {
       'لا توجد حالات محفوظة بعد': ['No saved stories yet', 'Aucun statut enregistré pour le moment'],
       'عنصر محفوظ': ['saved item(s)', 'élément(s) enregistré(s)'],
       'إعدادات خادم Nextcloud غير مكتملة. افتح إعدادات Nextcloud واحفظ عنوان الخادم واسم المستخدم وكلمة مرور التطبيق قبل نشر الوسائط.': ['Nextcloud is not configured. Open Nextcloud settings and save the server URL, username, and app password before publishing media.', 'Nextcloud n’est pas configuré. Ouvrez les paramètres Nextcloud et enregistrez l’URL du serveur, le nom d’utilisateur et le mot de passe d’application avant de publier des médias.'],
+      'تعذر تحميل المستشفيات': ['Could not load hospitals', 'Impossible de charger les hôpitaux'],
+      'لا توجد مستشفيات مطابقة': ['No matching hospitals', 'Aucun hôpital correspondant'],
+      'إضافة قياس صحي': ['Add a health measurement', 'Ajouter une mesure de santé'],
+      'اختر نوع القياس لإدخال قراءة جديدة': ['Choose a measurement type to enter a new reading', 'Choisissez un type de mesure pour saisir une nouvelle valeur'],
+      'الرجوع إلى الحالات التي حفظتها': ['Return to your saved stories', 'Retrouver les statuts que vous avez enregistrés'],
+      'تعذر تحميل بيانات المستشفى': ['Could not load hospital details', 'Impossible de charger les informations de l’hôpital'],
+      'تعذر تحميل الملف الشخصي': ['Could not load the profile', 'Impossible de charger le profil'],
+      'رقم الطبيب': ['Doctor ID', 'Identifiant du médecin'],
+      'ممارس صحي': ['Healthcare professional', 'Professionnel de santé'],
     };
     final entry = translations[value];
     if (entry == null) return value;
