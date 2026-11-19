@@ -290,7 +290,7 @@ class _CallScreenState extends State<CallScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(radius: 52, backgroundColor: AppColors.primary, backgroundImage: widget.doctorImage == null ? null : NetworkImage(widget.doctorImage!), child: widget.doctorImage == null ? Text(widget.doctorName.isEmpty ? 'ط' : widget.doctorName[0], style: const TextStyle(fontSize: 38, color: Colors.white)) : null),
+          CircleAvatar(radius: 52, backgroundColor: AppColors.primary, backgroundImage: widget.doctorImage == null ? null : NetworkImage(widget.doctorImage!), child: widget.doctorImage == null ? Text(widget.doctorName.isEmpty ? _t('طبيب').substring(0, 1) : widget.doctorName[0], style: const TextStyle(fontSize: 38, color: Colors.white)) : null),
           const SizedBox(height: 16),
           Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
