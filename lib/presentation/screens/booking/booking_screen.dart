@@ -55,8 +55,8 @@ class _BookingScreenState extends State<BookingScreen> {
       if (!mounted) return;
       ToastService.showSuccess(_t('تم حجز الموعد والدفع بنجاح'));
       Navigator.pop(context, appointmentId);
-    } on FirebaseFunctionsException catch (e) { if (mounted) ToastService.showError(e.message ?? _t('تعذر إتمام الحجز والدفع')); }
-    catch (e) { if (mounted) ToastService.showError(_t('تعذر إتمام العملية') + ': $e'); }
+    } on FirebaseFunctionsException catch (_) { if (mounted) ToastService.showError(_t('تعذر إتمام الحجز والدفع')); }
+    catch (_) { if (mounted) ToastService.showError(_t('تعذر إتمام العملية')); }
     finally { if (mounted) setState(() => _saving = false); }
   }
 
