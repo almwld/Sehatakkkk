@@ -41,8 +41,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
                 ToastService.showSuccess(_t('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني'));
                 if (mounted) Navigator.pop(context);
-              } on FirebaseAuthException catch (e) {
-                ToastService.showError(e.message ?? _t('تعذر إرسال رابط إعادة التعيين'));
+              } on FirebaseAuthException catch (_) {
+                ToastService.showError(_t('تعذر إرسال رابط إعادة التعيين'));
               } catch (_) { ToastService.showError(_t('تعذر إرسال رابط إعادة التعيين')); }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
