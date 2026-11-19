@@ -14,18 +14,18 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
   String _query = '';
   
   final List<Map<String, String>> _drugs = const [
-    {'name': 'باراسيتامول', 'cat': 'مسكن ألم', 'dose': '500-1000mg كل 6-8 س', 'preg': 'آمن'},
-    {'name': 'ايبوبروفين', 'cat': 'مضاد التهاب', 'dose': '200-400mg كل 6-8 س', 'preg': 'غير آمن'},
-    {'name': 'اموكسيسيلين', 'cat': 'مضاد حيوي', 'dose': '500mg كل 8 س', 'preg': 'آمن نسبياً'},
-    {'name': 'اوميبرازول', 'cat': 'مضاد حموضة', 'dose': '20-40mg يومياً', 'preg': 'باستشارة'},
-    {'name': 'ميتفورمين', 'cat': 'خافض سكر', 'dose': '500-850mg مع الأكل', 'preg': 'باستشارة'},
-    {'name': 'سيتريزين', 'cat': 'مضاد حساسية', 'dose': '10mg يومياً', 'preg': 'باستشارة'},
-    {'name': 'ديكلوفيناك', 'cat': 'مضاد التهاب', 'dose': '50mg كل 8 س', 'preg': 'غير آمن'},
-    {'name': 'ازيثرومايسين', 'cat': 'مضاد حيوي', 'dose': '500mg يومياً 3 أيام', 'preg': 'باستشارة'},
-    {'name': 'ليفوثيروكسين', 'cat': 'هرمون درقي', 'dose': '25-100mcg صباحاً', 'preg': 'آمن'},
-    {'name': 'فيتامين د', 'cat': 'مكمل', 'dose': '1000-4000 IU يومياً', 'preg': 'آمن'},
-    {'name': 'وارفارين', 'cat': 'مميع دم', 'dose': '2-5mg يومياً', 'preg': 'غير آمن'},
-    {'name': 'كلوبيدوجريل', 'cat': 'مضاد صفائح', 'dose': '75mg يومياً', 'preg': 'باستشارة'},
+    {'name': 'باراسيتامول', 'cat': 'مسكن ألم'},
+    {'name': 'ايبوبروفين', 'cat': 'مضاد التهاب'},
+    {'name': 'اموكسيسيلين', 'cat': 'مضاد حيوي'},
+    {'name': 'اوميبرازول', 'cat': 'مضاد حموضة'},
+    {'name': 'ميتفورمين', 'cat': 'خافض سكر'},
+    {'name': 'سيتريزين', 'cat': 'مضاد حساسية'},
+    {'name': 'ديكلوفيناك', 'cat': 'مضاد التهاب'},
+    {'name': 'ازيثرومايسين', 'cat': 'مضاد حيوي'},
+    {'name': 'ليفوثيروكسين', 'cat': 'هرمون درقي'},
+    {'name': 'فيتامين د', 'cat': 'مكمل'},
+    {'name': 'وارفارين', 'cat': 'مميع دم'},
+    {'name': 'كلوبيدوجريل', 'cat': 'مضاد صفائح'},
   ];
 
   @override
@@ -51,8 +51,6 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(d['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   Text(_localizedUiText(context, d['cat']!), style: TextStyle(fontSize: 10, color: AppColors.primary)),
-                  Text('${_localizedUiText(context, 'الجرعة: ')}${_localizedUiText(context, d['dose']?.toString() ?? '')}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-                  Text('${_localizedUiText(context, 'الحمل: ')}${_localizedUiText(context, d['preg']?.toString() ?? '')}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
                 ])),
               ]),
             );
