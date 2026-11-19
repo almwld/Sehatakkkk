@@ -2442,9 +2442,9 @@ class AppStrings {
       'العمر (سنة)': ['Age (years)', 'Âge (ans)'],
       'الحساسية (إن وجدت)': ['Allergies (if any)', 'Allergies (le cas échéant)'],
       'حفظ التغييرات': ['Save changes', 'Enregistrer les modifications'],
-      'تعذر تسجيل الخروج:': ['Could not sign out:', 'Impossible de se déconnecter :'],
-      'تعذر إبطال الجلسات:': ['Could not revoke sessions:', 'Impossible de révoquer les sessions :'],
-      'تعذر حذف الحساب:': ['Could not delete account:', 'Impossible de supprimer le compte :'],
+      'تعذر تسجيل الخروج': ['Could not sign out', 'Impossible de se déconnecter'],
+      'تعذر إبطال الجلسات': ['Could not revoke sessions', 'Impossible de révoquer les sessions'],
+      'تعذر حذف الحساب': ['Could not delete account', 'Impossible de supprimer le compte'],
       'فشل التحديث:': ['Update failed:', 'Échec de la mise à jour :'],
 
 
