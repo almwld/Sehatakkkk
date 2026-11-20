@@ -70,11 +70,32 @@ class MedicalReportModel {
   });
 
   String get statusLabel {
-    switch (status) {
+    switch (status.trim().toLowerCase()) {
+      case 'completed':
       case 'مكتمل':
-        return '✅ مكتمل';
+        return 'مكتمل';
+      case 'pending':
+      case 'pending_review':
+      case 'under_review':
       case 'قيد المراجعة':
-        return '🔄 قيد المراجعة';
+        return 'قيد المراجعة';
+      case 'new':
+      case 'جديد':
+        return 'جديد';
+      case 'in_progress':
+      case 'قيد التنفيذ':
+        return 'قيد التنفيذ';
+      case 'cancelled':
+      case 'canceled':
+      case 'ملغي':
+        return 'ملغي';
+      case 'rejected':
+      case 'مرفوض':
+        return 'مرفوض';
+      case '':
+      case 'unknown':
+      case 'غير محدد':
+        return 'غير محدد';
       default:
         return status;
     }
@@ -105,11 +126,16 @@ class MedicationReportModel {
   });
 
   String get statusLabel {
-    switch (status) {
+    switch (status.trim().toLowerCase()) {
+      case 'active':
       case 'نشط':
-        return '🟢 نشط';
+        return 'نشط';
+      case 'inactive':
+      case 'غير نشط':
+        return 'غير نشط';
+      case 'completed':
       case 'مكتمل':
-        return '✅ مكتمل';
+        return 'مكتمل';
       default:
         return status;
     }
