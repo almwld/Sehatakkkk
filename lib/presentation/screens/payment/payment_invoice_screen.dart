@@ -36,7 +36,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
             Text(_t('تفاصيل الفاتورة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Divider(),
             _buildRow(_t('رقم الطلب'), widget.orderId),
-            _buildRow(_t('طريقة الدفع'), widget.paymentMethod),
+            _buildRow(_t('طريقة الدفع'), _t(widget.paymentMethod)),
             if (widget.items != null && widget.items!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(_t('المنتجات:'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
