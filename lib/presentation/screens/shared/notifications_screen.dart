@@ -90,19 +90,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     if (difference.inMinutes < 60) {
       final count = difference.inMinutes;
-      if (languageCode == 'en') return '$count min ago';
-      if (languageCode == 'fr') return 'Il y a $count min';
+      if (languageCode == 'en') return '$count ${count == 1 ? 'minute' : 'minutes'} ago';
+      if (languageCode == 'fr') return 'Il y a $count ${count == 1 ? 'minute' : 'minutes'}';
       return _formatArabicRelativeTime(count, 'minute');
     }
     if (difference.inHours < 24) {
       final count = difference.inHours;
-      if (languageCode == 'en') return '$count hr ago';
-      if (languageCode == 'fr') return 'Il y a $count h';
+      if (languageCode == 'en') return '$count ${count == 1 ? 'hour' : 'hours'} ago';
+      if (languageCode == 'fr') return 'Il y a $count ${count == 1 ? 'heure' : 'heures'}';
       return _formatArabicRelativeTime(count, 'hour');
     }
     if (difference.inDays < 7) {
       final count = difference.inDays;
-      if (languageCode == 'en') return '$count day${count == 1 ? '' : 's'} ago';
+      if (languageCode == 'en') return '$count ${count == 1 ? 'day' : 'days'} ago';
       if (languageCode == 'fr') return 'Il y a $count ${count == 1 ? 'jour' : 'jours'}';
       return _formatArabicRelativeTime(count, 'day');
     }
@@ -117,21 +117,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ? 'دقيقتين'
               : count <= 10
                   ? '$count دقائق'
-                  : 'دقيقة',
+                  : '$count دقيقة',
       'hour' => count == 1
           ? 'ساعة'
           : count == 2
               ? 'ساعتين'
               : count <= 10
                   ? '$count ساعات'
-                  : 'ساعة',
+                  : '$count ساعة',
       _ => count == 1
           ? 'يوم'
           : count == 2
               ? 'يومين'
               : count <= 10
                   ? '$count أيام'
-                  : 'يوم',
+                  : '$count يوماً',
     };
     return 'منذ $phrase';
   }
