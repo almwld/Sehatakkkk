@@ -25,7 +25,7 @@ class _UrgentConsultScreenState extends State<UrgentConsultScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: AppColors.error.withOpacity(0.05), borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.error.withOpacity(0.2))),
-            child: Row(children: [const Icon(Icons.warning_amber, color: AppColors.error, size: 28), const SizedBox(width: 10), Expanded(child: Text(_t('لحالات الطوارئ، اتصل على 1122 فوراً'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)))],),
+            child: Row(children: [const Icon(Icons.warning_amber, color: AppColors.error, size: 28), const SizedBox(width: 10), Expanded(child: Text(_emergencyNotice(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)))],),
           ),
           const SizedBox(height: 14),
           Text(_t('درجة الاستعجال'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
@@ -47,6 +47,17 @@ class _UrgentConsultScreenState extends State<UrgentConsultScreen> {
         ]),
       ),
     );
+  }
+
+  String _emergencyNotice() {
+    final language = AppStrings.of(context).locale.languageCode;
+    if (language == 'fr') {
+      return 'En cas d’urgence, rendez-vous aux urgences ou contactez les services d’urgence locaux.';
+    }
+    if (language == 'en') {
+      return 'For emergencies, go to the nearest emergency department or contact local emergency services.';
+    }
+    return 'لحالات الطوارئ، توجّه إلى أقرب قسم طوارئ أو اتصل بخدمات الطوارئ المحلية الآن.';
   }
 
   Widget _urgencyOption(String label, String time, Color color) {
