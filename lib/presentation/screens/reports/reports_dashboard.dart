@@ -449,7 +449,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: report.status == 'مكتمل'
+                  color: report.statusLabel == 'مكتمل'
                       ? Colors.green.withOpacity(0.1)
                       : Colors.orange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -458,7 +458,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                   _t(context, report.statusLabel),
                   style: TextStyle(
                     fontSize: 10,
-                    color: report.status == 'مكتمل' ? Colors.green : Colors.orange,
+                    color: report.statusLabel == 'مكتمل' ? Colors.green : Colors.orange,
                   ),
                 ),
               ),
@@ -546,10 +546,10 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: medication.status == 'نشط'
+          color: medication.statusLabel == 'نشط'
               ? Colors.green.withOpacity(0.3)
               : (isDark ? Colors.grey! : Colors.grey!),
-          width: medication.status == 'نشط' ? 1.5 : 1,
+          width: medication.statusLabel == 'نشط' ? 1.5 : 1,
         ),
       ),
       child: Column(
@@ -570,7 +570,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: medication.status == 'نشط'
+                  color: medication.statusLabel == 'نشط'
                       ? Colors.green.withOpacity(0.1)
                       : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -579,7 +579,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                   _t(context, medication.statusLabel),
                   style: TextStyle(
                     fontSize: 10,
-                    color: medication.status == 'نشط' ? Colors.green : Colors.grey,
+                    color: medication.statusLabel == 'نشط' ? Colors.green : Colors.grey,
                   ),
                 ),
               ),
@@ -612,7 +612,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                 ),
               ),
               const SizedBox(width: 12),
-              if (medication.status == 'نشط')
+              if (medication.statusLabel == 'نشط')
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
