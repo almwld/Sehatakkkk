@@ -165,6 +165,8 @@ app.post(
   requireFirebaseUser,
   express.raw({ type: 'application/octet-stream', limit: MAX_MEDIA_BYTES }),
   async (req, res) => {
+    const requestId = crypto.randomUUID();
+    const startedAt = Date.now();
     try {
       const decodedToken = req.firebaseUser;
       if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
@@ -206,16 +208,30 @@ app.post(
         body: req.body,
       });
       if (![201, 204].includes(uploadResponse.status)) {
+        const providerBody = await uploadResponse.text().catch(() => '');
+        console.error('[media-upload] Nextcloud PUT rejected', {
+          requestId, uid: decodedToken.uid, status: uploadResponse.status,
+          body: providerBody.slice(0, 1000), bytes: req.body.length,
+        });
         return res.status(502).json({
           success: false,
-          message: 'فشل رفع الوسائط إلى Nextcloud',
+          code: 'NEXTCLOUD_PUT_REJECTED',
+          message: 'رفض خادم التخزين حفظ الملف',
           providerStatus: uploadResponse.status,
+          requestId,
         });
       }
 
-      const publicUrl = req.query.createShare === 'false'
-        ? null
-        : await createNextcloudShare(remotePath);
+      let publicUrl = null;
+      if (req.query.createShare !== 'false') {
+        try {
+          publicUrl = await createNextcloudShare(remotePath);
+        } catch (shareError) {
+          console.error('[media-upload] Nextcloud share request failed', {
+            requestId, uid: decodedToken.uid, message: shareError.message,
+          });
+        }
+      }
 
       return res.status(201).json({
         success: true,
@@ -231,10 +247,22 @@ app.post(
       });
     } catch (error) {
       const status = Number(error.statusCode) || 500;
-      console.error('Media upload error:', error.message || error);
+      const code = error.code || (status === 503 ? 'MEDIA_CONFIGURATION_ERROR' : 'MEDIA_UPLOAD_FAILED');
+      console.error('[media-upload] request failed', {
+        requestId, status, code, message: error.message || String(error),
+        uid: req.firebaseUser?.uid || null, durationMs: Date.now() - startedAt,
+        providerStatus: error.providerStatus || error.response?.status || null,
+      });
       return res.status(status).json({
         success: false,
-        message: status >= 500 ? 'فشل رفع الوسائط' : error.message,
+        code,
+        message: status === 413
+          ? 'حجم الملف أكبر من الحد المسموح (100 ميجابايت)'
+          : status === 503
+            ? 'خدمة التخزين غير مهيأة حالياً'
+            : 'تعذر إكمال رفع الملف',
+        requestId,
+        providerStatus: error.providerStatus || error.response?.status || null,
       });
     }
   }
@@ -598,9 +626,16 @@ async function handleNewMessage(change) {
 // Message FCM is owned exclusively by the Firebase Firestore trigger.\n// ============================================================
 
 app.use((error, _req, res, _next) => {
-  if (error instanceof SyntaxError) return res.status(400).json({ success: false, message: 'Invalid JSON body' });
-  console.error('Request error:', error);
-  return res.status(500).json({ success: false, message: 'Internal server error' });
+  if (error instanceof SyntaxError) return res.status(400).json({ success: false, code: 'INVALID_JSON', message: 'Invalid JSON body' });
+  // Preserve parser-level failures (notably express.raw's 100 MB limit).
+  const status = Number(error.status || error.statusCode) || 500;
+  const code = status === 413 ? 'MEDIA_TOO_LARGE' : status === 415 ? 'UNSUPPORTED_MEDIA_TYPE' : 'REQUEST_FAILED';
+  console.error('Request error:', { status, code, message: error.message });
+  return res.status(status).json({
+    success: false,
+    code,
+    message: status === 413 ? 'حجم الملف أكبر من الحد المسموح (100 ميجابايت)' : status === 415 ? 'نوع محتوى الملف غير مدعوم' : 'تعذر معالجة الطلب',
+  });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
