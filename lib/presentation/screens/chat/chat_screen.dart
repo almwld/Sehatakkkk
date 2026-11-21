@@ -491,7 +491,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     } catch (e) {
       debugPrint('open chat error: $e');
-      if (mounted) ToastService.showError('${AppStrings.of(context).translate('تعذر فتح المحادثة')}: $e');
+      if (mounted) ToastService.showError(AppStrings.of(context).translate('تعذر فتح المحادثة. حاول مرة أخرى.'));
     } finally {
       if (mounted) setState(() => _openingChat = false);
     }
