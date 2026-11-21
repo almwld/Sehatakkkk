@@ -1141,6 +1141,7 @@ class AppStrings {
       'نوع التوصيل': ['Delivery type', 'Type de livraison'],
       'عادي': ['Standard', 'Standard'],
       'سريع': ['Express', 'Express'],
+      'مجدول': ['Scheduled', 'Planifiée'],
       'مميز': ['Premium', 'Premium'],
       'لا توجد خدمة متاحة لهذا النوع.': ['No service is available for this type.', 'Aucun service n’est disponible pour ce type.'],
       'خدمة توصيل': ['Delivery service', 'Service de livraison'],
