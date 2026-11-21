@@ -130,10 +130,35 @@ class NextcloudService {
       .where((part) => part.isNotEmpty && part != '.')
       .join('/');
 
+  /// Builds the per-user Nextcloud namespace used by legacy direct WebDAV
+  /// uploads. The authenticated media gateway applies this same owner prefix
+  /// server-side, so callers must pass only a logical path (never a UID).
   String _platformPath(String path) {
-    final clean = _cleanLogicalPath(path);
-    if (clean.isEmpty) return 'Sehatak';
-    return clean == 'Sehatak' || clean.startsWith('Sehatak/') ? clean : 'Sehatak/$clean';
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      throw StateError('يجب تسجيل الدخول قبل رفع الملفات إلى مساحة المستخدم');
+    }
+
+    final segments = _cleanLogicalPath(path).split('/')
+      ..removeWhere((part) => part.isEmpty);
+    if (segments.isNotEmpty && segments.first.toLowerCase() == 'sehatak') {
+      segments.removeAt(0);
+    }
+
+    // Accept the canonical owner prefix for compatibility, but never allow
+    // a caller to address another user's namespace.
+    if (segments.isNotEmpty && segments.first == 'users') {
+      if (segments.length < 2 || segments[1] != uid) {
+        throw ArgumentError('مسار Nextcloud لا يطابق مالك الملف الحالي');
+      }
+      segments.removeRange(0, 2);
+    } else if (segments.length > 1 && segments[1] == uid) {
+      // Older callers embedded their UID in paths such as profiles/<uid>.
+      // Ownership is now represented once, at the namespace root.
+      segments.removeAt(1);
+    }
+
+    return <String>['Sehatak', 'users', uid, ...segments].join('/');
   }
 
   String _davUrl(String remotePath) {
