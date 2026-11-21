@@ -355,15 +355,37 @@ class NextcloudService {
             ? 'تم رفع الملف بنجاح، لكن تعذر إنشاء رابط المشاركة. أعد المحاولة بعد قليل.'
             : null,
       );
+    } on DioException catch (error) {
+      // Do not retry by uploading directly: a timeout may happen after the
+      // gateway has already stored the bytes.
+      final status = error.response?.statusCode;
+      final data = error.response?.data;
+      final body = data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
+      final code = body['code']?.toString();
+      final requestId = body['requestId']?.toString();
+      final providerStatus = body['providerStatus']?.toString();
+      final message = status == 401
+          ? 'انتهت صلاحية جلسة الدخول. حدّث جلسة التطبيق ثم أعد المحاولة.'
+          : status == 403
+              ? 'لا تملك صلاحية رفع ملف إلى هذه المحادثة.'
+              : status == 413 || code == 'MEDIA_TOO_LARGE'
+                  ? 'حجم الملف يتجاوز الحد المسموح به (100 ميجابايت).'
+                  : status == 429
+                      ? 'طلبات الرفع كثيرة جداً. انتظر قليلاً ثم أعد المحاولة.'
+                      : status == 502 && code == 'NEXTCLOUD_PUT_REJECTED'
+                          ? 'رفض Nextcloud حفظ الملف (HTTP ${providerStatus ?? 'غير معروف'}).'
+                          : status == 503
+                              ? 'خدمة الوسائط أو إعدادات Nextcloud غير متاحة حالياً.'
+                              : status != null
+                                  ? 'فشل رفع الملف: HTTP $status${code == null ? '' : ' ($code)'}.'
+                                  : error.type == DioExceptionType.connectionTimeout || error.type == DioExceptionType.sendTimeout || error.type == DioExceptionType.receiveTimeout
+                                      ? 'انتهت مهلة الاتصال أثناء رفع الملف؛ قد يكون الملف وصل إلى الخادم، لذا تحقق قبل إعادة المحاولة.'
+                                      : 'تعذر الاتصال بخادم الوسائط (${error.type.name}).';
+      debugPrint('Server media upload failed: status=$status code=$code requestId=$requestId type=${error.type.name}');
+      return NextcloudUploadResult(success: false, error: '$message${requestId == null || requestId.isEmpty ? '' : ' (معرّف التتبع: $requestId)'}');
     } catch (error) {
-      // Once an authenticated upload request has been attempted, never fall
-      // back to a second upload: a timeout may happen after Nextcloud stored
-      // the bytes but before the client received the response.
-      debugPrint('Server media upload failed: ' + error.runtimeType.toString());
-      return NextcloudUploadResult(
-        success: false,
-        error: 'تعذر تأكيد نتيجة رفع الملف إلى خادم الوسائط. تحقق من الاتصال قبل إعادة المحاولة.',
-      );
+      debugPrint('Server media upload failed: ${error.runtimeType}.');
+      return NextcloudUploadResult(success: false, error: 'تعذر بدء رفع الملف: $error');
     }
   }
 
