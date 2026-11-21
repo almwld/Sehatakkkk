@@ -4,8 +4,8 @@ class ImageKit {
   static const String hospital1 = '$baseUrl/images/hospitals/hospital_1.png'; static const String hospital2 = '$baseUrl/images/hospitals/hospital_2.png'; static const String hospital3 = '$baseUrl/images/hospitals/hospital_3.png'; static const String hospital4 = '$baseUrl/images/hospitals/hospital_4.png'; static const String hospital5 = '$baseUrl/images/hospitals/hospital_5.png'; static const String hospital6 = '$baseUrl/images/hospitals/hospital_6.png';
   static const String lab1 = '$baseUrl/images/labs/lab_1.png'; static const String lab2 = '$baseUrl/images/labs/lab_2.png'; static const String lab3 = '$baseUrl/images/labs/lab_3.png'; static const String lab4 = '$baseUrl/images/labs/lab_4.png'; static const String lab5 = '$baseUrl/images/labs/lab_5.png'; static const String lab6 = '$baseUrl/images/labs/lab_6.png'; static const String lab7 = '$baseUrl/images/labs/lab_7.png'; static const String lab8 = '$baseUrl/images/labs/lab_8.png'; static const String lab9 = '$baseUrl/images/labs/lab_9.png'; static const String lab10 = '$baseUrl/images/labs/lab_10.png'; static const String lab11 = '$baseUrl/images/labs/lab_11.png'; static const String lab12 = '$baseUrl/images/labs/lab_12.png'; static const String lab13 = '$baseUrl/images/labs/lab_13.png'; static const String lab14 = '$baseUrl/images/labs/lab_14.png'; static const String lab15 = '$baseUrl/images/labs/lab_15.png'; static const List<String> labList = [lab1,lab2,lab3,lab4,lab5,lab6,lab7,lab8,lab9,lab10,lab11,lab12,lab13,lab14,lab15];
   // Apply the same background-removal transformation to all ten featured
-  // medicine images. AppImage falls back to the original asset if ImageKit
-  // rejects a transformation, so a failed transform never hides the product.
+  // medicine images. If ImageKit rejects the transformation, AppImage keeps
+  // the caller's clean fallback surface instead of restoring a dark original.
   static const Set<int> _transparentMedicineNumbers = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
   };

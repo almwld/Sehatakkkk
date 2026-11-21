@@ -68,18 +68,16 @@ class AppImage extends StatelessWidget {
         filterQuality: FilterQuality.medium,
         placeholder: (context, _) => placeholder ?? buildImageShimmer(context),
         errorWidget: (context, _, __) {
-          // If ImageKit background removal is unavailable for an asset,
-          // retry the original image rather than showing a broken-image state.
+          // Never fall back to the unprocessed source when background removal
+          // fails: some original medicine assets contain a solid dark backdrop.
+          // Keep the image surface clean and let the caller's light/transparent
+          // product tile show through instead of reintroducing that backdrop.
           if (imageUrl.contains('?tr=e-bgremove')) {
-            final originalUrl = imageUrl.split('?').first;
-            return Image.network(
-              originalUrl,
-              width: width,
-              height: height,
-              fit: fit,
-              errorBuilder: (_, __, ___) =>
-                  errorWidget ?? buildImageError(context),
-            );
+            return errorWidget ??
+                SizedBox(
+                  width: width,
+                  height: height,
+                );
           }
           return errorWidget ?? buildImageError(context);
         },
