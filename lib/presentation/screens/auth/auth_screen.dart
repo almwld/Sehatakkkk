@@ -271,7 +271,7 @@ class _AuthScreenState extends State<AuthScreen>
     _authLogoController = AnimationController(vsync: this);
     _showIntroSplash = widget.showIntroSplash;
     if (_showIntroSplash) {
-      _introSplashTimer = Timer(const Duration(milliseconds: 3500), () {
+      _introSplashTimer = Timer(const Duration(milliseconds: 3071), () {
         if (mounted) setState(() => _showIntroSplash = false);
       });
     }
@@ -2373,7 +2373,7 @@ class _AuthScreenState extends State<AuthScreen>
             child: IgnorePointer(
               child: AnimatedOpacity(
                 opacity: _showIntroSplash ? 1 : 0,
-                duration: const Duration(milliseconds: 650),
+                duration: const Duration(milliseconds: 429),
                 curve: Curves.easeInOut,
                 child: _buildIntroSplash(),
               ),
@@ -2397,7 +2397,7 @@ class _AuthScreenState extends State<AuthScreen>
                 child: Lottie.asset(
                   'assets/animations/sehatak_animation.json',
                   fit: BoxFit.contain,
-                  repeat: true,
+                  repeat: false,
                 ),
               ),
               const SizedBox(height: 16),
