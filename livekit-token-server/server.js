@@ -6,27 +6,9 @@ const express = require('express');
 const admin = require('firebase-admin');
 const { AccessToken } = require('livekit-server-sdk');
 const crypto = require('crypto');
-const { isSafeOwnedNextcloudPath } = require('./media-path');
-const {
-  createCorsMiddleware,
-  securityHeaders,
-  createRateLimiter,
-} = require('./security.middleware');
 require('dotenv').config();
 
 const app = express();
-const proxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS || '1', 10);
-if (!Number.isInteger(proxyHops) || proxyHops < 0 || proxyHops > 5) {
-  throw new Error('TRUST_PROXY_HOPS must be an integer between 0 and 5');
-}
-app.set('trust proxy', proxyHops);
-app.disable('x-powered-by');
-app.use(securityHeaders);
-app.use(createCorsMiddleware());
-app.use('/token', createRateLimiter({ windowMs: 60_000, max: 20 }));
-app.use('/media/upload', createRateLimiter({ windowMs: 60_000, max: 10 }));
-app.use('/media/share', createRateLimiter({ windowMs: 60_000, max: 10 }));
-app.use(createRateLimiter({ windowMs: 60_000, max: 120 }));
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 3000);
@@ -137,7 +119,7 @@ async function verifyFirebaseUser(req) {
     throw error;
   }
   try {
-    return await admin.auth().verifyIdToken(auth.substring(7), true);
+    return await admin.auth().verifyIdToken(auth.substring(7));
   } catch (_) {
     const error = new Error('Invalid Firebase ID token');
     error.statusCode = 401;
@@ -145,28 +127,13 @@ async function verifyFirebaseUser(req) {
   }
 }
 
-async function requireFirebaseUser(req, res, next) {
-  try {
-    req.firebaseUser = await verifyFirebaseUser(req);
-    next();
-  } catch (error) {
-    const status = Number(error.statusCode) || 401;
-    return res.status(status).json({
-      success: false,
-      message: status >= 500 ? 'تعذر التحقق من جلسة المستخدم' : error.message,
-    });
-  }
-}
-
 app.get('/health', (_req, res) => res.json({ success: true, service: 'sehatak-livekit-token-server' }));
 app.post(
   '/media/upload',
-  // Authenticate before buffering up to 100 MB of request data.
-  requireFirebaseUser,
   express.raw({ type: 'application/octet-stream', limit: MAX_MEDIA_BYTES }),
   async (req, res) => {
     try {
-      const decodedToken = req.firebaseUser;
+      const decodedToken = await verifyFirebaseUser(req);
       if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
         return res.status(400).json({ success: false, message: 'Media body is required' });
       }
@@ -244,7 +211,8 @@ app.post('/media/share', async (req, res) => {
   try {
     const decodedToken = await verifyFirebaseUser(req);
     const remotePath = String(req.body?.remotePath || '').replace(/^\/+/, '');
-    if (!isSafeOwnedNextcloudPath(remotePath, sanitizePathPart(decodedToken.uid))) {
+    const prefix = 'Sehatak/users/' + sanitizePathPart(decodedToken.uid) + '/';
+    if (!remotePath.startsWith(prefix)) {
       return res.status(403).json({ success: false, message: 'ليس لديك صلاحية مشاركة هذا الملف' });
     }
     const url = await createNextcloudShare(remotePath);
