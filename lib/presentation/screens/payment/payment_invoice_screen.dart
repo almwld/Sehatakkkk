@@ -26,7 +26,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
       localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
 
   String _paymentMethodLabel(String value) {
-    final normalized = value.trim().toLowerCase().replaceAll(RegExp(r'[\\s_-]+'), '');
+    final normalized = value.trim().toLowerCase().replaceAll('_', '').replaceAll('-', '').replaceAll(' ', '');
     var key = value.trim();
     switch (normalized) {
       case 'wallet':
