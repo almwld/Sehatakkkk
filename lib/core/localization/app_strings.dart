@@ -272,6 +272,7 @@ class AppStrings {
       'اسم الطفل وتاريخ الميلاد مطلوبان': ['Child name and date of birth are required', 'Le nom et la date de naissance de l’enfant sont obligatoires'],
       'تعذر رفع الصورة': ['Could not upload the photo', 'Impossible de téléverser la photo'],
       'تم إضافة الطفل بنجاح': ['Child added successfully', 'Enfant ajouté avec succès'],
+      'تعذر إضافة الطفل. حاول مرة أخرى.': ['Could not add the child. Please try again.', 'Impossible d’ajouter l’enfant. Veuillez réessayer.'],
       'تعذر إضافة الطفل: ': ['Could not add child: ', 'Impossible d’ajouter l’enfant : '],
       'فحص مخبري منزلي': ['Home laboratory test', 'Analyse de laboratoire à domicile'],
       'احجز فحصاً مخبرياً من المنزل': ['Book a laboratory test from home', 'Réservez une analyse de laboratoire à domicile'],
