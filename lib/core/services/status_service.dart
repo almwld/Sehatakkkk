@@ -71,8 +71,9 @@ class StatusService {
     if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
     if (stories.isEmpty) throw StateError('أضف محتوى واحداً على الأقل.');
 
-    // Media must be uploaded and verified in Nextcloud before its metadata
-    // becomes visible in Firestore. Firestore never stores media bytes.
+    // A status is published only after all media stories have already been
+    // uploaded and verified by uploadMediaStory. Firestore is the source of
+    // truth that makes the completed status visible to other users.
     final ref = _statuses.doc(user.uid);
     final existing = await ref.get();
     final existingModel = existing.exists ? UserStatusModel.fromDocument(existing) : null;
@@ -100,18 +101,10 @@ class StatusService {
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
-    if (type != 'image' && type != 'video') {
-      throw ArgumentError.value(type, 'type', 'نوع وسائط الحالة غير مدعوم');
-    }
-    if (!await file.exists()) throw StateError('ملف الحالة غير موجود.');
 
-    // Credentials are resolved by NextcloudService through the authenticated
-    // server media gateway. The app must not require local Nextcloud secrets.
-    final extension = file.path.contains('.') ? file.path.split('.').last.toLowerCase() : (type == 'video' ? 'mp4' : 'jpg');
-    final safeExtension = RegExp(r'^[a-z0-9]{1,8}$').hasMatch(extension)
-        ? extension
-        : (type == 'video' ? 'mp4' : 'jpg');
-    final name = 'story_${DateTime.now().millisecondsSinceEpoch}.$safeExtension';
+    await _nextcloud.loadConfig();
+    final extension = file.path.contains('.') ? file.path.split('.').last : 'bin';
+    final name = 'story_${DateTime.now().millisecondsSinceEpoch}.$extension';
     final result = await _nextcloud.uploadFile(
       file: file,
       path: 'stories/${user.uid}',
@@ -119,61 +112,17 @@ class StatusService {
       createShare: true,
     );
     if (!result.success || result.url == null || result.url!.isEmpty) {
-      final message = (result.error ?? 'تعذر رفع الحالة إلى Nextcloud.')
-          .replaceFirst(RegExp(r'^(Bad state: )+'), '');
-      throw StateError(message);
+      throw StateError(result.error ?? 'تعذر رفع الحالة.');
     }
 
-    // Publish metadata only after the actual public URL is reachable.
+    // Do not publish the Firestore status until the Nextcloud public URL is
+    // reachable. This prevents broken media stories from becoming visible.
     final verified = await _nextcloud.verifyPublicUrl(result.url!);
     if (!verified) {
-      throw StateError('تم رفع الملف إلى Nextcloud لكن تعذر التحقق من رابط عرضه.');
+      throw StateError('تعذر تجهيز الوسائط للنشر.');
     }
 
     return StoryItem(type: type, url: result.url!, duration: duration);
-  }
-
-  CollectionReference<Map<String, dynamic>> _savedStatuses(String uid) =>
-      _firestore.collection('users').doc(uid).collection('saved_statuses');
-
-  Future<bool> isStatusSaved(String statusId) async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null || statusId.trim().isEmpty) return false;
-    final saved = await _savedStatuses(uid).doc(statusId).get();
-    return saved.exists;
-  }
-
-  Future<void> saveStatus(UserStatusModel status) async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) throw StateError('يجب تسجيل الدخول لحفظ الحالة.');
-    if (status.stories.isEmpty) throw StateError('لا توجد محتويات لحفظها.');
-    await _savedStatuses(uid).doc(status.id).set({
-      'userId': status.userId,
-      'userName': status.userName,
-      'userImage': status.userImage,
-      'stories': status.stories.map((story) => story.toMap()).toList(),
-      'createdAt': Timestamp.fromDate(status.createdAt),
-      'expiresAt': Timestamp.fromDate(status.expiresAt),
-      'savedAt': FieldValue.serverTimestamp(),
-      'sourceStatusId': status.id,
-    });
-  }
-
-  Future<void> removeSavedStatus(String statusId) async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) return;
-    await _savedStatuses(uid).doc(statusId).delete();
-  }
-
-  Stream<List<UserStatusModel>> streamSavedStatuses() {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) return Stream.value(const <UserStatusModel>[]);
-    return _savedStatuses(uid).orderBy('savedAt', descending: true).snapshots().map(
-      (snapshot) => snapshot.docs
-          .map((document) => UserStatusModel.fromDocument(document))
-          .where((status) => status.stories.isNotEmpty)
-          .toList(),
-    );
   }
 
   Future<void> markViewed(UserStatusModel status) async {
