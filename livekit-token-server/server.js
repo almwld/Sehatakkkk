@@ -89,7 +89,7 @@ function nextcloudDavUrl(remotePath) {
     encodeURIComponent(NEXTCLOUD_USERNAME) + '/' + clean;
 }
 
-async function ensureNextcloudDirectories(directory) {
+async function ensureNextcloudDirectories(directory, signal) {
   requireNextcloud();
   let current = '';
   for (const part of String(directory || '').split('/').filter(Boolean)) {
@@ -97,6 +97,7 @@ async function ensureNextcloudDirectories(directory) {
     const response = await fetch(nextcloudDavUrl(current), {
       method: 'MKCOL',
       headers: { Authorization: nextcloudAuthHeader() },
+      signal,
     });
     if (![201, 405].includes(response.status)) {
       throw new Error('Nextcloud MKCOL failed: HTTP ' + response.status);
@@ -203,9 +204,12 @@ app.post(
       }
 
       requireNextcloud();
+      const controller = new AbortController();
+      req.on('aborted', () => controller.abort());
+      res.on('close', () => { if (!res.writableEnded) controller.abort(); });
       const ownerPath = 'Sehatak/users/' + sanitizePathPart(decodedToken.uid);
       const directory = ownerPath + '/' + logicalPath;
-      await ensureNextcloudDirectories(directory);
+      await ensureNextcloudDirectories(directory, controller.signal);
 
       // Stable messageId + filename makes retries idempotent: a retry replaces
       // the same WebDAV object instead of creating another UUID-named copy.
@@ -218,6 +222,7 @@ app.post(
           'Content-Length': String(req.body.length),
         },
         body: req.body,
+        signal: controller.signal,
       });
       if (![201, 204].includes(uploadResponse.status)) {
         return res.status(502).json({
@@ -247,6 +252,7 @@ app.post(
         },
       });
     } catch (error) {
+      if (error.name === 'AbortError' || req.aborted || res.destroyed) return;
       const status = Number(error.statusCode) || 500;
       console.error('Media upload error:', error.message || error);
       return res.status(status).json({
