@@ -144,7 +144,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ToastService.showSuccess(_t('تم تحديث الملف الشخصي والبيانات الصحية'));
       Navigator.pop(context, true);
     } catch (e) {
-      ToastService.showError('${_t('فشل التحديث:')} $e');
+      debugPrint('Profile update failed: $e');
+      ToastService.showError(_t('تعذر تحديث الملف الشخصي. حاول مرة أخرى.'));
     }
 
     if (mounted) {
