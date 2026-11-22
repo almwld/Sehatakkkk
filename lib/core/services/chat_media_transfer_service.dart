@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,6 +14,7 @@ import 'package:workmanager/workmanager.dart';
 import '../../firebase_options.dart';
 import 'chat_service.dart';
 import 'nextcloud_server_media_service.dart';
+import 'nextcloud_service.dart';
 
 const String chatMediaTransferTask = 'sehatak.chat.media.transfer';
 
@@ -284,17 +283,13 @@ class ChatMediaTransferService {
     final nextcloud = NextcloudServerMediaService.instance;
     // All chat media stays private by default. Images of IDs and medical scans
     // are frequently sent as image/video types, not only generic files.
-    const isPrivateAttachment = true;
+
 
     if (url == null || url.isEmpty) {
       // A previous attempt may have completed the WebDAV PUT. Reuse the same
       // remote object; never upload a second copy just because sharing failed.
       if (remotePath != null && remotePath.isNotEmpty) {
         url = nextcloud.privateDownloadUrl(remotePath);
-      }
-
-      if ((url == null || url.isEmpty) && remotePath != null && remotePath.isNotEmpty) {
-        throw StateError('تعذر استعادة الوصول إلى الملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إنشاء نسخة مكررة');
       }
 
       if (url == null || url.isEmpty) {
@@ -328,7 +323,7 @@ class ChatMediaTransferService {
           remotePath = upload.path;
           // Persist the stable remote path before resolving public/private access.
           await db.update('media_outbox', {
-            'status': isPrivateAttachment ? 'private_ready' : 'share_pending',
+            'status': 'private_ready',
             'remote_path': remotePath,
             'remote_url': null,
             'updated_at': DateTime.now().millisecondsSinceEpoch,
@@ -390,14 +385,6 @@ class ChatMediaTransferService {
     _cancelledIds.remove(id);
   }
 
-  Future<String?> _retryShare(NextcloudServerMediaService service, String remotePath) async {
-    for (var i = 0; i < 3; i++) {
-      final url = await service.createPublicShare(remotePath);
-      if (url != null && url.isNotEmpty) return url;
-      await Future<void>.delayed(Duration(seconds: 2 * (i + 1)));
-    }
-    return null;
-  }
 
   Future<void> cancel(String id) async {
     _cancelledIds.add(id);
