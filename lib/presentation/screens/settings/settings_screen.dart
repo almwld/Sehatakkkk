@@ -369,8 +369,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }
                 await FirebaseAuth.instance.signOut();
                 if (context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
-              } catch (e) {
-                ToastService.showError('${AppStrings.of(context).translate('خطأ في تسجيل الخروج')}: $e');
+              } catch (_) {
+                ToastService.showError(AppStrings.of(context).translate('تعذر تسجيل الخروج'));
               }
             },
             child: Text(AppStrings.of(context).logout),
