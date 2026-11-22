@@ -17,6 +17,7 @@ class NextcloudService {
     sendTimeout: const Duration(minutes: 10),
   ));
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  Future<void>? _configLoadFuture;
 
   String baseUrl = '';
   String username = '';
@@ -29,6 +30,17 @@ class NextcloudService {
     username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
     password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
     debugPrint('📡 NC config: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
+  }
+
+  Future<void> ensureConfigured() async {
+    if (baseUrl.isNotEmpty && username.isNotEmpty && password.isNotEmpty) return;
+    final pending = _configLoadFuture ??= loadConfig();
+    try {
+      await pending;
+    } finally {
+      if (identical(_configLoadFuture, pending)) _configLoadFuture = null;
+    }
+    _ensureConfigured();
   }
 
   Future<void> updateConfig({
@@ -98,7 +110,7 @@ class NextcloudService {
     return '${_normalizedBase()}/remote.php/dav/files/${Uri.encodeComponent(username)}/$cleanPath';
   }
 
-  Future<void> _ensureDirectories(String directory) async {
+  Future<void> _ensureDirectories(String directory, {CancelToken? cancelToken}) async {
     var current = '';
     for (final part in _cleanLogicalPath(directory).split('/')) {
       if (part.isEmpty) continue;
@@ -111,6 +123,7 @@ class NextcloudService {
           headers: {'Authorization': 'Basic ${_authToken()}'},
           validateStatus: (status) => status != null,
         ),
+        cancelToken: cancelToken,
       );
       final status = response.statusCode ?? 0;
       debugPrint('📁 MKCOL response: $status');
@@ -126,8 +139,10 @@ class NextcloudService {
     String? fileName,
     void Function(int, int)? onProgress,
     bool createShare = true,
+    CancelToken? cancelToken,
   }) async {
     try {
+      await ensureConfigured();
       _ensureConfigured();
       if (!await file.exists()) {
         return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
@@ -141,7 +156,7 @@ class NextcloudService {
       debugPrint('📤 PUT: $davUrl');
       debugPrint('📤 file size: $fileLength');
 
-      await _ensureDirectories(logicalDirectory);
+      await _ensureDirectories(logicalDirectory, cancelToken: cancelToken);
 
       final response = await _dio.put<void>(
         davUrl,
@@ -156,6 +171,7 @@ class NextcloudService {
           validateStatus: (status) => status != null,
         ),
         onSendProgress: onProgress,
+        cancelToken: cancelToken,
       );
       final status = response.statusCode ?? 0;
       debugPrint('📤 PUT status: $status');
@@ -176,6 +192,7 @@ class NextcloudService {
       }
       return NextcloudUploadResult(success: true, url: publicUrl, path: remotePath, fileName: name, error: shareError, shareReady: publicUrl != null && publicUrl.isNotEmpty);
     } catch (e, st) {
+      if (e is DioException && CancelToken.isCancel(e)) rethrow;
       debugPrint('❌ uploadFile failed: $e');
       debugPrint('❌ stack: $st');
       return NextcloudUploadResult(success: false, error: e.toString());
@@ -183,6 +200,7 @@ class NextcloudService {
   }
 
   Future<String?> createPublicShare(String remotePath) async {
+    await ensureConfigured();
     _ensureConfigured();
     try {
       final response = await http.post(
@@ -191,8 +209,6 @@ class NextcloudService {
         body: {'path': '/${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
       );
       debugPrint('🔗 Share status: ${response.statusCode}');
-      final bodyPreview = response.body.substring(0, response.body.length > 200 ? 200 : response.body.length);
-      debugPrint('🔗 Share body: $bodyPreview');
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -264,7 +280,7 @@ class NextcloudService {
 
   Future<bool> checkServerStatus() async {
     try {
-      if (baseUrl.isEmpty) return false;
+      await ensureConfigured();
       final response = await http.get(Uri.parse('${_normalizedBase()}/status.php'));
       return response.statusCode == 200;
     } catch (_) {
@@ -274,6 +290,7 @@ class NextcloudService {
 
   Future<bool> testAuth() async {
     try {
+      await ensureConfigured();
       _ensureConfigured();
       final response = await http.get(
         Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'),
