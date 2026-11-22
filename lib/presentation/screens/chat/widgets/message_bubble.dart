@@ -413,12 +413,13 @@ class _MessageBubbleState extends State<MessageBubble> {
             child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
         }
         final headers = snapshot.data!;
-        final image = CachedNetworkImage(imageUrl: path, httpHeaders: headers, fit: BoxFit.contain);
+        final cacheKey = '${FirebaseAuth.instance.currentUser?.uid ?? 'anonymous'}:$path';
+        final image = CachedNetworkImage(imageUrl: path, cacheKey: cacheKey, httpHeaders: headers, fit: BoxFit.contain);
         return GestureDetector(
           onTap: () => showDialog<void>(context: context, barrierColor: Colors.black87,
             builder: (_) => Dialog(backgroundColor: Colors.transparent, child: InteractiveViewer(child: image))),
           child: ClipRRect(borderRadius: BorderRadius.circular(14),
-            child: CachedNetworkImage(imageUrl: path, httpHeaders: headers, width: 230, height: 230,
+            child: CachedNetworkImage(imageUrl: path, cacheKey: cacheKey, httpHeaders: headers, width: 230, height: 230,
               fit: BoxFit.cover,
               placeholder: (_, __) => const SizedBox(width: 230, height: 230,
                 child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
