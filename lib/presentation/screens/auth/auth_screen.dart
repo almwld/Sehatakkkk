@@ -270,11 +270,9 @@ class _AuthScreenState extends State<AuthScreen>
     super.initState();
     _authLogoController = AnimationController(vsync: this);
     _showIntroSplash = widget.showIntroSplash;
-    if (_showIntroSplash) {
-      _introSplashTimer = Timer(const Duration(milliseconds: 3071), () {
-        if (mounted) setState(() => _showIntroSplash = false);
-      });
-    }
+    // يبدأ احتساب مدة السبلاش بعد تحميل تكوين Lottie فعلياً،
+    // وليس من initState؛ لأن تأخر تحميل الملف كان يقتطع من زمن الحركة.
+
 
     _checkFirstTime();
     _checkBiometric();
@@ -289,6 +287,21 @@ class _AuthScreenState extends State<AuthScreen>
 
     _confirmPasswordController.addListener(() {
       if (mounted) setState(() {});
+    });
+  }
+
+  void _startIntroSplashTimer(Duration animationDuration) {
+    _introSplashTimer?.cancel();
+    // مهلة قصيرة بعد اكتمال آخر إطار، ثم تلاشي السبلاش تدريجياً.
+    _introSplashTimer = Timer(animationDuration + const Duration(milliseconds: 250), () {
+      if (mounted) setState(() => _showIntroSplash = false);
+    });
+  }
+
+  void _finishIntroSplashAfterLoadError() {
+    _introSplashTimer?.cancel();
+    _introSplashTimer = Timer(const Duration(milliseconds: 700), () {
+      if (mounted) setState(() => _showIntroSplash = false);
     });
   }
 
@@ -2398,6 +2411,15 @@ class _AuthScreenState extends State<AuthScreen>
                   'assets/animations/sehatak_animation.json',
                   fit: BoxFit.contain,
                   repeat: false,
+                  onLoaded: (composition) {
+                    if (_showIntroSplash) {
+                      _startIntroSplashTimer(composition.duration);
+                    }
+                  },
+                  errorBuilder: (_, __, ___) {
+                    _finishIntroSplashAfterLoadError();
+                    return const SizedBox.shrink();
+                  },
                 ),
               ),
               const SizedBox(height: 16),
