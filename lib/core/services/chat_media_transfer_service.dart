@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
@@ -14,6 +13,7 @@ import 'package:workmanager/workmanager.dart';
 
 import '../../firebase_options.dart';
 import 'chat_service.dart';
+import 'nextcloud_server_media_service.dart';
 import 'nextcloud_service.dart';
 
 const String chatMediaTransferTask = 'sehatak.chat.media.transfer';
@@ -46,7 +46,10 @@ class ChatMediaTransferService {
   bool _processing = false;
   bool _workerInitialized = false;
   final Set<String> _cancelledIds = {};
+  final Map<String, CancelToken> _activeCancelTokens = {};
 
+  CancelToken _cancelToken(String id) =>
+      _activeCancelTokens.putIfAbsent(id, CancelToken.new);
 
   bool _isCancelled(String id) => _cancelledIds.contains(id);
 
@@ -55,12 +58,13 @@ class ChatMediaTransferService {
     final root = await getDatabasesPath();
     _db = await openDatabase(
       p.join(root, 'sehatak_chat_outbox.db'),
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE media_outbox (
             id TEXT PRIMARY KEY,
             chat_id TEXT NOT NULL,
+            sender_uid TEXT NOT NULL,
             local_path TEXT NOT NULL,
             type TEXT NOT NULL,
             folder TEXT NOT NULL,
@@ -90,6 +94,15 @@ class ChatMediaTransferService {
           if (!hasClientTimestamp) {
             await db.execute('ALTER TABLE media_outbox ADD COLUMN client_timestamp INTEGER');
             debugPrint('media_outbox migration: added client_timestamp');
+          }
+        }
+        if (oldVersion < 3) {
+          final columns = await db.rawQuery('PRAGMA table_info(media_outbox)');
+          final hasSenderUid = columns.any((column) => column['name'] == 'sender_uid');
+          if (!hasSenderUid) {
+            // Legacy rows remain unassigned and are intentionally not uploaded
+            // under whichever account happens to be signed in after migration.
+            await db.execute("ALTER TABLE media_outbox ADD COLUMN sender_uid TEXT NOT NULL DEFAULT ''");
           }
         }
       },
@@ -126,7 +139,6 @@ class ChatMediaTransferService {
   }
 
   Future<void> _scheduleOneOffWorker() async {
-    if (!_workerInitialized) return;
     try {
       await Workmanager().registerOneOffTask(
         'sehatak-chat-media-${DateTime.now().microsecondsSinceEpoch}',
@@ -150,9 +162,12 @@ class ChatMediaTransferService {
     String? audioDuration,
   }) async {
     if (!await sourceFile.exists()) throw StateError('الملف المحلي غير موجود');
+    final sender = FirebaseAuth.instance.currentUser;
+    if (sender == null) throw StateError('يجب تسجيل الدخول قبل رفع الوسائط');
+    final senderUid = sender.uid;
     final id = '${chatId}_${DateTime.now().microsecondsSinceEpoch}_${sourceFile.uri.pathSegments.last.hashCode.abs()}';
     final dir = await getApplicationDocumentsDirectory();
-    final mediaDir = Directory(p.join(dir.path, 'sehatak_chat_media', chatId));
+    final mediaDir = Directory(p.join(dir.path, 'sehatak_chat_media', senderUid, chatId));
     await mediaDir.create(recursive: true);
     final rawName = fileName?.trim().isNotEmpty == true ? fileName!.trim() : p.basename(sourceFile.path);
     final safeName = rawName.replaceAll(RegExp(r'[/\\]'), '_');
@@ -163,6 +178,7 @@ class ChatMediaTransferService {
     await db.insert('media_outbox', {
       'id': id,
       'chat_id': chatId,
+      'sender_uid': senderUid,
       'local_path': local.path,
       'type': type,
       'folder': folder,
@@ -191,7 +207,9 @@ class ChatMediaTransferService {
 
   Future<List<Map<String, dynamic>>> pendingForChat(String chatId) async {
     final db = await _database;
-    return db.query('media_outbox', where: 'chat_id = ? AND status != ?', whereArgs: [chatId, 'sent'], orderBy: 'created_at ASC');
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const [];
+    return db.query('media_outbox', where: 'chat_id = ? AND sender_uid = ? AND status != ?', whereArgs: [chatId, uid, 'sent'], orderBy: 'created_at ASC');
   }
 
   Future<void> processPending() async {
@@ -200,13 +218,20 @@ class ChatMediaTransferService {
     try {
       final connectivity = await Connectivity().checkConnectivity();
       if (_isOffline(connectivity)) return;
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
       final db = await _database;
-      final jobs = await db.query('media_outbox', where: 'status != ?', whereArgs: ['sent'], orderBy: 'created_at ASC', limit: 3);
+      final jobs = await db.query('media_outbox', where: 'status != ? AND sender_uid = ?', whereArgs: ['sent', uid], orderBy: 'created_at ASC', limit: 3);
       for (final job in jobs) {
         try {
           await _process(job);
         } catch (e, st) {
-          if (e is MediaUploadCancelled) continue;
+          if (e is MediaUploadCancelled) {
+            final cancelledId = job['id'].toString();
+            _activeCancelTokens.remove(cancelledId);
+            _cancelledIds.remove(cancelledId);
+            continue;
+          }
           debugPrint('❌ media job ${job['id']} failed: $e');
           debugPrint('$st');
           await db.update('media_outbox', {
@@ -217,6 +242,7 @@ class ChatMediaTransferService {
           }, where: 'id = ?', whereArgs: [job['id']]);
         }
       }
+      if (jobs.length == 3) unawaited(_scheduleOneOffWorker());
     } finally {
       _processing = false;
     }
@@ -239,6 +265,11 @@ class ChatMediaTransferService {
     var remotePath = job['remote_path']?.toString();
     var url = job['remote_url']?.toString();
     final type = job['type']?.toString() ?? 'file';
+    final uid = job['sender_uid']?.toString() ?? '';
+    final activeUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (uid.isEmpty || activeUserId == null || activeUserId != uid) {
+      throw StateError('هوية المستخدم لا تطابق مهمة رفع الوسائط؛ أوقفنا الرفع لحماية الحساب');
+    }
     if (_isCancelled(id)) throw MediaUploadCancelled();
 
     // Never reuse historical Firebase Storage media references. Re-upload
@@ -249,73 +280,61 @@ class ChatMediaTransferService {
       url = null;
     }
 
+    final nextcloud = NextcloudServerMediaService.instance;
+    // All chat media stays private by default. Images of IDs and medical scans
+    // are frequently sent as image/video types, not only generic files.
+
+
     if (url == null || url.isEmpty) {
-      final nextcloud = NextcloudService();
-      // A previous attempt may have stored the object successfully but failed
-      // while creating/verifying its public share. Reuse that object first;
-      // never upload the same bytes again merely because share creation failed.
+      // A previous attempt may have completed the WebDAV PUT. Reuse the same
+      // remote object; never upload a second copy just because sharing failed.
       if (remotePath != null && remotePath.isNotEmpty) {
-        url = await _retryShare(nextcloud, remotePath);
-        if (url != null && url.isNotEmpty &&
-            !await nextcloud.verifyPublicUrl(url)) {
-          url = null;
-        }
-      }
-
-      if ((url == null || url.isEmpty) && remotePath != null && remotePath.isNotEmpty) {
-        // The bytes are already stored remotely. Keep retrying share creation
-        // rather than creating duplicate remote objects on every outbox run.
-        throw StateError('تعذر إنشاء رابط مشاركة للملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إعادة رفعه');
+        url = nextcloud.privateDownloadUrl(remotePath);
       }
 
       if (url == null || url.isEmpty) {
-      NextcloudUploadResult upload;
-      try {
-        upload = await nextcloud.uploadFile(
-          file: file,
-          path: 'chats/${job['chat_id']}/${job['folder']}',
-          fileName: job['file_name']?.toString(),
-          onProgress: (sent, total) {
-            if (total > 0) {
-              unawaited(db.update('media_outbox', {
-                'status': 'uploading',
-                'progress': (sent / total).clamp(0.0, 1.0),
-                'updated_at': DateTime.now().millisecondsSinceEpoch,
-              }, where: 'id = ?', whereArgs: [id]));
-            }
-          },
-          createShare: true,
-        );
-      } catch (e) {
+        NextcloudUploadResult upload;
+        try {
+          upload = await nextcloud.upload(
+            file: file,
+            chatId: job['chat_id'].toString(),
+            messageId: id,
+            fileName: job['file_name']?.toString(),
+            mimeType: job['mime_type']?.toString(),
+            createShare: false,
+            cancelToken: _cancelToken(id),
+            onProgress: (sent, total) {
+              if (total > 0) {
+                unawaited(db.update('media_outbox', {
+                  'status': 'uploading',
+                  'progress': (sent / total).clamp(0.0, 1.0),
+                  'updated_at': DateTime.now().millisecondsSinceEpoch,
+                }, where: 'id = ?', whereArgs: [id]));
+              }
+            },
+          );
+        } catch (e) {
+          if (_isCancelled(id)) throw MediaUploadCancelled();
+          upload = NextcloudUploadResult(success: false, error: e.toString());
+        }
         if (_isCancelled(id)) throw MediaUploadCancelled();
-        upload = NextcloudUploadResult(success: false, error: e.toString());
-      }
-      if (_isCancelled(id)) throw MediaUploadCancelled();
 
-      if (upload.success && upload.path != null) {
-        remotePath = upload.path;
-        // Persist the remote object before share verification. If OCS share
-        // creation fails, the next worker run can retry sharing this object
-        // without uploading duplicate bytes.
-        await db.update('media_outbox', {
-          'status': 'share_pending',
-          'remote_path': remotePath,
-          'remote_url': null,
-          'updated_at': DateTime.now().millisecondsSinceEpoch,
-        }, where: 'id = ?', whereArgs: [id]);
-        url = upload.url;
+        if (upload.success && upload.path != null) {
+          remotePath = upload.path;
+          // Persist the stable remote path before resolving public/private access.
+          await db.update('media_outbox', {
+            'status': 'private_ready',
+            'remote_path': remotePath,
+            'remote_url': null,
+            'updated_at': DateTime.now().millisecondsSinceEpoch,
+          }, where: 'id = ?', whereArgs: [id]);
+
+          url = nextcloud.privateDownloadUrl(remotePath!);
+        }
+
         if (url == null || url.isEmpty) {
-          url = await _retryShare(nextcloud, remotePath!);
+          throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى خادم Nextcloud');
         }
-        if (url != null && url.isNotEmpty) {
-          final reachable = await nextcloud.verifyPublicUrl(url);
-          if (!reachable) url = null;
-        }
-      }
-
-      if (url == null || url.isEmpty) {
-        throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
-      }
       }
     }
 
@@ -331,7 +350,10 @@ class ChatMediaTransferService {
     }, where: 'id = ?', whereArgs: [id]);
 
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw StateError('المستخدم غير مسجل الدخول');
+    if (user == null || user.uid != uid) {
+      throw StateError('تغير حساب المستخدم أثناء رفع الوسائط؛ أوقفنا إرسال الرسالة');
+    }
+    if (_isCancelled(id)) throw MediaUploadCancelled();
     await ChatService().sendMessage(
       chatId: job['chat_id'].toString(),
       messageId: id,
@@ -345,6 +367,13 @@ class ChatMediaTransferService {
       fileMimeType: job['mime_type']?.toString(),
       audioDuration: job['audio_duration']?.toString(),
       idempotencyKey: 'media_$id',
+      metadata: {
+        'mediaProvider': 'nextcloud',
+        'remotePath': remotePath,
+        'senderUid': uid,
+        'messageId': id,
+        'isPrivate': true,
+      },
     );
     await db.update('media_outbox', {
       'status': 'sent',
@@ -355,41 +384,42 @@ class ChatMediaTransferService {
       'updated_at': DateTime.now().millisecondsSinceEpoch,
     }, where: 'id = ?', whereArgs: [id]);
     try { await file.delete(); } catch (_) {}
+    _activeCancelTokens.remove(id);
+    _cancelledIds.remove(id);
   }
 
-  Future<String?> _retryShare(NextcloudService service, String remotePath) async {
-    for (var i = 0; i < 3; i++) {
-      final url = await service.createPublicShare(remotePath);
-      if (url != null && url.isNotEmpty) return url;
-      await Future<void>.delayed(Duration(seconds: 2 * (i + 1)));
-    }
-    return null;
-  }
 
   Future<void> cancel(String id) async {
-    _cancelledIds.add(id);
-    final db = await _database;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
     final job = await getById(id);
-    if (job != null) {
-      final localPath = job['local_path']?.toString();
-      await db.delete('media_outbox', where: 'id = ?', whereArgs: [id]);
-      if (localPath != null && localPath.isNotEmpty) {
-        try { await File(localPath).delete(); } catch (_) {}
-      }
+    if (job == null || job['sender_uid']?.toString() != uid) return;
+
+    _cancelledIds.add(id);
+    final token = _activeCancelTokens.remove(id);
+    if (token != null && !token.isCancelled) {
+      token.cancel('User cancelled media upload');
+    }
+    final db = await _database;
+    final localPath = job['local_path']?.toString();
+    await db.delete('media_outbox', where: 'id = ? AND sender_uid = ?', whereArgs: [id, uid]);
+    if (localPath != null && localPath.isNotEmpty) {
+      try { await File(localPath).delete(); } catch (_) {}
     }
   }
 
   Future<void> retry(String id) async {
     final db = await _database;
     final job = await getById(id);
-    if (job == null) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (job == null || uid == null || job['sender_uid']?.toString() != uid) return;
     await db.update('media_outbox', {
       'status': 'queued',
       'error': null,
-      'remote_path': null,
-      'remote_url': null,
+      'remote_path': job['remote_path'],
+      'remote_url': job['remote_url'],
       'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, where: 'id = ?', whereArgs: [id]);
+    }, where: 'id = ? AND sender_uid = ?', whereArgs: [id, uid]);
     await processPending();
     unawaited(_scheduleOneOffWorker());
   }

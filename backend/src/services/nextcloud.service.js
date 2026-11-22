@@ -5,7 +5,14 @@ class NextcloudService {
     this.baseUrl = process.env.NEXTCLOUD_URL?.replace(/\/$/, '');
     this.username = process.env.NEXTCLOUD_USERNAME;
     this.password = process.env.NEXTCLOUD_PASSWORD;
-    this.rootPath = process.env.NEXTCLOUD_ROOT_PATH || 'Sehatak';
+    const configuredRoot = String(process.env.NEXTCLOUD_ROOT_PATH || 'Sehatak')
+      .split('/')
+      .map((part) => part.trim())
+      .filter(Boolean);
+    while (configuredRoot.length && configuredRoot[0].toLowerCase() === 'sehatak') {
+      configuredRoot.shift();
+    }
+    this.rootPath = ['Sehatak', ...configuredRoot].join('/');
 
     if (!this.baseUrl || !this.username || !this.password) {
       throw new Error(
@@ -35,12 +42,16 @@ class NextcloudService {
       .replace(/[^a-zA-Z0-9_\-.]/g, '_');
   }
 
-  buildPath(chatId, messageId, fileName = '') {
+  buildPath(uid, chatId, messageId, fileName = '') {
+    if (!uid || !chatId || !messageId) {
+      throw new Error('uid, chatId and messageId are required');
+    }
+    const safeUid = this.sanitize(uid);
     const safeChatId = this.sanitize(chatId);
     const safeMessageId = this.sanitize(messageId);
 
     let path =
-      `${this.rootPath}/${safeChatId}/${safeMessageId}`;
+      `${this.rootPath}/users/${safeUid}/chats/${safeChatId}/messages/${safeMessageId}`;
 
     if (fileName) {
       path += `/${this.sanitize(fileName)}`;
@@ -113,6 +124,7 @@ class NextcloudService {
   }
 
   async uploadBuffer({
+    uid,
     chatId,
     messageId,
     fileName,
@@ -124,6 +136,7 @@ class NextcloudService {
     }
 
     const directory = this.buildPath(
+      uid,
       chatId,
       messageId
     );
