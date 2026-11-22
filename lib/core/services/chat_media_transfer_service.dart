@@ -16,6 +16,7 @@ import 'package:workmanager/workmanager.dart';
 import '../../firebase_options.dart';
 import 'chat_service.dart';
 import 'nextcloud_service.dart';
+import 'nextcloud_server_media_service.dart';
 
 const String chatMediaTransferTask = 'sehatak.chat.media.transfer';
 
@@ -302,7 +303,7 @@ class ChatMediaTransferService {
       if (url == null || url.isEmpty) {
         NextcloudUploadResult upload;
         try {
-          upload = await nextcloud.uploadViaServer(
+          upload = await nextcloud.upload(
             file: file,
             chatId: job['chat_id'].toString(),
             messageId: id,
@@ -401,9 +402,9 @@ class ChatMediaTransferService {
     _cancelledIds.remove(id);
   }
 
-  Future<String?> _retryShare(NextcloudService service, String remotePath) async {
+  Future<String?> _retryShare(NextcloudServerMediaService service, String remotePath) async {
     for (var i = 0; i < 3; i++) {
-      final url = await service.createPublicShareViaServer(remotePath);
+      final url = await service.createPublicShare(remotePath);
       if (url != null && url.isNotEmpty) return url;
       await Future<void>.delayed(Duration(seconds: 2 * (i + 1)));
     }
