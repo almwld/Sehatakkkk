@@ -127,7 +127,6 @@ class NextcloudService {
     void Function(int, int)? onProgress,
     bool createShare = true,
     CancelToken? cancelToken,
-    String? chatId,
   }) async {
     try {
       _ensureConfigured();
@@ -158,7 +157,6 @@ class NextcloudService {
           validateStatus: (status) => status != null,
         ),
         onSendProgress: onProgress,
-        cancelToken: cancelToken,
       );
       final status = response.statusCode ?? 0;
       debugPrint('📤 PUT status: $status');
