@@ -38,11 +38,8 @@ class NextcloudService {
   Future<void> ensureConfigured() async {
     if (baseUrl.isNotEmpty && username.isNotEmpty && password.isNotEmpty) return;
     final pending = _configLoadFuture ??= loadConfig();
-    try {
-      await pending;
-    } finally {
-      if (identical(_configLoadFuture, pending)) _configLoadFuture = null;
-    }
+    try { await pending; }
+    finally { if (identical(_configLoadFuture, pending)) _configLoadFuture = null; }
     _ensureConfigured();
   }
 
@@ -98,11 +95,7 @@ class NextcloudService {
       .join('/');
 
   String _platformPath(String path) {
-    final segments = _cleanLogicalPath(path)
-        .split('/')
-        .where((part) => part.isNotEmpty)
-        .toList();
-    // Canonicalize any legacy casing/repeated root prefix to one Sehatak root.
+    final segments = _cleanLogicalPath(path).split('/').where((part) => part.isNotEmpty).toList();
     while (segments.isNotEmpty && segments.first.toLowerCase() == 'sehatak') {
       segments.removeAt(0);
     }
@@ -253,8 +246,8 @@ class NextcloudService {
         final contentLength = response.contentLength;
         final contentType = response.headers['content-type'];
         debugPrint(
-          '🔗 verifyPublicUrl hop=$hop status=$status '
-          'location=${location == null ? '(none)' : '(present)'} contentType=${contentType ?? '(none)'}',
+          '🔗 verifyPublicUrl hop=$hop status=$status url=$current '
+          'location=${location ?? '(none)'} contentType=${contentType ?? '(none)'}',
         );
 
         if (status == 200 || status == 206) {
@@ -330,9 +323,7 @@ class NextcloudUploadResult {
     this.shareReady = false,
   });
 }), '');
-    return Uri.parse('$base/media/download')
-        .replace(queryParameters: {'remotePath': remotePath})
-        .toString();
+    return Uri.parse('$base/media/download').replace(queryParameters: {'remotePath': remotePath}).toString();
   }
 
   Future<NextcloudUploadResult> uploadViaServer({
@@ -349,20 +340,11 @@ class NextcloudUploadResult {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw StateError('يجب تسجيل الدخول قبل رفع الوسائط');
       final idToken = await user.getIdToken(true);
-      if (idToken == null || idToken.isEmpty) {
-        throw StateError('تعذر الحصول على رمز مصادقة Firebase');
-      }
-      if (!await file.exists()) {
-        return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
-      }
-
+      if (idToken == null || idToken.isEmpty) throw StateError('تعذر الحصول على رمز مصادقة Firebase');
+      if (!await file.exists()) return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
       final name = _cleanPart(fileName ?? file.uri.pathSegments.last);
-      if (name.isEmpty) {
-        return const NextcloudUploadResult(success: false, error: 'اسم الملف غير صالح');
-      }
-      final contentType = mimeType?.trim().isNotEmpty == true
-          ? mimeType!.trim()
-          : 'application/octet-stream';
+      if (name.isEmpty) return const NextcloudUploadResult(success: false, error: 'اسم الملف غير صالح');
+      final contentType = mimeType?.trim().isNotEmpty == true ? mimeType!.trim() : 'application/octet-stream';
       final length = await file.length();
       final base = LiveKitConfig.tokenServerUrl.replaceFirst(RegExp(r'/
     await ensureConfigured();
@@ -408,8 +390,8 @@ class NextcloudUploadResult {
         final contentLength = response.contentLength;
         final contentType = response.headers['content-type'];
         debugPrint(
-          '🔗 verifyPublicUrl hop=$hop status=$status '
-          'location=${location == null ? '(none)' : '(present)'} contentType=${contentType ?? '(none)'}',
+          '🔗 verifyPublicUrl hop=$hop status=$status url=$current '
+          'location=${location ?? '(none)'} contentType=${contentType ?? '(none)'}',
         );
 
         if (status == 200 || status == 206) {
@@ -486,13 +468,9 @@ class NextcloudUploadResult {
   });
 }), '');
       final uri = Uri.parse('$base/media/upload').replace(queryParameters: {
-        'chatId': chatId,
-        'messageId': messageId,
-        'fileName': name,
-        'mimeType': contentType,
-        'createShare': createShare ? 'true' : 'false',
+        'chatId': chatId, 'messageId': messageId, 'fileName': name,
+        'mimeType': contentType, 'createShare': createShare ? 'true' : 'false',
       });
-
       final response = await _dio.post<dynamic>(
         uri.toString(),
         data: file.openRead(),
@@ -509,31 +487,15 @@ class NextcloudUploadResult {
         onSendProgress: onProgress,
         cancelToken: cancelToken,
       );
-
-      final body = response.data is Map
-          ? Map<String, dynamic>.from(response.data as Map)
-          : <String, dynamic>{};
+      final body = response.data is Map ? Map<String, dynamic>.from(response.data as Map) : <String, dynamic>{};
       if (response.statusCode != 201 || body['success'] != true) {
-        return NextcloudUploadResult(
-          success: false,
-          error: body['message']?.toString() ?? 'فشل رفع الوسائط عبر الخادم',
-        );
+        return NextcloudUploadResult(success: false, error: body['message']?.toString() ?? 'فشل رفع الوسائط عبر الخادم');
       }
-      final fileData = body['file'] is Map
-          ? Map<String, dynamic>.from(body['file'] as Map)
-          : <String, dynamic>{};
+      final fileData = body['file'] is Map ? Map<String, dynamic>.from(body['file'] as Map) : <String, dynamic>{};
       final remotePath = fileData['remotePath']?.toString();
-      if (remotePath == null || remotePath.isEmpty) {
-        return const NextcloudUploadResult(success: false, error: 'الخادم لم يُرجع مسار الملف');
-      }
+      if (remotePath == null || remotePath.isEmpty) return const NextcloudUploadResult(success: false, error: 'الخادم لم يُرجع مسار الملف');
       final url = fileData['url']?.toString();
-      return NextcloudUploadResult(
-        success: true,
-        url: url?.isNotEmpty == true ? url : null,
-        path: remotePath,
-        fileName: fileData['fileName']?.toString() ?? name,
-        shareReady: fileData['shareReady'] == true,
-      );
+      return NextcloudUploadResult(success: true, url: url?.isNotEmpty == true ? url : null, path: remotePath, fileName: fileData['fileName']?.toString() ?? name, shareReady: fileData['shareReady'] == true);
     } catch (e) {
       if (e is DioException && CancelToken.isCancel(e)) rethrow;
       return NextcloudUploadResult(success: false, error: e.toString());
@@ -544,9 +506,7 @@ class NextcloudUploadResult {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('يجب تسجيل الدخول قبل مشاركة الملف');
     final idToken = await user.getIdToken(true);
-    if (idToken == null || idToken.isEmpty) {
-      throw StateError('تعذر الحصول على رمز مصادقة Firebase');
-    }
+    if (idToken == null || idToken.isEmpty) throw StateError('تعذر الحصول على رمز مصادقة Firebase');
     final base = LiveKitConfig.tokenServerUrl.replaceFirst(RegExp(r'/
     await ensureConfigured();
     _ensureConfigured();
@@ -591,8 +551,8 @@ class NextcloudUploadResult {
         final contentLength = response.contentLength;
         final contentType = response.headers['content-type'];
         debugPrint(
-          '🔗 verifyPublicUrl hop=$hop status=$status '
-          'location=${location == null ? '(none)' : '(present)'} contentType=${contentType ?? '(none)'}',
+          '🔗 verifyPublicUrl hop=$hop status=$status url=$current '
+          'location=${location ?? '(none)'} contentType=${contentType ?? '(none)'}',
         );
 
         if (status == 200 || status == 206) {
@@ -671,20 +631,13 @@ class NextcloudUploadResult {
     final response = await _dio.post<dynamic>(
       '$base/media/share',
       data: {'remotePath': remotePath},
-      options: Options(
-        headers: {'Authorization': 'Bearer $idToken'},
-        contentType: 'application/json',
-        responseType: ResponseType.json,
-        validateStatus: (status) => status != null,
-      ),
+      options: Options(headers: {'Authorization': 'Bearer $idToken'}, contentType: 'application/json', responseType: ResponseType.json, validateStatus: (status) => status != null),
     );
     if (response.statusCode != 200 || response.data is! Map) return null;
     final body = Map<String, dynamic>.from(response.data as Map);
-    if (body['success'] != true) return null;
     final url = body['url']?.toString();
-    return url?.isNotEmpty == true ? url : null;
+    return body['success'] == true && url?.isNotEmpty == true ? url : null;
   }
-
   Future<String?> createPublicShare(String remotePath) async {
     await ensureConfigured();
     _ensureConfigured();
@@ -729,8 +682,8 @@ class NextcloudUploadResult {
         final contentLength = response.contentLength;
         final contentType = response.headers['content-type'];
         debugPrint(
-          '🔗 verifyPublicUrl hop=$hop status=$status '
-          'location=${location == null ? '(none)' : '(present)'} contentType=${contentType ?? '(none)'}',
+          '🔗 verifyPublicUrl hop=$hop status=$status url=$current '
+          'location=${location ?? '(none)'} contentType=${contentType ?? '(none)'}',
         );
 
         if (status == 200 || status == 206) {
