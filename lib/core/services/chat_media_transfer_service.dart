@@ -15,7 +15,6 @@ import 'package:workmanager/workmanager.dart';
 
 import '../../firebase_options.dart';
 import 'chat_service.dart';
-import 'nextcloud_service.dart';
 import 'nextcloud_server_media_service.dart';
 
 const String chatMediaTransferTask = 'sehatak.chat.media.transfer';
@@ -283,7 +282,6 @@ class ChatMediaTransferService {
     }
 
     final nextcloud = NextcloudServerMediaService.instance;
-    final urlVerifier = NextcloudService();
     // All chat media stays private by default. Images of IDs and medical scans
     // are frequently sent as image/video types, not only generic files.
     const isPrivateAttachment = true;
