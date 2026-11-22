@@ -26,7 +26,8 @@ class _BloodOxygenScreenState extends State<BloodOxygenScreen> {
       await HealthMetricsService.update({'bloodOxygen': value});
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم حفظ القراءة المقاسة.'))));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_t('تعذر الحفظ:')} $e')));
+      debugPrint('Blood oxygen reading save failed: $e');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر حفظ القراءة. حاول مرة أخرى.'))));
     } finally { if (mounted) setState(() => _saving = false); }
   }
 
