@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
@@ -46,12 +45,8 @@ class ChatMediaTransferService {
   StreamSubscription<dynamic>? _connectivitySub;
   bool _processing = false;
   bool _workerInitialized = false;
-  final Map<String, CancelToken> _activeCancelTokens = {};
   final Set<String> _cancelledIds = {};
 
-  CancelToken _cancelToken(String id) {
-    return _activeCancelTokens.putIfAbsent(id, CancelToken.new);
-  }
 
   bool _isCancelled(String id) => _cancelledIds.contains(id);
 
@@ -279,9 +274,7 @@ class ChatMediaTransferService {
         upload = await nextcloud.uploadFile(
           file: file,
           path: 'chats/${job['chat_id']}/${job['folder']}',
-          chatId: job['chat_id']?.toString(),
           fileName: job['file_name']?.toString(),
-          cancelToken: _cancelToken(id),
           onProgress: (sent, total) {
             if (total > 0) {
               unawaited(db.update('media_outbox', {
@@ -366,7 +359,7 @@ class ChatMediaTransferService {
 
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
     for (var i = 0; i < 3; i++) {
-      final url = await service.createShareForMedia(remotePath);
+      final url = await service.createPublicShare(remotePath);
       if (url != null && url.isNotEmpty) return url;
       await Future<void>.delayed(Duration(seconds: 2 * (i + 1)));
     }
@@ -384,7 +377,6 @@ class ChatMediaTransferService {
         try { await File(localPath).delete(); } catch (_) {}
       }
     }
-    _activeCancelTokens.remove(id);
   }
 
   Future<void> retry(String id) async {
