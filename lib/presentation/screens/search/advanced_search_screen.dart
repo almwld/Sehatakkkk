@@ -82,9 +82,9 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
 
       await _loadSearchHistory();
 
-    } catch (e) {
+    } catch (_) {
       setState(() => _isLoading = false);
-      ToastService.showError(context, '${_t('حدث خطأ')}: $e');
+      ToastService.showError(context, _t('تعذر تنفيذ البحث. حاول مرة أخرى.'));
     }
   }
 
