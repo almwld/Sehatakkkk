@@ -28,7 +28,7 @@ class NextcloudService {
         .replaceFirst(RegExp(r'/$'), '');
     username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
     password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
-    debugPrint('📡 NC config: baseUrl=$baseUrl user=$username hasPass=\${password.isNotEmpty}');
+    debugPrint('📡 NC config: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
   }
 
   Future<void> updateConfig({
@@ -57,7 +57,7 @@ class NextcloudService {
 
   void _ensureConfigured() {
     if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
-      throw StateError('خادم الوسائط غير مهيأ: baseUrl=$baseUrl user=$username hasPass=\${password.isNotEmpty}');
+      throw StateError('خادم الوسائط غير مهيأ: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
     }
   }
 
@@ -66,7 +66,7 @@ class NextcloudService {
 
   Map<String, String> _headers() => {
         'OCS-APIRequest': 'true',
-        'Authorization': 'Basic \${_authToken()}',
+        'Authorization': 'Basic ${_authToken()}',
         'Content-Type': 'application/x-www-form-urlencoded',
       };
 
@@ -95,7 +95,7 @@ class NextcloudService {
         .where((part) => part.isNotEmpty)
         .map(Uri.encodeComponent)
         .join('/');
-    return '\${_normalizedBase()}/remote.php/dav/files/\${Uri.encodeComponent(username)}/$cleanPath';
+    return '${_normalizedBase()}/remote.php/dav/files/${Uri.encodeComponent(username)}/$cleanPath';
   }
 
   Future<void> _ensureDirectories(String directory) async {
@@ -108,7 +108,7 @@ class NextcloudService {
         _davUrl(current),
         options: Options(
           method: 'MKCOL',
-          headers: {'Authorization': 'Basic \${_authToken()}'},
+          headers: {'Authorization': 'Basic ${_authToken()}'},
           validateStatus: (status) => status != null,
         ),
       );
@@ -150,7 +150,7 @@ class NextcloudService {
         data: file.openRead(),
         options: Options(
           headers: {
-            'Authorization': 'Basic \${_authToken()}',
+            'Authorization': 'Basic ${_authToken()}',
             'Content-Type': 'application/octet-stream',
             'Content-Length': fileLength.toString(),
           },
@@ -189,11 +189,11 @@ class NextcloudService {
     _ensureConfigured();
     try {
       final response = await http.post(
-        Uri.parse('\${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
         headers: _headers(),
-        body: {'path': '/\${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
+        body: {'path': '/${_cleanLogicalPath(remotePath)}', 'shareType': '3'},
       );
-      debugPrint('🔗 Share status: \${response.statusCode}');
+      debugPrint('🔗 Share status: ${response.statusCode}');
       final bodyPreview = response.body.substring(0, response.body.length > 200 ? 200 : response.body.length);
       debugPrint('🔗 Share body: $bodyPreview');
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
@@ -204,7 +204,7 @@ class NextcloudService {
       final shareUrl = data?['url']?.toString();
       if (shareUrl == null || shareUrl.isEmpty) return null;
 
-      return '\${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
+      return '${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
     } catch (e, st) {
       debugPrint('❌ createPublicShare failed: $e');
       debugPrint('❌ stack: $st');
@@ -231,7 +231,7 @@ class NextcloudService {
         final contentType = response.headers['content-type'];
         debugPrint(
           '🔗 verifyPublicUrl hop=$hop status=$status url=$current '
-          'location=\${location ?? '(none)'} contentType=\${contentType ?? '(none)'}',
+          'location=${location ?? '(none)'} contentType=${contentType ?? '(none)'}',
         );
 
         if (status == 200 || status == 206) {
@@ -243,7 +243,7 @@ class NextcloudService {
           await response.stream.listen(null).cancel();
           final next = current.resolve(location);
           if (next.host != current.host) {
-            debugPrint('❌ verifyPublicUrl rejected cross-host redirect: \${next.host}');
+            debugPrint('❌ verifyPublicUrl rejected cross-host redirect: ${next.host}');
             return false;
           }
           current = next;
@@ -268,7 +268,7 @@ class NextcloudService {
   Future<bool> checkServerStatus() async {
     try {
       if (baseUrl.isEmpty) return false;
-      final response = await http.get(Uri.parse('\${_normalizedBase()}/status.php'));
+      final response = await http.get(Uri.parse('${_normalizedBase()}/status.php'));
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -279,7 +279,7 @@ class NextcloudService {
     try {
       _ensureConfigured();
       final response = await http.get(
-        Uri.parse('\${_normalizedBase()}/ocs/v2.php/cloud/user'),
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'),
         headers: _headers(),
       );
       return response.statusCode == 200;
