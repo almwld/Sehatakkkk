@@ -350,7 +350,9 @@ class ChatMediaTransferService {
     }, where: 'id = ?', whereArgs: [id]);
 
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw StateError('المستخدم غير مسجل الدخول');
+    if (user == null || user.uid != uid) {
+      throw StateError('تغير حساب المستخدم أثناء رفع الوسائط؛ أوقفنا إرسال الرسالة');
+    }
     await ChatService().sendMessage(
       chatId: job['chat_id'].toString(),
       messageId: id,
@@ -387,31 +389,36 @@ class ChatMediaTransferService {
 
 
   Future<void> cancel(String id) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final job = await getById(id);
+    if (job == null || job['sender_uid']?.toString() != uid) return;
+
     _cancelledIds.add(id);
     final token = _activeCancelTokens.remove(id);
-    if (token != null && !token.isCancelled) token.cancel('User cancelled media upload');
+    if (token != null && !token.isCancelled) {
+      token.cancel('User cancelled media upload');
+    }
     final db = await _database;
-    final job = await getById(id);
-    if (job != null) {
-      final localPath = job['local_path']?.toString();
-      await db.delete('media_outbox', where: 'id = ?', whereArgs: [id]);
-      if (localPath != null && localPath.isNotEmpty) {
-        try { await File(localPath).delete(); } catch (_) {}
-      }
+    final localPath = job['local_path']?.toString();
+    await db.delete('media_outbox', where: 'id = ? AND sender_uid = ?', whereArgs: [id, uid]);
+    if (localPath != null && localPath.isNotEmpty) {
+      try { await File(localPath).delete(); } catch (_) {}
     }
   }
 
   Future<void> retry(String id) async {
     final db = await _database;
     final job = await getById(id);
-    if (job == null) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (job == null || uid == null || job['sender_uid']?.toString() != uid) return;
     await db.update('media_outbox', {
       'status': 'queued',
       'error': null,
       'remote_path': job['remote_path'],
       'remote_url': job['remote_url'],
       'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, where: 'id = ?', whereArgs: [id]);
+    }, where: 'id = ? AND sender_uid = ?', whereArgs: [id, uid]);
     await processPending();
     unawaited(_scheduleOneOffWorker());
   }
