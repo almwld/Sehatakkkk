@@ -304,11 +304,15 @@ class _HomeTabState extends State<HomeTab>
                               clipBehavior: Clip.antiAlias,
                               child: Padding(
                                 padding: const EdgeInsets.all(8),
-                                child: AppImage(
-                                  imageUrl: imageUrl,
-                                  height: 100,
-                                  width: 100,
-                                  fit: BoxFit.contain,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: AppImage(
+                                    imageUrl: imageUrl,
+                                    height: 100,
+                                    width: 100,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
                             ),
