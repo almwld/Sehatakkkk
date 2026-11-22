@@ -277,74 +277,80 @@ class ChatMediaTransferService {
       url = null;
     }
 
+    final nextcloud = NextcloudService();
+    final isPrivateAttachment = type == 'file';
+
     if (url == null || url.isEmpty) {
-      final nextcloud = NextcloudService();
-      // A previous attempt may have stored the object successfully but failed
-      // while creating/verifying its public share. Reuse that object first;
-      // never upload the same bytes again merely because share creation failed.
+      // A previous attempt may have completed the WebDAV PUT. Reuse the same
+      // remote object; never upload a second copy just because sharing failed.
       if (remotePath != null && remotePath.isNotEmpty) {
-        url = await _retryShare(nextcloud, remotePath);
-        if (url != null && url.isNotEmpty &&
-            !await nextcloud.verifyPublicUrl(url)) {
-          url = null;
+        if (isPrivateAttachment) {
+          url = nextcloud.privateDownloadUrl(remotePath);
+        } else {
+          url = await _retryShare(nextcloud, remotePath);
+          if (url != null && url.isNotEmpty &&
+              !await nextcloud.verifyPublicUrl(url)) {
+            url = null;
+          }
         }
       }
 
       if ((url == null || url.isEmpty) && remotePath != null && remotePath.isNotEmpty) {
-        // The bytes are already stored remotely. Keep retrying share creation
-        // rather than creating duplicate remote objects on every outbox run.
-        throw StateError('تعذر إنشاء رابط مشاركة للملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إعادة رفعه');
+        throw StateError('تعذر استعادة الوصول إلى الملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إنشاء نسخة مكررة');
       }
 
       if (url == null || url.isEmpty) {
-      NextcloudUploadResult upload;
-      try {
-        upload = await nextcloud.uploadFile(
-          file: file,
-          path: 'users/$uid/chats/${job['chat_id']}/messages/$id',
-          fileName: job['file_name']?.toString(),
-          cancelToken: _cancelToken(id),
-          onProgress: (sent, total) {
-            if (total > 0) {
-              unawaited(db.update('media_outbox', {
-                'status': 'uploading',
-                'progress': (sent / total).clamp(0.0, 1.0),
-                'updated_at': DateTime.now().millisecondsSinceEpoch,
-              }, where: 'id = ?', whereArgs: [id]));
-            }
-          },
-          createShare: true,
-        );
-      } catch (e) {
+        NextcloudUploadResult upload;
+        try {
+          upload = await nextcloud.uploadViaServer(
+            file: file,
+            chatId: job['chat_id'].toString(),
+            messageId: id,
+            fileName: job['file_name']?.toString(),
+            mimeType: job['mime_type']?.toString(),
+            createShare: !isPrivateAttachment,
+            cancelToken: _cancelToken(id),
+            onProgress: (sent, total) {
+              if (total > 0) {
+                unawaited(db.update('media_outbox', {
+                  'status': 'uploading',
+                  'progress': (sent / total).clamp(0.0, 1.0),
+                  'updated_at': DateTime.now().millisecondsSinceEpoch,
+                }, where: 'id = ?', whereArgs: [id]));
+              }
+            },
+          );
+        } catch (e) {
+          if (_isCancelled(id)) throw MediaUploadCancelled();
+          upload = NextcloudUploadResult(success: false, error: e.toString());
+        }
         if (_isCancelled(id)) throw MediaUploadCancelled();
-        upload = NextcloudUploadResult(success: false, error: e.toString());
-      }
-      if (_isCancelled(id)) throw MediaUploadCancelled();
 
-      if (upload.success && upload.path != null) {
-        remotePath = upload.path;
-        // Persist the remote object before share verification. If OCS share
-        // creation fails, the next worker run can retry sharing this object
-        // without uploading duplicate bytes.
-        await db.update('media_outbox', {
-          'status': 'share_pending',
-          'remote_path': remotePath,
-          'remote_url': null,
-          'updated_at': DateTime.now().millisecondsSinceEpoch,
-        }, where: 'id = ?', whereArgs: [id]);
-        url = upload.url;
+        if (upload.success && upload.path != null) {
+          remotePath = upload.path;
+          // Persist the stable remote path before resolving public/private access.
+          await db.update('media_outbox', {
+            'status': isPrivateAttachment ? 'private_ready' : 'share_pending',
+            'remote_path': remotePath,
+            'remote_url': null,
+            'updated_at': DateTime.now().millisecondsSinceEpoch,
+          }, where: 'id = ?', whereArgs: [id]);
+
+          url = isPrivateAttachment
+              ? nextcloud.privateDownloadUrl(remotePath!)
+              : upload.url;
+          if (!isPrivateAttachment && (url == null || url.isEmpty)) {
+            url = await _retryShare(nextcloud, remotePath!);
+          }
+          if (!isPrivateAttachment && url != null && url.isNotEmpty) {
+            final reachable = await nextcloud.verifyPublicUrl(url);
+            if (!reachable) url = null;
+          }
+        }
+
         if (url == null || url.isEmpty) {
-          url = await _retryShare(nextcloud, remotePath!);
+          throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى خادم Nextcloud');
         }
-        if (url != null && url.isNotEmpty) {
-          final reachable = await nextcloud.verifyPublicUrl(url);
-          if (!reachable) url = null;
-        }
-      }
-
-      if (url == null || url.isEmpty) {
-        throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
-      }
       }
     }
 
@@ -374,6 +380,13 @@ class ChatMediaTransferService {
       fileMimeType: job['mime_type']?.toString(),
       audioDuration: job['audio_duration']?.toString(),
       idempotencyKey: 'media_$id',
+      metadata: {
+        'mediaProvider': 'nextcloud',
+        'remotePath': remotePath,
+        'senderUid': uid,
+        'messageId': id,
+        'isPrivate': isPrivateAttachment,
+      },
     );
     await db.update('media_outbox', {
       'status': 'sent',
@@ -390,7 +403,7 @@ class ChatMediaTransferService {
 
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
     for (var i = 0; i < 3; i++) {
-      final url = await service.createPublicShare(remotePath);
+      final url = await service.createPublicShareViaServer(remotePath);
       if (url != null && url.isNotEmpty) return url;
       await Future<void>.delayed(Duration(seconds: 2 * (i + 1)));
     }
