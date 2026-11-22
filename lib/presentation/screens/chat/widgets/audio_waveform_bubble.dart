@@ -11,11 +11,13 @@ class AudioWaveformBubble extends StatelessWidget {
     required this.audioUrl,
     required this.isMe,
     this.isLocal = false,
+    this.httpHeaders = const <String, String>{},
   });
 
   final String audioUrl;
   final bool isMe;
   final bool isLocal;
+  final Map<String, String> httpHeaders;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +25,7 @@ class AudioWaveformBubble extends StatelessWidget {
       audioUrl: audioUrl,
       isMe: isMe,
       isLocal: isLocal,
+      httpHeaders: httpHeaders,
     );
   }
 }
