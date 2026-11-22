@@ -89,9 +89,15 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       });
     }
 
-    const messageId = crypto.randomUUID();
+    const requestedMessageId = req.body.messageId;
+    if (requestedMessageId !== undefined &&
+        (typeof requestedMessageId !== 'string' || !/^[A-Za-z0-9_-]{1,150}$/.test(requestedMessageId.trim()))) {
+      return res.status(400).json({ success: false, message: 'messageId غير صالح' });
+    }
+    const messageId = requestedMessageId?.trim() || crypto.randomUUID();
 
     const result = await nextcloud.uploadBuffer({
+      uid: currentUserId,
       chatId: safeChatId,
       messageId,
       fileName: req.file.originalname,
