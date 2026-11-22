@@ -41,6 +41,15 @@ class MessageBubble extends StatefulWidget {
 }
 
 class _MessageBubbleState extends State<MessageBubble> {
+  Future<Map<String, String>>? _mediaHeadersFuture;
+
+  Future<Map<String, String>> _mediaHeaders() => _mediaHeadersFuture ??= () async {
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken(true);
+    return token == null || token.isEmpty
+        ? <String, String>{}
+        : <String, String>{'Authorization': 'Bearer $token'};
+  }();
+
   String _t(String value) => AppStrings.of(context).translate(value);
 
   bool _isLocal(String path) => widget.message['isLocal'] == true || widget.message['isUploading'] == true || path.startsWith('file://') || (path.isNotEmpty && !path.startsWith('http') && File(path).existsSync());
@@ -173,10 +182,16 @@ class _MessageBubbleState extends State<MessageBubble> {
             _shell(
               SizedBox(
                 width: audioBubbleWidth,
-                child: AudioWaveformBubble(
-                  audioUrl: url,
-                  isMe: widget.isMe,
-                  isLocal: _isLocal(url),
+                child: FutureBuilder<Map<String, String>>(
+                  future: _isLocal(url) ? Future.value(const <String, String>{}) : _mediaHeaders(),
+                  builder: (context, snapshot) => snapshot.hasData
+                      ? AudioWaveformBubble(
+                          audioUrl: url,
+                          isMe: widget.isMe,
+                          isLocal: _isLocal(url),
+                          httpHeaders: snapshot.data!,
+                        )
+                      : const SizedBox(height: 68, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
                 ),
               ),
               dark,
@@ -381,13 +396,47 @@ class _MessageBubbleState extends State<MessageBubble> {
     if (path.isEmpty) return SizedBox(width: 230, height: 100, child: Center(child: Text(AppStrings.of(context).translate('تعذر تحميل الصورة'))));
     final local = _isLocal(path);
     final cleanPath = path.replaceFirst('file://', '');
-    final image = local ? Image.file(File(cleanPath), fit: BoxFit.contain) : CachedNetworkImage(imageUrl: path, fit: BoxFit.contain);
-    return GestureDetector(onTap: () => showDialog<void>(context: context, barrierColor: Colors.black87, builder: (_) => Dialog(backgroundColor: Colors.transparent, child: InteractiveViewer(child: image))), child: ClipRRect(borderRadius: BorderRadius.circular(14), child: local ? Image.file(File(cleanPath), width: 230, height: 230, fit: BoxFit.cover) : CachedNetworkImage(imageUrl: path, width: 230, height: 230, fit: BoxFit.cover, placeholder: (_, __) => const SizedBox(width: 230, height: 230, child: Center(child: CircularProgressIndicator(strokeWidth: 2))), errorWidget: (_, __, ___) => const SizedBox(width: 230, height: 230, child: Center(child: Icon(Icons.broken_image))))));
+    if (local) {
+      final image = Image.file(File(cleanPath), fit: BoxFit.contain);
+      return GestureDetector(
+        onTap: () => showDialog<void>(context: context, barrierColor: Colors.black87,
+          builder: (_) => Dialog(backgroundColor: Colors.transparent, child: InteractiveViewer(child: image))),
+        child: ClipRRect(borderRadius: BorderRadius.circular(14),
+          child: Image.file(File(cleanPath), width: 230, height: 230, fit: BoxFit.cover)),
+      );
+    }
+    return FutureBuilder<Map<String, String>>(
+      future: _mediaHeaders(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox(width: 230, height: 230,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+        }
+        final headers = snapshot.data!;
+        final image = CachedNetworkImage(imageUrl: path, httpHeaders: headers, fit: BoxFit.contain);
+        return GestureDetector(
+          onTap: () => showDialog<void>(context: context, barrierColor: Colors.black87,
+            builder: (_) => Dialog(backgroundColor: Colors.transparent, child: InteractiveViewer(child: image))),
+          child: ClipRRect(borderRadius: BorderRadius.circular(14),
+            child: CachedNetworkImage(imageUrl: path, httpHeaders: headers, width: 230, height: 230,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => const SizedBox(width: 230, height: 230,
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+              errorWidget: (_, __, ___) => const SizedBox(width: 230, height: 230,
+                child: Center(child: Icon(Icons.broken_image)))),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildVideo(String path) {
     if (path.isEmpty) return SizedBox(width: 230, height: 100, child: Center(child: Text(AppStrings.of(context).translate('تعذر تحميل الفيديو'))));
-    return GestureDetector(onTap: () => showDialog<void>(context: context, builder: (_) => _VideoViewer(url: path, isLocal: _isLocal(path))), child: Container(width: 230, height: 160, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14)), child: const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 50))));
+    return GestureDetector(onTap: () async {
+      final headers = _isLocal(path) ? <String, String>{} : await _mediaHeaders();
+      if (!mounted) return;
+      await showDialog<void>(context: context, builder: (_) => _VideoViewer(url: path, isLocal: _isLocal(path), httpHeaders: headers));
+    }, child: Container(width: 230, height: 160, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14)), child: const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 50))));
   }
 
   Widget _buildFile(Map<String, dynamic> m, bool dark) {
@@ -1001,7 +1050,8 @@ class _DocumentWebViewDialogState extends State<_DocumentWebViewDialog> {
 class _VideoViewer extends StatefulWidget {
   final String url;
   final bool isLocal;
-  const _VideoViewer({required this.url, required this.isLocal});
+  final Map<String, String> httpHeaders;
+  const _VideoViewer({required this.url, required this.isLocal, this.httpHeaders = const <String, String>{}});
   @override State<_VideoViewer> createState() => _VideoViewerState();
 }
 
@@ -1010,7 +1060,7 @@ class _VideoViewerState extends State<_VideoViewer> {
   @override void initState() {
     super.initState();
     final path = widget.url.replaceFirst('file://', '');
-    controller = widget.isLocal ? VideoPlayerController.file(File(path)) : VideoPlayerController.networkUrl(Uri.parse(path));
+    controller = widget.isLocal ? VideoPlayerController.file(File(path)) : VideoPlayerController.networkUrl(Uri.parse(path), httpHeaders: widget.httpHeaders);
     controller.initialize().then((_) { if (mounted) setState(() {}); });
   }
   @override void dispose() { controller.dispose(); super.dispose(); }
