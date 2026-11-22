@@ -15,12 +15,14 @@ class AdvancedAudioPlayer extends StatefulWidget {
     required this.isMe,
     this.isLocal = false,
     this.title,
+    this.httpHeaders = const <String, String>{},
   });
 
   final String audioUrl;
   final bool isMe;
   final bool isLocal;
   final String? title;
+  final Map<String, String> httpHeaders;
 
   @override
   State<AdvancedAudioPlayer> createState() => _AdvancedAudioPlayerState();
@@ -62,7 +64,7 @@ class _AdvancedAudioPlayerState extends State<AdvancedAudioPlayer> {
             : value;
         await _player.setFilePath(path);
       } else {
-        await _player.setUrl(value);
+        await _player.setUrl(value, headers: widget.httpHeaders);
       }
       await _player.setSpeed(_speed);
       await _player.setVolume(_volume);
