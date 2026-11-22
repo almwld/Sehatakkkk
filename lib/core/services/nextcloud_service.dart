@@ -21,6 +21,7 @@ class NextcloudService {
   String baseUrl = '';
   String username = '';
   String password = '';
+  Future<void>? _configLoadFuture;
 
   Future<void> loadConfig() async {
     baseUrl = (await _storage.read(key: 'sehatak.nextcloud.base_url') ?? '')
@@ -28,7 +29,20 @@ class NextcloudService {
         .replaceFirst(RegExp(r'/$'), '');
     username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
     password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
-    debugPrint('📡 NC config: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
+  }
+
+  /// Loads credentials on demand. This is required because Workmanager runs
+  /// in a separate isolate and does not share the main isolate's singleton state.
+  Future<void> ensureConfigured() async {
+    if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
+      _configLoadFuture ??= loadConfig();
+      try {
+        await _configLoadFuture;
+      } finally {
+        _configLoadFuture = null;
+      }
+    }
+    _ensureConfigured();
   }
 
   Future<void> updateConfig({
@@ -128,7 +142,7 @@ class NextcloudService {
     bool createShare = true,
   }) async {
     try {
-      _ensureConfigured();
+      await ensureConfigured();
       if (!await file.exists()) {
         return const NextcloudUploadResult(success: false, error: 'الملف المحلي غير موجود');
       }
@@ -183,7 +197,7 @@ class NextcloudService {
   }
 
   Future<String?> createPublicShare(String remotePath) async {
-    _ensureConfigured();
+    await ensureConfigured();
     try {
       final response = await http.post(
         Uri.parse('${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
@@ -274,7 +288,7 @@ class NextcloudService {
 
   Future<bool> testAuth() async {
     try {
-      _ensureConfigured();
+      await ensureConfigured();
       final response = await http.get(
         Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'),
         headers: _headers(),
