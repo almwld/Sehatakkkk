@@ -5613,7 +5613,361 @@ class AppStrings {
       'مكمل غذائي للمفاصل': ['Dietary supplement for joint health', 'Complément alimentaire pour la santé des articulations'],
       'مكمل غذائي للنباتيين': ['Dietary supplement for vegetarians', 'Complément alimentaire pour les végétariens'],
       'مكمل غذائي للنمو والطاقة': ['Dietary supplement for growth and energy', 'Complément alimentaire pour la croissance et l’énergie'],
+      'L-كارنيتين': ['L-carnitine', 'L-carnitine'],
+      'أتينولول': ['Atenolol', 'Aténolol'],
+      'أرجينين': ['Arginine', 'Arginine'],
+      'أزيثروميسين': ['Azithromycin', 'Azithromycine'],
+      'أسبرين': ['Aspirin', 'Aspirine'],
+      'أكاربوز': ['Acarbose', 'Acarbose'],
+      'ألبوغلوتيد': ['Albiglutide', 'Albiglutide'],
+      'أمبيسيلين': ['Ampicillin', 'Ampicilline'],
+      'أملوديبين': ['Amlodipine', 'Amlodipine'],
+      'أموكسيسيلين': ['Amoxicillin', 'Amoxicilline'],
+      'أوكسيكودون': ['Oxycodone', 'Oxycodone'],
+      'إربيسارتان': ['Irbesartan', 'Irbésartan'],
+      'إكسيناتيد': ['Exenatide', 'Exénatide'],
+      'إمباغليفلوزين': ['Empagliflozin', 'Empagliflozine'],
+      'إنالابريل': ['Enalapril', 'Énalapril'],
+      'إندوميثاسين': ['Indomethacin', 'Indométacine'],
+      'إيبوبروفين': ['Ibuprofen', 'Ibuprofène'],
+      'إيزراديبين': ['Isradipine', 'Isradipine'],
+      'اسبرين': ['Aspirin', 'Aspirine'],
+      'برازوسين': ['Prazosin', 'Prazosine'],
+      'بروتين مصل اللبن': ['Whey protein', 'Protéine de lactosérum'],
+      'بروتين نباتي': ['Plant protein', 'Protéine végétale'],
+      'بنتازوسين': ['Pentazocine', 'Pentazocine'],
+      'بوتاسيوم': ['Potassium', 'Potassium'],
+      'بيتا ألانين': ['Beta-alanine', 'Bêta-alanine'],
+      'بيريندوبريل': ['Perindopril', 'Périndopril'],
+      'بيزوبرولول': ['Bisoprolol', 'Bisoprolol'],
+      'بيوجليتازون': ['Pioglitazone', 'Pioglitazone'],
+      'بيوكسيكام': ['Piroxicam', 'Piroxicam'],
+      'ترامادول': ['Tramadol', 'Tramadol'],
+      'تريزاباتيد': ['Tirzepatide', 'Tirzépatide'],
+      'تلميسارتان': ['Telmisartan', 'Telmisartan'],
+      'تيزانيدين': ['Tizanidine', 'Tizanidine'],
+      'تينيدازول': ['Tinidazole', 'Tinidazole'],
+      'جليبنكلاميد': ['Glibenclamide', 'Glibenclamide'],
+      'جليبيزيد': ['Glipizide', 'Glipizide'],
+      'جليكلازيد': ['Gliclazide', 'Gliclazide'],
+      'حديد': ['Iron', 'Fer'],
+      'داباغليفلوزين': ['Dapagliflozin', 'Dapagliflozine'],
+      'دوكسازوسين': ['Doxazosin', 'Doxazosine'],
+      'دوكسيسايكلين': ['Doxycycline', 'Doxycycline'],
+      'دولاغلوتيد': ['Dulaglutide', 'Dulaglutide'],
+      'ديكلوفيناك': ['Diclofenac', 'Diclofénac'],
+      'راميبريل': ['Ramipril', 'Ramipril'],
+      'روسجليتازون': ['Rosiglitazone', 'Rosiglitazone'],
+      'زنك': ['Zinc', 'Zinc'],
+      'ساكساغليبتين': ['Saxagliptin', 'Saxagliptine'],
+      'سبيرونولاكتون': ['Spironolactone', 'Spironolactone'],
+      'سماغلوتيد': ['Semaglutide', 'Sémaglutide'],
+      'سيبروفلوكساسين': ['Ciprofloxacin', 'Ciprofloxacine'],
+      'سيتاغليبتين': ['Sitagliptin', 'Sitagliptine'],
+      'سيفاليكسين': ['Cephalexin', 'Céfalexine'],
+      'سيفتازيديم': ['Ceftazidime', 'Ceftazidime'],
+      'سيفترياكسون': ['Ceftriaxone', 'Ceftriaxone'],
+      'سيفوبيرازون': ['Cefoperazone', 'Céfopérazone'],
+      'سيفوتاكسيم': ['Cefotaxime', 'Céfotaxime'],
+      'سيفوروكسيم': ['Cefuroxime', 'Céfuroxime'],
+      'سيفوكسيتين': ['Cefoxitin', 'Céfoxitine'],
+      'سيفيكزيم': ['Cefixime', 'Céfixime'],
+      'سيكلوبنزابرين': ['Cyclobenzaprine', 'Cyclobenzaprine'],
+      'سيليكوكسيب': ['Celecoxib', 'Célécoxib'],
+      'سيلينيوم': ['Selenium', 'Sélénium'],
+      'غلوتامين': ['Glutamine', 'Glutamine'],
+      'فالسارتان': ['Valsartan', 'Valsartan'],
+      'فانكومايسين': ['Vancomycin', 'Vancomycine'],
+      'فنتانيل': ['Fentanyl', 'Fentanyl'],
+      'فوروسيميد': ['Furosemide', 'Furosémide'],
+      'فوسفور': ['Phosphorus', 'Phosphore'],
+      'فيتامين B3 (نياسين)': ['Vitamin B3 (niacin)', 'Vitamine B3 (niacine)'],
+      'فيتامين B5 (حمض البانتوثنيك)': ['Vitamin B5 (pantothenic acid)', 'Vitamine B5 (acide pantothénique)'],
+      'فيتامين B7 (بيوتين)': ['Vitamin B7 (biotin)', 'Vitamine B7 (biotine)'],
+      'فيتامين B9 (حمض الفوليك)': ['Vitamin B9 (folic acid)', 'Vitamine B9 (acide folique)'],
+      'فيلوديبين': ['Felodipine', 'Félodipine'],
+      'كارفيديلول': ['Carvedilol', 'Carvédilol'],
+      'كالسيوم': ['Calcium', 'Calcium'],
+      'كاناغليفلوزين': ['Canagliflozin', 'Canagliflozine'],
+      'كانديسارتان': ['Candesartan', 'Candésartan'],
+      'كروم': ['Chromium', 'Chrome'],
+      'كرياتين': ['Creatine', 'Créatine'],
+      'كلاريثروميسين': ['Clarithromycin', 'Clarithromycine'],
+      'كلورتاليدون': ['Chlorthalidone', 'Chlortalidone'],
+      'كلونيدين': ['Clonidine', 'Clonidine'],
+      'كليندامايسين': ['Clindamycin', 'Clindamycine'],
+      'كودايين': ['Codeine', 'Codéine'],
+      'كولاجين نوع 1': ['Type I collagen', 'Collagène de type I'],
+      'كولاجين نوع 2': ['Type II collagen', 'Collagène de type II'],
+      'كولاجين نوع 3': ['Type III collagen', 'Collagène de type III'],
+      'لوسارتان': ['Losartan', 'Losartan'],
+      'ليراغلوتيد': ['Liraglutide', 'Liraglutide'],
+      'ليسينوبريل': ['Lisinopril', 'Lisinopril'],
+      'ليفوفلوكساسين': ['Levofloxacin', 'Lévofloxacine'],
+      'ليناغليبتين': ['Linagliptin', 'Linagliptine'],
+      'لينزوليد': ['Linezolid', 'Linézolide'],
+      'مغنيسيوم': ['Magnesium', 'Magnésium'],
+      'منغنيز': ['Manganese', 'Manganèse'],
+      'مورفين': ['Morphine', 'Morphine'],
+      'موليبدينوم': ['Molybdenum', 'Molybdène'],
+      'ميبريستون': ['Mifepristone', 'Mifépristone'],
+      'ميتوبرولول': ['Metoprolol', 'Métoprolol'],
+      'ميثيلدوبا': ['Methyldopa', 'Méthyldopa'],
+      'ميلوكسيكام': ['Meloxicam', 'Méloxicam'],
+      'مينوكسيديل': ['Minoxidil', 'Minoxidil'],
+      'نابروكسين': ['Naproxen', 'Naproxène'],
+      'نحاس': ['Copper', 'Cuivre'],
+      'نيتروفورانتوين': ['Nitrofurantoin', 'Nitrofurantoïne'],
+      'نيفيديبين': ['Nifedipine', 'Nifédipine'],
+      'هيدروكلوروثيازيد': ['Hydrochlorothiazide', 'Hydrochlorothiazide'],
+      'هيدروكودون': ['Hydrocodone', 'Hydrocodone'],
+      'يود': ['Iodine', 'Iode'],
     };
+    final medicineDose = RegExp(
+      r'^(.+?)\\s+(\\d+(?:\\.\\d+)?\\s*(?:mg|mcg|g|ml|kg|iu)(?:\\s*\\(ممتد\\))?)
+    if (entry == null) return value;
+    switch (locale.languageCode) {
+      case 'en': return entry[0];
+      case 'fr': return entry[1];
+      default: return value;
+    }
+  }
+
+
+  /// Localizes known transaction titles while preserving unknown, user-entered
+  /// titles and provider names. The metadata map carries stable service codes.
+  String translateTransactionTitle({
+    required String title,
+    String? type,
+    String? serviceType,
+    Map<String, dynamic>? metadata,
+  }) {
+    final source = title.trim();
+    if (source.isEmpty) return translate('معاملة');
+
+    final exact = translate(source);
+    if (exact != source) return exact;
+
+    if (serviceType == 'pharmacy') {
+      return translate('شراء منتجات صيدلية');
+    }
+    if (serviceType == 'subscription') {
+      final planCode = metadata?['planCode']?.toString();
+      final planKey = switch (planCode) {
+        'silver' => 'الباقة الفضية',
+        'bronze' => 'الباقة البرونزية',
+        'gold' => 'الباقة الذهبية',
+        'family' => 'باقة العائلة',
+        'crystal' => 'الباقة الكريستالية',
+        _ => null,
+      };
+      return planKey == null
+          ? translate('اشتراك')
+          : '${translate('اشتراك')} ${translate(planKey)}';
+    }
+    if (serviceType == 'lab') {
+      const prefix = 'حجز فحص ';
+      if (source.startsWith(prefix)) {
+        final labName = source.substring(prefix.length).trim();
+        return labName.isEmpty
+            ? translate('حجز فحص')
+            : '${translate('حجز فحص')} $labName';
+      }
+      return translate('حجز فحص');
+    }
+    if (type == 'deposit') {
+      const prefix = 'طلب تغذية حساب عبر ';
+      if (source.startsWith(prefix)) {
+        final walletName = source.substring(prefix.length).trim();
+        return walletName.isEmpty
+            ? translate('إيداع')
+            : '${translate('طلب تغذية حساب عبر')} ${translate(walletName)}';
+      }
+      return translate('إيداع');
+    }
+    if (type == 'withdrawal') {
+      const prefix = 'طلب سحب عبر ';
+      if (source.startsWith(prefix)) {
+        final walletName = source.substring(prefix.length).trim();
+        return walletName.isEmpty
+            ? translate('سحب')
+            : '${translate('طلب سحب عبر')} ${translate(walletName)}';
+      }
+      return translate('سحب');
+    }
+    if (type == 'refund') return translate('استرداد');
+
+    // Unknown titles may be entered by the user or a provider. Do not
+    // machine-translate or rewrite that content.
+    return source;
+  }
+
+  String _translateRole(String role) {
+    const roles = <String, List<String>>{
+      'doctor': ['doctor', 'médecin'],
+      'nurse': ['nurse', 'infirmier/ière'],
+      'midwife': ['midwife', 'sage-femme'],
+      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
+      'pharmacist': ['pharmacist', 'pharmacien'],
+      'pharmacy': ['pharmacy', 'pharmacie'],
+      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
+      'lab': ['laboratory', 'laboratoire'],
+      'hospital': ['hospital', 'hôpital'],
+      'clinic': ['clinic', 'clinique'],
+      'medical_center': ['medical center', 'centre médical'],
+      'dentist': ['dentist', 'dentiste'],
+      'dental': ['dental clinic', 'clinique dentaire'],
+      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
+      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
+      'optometrist': ['optometrist', 'optométriste'],
+      'delivery': ['delivery provider', 'livreur'],
+      'service': ['service provider', 'prestataire de services'],
+    };
+    final translated = roles[role];
+    if (translated == null) return role;
+    return locale.languageCode == 'fr' ? translated[1] : translated[0];
+  }
+
+  String _pick(String ar, String en, String fr) {
+    switch (locale.languageCode) {
+      case 'en': return en;
+      case 'fr': return fr;
+      default: return ar;
+    }
+  }
+}
+,
+      caseSensitive: false,
+    ).firstMatch(value.trim());
+    if (medicineDose != null) {
+      final base = medicineDose.group(1)!.trim();
+      final dose = medicineDose.group(2)!.trim();
+      final baseEntry = translations[base];
+      if (baseEntry != null &&
+          (locale.languageCode == 'en' || locale.languageCode == 'fr')) {
+        final localizedBase = locale.languageCode == 'en' ? baseEntry[0] : baseEntry[1];
+        final extendedRelease = dose.endsWith('(ممتد)');
+        final doseValue = extendedRelease
+            ? dose.replaceFirst(RegExp(r'\\s*\\(ممتد\\)
+    if (entry == null) return value;
+    switch (locale.languageCode) {
+      case 'en': return entry[0];
+      case 'fr': return entry[1];
+      default: return value;
+    }
+  }
+
+
+  /// Localizes known transaction titles while preserving unknown, user-entered
+  /// titles and provider names. The metadata map carries stable service codes.
+  String translateTransactionTitle({
+    required String title,
+    String? type,
+    String? serviceType,
+    Map<String, dynamic>? metadata,
+  }) {
+    final source = title.trim();
+    if (source.isEmpty) return translate('معاملة');
+
+    final exact = translate(source);
+    if (exact != source) return exact;
+
+    if (serviceType == 'pharmacy') {
+      return translate('شراء منتجات صيدلية');
+    }
+    if (serviceType == 'subscription') {
+      final planCode = metadata?['planCode']?.toString();
+      final planKey = switch (planCode) {
+        'silver' => 'الباقة الفضية',
+        'bronze' => 'الباقة البرونزية',
+        'gold' => 'الباقة الذهبية',
+        'family' => 'باقة العائلة',
+        'crystal' => 'الباقة الكريستالية',
+        _ => null,
+      };
+      return planKey == null
+          ? translate('اشتراك')
+          : '${translate('اشتراك')} ${translate(planKey)}';
+    }
+    if (serviceType == 'lab') {
+      const prefix = 'حجز فحص ';
+      if (source.startsWith(prefix)) {
+        final labName = source.substring(prefix.length).trim();
+        return labName.isEmpty
+            ? translate('حجز فحص')
+            : '${translate('حجز فحص')} $labName';
+      }
+      return translate('حجز فحص');
+    }
+    if (type == 'deposit') {
+      const prefix = 'طلب تغذية حساب عبر ';
+      if (source.startsWith(prefix)) {
+        final walletName = source.substring(prefix.length).trim();
+        return walletName.isEmpty
+            ? translate('إيداع')
+            : '${translate('طلب تغذية حساب عبر')} ${translate(walletName)}';
+      }
+      return translate('إيداع');
+    }
+    if (type == 'withdrawal') {
+      const prefix = 'طلب سحب عبر ';
+      if (source.startsWith(prefix)) {
+        final walletName = source.substring(prefix.length).trim();
+        return walletName.isEmpty
+            ? translate('سحب')
+            : '${translate('طلب سحب عبر')} ${translate(walletName)}';
+      }
+      return translate('سحب');
+    }
+    if (type == 'refund') return translate('استرداد');
+
+    // Unknown titles may be entered by the user or a provider. Do not
+    // machine-translate or rewrite that content.
+    return source;
+  }
+
+  String _translateRole(String role) {
+    const roles = <String, List<String>>{
+      'doctor': ['doctor', 'médecin'],
+      'nurse': ['nurse', 'infirmier/ière'],
+      'midwife': ['midwife', 'sage-femme'],
+      'physiotherapist': ['physiotherapist', 'kinésithérapeute'],
+      'pharmacist': ['pharmacist', 'pharmacien'],
+      'pharmacy': ['pharmacy', 'pharmacie'],
+      'pharmacyOwner': ['pharmacy owner', 'propriétaire de pharmacie'],
+      'lab': ['laboratory', 'laboratoire'],
+      'hospital': ['hospital', 'hôpital'],
+      'clinic': ['clinic', 'clinique'],
+      'medical_center': ['medical center', 'centre médical'],
+      'dentist': ['dentist', 'dentiste'],
+      'dental': ['dental clinic', 'clinique dentaire'],
+      'ophthalmology': ['ophthalmologist', 'ophtalmologiste'],
+      'eye_clinic': ['eye clinic', 'clinique ophtalmologique'],
+      'optometrist': ['optometrist', 'optométriste'],
+      'delivery': ['delivery provider', 'livreur'],
+      'service': ['service provider', 'prestataire de services'],
+    };
+    final translated = roles[role];
+    if (translated == null) return role;
+    return locale.languageCode == 'fr' ? translated[1] : translated[0];
+  }
+
+  String _pick(String ar, String en, String fr) {
+    switch (locale.languageCode) {
+      case 'en': return en;
+      case 'fr': return fr;
+      default: return ar;
+    }
+  }
+}
+), '').trim()
+            : dose;
+        final localizedDose = extendedRelease
+            ? '$doseValue (${locale.languageCode == 'fr' ? 'à libération prolongée' : 'extended-release'})'
+            : doseValue;
+        return '$localizedBase $localizedDose';
+      }
+    }
     final entry = translations[value];
     if (entry == null) return value;
     switch (locale.languageCode) {
