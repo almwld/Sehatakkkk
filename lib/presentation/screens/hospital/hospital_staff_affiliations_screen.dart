@@ -121,8 +121,8 @@ class _HospitalStaffAffiliationsScreenState extends State<HospitalStaffAffiliati
     try {
       await action();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success)));
-    } on FirebaseFunctionsException catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message ?? _t('تعذر تنفيذ العملية'))));
+    } on FirebaseFunctionsException catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر تنفيذ العملية'))));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر تنفيذ العملية'))));
     } finally { if (mounted) setState(() => _busy = false); }
