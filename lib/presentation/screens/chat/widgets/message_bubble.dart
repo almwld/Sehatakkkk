@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/services/chat_media_transfer_service.dart';
+import 'package:sehatak/core/config/livekit_config.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/medical_document_service.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/audio_waveform_bubble.dart';
@@ -433,6 +434,13 @@ class _MessageBubbleState extends State<MessageBubble> {
           final request = http.Request('GET', current)
             ..followRedirects = false
             ..maxRedirects = 0;
+          final tokenServer = Uri.tryParse(LiveKitConfig.tokenServerUrl);
+          if (tokenServer != null && current.origin == tokenServer.origin &&
+              current.path.endsWith('/media/download')) {
+            final idToken = await FirebaseAuth.instance.currentUser?.getIdToken(true);
+            if (idToken == null || idToken.isEmpty) return null;
+            request.headers['Authorization'] = 'Bearer $idToken';
+          }
           final response = await client.send(request).timeout(
             const Duration(minutes: 2),
           );
@@ -616,7 +624,8 @@ class _MessageBubbleState extends State<MessageBubble> {
         if (uid != null) {
           await FirebaseFirestore.instance.collection('document_library').doc().set({
             'ownerId': uid, 'chatId': m['chatId'], 'fileName': name,
-            'fileUrl': url, 'mimeType': mime, 'savedAt': FieldValue.serverTimestamp(),
+            'fileUrl': url, 'remotePath': (m['metadata'] is Map) ? (m['metadata'] as Map)['remotePath'] : null,
+            'mimeType': mime, 'savedAt': FieldValue.serverTimestamp(),
           });
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم حفظ المستند في المكتبة.'))));
         }
@@ -640,13 +649,14 @@ class _MessageBubbleState extends State<MessageBubble> {
         return;
       }
       if (isText) {
-        try {
-          final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
-          if (response.statusCode >= 200 && response.statusCode < 300 && mounted) {
-            await showDialog<void>(context: context, builder: (_) => _TextDocumentDialog(title: name, content: response.body));
+        final file = await _downloadRemote();
+        if (file != null && mounted) {
+          try {
+            final content = await file.readAsString();
+            await showDialog<void>(context: context, builder: (_) => _TextDocumentDialog(title: name, content: content));
             return;
-          }
-        } catch (_) {}
+          } catch (_) {}
+        }
         if (mounted) _showFileError();
         return;
       }
