@@ -81,6 +81,8 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
       case 'easy':
         key = 'إيزي';
         break;
+      default:
+        key = 'طريقة الدفع';
     }
     return _t(key);
   }
