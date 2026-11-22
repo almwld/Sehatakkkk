@@ -141,7 +141,6 @@ class ChatMediaTransferService {
   }
 
   Future<void> _scheduleOneOffWorker() async {
-    if (!_workerInitialized) return;
     try {
       await Workmanager().registerOneOffTask(
         'sehatak-chat-media-${DateTime.now().microsecondsSinceEpoch}',
@@ -229,7 +228,12 @@ class ChatMediaTransferService {
         try {
           await _process(job);
         } catch (e, st) {
-          if (e is MediaUploadCancelled) continue;
+          if (e is MediaUploadCancelled) {
+            final cancelledId = job['id'].toString();
+            _activeCancelTokens.remove(cancelledId);
+            _cancelledIds.remove(cancelledId);
+            continue;
+          }
           debugPrint('❌ media job ${job['id']} failed: $e');
           debugPrint('$st');
           await db.update('media_outbox', {
