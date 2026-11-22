@@ -29,7 +29,7 @@ class NextcloudService {
         .replaceFirst(RegExp(r'/$'), '');
     username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
     password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
-    debugPrint('📡 NC config: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
+    debugPrint('Nextcloud credentials loaded: ${baseUrl.isNotEmpty && username.isNotEmpty && password.isNotEmpty}');
   }
 
   Future<void> ensureConfigured() async {
@@ -69,7 +69,7 @@ class NextcloudService {
 
   void _ensureConfigured() {
     if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
-      throw StateError('خادم الوسائط غير مهيأ: baseUrl=$baseUrl user=$username hasPass=${password.isNotEmpty}');
+      throw StateError('خادم الوسائط غير مهيأ؛ تحقق من إعدادات Nextcloud المحفوظة');
     }
   }
 
@@ -95,9 +95,15 @@ class NextcloudService {
       .join('/');
 
   String _platformPath(String path) {
-    final clean = _cleanLogicalPath(path);
-    if (clean.isEmpty) return 'Sehatak';
-    return clean == 'Sehatak' || clean.startsWith('Sehatak/') ? clean : 'Sehatak/$clean';
+    final segments = _cleanLogicalPath(path)
+        .split('/')
+        .where((part) => part.isNotEmpty)
+        .toList();
+    // Canonicalize any legacy casing/repeated root prefix to one Sehatak root.
+    while (segments.isNotEmpty && segments.first.toLowerCase() == 'sehatak') {
+      segments.removeAt(0);
+    }
+    return segments.isEmpty ? 'Sehatak' : 'Sehatak/${segments.join('/')}';
   }
 
   String _davUrl(String remotePath) {
@@ -243,8 +249,8 @@ class NextcloudService {
         final contentLength = response.contentLength;
         final contentType = response.headers['content-type'];
         debugPrint(
-          '🔗 verifyPublicUrl hop=$hop status=$status url=$current '
-          'location=${location ?? '(none)'} contentType=${contentType ?? '(none)'}',
+          '🔗 verifyPublicUrl hop=$hop status=$status '
+          'location=${location == null ? '(none)' : '(present)'} contentType=${contentType ?? '(none)'}',
         );
 
         if (status == 200 || status == 206) {
