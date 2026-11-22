@@ -5706,7 +5706,11 @@ class AppStrings {
       'هيدروكلوروثيازيد': ['Hydrochlorothiazide', 'Hydrochlorothiazide'],
       'هيدروكودون': ['Hydrocodone', 'Hydrocodone'],
       'يود': ['Iodine', 'Iode'],
-    };
+    
+      'تعذر فتح الرابط. تحقق من الاتصال وحاول مرة أخرى.': ['Could not open the link. Check your connection and try again.', 'Impossible d’ouvrir le lien. Vérifiez votre connexion et réessayez.'],
+      'تعذر حفظ إعدادات Nextcloud. تحقق من البيانات وحاول مرة أخرى.': ['Could not save Nextcloud settings. Check the details and try again.', 'Impossible d’enregistrer les paramètres Nextcloud. Vérifiez les informations et réessayez.'],
+      'تعذر إرسال طلب الصنف. حاول مرة أخرى.': ['Could not submit the product request. Please try again.', 'Impossible d’envoyer la demande de produit. Veuillez réessayer.'],
+};
     final medicineDose = RegExp(
       r'^(.+?)\s+(\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|kg|iu)(?:\s*\(ممتد\))?)$',
       caseSensitive: false,
