@@ -279,6 +279,7 @@ class ChatMediaTransferService {
     }
 
     final nextcloud = NextcloudServerMediaService.instance;
+    final urlVerifier = NextcloudService();
     final isPrivateAttachment = type == 'file';
 
     if (url == null || url.isEmpty) {
@@ -290,7 +291,7 @@ class ChatMediaTransferService {
         } else {
           url = await _retryShare(nextcloud, remotePath);
           if (url != null && url.isNotEmpty &&
-              !await nextcloud.verifyPublicUrl(url)) {
+              !await urlVerifier.verifyPublicUrl(url)) {
             url = null;
           }
         }
@@ -344,7 +345,7 @@ class ChatMediaTransferService {
             url = await _retryShare(nextcloud, remotePath!);
           }
           if (!isPrivateAttachment && url != null && url.isNotEmpty) {
-            final reachable = await nextcloud.verifyPublicUrl(url);
+            final reachable = await urlVerifier.verifyPublicUrl(url);
             if (!reachable) url = null;
           }
         }
