@@ -612,7 +612,24 @@ class _MessageBubbleState extends State<MessageBubble> {
         await _chooseMedicalService(name.toLowerCase().contains('_labs.pdf') ? 'labs' : 'rx');
       } else if (action == 'open') {
         if (isPdf || isOffice) {
-          if (mounted) await showDialog<void>(context: context, builder: (_) => _DocumentWebViewDialog(title: name, url: url));
+          final tokenServer = Uri.tryParse(LiveKitConfig.tokenServerUrl);
+          final fileUri = Uri.tryParse(url);
+          final isPrivateDownload = tokenServer != null && fileUri != null &&
+              fileUri.origin == tokenServer.origin &&
+              fileUri.path.endsWith('/media/download');
+          if (isPrivateDownload) {
+            final localUri = Uri.file(file.path);
+            if (await canLaunchUrl(localUri)) {
+              await launchUrl(localUri, mode: LaunchMode.externalApplication);
+            } else if (mounted) {
+              _showFileError();
+            }
+          } else if (mounted) {
+            await showDialog<void>(
+              context: context,
+              builder: (_) => _DocumentWebViewDialog(title: name, url: url),
+            );
+          }
         } else if (isText) {
           final text = await file.readAsString();
           if (mounted) await showDialog<void>(context: context, builder: (_) => _TextDocumentDialog(title: name, content: text));
