@@ -5,7 +5,14 @@ class NextcloudService {
     this.baseUrl = process.env.NEXTCLOUD_URL?.replace(/\/$/, '');
     this.username = process.env.NEXTCLOUD_USERNAME;
     this.password = process.env.NEXTCLOUD_PASSWORD;
-    this.rootPath = process.env.NEXTCLOUD_ROOT_PATH || 'Sehatak';
+    const configuredRoot = String(process.env.NEXTCLOUD_ROOT_PATH || 'Sehatak')
+      .split('/')
+      .map((part) => part.trim())
+      .filter(Boolean);
+    while (configuredRoot.length && configuredRoot[0].toLowerCase() === 'sehatak') {
+      configuredRoot.shift();
+    }
+    this.rootPath = ['Sehatak', ...configuredRoot].join('/');
 
     if (!this.baseUrl || !this.username || !this.password) {
       throw new Error(
