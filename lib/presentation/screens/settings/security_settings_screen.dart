@@ -51,8 +51,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         MaterialPageRoute(builder: (_) => const AuthScreen()),
         (_) => false,
       );
-    } catch (e) {
-      if (mounted) ToastService.showError('${_t('تعذر تسجيل الخروج:')} $e');
+    } catch (_) {
+      if (mounted) ToastService.showError(_t('تعذر تسجيل الخروج'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -90,10 +90,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         MaterialPageRoute(builder: (_) => const AuthScreen()),
         (_) => false,
       );
-    } on FirebaseFunctionsException catch (e) {
-      if (mounted) ToastService.showError('${_t('تعذر إبطال الجلسات:')} ${e.message ?? e.code}');
-    } catch (e) {
-      if (mounted) ToastService.showError('${_t('تعذر إبطال الجلسات:')} $e');
+    } on FirebaseFunctionsException catch (_) {
+      if (mounted) ToastService.showError(_t('تعذر إبطال الجلسات'));
+    } catch (_) {
+      if (mounted) ToastService.showError(_t('تعذر إبطال الجلسات'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -133,10 +133,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         MaterialPageRoute(builder: (_) => const AuthScreen()),
         (_) => false,
       );
-    } on FirebaseFunctionsException catch (e) {
-      if (mounted) ToastService.showError('${_t('تعذر حذف الحساب:')} ${e.message ?? e.code}');
-    } catch (e) {
-      if (mounted) ToastService.showError('${_t('تعذر حذف الحساب:')} $e');
+    } on FirebaseFunctionsException catch (_) {
+      if (mounted) ToastService.showError(_t('تعذر حذف الحساب'));
+    } catch (_) {
+      if (mounted) ToastService.showError(_t('تعذر حذف الحساب'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
