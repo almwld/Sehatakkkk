@@ -13,7 +13,7 @@ class ImageKit {
   static String medicineByNumber(int number) {
     final source = '$baseUrl/images/medicines/med_$number.png';
     return _transparentMedicineNumbers.contains(number)
-        ? '$source?tr=e-bgremove'
+        ? '$source?tr=e-bgremove,f-png'
         : source;
   }
   static const String medicine1 = '$baseUrl/images/medicines/medicine_1.png'; static const String medicine2 = '$baseUrl/images/medicines/medicine_2.png'; static const String medicine3 = '$baseUrl/images/medicines/medicine_3.png'; static const String medicine4 = '$baseUrl/images/medicines/medicine_4.png';
