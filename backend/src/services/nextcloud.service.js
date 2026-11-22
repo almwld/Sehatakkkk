@@ -35,12 +35,16 @@ class NextcloudService {
       .replace(/[^a-zA-Z0-9_\-.]/g, '_');
   }
 
-  buildPath(chatId, messageId, fileName = '') {
+  buildPath(uid, chatId, messageId, fileName = '') {
+    if (!uid || !chatId || !messageId) {
+      throw new Error('uid, chatId and messageId are required');
+    }
+    const safeUid = this.sanitize(uid);
     const safeChatId = this.sanitize(chatId);
     const safeMessageId = this.sanitize(messageId);
 
     let path =
-      `${this.rootPath}/${safeChatId}/${safeMessageId}`;
+      `${this.rootPath}/users/${safeUid}/chats/${safeChatId}/messages/${safeMessageId}`;
 
     if (fileName) {
       path += `/${this.sanitize(fileName)}`;
@@ -113,6 +117,7 @@ class NextcloudService {
   }
 
   async uploadBuffer({
+    uid,
     chatId,
     messageId,
     fileName,
@@ -124,6 +129,7 @@ class NextcloudService {
     }
 
     const directory = this.buildPath(
+      uid,
       chatId,
       messageId
     );
