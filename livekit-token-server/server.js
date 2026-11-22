@@ -161,7 +161,7 @@ async function requireFirebaseUser(req, res, next) {
 app.get('/health', (_req, res) => res.json({ success: true, service: 'sehatak-livekit-token-server' }));
 app.post(
   '/media/upload',
-  // Authenticate before buffering up to 100 MB of request data.
+  // Verify Firebase before buffering large media payloads.
   requireFirebaseUser,
   express.raw({ type: 'application/octet-stream', limit: MAX_MEDIA_BYTES }),
   async (req, res) => {
@@ -170,15 +170,19 @@ app.post(
       if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
         return res.status(400).json({ success: false, message: 'Media body is required' });
       }
-      const fileName = sanitizePathPart(req.query.fileName || 'media.bin');
-      const logicalPath = String(req.query.path || 'uploads')
-        .split('/')
-        .map(sanitizePathPart)
-        .filter(Boolean)
-        .slice(0, 8)
-        .join('/');
-      const chatId = String(req.query.chatId || '').trim();
 
+      const fileName = sanitizePathPart(req.query.fileName || 'media.bin');
+      const chatId = String(req.query.chatId || '').trim();
+      const requestedMessageId = String(req.query.messageId || '').trim();
+      if (requestedMessageId && !/^[A-Za-z0-9_-]{1,150}$/.test(requestedMessageId)) {
+        return res.status(400).json({ success: false, message: 'messageId غير صالح' });
+      }
+      if (chatId && !/^[A-Za-z0-9_-]{1,150}$/.test(chatId)) {
+        return res.status(400).json({ success: false, message: 'chatId غير صالح' });
+      }
+      const messageId = requestedMessageId || crypto.randomUUID();
+
+      let logicalPath;
       if (chatId) {
         const chatSnapshot = await db.collection('chats').doc(chatId).get();
         const participants = chatSnapshot.exists && Array.isArray(chatSnapshot.data()?.participants)
@@ -187,6 +191,15 @@ app.post(
         if (!participants.includes(decodedToken.uid)) {
           return res.status(403).json({ success: false, message: 'ليس لديك صلاحية رفع الوسائط لهذه المحادثة' });
         }
+        // The server, not the client, defines the canonical chat/message path.
+        logicalPath = `chats/${sanitizePathPart(chatId)}/messages/${sanitizePathPart(messageId)}`;
+      } else {
+        logicalPath = String(req.query.path || 'uploads')
+          .split('/')
+          .map(sanitizePathPart)
+          .filter(Boolean)
+          .slice(0, 8)
+          .join('/');
       }
 
       requireNextcloud();
@@ -194,8 +207,9 @@ app.post(
       const directory = ownerPath + '/' + logicalPath;
       await ensureNextcloudDirectories(directory);
 
-      const remotePath = directory + '/' +
-        crypto.randomUUID() + '_' + fileName;
+      // Stable messageId + filename makes retries idempotent: a retry replaces
+      // the same WebDAV object instead of creating another UUID-named copy.
+      const remotePath = directory + '/' + fileName;
       const uploadResponse = await fetch(nextcloudDavUrl(remotePath), {
         method: 'PUT',
         headers: {
@@ -213,14 +227,17 @@ app.post(
         });
       }
 
-      const publicUrl = req.query.createShare === 'false'
-        ? null
-        : await createNextcloudShare(remotePath);
+      // Public links are opt-in. Private uploads remain accessible only through
+      // the authenticated /media/download endpoint.
+      const publicUrl = req.query.createShare === 'true'
+        ? await createNextcloudShare(remotePath)
+        : null;
 
       return res.status(201).json({
         success: true,
         file: {
           provider: 'nextcloud',
+          messageId,
           remotePath,
           fileName,
           mimeType: String(req.query.mimeType || 'application/octet-stream'),
@@ -253,6 +270,72 @@ app.post('/media/share', async (req, res) => {
   } catch (error) {
     const status = Number(error.statusCode) || 500;
     return res.status(status).json({ success: false, message: error.message || 'Share failed' });
+  }
+});
+
+
+// Authenticated private download. Chat attachments can be read by either
+// participant; non-chat files remain owner-only until a domain-specific
+// medical-record authorization policy is provided.
+app.get('/media/download', requireFirebaseUser, async (req, res) => {
+  try {
+    const remotePath = String(req.query.remotePath || '').replace(/^\\/+/, '');
+    const segments = remotePath.split('/');
+    const ownerUid = segments[2] || '';
+    const requesterUid = String(req.firebaseUser.uid || '');
+    if (!isSafeOwnedNextcloudPath(remotePath, ownerUid) ||
+        segments[0] !== 'Sehatak' || segments[1] !== 'users' || !ownerUid) {
+      return res.status(400).json({ success: false, message: 'مسار الملف غير صالح' });
+    }
+
+    if (segments[3] === 'chats') {
+      const chatId = segments[4] || '';
+      if (!chatId || segments[5] !== 'messages' || segments.length < 7) {
+        return res.status(400).json({ success: false, message: 'مسار مرفق المحادثة غير صالح' });
+      }
+      const chatSnapshot = await db.collection('chats').doc(chatId).get();
+      const participants = chatSnapshot.exists && Array.isArray(chatSnapshot.data()?.participants)
+        ? chatSnapshot.data().participants.map(String)
+        : [];
+      if (!participants.includes(requesterUid) || !participants.includes(ownerUid)) {
+        return res.status(403).json({ success: false, message: 'ليس لديك صلاحية تنزيل هذا المرفق' });
+      }
+    } else if (ownerUid !== requesterUid) {
+      return res.status(403).json({ success: false, message: 'هذا الملف خاص بمالكه' });
+    }
+
+    requireNextcloud();
+    const headers = { Authorization: nextcloudAuthHeader() };
+    if (req.headers.range) headers.Range = req.headers.range;
+    const upstream = await fetch(nextcloudDavUrl(remotePath), { method: 'GET', headers });
+    if (upstream.status !== 200 && upstream.status !== 206) {
+      return res.status(upstream.status === 404 ? 404 : 502).json({
+        success: false,
+        message: upstream.status === 404 ? 'الملف غير موجود' : 'تعذر تنزيل الملف من Nextcloud',
+      });
+    }
+
+    res.status(upstream.status);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
+    for (const header of ['content-length', 'content-range', 'accept-ranges']) {
+      const value = upstream.headers.get(header);
+      if (value) res.setHeader(header, value);
+    }
+    if (!upstream.body) return res.end();
+    const { Readable } = require('stream');
+    Readable.fromWeb(upstream.body).pipe(res);
+  } catch (error) {
+    const status = Number(error.statusCode) || 500;
+    console.error('Private media download error:', error.message || error);
+    if (!res.headersSent) {
+      return res.status(status).json({
+        success: false,
+        message: status >= 500 ? 'تعذر تنزيل الملف' : error.message,
+      });
+    }
+    res.destroy(error);
   }
 });
 
