@@ -284,21 +284,15 @@ class ChatMediaTransferService {
 
     final nextcloud = NextcloudServerMediaService.instance;
     final urlVerifier = NextcloudService();
-    final isPrivateAttachment = type == 'file';
+    // All chat media stays private by default. Images of IDs and medical scans
+    // are frequently sent as image/video types, not only generic files.
+    const isPrivateAttachment = true;
 
     if (url == null || url.isEmpty) {
       // A previous attempt may have completed the WebDAV PUT. Reuse the same
       // remote object; never upload a second copy just because sharing failed.
       if (remotePath != null && remotePath.isNotEmpty) {
-        if (isPrivateAttachment) {
-          url = nextcloud.privateDownloadUrl(remotePath);
-        } else {
-          url = await _retryShare(nextcloud, remotePath);
-          if (url != null && url.isNotEmpty &&
-              !await urlVerifier.verifyPublicUrl(url)) {
-            url = null;
-          }
-        }
+        url = nextcloud.privateDownloadUrl(remotePath);
       }
 
       if ((url == null || url.isEmpty) && remotePath != null && remotePath.isNotEmpty) {
@@ -314,7 +308,7 @@ class ChatMediaTransferService {
             messageId: id,
             fileName: job['file_name']?.toString(),
             mimeType: job['mime_type']?.toString(),
-            createShare: !isPrivateAttachment,
+            createShare: false,
             cancelToken: _cancelToken(id),
             onProgress: (sent, total) {
               if (total > 0) {
@@ -342,16 +336,7 @@ class ChatMediaTransferService {
             'updated_at': DateTime.now().millisecondsSinceEpoch,
           }, where: 'id = ?', whereArgs: [id]);
 
-          url = isPrivateAttachment
-              ? nextcloud.privateDownloadUrl(remotePath!)
-              : upload.url;
-          if (!isPrivateAttachment && (url == null || url.isEmpty)) {
-            url = await _retryShare(nextcloud, remotePath!);
-          }
-          if (!isPrivateAttachment && url != null && url.isNotEmpty) {
-            final reachable = await urlVerifier.verifyPublicUrl(url);
-            if (!reachable) url = null;
-          }
+          url = nextcloud.privateDownloadUrl(remotePath!);
         }
 
         if (url == null || url.isEmpty) {
