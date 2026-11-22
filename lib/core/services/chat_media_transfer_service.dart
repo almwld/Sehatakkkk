@@ -278,7 +278,7 @@ class ChatMediaTransferService {
       url = null;
     }
 
-    final nextcloud = NextcloudService();
+    final nextcloud = NextcloudServerMediaService.instance;
     final isPrivateAttachment = type == 'file';
 
     if (url == null || url.isEmpty) {
