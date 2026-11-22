@@ -5484,6 +5484,7 @@ class AppStrings {
       'تعذر حفظ القراءة. حاول مرة أخرى.': ['Could not save the reading. Please try again.', 'Impossible d’enregistrer la mesure. Veuillez réessayer.'],
       'تعذر تحديث الملف الشخصي. حاول مرة أخرى.': ['Could not update the profile. Please try again.', 'Impossible de mettre à jour le profil. Veuillez réessayer.'],
       'تعذر تسجيل طلب التبرع بالدم. حاول مرة أخرى.': ['Could not submit the blood donation request. Please try again.', 'Impossible d’envoyer la demande de don de sang. Veuillez réessayer.'],
+      'أدخل الاسم والهاتف وعمراً صحيحاً بين 18 و65 عاماً': ['Enter your name, phone number, and an age between 18 and 65.', 'Saisissez votre nom, votre numéro de téléphone et un âge compris entre 18 et 65 ans.'],
     };
     final entry = translations[value];
     if (entry == null) return value;
