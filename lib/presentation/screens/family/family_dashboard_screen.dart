@@ -160,8 +160,7 @@ class FamilyDashboardScreen extends StatelessWidget {
                       );
                       if (sheetContext.mounted) Navigator.pop(sheetContext);
                       ToastService.showSuccess(AppStrings.of(sheetContext).translate('تم إضافة الطفل بنجاح'));
-                    } catch (e) {
-                      debugPrint('Family child creation failed: $e');
+                    } catch (_) {
                       ToastService.showError(AppStrings.of(sheetContext).translate('تعذر إضافة الطفل. حاول مرة أخرى.'));
                     } finally {
                       if (sheetContext.mounted) setState(() => saving = false);
