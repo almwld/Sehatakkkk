@@ -37,7 +37,7 @@ class NextcloudService {
     if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
       _configLoadFuture ??= loadConfig();
       try {
-        await _configLoadFuture;
+        await _configLoadFuture!;
       } finally {
         _configLoadFuture = null;
       }
