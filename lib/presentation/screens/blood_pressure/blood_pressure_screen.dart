@@ -54,7 +54,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
       if(!mounted)return;
       setState(() { _adding = false; _saving = false; });_sys.clear();_dia.clear();_pulse.clear();
       ToastService.showSuccess(_t('تم حفظ القياس'));
-    }catch(e){if(!mounted)return;setState(()=>_saving=false);ToastService.showError('${_t('فشل الحفظ: ')}$e');}
+    }catch(e){debugPrint('Blood pressure reading save failed: $e');if(!mounted)return;setState(()=>_saving=false);ToastService.showError(_t('تعذر حفظ القراءة. حاول مرة أخرى.'));}
   }
 
   @override Widget build(BuildContext context){
