@@ -69,8 +69,8 @@ class _NextcloudSettingsScreenState extends State<NextcloudSettingsScreen> {
       } else {
         ToastService.showWarning(_t('تم حفظ الإعدادات ولكن لا يمكن الاتصال بالخادم'));
       }
-    } catch (e) {
-      ToastService.showError('${_t('فشل حفظ الإعدادات:')} $e');
+    } catch (_) {
+      ToastService.showError(_t('تعذر حفظ إعدادات Nextcloud. تحقق من البيانات وحاول مرة أخرى.'));
     }
 
     if (mounted) setState(() => _isLoading = false);
