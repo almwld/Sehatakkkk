@@ -27,7 +27,8 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
       await HealthMetricsService.update({'temperature': value});
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تم حفظ درجة الحرارة المقاسة.'))));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_t('تعذر الحفظ:')} $e')));
+      debugPrint('Temperature reading save failed: $e');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('تعذر حفظ القراءة. حاول مرة أخرى.'))));
     } finally { if (mounted) setState(() => _saving = false); }
   }
 
