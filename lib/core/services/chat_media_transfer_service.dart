@@ -369,7 +369,7 @@ class ChatMediaTransferService {
         'remotePath': remotePath,
         'senderUid': uid,
         'messageId': id,
-        'isPrivate': isPrivateAttachment,
+        'isPrivate': true,
       },
     );
     await db.update('media_outbox', {
