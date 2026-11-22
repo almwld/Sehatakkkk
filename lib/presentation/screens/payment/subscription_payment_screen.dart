@@ -40,7 +40,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen>{
     catch(e){if(mounted)ToastService.showError(_t('تعذر إتمام الدفع، حاول مرة أخرى'));}
     finally{if(mounted)setState(()=>_processing=false);}
   }
-  String _error(String code,String? message){switch(code){case 'failed-precondition':return message??_t('رصيد المحفظة غير كافٍ أو المحفظة غير مفعلة');case'already-exists':return _t('لديك اشتراك نشط بالفعل');case'not-found':return _t('الباقة المطلوبة غير موجودة');case'unauthenticated':return _t('يجب تسجيل الدخول أولاً');default:return _t('تعذر إتمام عملية الاشتراك');}}
+  String _error(String code,String? _){switch(code){case 'failed-precondition':return _t('رصيد المحفظة غير كافٍ أو المحفظة غير مفعلة');case'already-exists':return _t('لديك اشتراك نشط بالفعل');case'not-found':return _t('الباقة المطلوبة غير موجودة');case'unauthenticated':return _t('يجب تسجيل الدخول أولاً');default:return _t('تعذر إتمام عملية الاشتراك');}}
 
   @override
   Widget build(BuildContext context) {
