@@ -295,7 +295,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
       _phoneController.clear();
       _ageController.clear();
     } catch (e) {
-      ToastService.showError('❌ ${_t('خطأ:')} $e');
+      debugPrint('Blood donation registration failed: $e');
+      ToastService.showError(_t('تعذر تسجيل طلب التبرع بالدم. حاول مرة أخرى.'));
     }
 
     setState(() => _isLoading = false);
