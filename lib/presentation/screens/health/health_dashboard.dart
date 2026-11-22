@@ -657,7 +657,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   title: _t(metric['label'] as String),
                   icon: metric['icon'] as String,
                   color: metric['color'] as Color,
-                  value: metric['value'] as String,
+                  value: _t(metric['value'] as String),
                   unit: _t(metric['unit'] as String),
                   data: metric['data'] as List<dynamic>,
                 ),
@@ -699,7 +699,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  metric['value'] as String,
+                  _t(metric['value'] as String),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
