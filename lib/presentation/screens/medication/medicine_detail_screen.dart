@@ -51,7 +51,7 @@ class MedicineDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: Text(medicine['name'] ?? _localizedUiText(context, 'الدواء')),
+        title: Text(_localizedUiText(context, medicine['name']?.toString() ?? 'الدواء')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -106,7 +106,7 @@ class MedicineDetailScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          medicine['name'] ?? '',
+                          _localizedUiText(context, medicine['name']?.toString() ?? ''),
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -121,7 +121,7 @@ class MedicineDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          inStock ? 'متوفر' : 'غير متوفر',
+                          inStock ? _localizedUiText(context, 'متوفر') : _localizedUiText(context, 'غير متوفر'),
                           style: TextStyle(
                             color: inStock ? Colors.green : Colors.red,
                             fontWeight: FontWeight.bold,
@@ -144,7 +144,7 @@ class MedicineDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            category,
+                            _localizedUiText(context, category),
                             style: TextStyle(
                               fontSize: 12,
                               color: AppColors.primary,
@@ -159,7 +159,7 @@ class MedicineDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            subcategory,
+                            _localizedUiText(context, subcategory),
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -237,7 +237,7 @@ class MedicineDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    description,
+                    _localizedUiText(context, description),
                     style: TextStyle(
                       fontSize: 14,
                       color: isDark ? Colors.grey[300] : Colors.grey[700],
