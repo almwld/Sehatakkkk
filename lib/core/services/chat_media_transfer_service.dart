@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
@@ -46,7 +47,10 @@ class ChatMediaTransferService {
   bool _processing = false;
   bool _workerInitialized = false;
   final Set<String> _cancelledIds = {};
+  final Map<String, CancelToken> _activeCancelTokens = {};
 
+  CancelToken _cancelToken(String id) =>
+      _activeCancelTokens.putIfAbsent(id, CancelToken.new);
 
   bool _isCancelled(String id) => _cancelledIds.contains(id);
 
@@ -55,12 +59,13 @@ class ChatMediaTransferService {
     final root = await getDatabasesPath();
     _db = await openDatabase(
       p.join(root, 'sehatak_chat_outbox.db'),
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE media_outbox (
             id TEXT PRIMARY KEY,
             chat_id TEXT NOT NULL,
+            sender_uid TEXT NOT NULL,
             local_path TEXT NOT NULL,
             type TEXT NOT NULL,
             folder TEXT NOT NULL,
@@ -90,6 +95,15 @@ class ChatMediaTransferService {
           if (!hasClientTimestamp) {
             await db.execute('ALTER TABLE media_outbox ADD COLUMN client_timestamp INTEGER');
             debugPrint('media_outbox migration: added client_timestamp');
+          }
+        }
+        if (oldVersion < 3) {
+          final columns = await db.rawQuery('PRAGMA table_info(media_outbox)');
+          final hasSenderUid = columns.any((column) => column['name'] == 'sender_uid');
+          if (!hasSenderUid) {
+            // Legacy rows remain unassigned and are intentionally not uploaded
+            // under whichever account happens to be signed in after migration.
+            await db.execute("ALTER TABLE media_outbox ADD COLUMN sender_uid TEXT NOT NULL DEFAULT ''");
           }
         }
       },
@@ -150,9 +164,12 @@ class ChatMediaTransferService {
     String? audioDuration,
   }) async {
     if (!await sourceFile.exists()) throw StateError('الملف المحلي غير موجود');
+    final sender = FirebaseAuth.instance.currentUser;
+    if (sender == null) throw StateError('يجب تسجيل الدخول قبل رفع الوسائط');
+    final senderUid = sender.uid;
     final id = '${chatId}_${DateTime.now().microsecondsSinceEpoch}_${sourceFile.uri.pathSegments.last.hashCode.abs()}';
     final dir = await getApplicationDocumentsDirectory();
-    final mediaDir = Directory(p.join(dir.path, 'sehatak_chat_media', chatId));
+    final mediaDir = Directory(p.join(dir.path, 'sehatak_chat_media', senderUid, chatId));
     await mediaDir.create(recursive: true);
     final rawName = fileName?.trim().isNotEmpty == true ? fileName!.trim() : p.basename(sourceFile.path);
     final safeName = rawName.replaceAll(RegExp(r'[/\\]'), '_');
@@ -163,6 +180,7 @@ class ChatMediaTransferService {
     await db.insert('media_outbox', {
       'id': id,
       'chat_id': chatId,
+      'sender_uid': senderUid,
       'local_path': local.path,
       'type': type,
       'folder': folder,
@@ -191,7 +209,9 @@ class ChatMediaTransferService {
 
   Future<List<Map<String, dynamic>>> pendingForChat(String chatId) async {
     final db = await _database;
-    return db.query('media_outbox', where: 'chat_id = ? AND status != ?', whereArgs: [chatId, 'sent'], orderBy: 'created_at ASC');
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const [];
+    return db.query('media_outbox', where: 'chat_id = ? AND sender_uid = ? AND status != ?', whereArgs: [chatId, uid, 'sent'], orderBy: 'created_at ASC');
   }
 
   Future<void> processPending() async {
@@ -200,8 +220,10 @@ class ChatMediaTransferService {
     try {
       final connectivity = await Connectivity().checkConnectivity();
       if (_isOffline(connectivity)) return;
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
       final db = await _database;
-      final jobs = await db.query('media_outbox', where: 'status != ?', whereArgs: ['sent'], orderBy: 'created_at ASC', limit: 3);
+      final jobs = await db.query('media_outbox', where: 'status != ? AND sender_uid = ?', whereArgs: ['sent', uid], orderBy: 'created_at ASC', limit: 3);
       for (final job in jobs) {
         try {
           await _process(job);
@@ -217,6 +239,7 @@ class ChatMediaTransferService {
           }, where: 'id = ?', whereArgs: [job['id']]);
         }
       }
+      if (jobs.length == 3) unawaited(_scheduleOneOffWorker());
     } finally {
       _processing = false;
     }
@@ -239,6 +262,11 @@ class ChatMediaTransferService {
     var remotePath = job['remote_path']?.toString();
     var url = job['remote_url']?.toString();
     final type = job['type']?.toString() ?? 'file';
+    final uid = job['sender_uid']?.toString() ?? '';
+    final activeUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (uid.isEmpty || activeUserId == null || activeUserId != uid) {
+      throw StateError('هوية المستخدم لا تطابق مهمة رفع الوسائط؛ أوقفنا الرفع لحماية الحساب');
+    }
     if (_isCancelled(id)) throw MediaUploadCancelled();
 
     // Never reuse historical Firebase Storage media references. Re-upload
@@ -273,8 +301,9 @@ class ChatMediaTransferService {
       try {
         upload = await nextcloud.uploadFile(
           file: file,
-          path: 'chats/${job['chat_id']}/${job['folder']}',
+          path: 'users/$uid/chats/${job['chat_id']}/messages/$id',
           fileName: job['file_name']?.toString(),
+          cancelToken: _cancelToken(id),
           onProgress: (sent, total) {
             if (total > 0) {
               unawaited(db.update('media_outbox', {
@@ -355,6 +384,8 @@ class ChatMediaTransferService {
       'updated_at': DateTime.now().millisecondsSinceEpoch,
     }, where: 'id = ?', whereArgs: [id]);
     try { await file.delete(); } catch (_) {}
+    _activeCancelTokens.remove(id);
+    _cancelledIds.remove(id);
   }
 
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
@@ -368,6 +399,8 @@ class ChatMediaTransferService {
 
   Future<void> cancel(String id) async {
     _cancelledIds.add(id);
+    final token = _activeCancelTokens.remove(id);
+    if (token != null && !token.isCancelled) token.cancel('User cancelled media upload');
     final db = await _database;
     final job = await getById(id);
     if (job != null) {
@@ -386,8 +419,8 @@ class ChatMediaTransferService {
     await db.update('media_outbox', {
       'status': 'queued',
       'error': null,
-      'remote_path': null,
-      'remote_url': null,
+      'remote_path': job['remote_path'],
+      'remote_url': job['remote_url'],
       'updated_at': DateTime.now().millisecondsSinceEpoch,
     }, where: 'id = ?', whereArgs: [id]);
     await processPending();
