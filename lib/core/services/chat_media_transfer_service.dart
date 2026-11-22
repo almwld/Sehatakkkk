@@ -4,8 +4,10 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -45,8 +47,13 @@ class ChatMediaTransferService {
   StreamSubscription<dynamic>? _connectivitySub;
   bool _processing = false;
   bool _workerInitialized = false;
+  final Map<String, UploadTask> _activeFirebaseTasks = {};
+  final Map<String, CancelToken> _activeCancelTokens = {};
   final Set<String> _cancelledIds = {};
 
+  CancelToken _cancelToken(String id) {
+    return _activeCancelTokens.putIfAbsent(id, CancelToken.new);
+  }
 
   bool _isCancelled(String id) => _cancelledIds.contains(id);
 
@@ -241,81 +248,55 @@ class ChatMediaTransferService {
     final type = job['type']?.toString() ?? 'file';
     if (_isCancelled(id)) throw MediaUploadCancelled();
 
-    // Never reuse historical Firebase Storage media references. Re-upload
-    // from the durable local outbox copy into the single approved media store.
-    if (remotePath?.startsWith('firebase://') == true ||
-        (url?.contains('firebasestorage.googleapis.com') == true)) {
-      remotePath = null;
-      url = null;
-    }
-
     if (url == null || url.isEmpty) {
-      final nextcloud = NextcloudService();
-      // A previous attempt may have stored the object successfully but failed
-      // while creating/verifying its public share. Reuse that object first;
-      // never upload the same bytes again merely because share creation failed.
-      if (remotePath != null && remotePath.isNotEmpty) {
-        url = await _retryShare(nextcloud, remotePath);
-        if (url != null && url.isNotEmpty &&
-            !await nextcloud.verifyPublicUrl(url)) {
-          url = null;
+      final provider = remotePath?.startsWith('firebase://') == true ? 'firebase' : 'nextcloud';
+      if (provider == 'firebase') {
+        url = await _firebaseUrl(job, file, id);
+        remotePath = 'firebase://chat_media/${job['chat_id']}/$type/$id/${job['file_name']}';
+      } else {
+        final nextcloud = NextcloudService();
+        await nextcloud.loadConfig();
+        NextcloudUploadResult upload;
+        try {
+          upload = await nextcloud.uploadFile(
+            file: file,
+            path: 'chats/${job['chat_id']}/${job['folder']}',
+            fileName: job['file_name']?.toString(),
+            cancelToken: _cancelToken(id),
+            onProgress: (sent, total) {
+              if (total > 0) {
+                unawaited(db.update('media_outbox', {
+                  'status': 'uploading',
+                  'progress': (sent / total).clamp(0.0, 1.0),
+                  'updated_at': DateTime.now().millisecondsSinceEpoch,
+                }, where: 'id = ?', whereArgs: [id]));
+              }
+            },
+            createShare: true,
+          );
+        } catch (e) {
+          if (_isCancelled(id)) throw MediaUploadCancelled();
+          upload = NextcloudUploadResult(success: false, error: e.toString());
         }
-      }
-
-      if ((url == null || url.isEmpty) && remotePath != null && remotePath.isNotEmpty) {
-        // The bytes are already stored remotely. Keep retrying share creation
-        // rather than creating duplicate remote objects on every outbox run.
-        throw StateError('تعذر إنشاء رابط مشاركة للملف المرفوع مسبقاً؛ ستتم إعادة المحاولة دون إعادة رفعه');
-      }
-
-      if (url == null || url.isEmpty) {
-      NextcloudUploadResult upload;
-      try {
-        upload = await nextcloud.uploadFile(
-          file: file,
-          path: 'chats/${job['chat_id']}/${job['folder']}',
-          fileName: job['file_name']?.toString(),
-          onProgress: (sent, total) {
-            if (total > 0) {
-              unawaited(db.update('media_outbox', {
-                'status': 'uploading',
-                'progress': (sent / total).clamp(0.0, 1.0),
-                'updated_at': DateTime.now().millisecondsSinceEpoch,
-              }, where: 'id = ?', whereArgs: [id]));
-            }
-          },
-          createShare: true,
-        );
-      } catch (e) {
         if (_isCancelled(id)) throw MediaUploadCancelled();
-        upload = NextcloudUploadResult(success: false, error: e.toString());
-      }
-      if (_isCancelled(id)) throw MediaUploadCancelled();
-
-      if (upload.success && upload.path != null) {
-        remotePath = upload.path;
-        // Persist the remote object before share verification. If OCS share
-        // creation fails, the next worker run can retry sharing this object
-        // without uploading duplicate bytes.
-        await db.update('media_outbox', {
-          'status': 'share_pending',
-          'remote_path': remotePath,
-          'remote_url': null,
-          'updated_at': DateTime.now().millisecondsSinceEpoch,
-        }, where: 'id = ?', whereArgs: [id]);
-        url = upload.url;
+        if (upload.success && upload.path != null) {
+          remotePath = upload.path;
+          url = upload.url;
+          if (url == null || url.isEmpty) {
+            url = await _retryShare(nextcloud, remotePath!);
+          }
+          if (url != null && url.isNotEmpty) {
+            final reachable = await nextcloud.verifyPublicUrl(url);
+            if (!reachable) url = null;
+          }
+        }
+        // Nextcloud is optional. If it is not configured or share creation fails,
+        // transparently fall back to Firebase Storage so the message still gets delivered.
         if (url == null || url.isEmpty) {
-          url = await _retryShare(nextcloud, remotePath!);
+          debugPrint('⚠️ Nextcloud media delivery unavailable; using Firebase Storage fallback. error=${upload.error}');
+          url = await _firebaseUrl(job, file, id);
+          remotePath = 'firebase://chat_media/${job['chat_id']}/$type/$id/${job['file_name']}';
         }
-        if (url != null && url.isNotEmpty) {
-          final reachable = await nextcloud.verifyPublicUrl(url);
-          if (!reachable) url = null;
-        }
-      }
-
-      if (url == null || url.isEmpty) {
-        throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى Nextcloud أو إنشاء رابط صالح لها');
-      }
       }
     }
 
@@ -357,6 +338,48 @@ class ChatMediaTransferService {
     try { await file.delete(); } catch (_) {}
   }
 
+  Future<String> _firebaseUrl(Map<String, dynamic> job, File file, String id) async {
+    final chatId = job['chat_id'].toString();
+    final type = job['type']?.toString() ?? 'file';
+    final name = job['file_name']?.toString() ?? p.basename(file.path);
+    final path = 'chat_media/$chatId/$type/$id/$name';
+    final ref = FirebaseStorage.instance.ref().child(path);
+    final metadata = SettableMetadata(
+      contentType: job['mime_type']?.toString()?.trim().isNotEmpty == true
+          ? job['mime_type'].toString()
+          : _defaultMime(type),
+      customMetadata: {'chatId': chatId, 'senderId': FirebaseAuth.instance.currentUser?.uid ?? '', 'outboxId': id},
+    );
+    final task = ref.putFile(file, metadata);
+    _activeFirebaseTasks[id] = task;
+    final sub = task.snapshotEvents.listen((snapshot) {
+      final total = snapshot.totalBytes;
+      if (total <= 0) return;
+      unawaited(_database.then((db) => db.update('media_outbox', {
+        'status': 'uploading',
+        'progress': (snapshot.bytesTransferred / total).clamp(0.0, 1.0),
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      }, where: 'id = ?', whereArgs: [id])));
+    });
+    try {
+      await task;
+      if (_isCancelled(id)) throw MediaUploadCancelled();
+      return await ref.getDownloadURL();
+    } finally {
+      await sub.cancel();
+      _activeFirebaseTasks.remove(id);
+    }
+  }
+
+  String _defaultMime(String type) {
+    switch (type) {
+      case 'image': return 'image/jpeg';
+      case 'video': return 'video/mp4';
+      case 'audio': return 'audio/mpeg';
+      default: return 'application/octet-stream';
+    }
+  }
+
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
     for (var i = 0; i < 3; i++) {
       final url = await service.createPublicShare(remotePath);
@@ -368,6 +391,10 @@ class ChatMediaTransferService {
 
   Future<void> cancel(String id) async {
     _cancelledIds.add(id);
+    final task = _activeFirebaseTasks[id];
+    if (task != null) {
+      await task.cancel();
+    }
     final db = await _database;
     final job = await getById(id);
     if (job != null) {
@@ -377,6 +404,8 @@ class ChatMediaTransferService {
         try { await File(localPath).delete(); } catch (_) {}
       }
     }
+    _activeFirebaseTasks.remove(id);
+    _activeCancelTokens.remove(id);
   }
 
   Future<void> retry(String id) async {
@@ -386,8 +415,8 @@ class ChatMediaTransferService {
     await db.update('media_outbox', {
       'status': 'queued',
       'error': null,
-      'remote_path': null,
-      'remote_url': null,
+      'remote_path': job['remote_path']?.toString().startsWith('firebase://') == true ? job['remote_path'] : null,
+      'remote_url': job['remote_path']?.toString().startsWith('firebase://') == true ? job['remote_url'] : null,
       'updated_at': DateTime.now().millisecondsSinceEpoch,
     }, where: 'id = ?', whereArgs: [id]);
     await processPending();

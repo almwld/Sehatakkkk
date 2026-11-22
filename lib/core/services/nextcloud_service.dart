@@ -72,7 +72,7 @@ class NextcloudService {
 
   String _cleanPart(String value) => value
       .trim()
-      .replaceAll('\\\\', '')
+      .replaceAll('\\', '')
       .replaceAll('/', '')
       .replaceAll('..', '');
 
@@ -126,6 +126,7 @@ class NextcloudService {
     String? fileName,
     void Function(int, int)? onProgress,
     bool createShare = true,
+    CancelToken? cancelToken,
   }) async {
     try {
       _ensureConfigured();
