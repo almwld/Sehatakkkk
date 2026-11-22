@@ -353,6 +353,7 @@ class ChatMediaTransferService {
     if (user == null || user.uid != uid) {
       throw StateError('تغير حساب المستخدم أثناء رفع الوسائط؛ أوقفنا إرسال الرسالة');
     }
+    if (_isCancelled(id)) throw MediaUploadCancelled();
     await ChatService().sendMessage(
       chatId: job['chat_id'].toString(),
       messageId: id,
