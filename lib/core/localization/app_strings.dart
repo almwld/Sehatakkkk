@@ -5480,6 +5480,9 @@ class AppStrings {
       'تعذر تحميل الملف الشخصي': ['Could not load the profile', 'Impossible de charger le profil'],
       'رقم الطبيب': ['Doctor ID', 'Identifiant du médecin'],
       'ممارس صحي': ['Healthcare professional', 'Professionnel de santé'],
+      'تعذر مشاركة الملف الطبي. حاول مرة أخرى.': ['Could not share the medical record. Please try again.', 'Impossible de partager le dossier médical. Veuillez réessayer.'],
+      'تعذر حفظ القراءة. حاول مرة أخرى.': ['Could not save the reading. Please try again.', 'Impossible d’enregistrer la mesure. Veuillez réessayer.'],
+      'تعذر تحديث الملف الشخصي. حاول مرة أخرى.': ['Could not update the profile. Please try again.', 'Impossible de mettre à jour le profil. Veuillez réessayer.'],
     };
     final entry = translations[value];
     if (entry == null) return value;
