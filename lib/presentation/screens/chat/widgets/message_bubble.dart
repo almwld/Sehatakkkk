@@ -656,6 +656,7 @@ class _MessageBubbleState extends State<MessageBubble> {
       );
       if (action == null) return;
       final file = await _downloadRemote();
+      if (!mounted) return;
       if (file == null) { _showFileError(); return; }
       if (action == 'service') {
         await _chooseMedicalService(name.toLowerCase().contains('_labs.pdf') ? 'labs' : 'rx');
