@@ -69,6 +69,15 @@ test('rate limiter blocks requests beyond its budget and resets the window', () 
 });
 
 
+test('private chat media paths preserve one root and isolate uid, chat and message', () => {
+  const remotePath = 'Sehatak/users/user-1/chats/chat-1/messages/message-1/photo.jpg';
+  assert.equal(isSafeOwnedNextcloudPath(remotePath, 'user-1'), true);
+  assert.equal(isSafeOwnedNextcloudPath(remotePath, 'user-2'), false);
+  assert.equal(isSafeOwnedNextcloudPath('Sehatak/Sehatak/users/user-1/chats/chat-1/file.jpg', 'user-1'), false);
+  assert.equal(isSafeOwnedNextcloudPath('sehatak/users/user-1/chats/chat-1/file.jpg', 'user-1'), false);
+  assert.equal(isSafeOwnedNextcloudPath('Sehatak/users/user-1/chats/chat-1/messages/../private.pdf', 'user-1'), false);
+});
+
 test('Nextcloud share paths are confined to the authenticated owner', () => {
   assert.equal(
     isSafeOwnedNextcloudPath('Sehatak/users/user-1/chats/chat-1/audio/file.m4a', 'user-1'),
