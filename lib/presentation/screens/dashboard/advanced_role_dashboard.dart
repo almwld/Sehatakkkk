@@ -136,7 +136,7 @@ class _DoctorControlCenterState extends State<_DoctorControlCenter> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تم رفع صورة الطبيب إلى Nextcloud وتحديث ملفه'))));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر تحديث صورة الطبيب') + ': $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.of(context).translate('تعذر تحديث صورة الطبيب'))));
       debugPrint('Doctor photo upload failed: $e');
     } finally {
       if (mounted) setState(() => uploadingPhoto = false);
