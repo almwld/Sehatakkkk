@@ -129,6 +129,17 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
     return ['الكل', ...values];
   }
 
+
+  String _categoryLabel(String category) {
+    for (final product in _products) {
+      if ('${product['category'] ?? ''}'.trim() == category) {
+        return _field(product, 'category', fallback: _t(category));
+      }
+    }
+    return _t(category);
+  }
+
+
   String _searchText(Map<String, dynamic> p) => [
         p['name'],
         p['nameEn'],
@@ -138,8 +149,15 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
         p['genericNameFr'],
         p['activeIngredient'],
         p['category'],
+        p['categoryEn'],
+        p['categoryFr'],
         p['sellerName'],
-        p['companyName']
+        p['companyName'],
+        _field(p, 'name'),
+        _field(p, 'genericName'),
+        _field(p, 'category'),
+        _field(p, 'sellerName'),
+        _field(p, 'companyName')
       ].map((v) => '${v ?? ''}').join(' ').toLowerCase();
 
   List<Map<String, dynamic>> get _visibleProducts {
@@ -175,8 +193,12 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
       final categoryOk = _category == 'الكل' ||
           (_category == 'مفتوحة الآن' && open) ||
           (_category == 'توصيل' && delivery);
-      final text = '${p['name'] ?? ''} ${p['address'] ?? ''} ${p['city'] ?? ''}'
-          .toLowerCase();
+      final text = [
+        p['name'], p['nameEn'], p['nameFr'],
+        p['address'], p['addressEn'], p['addressFr'],
+        p['city'], p['cityEn'], p['cityFr'],
+        _field(p, 'name'), _field(p, 'address'), _field(p, 'city'),
+      ].map((value) => '${value ?? ''}').join(' ').toLowerCase();
       return categoryOk && (q.isEmpty || text.contains(q));
     }).toList();
   }
@@ -307,7 +329,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
                 itemBuilder: (_, i) {
                   final c = _categories[i];
                   return ChoiceChip(
-                      label: Text(_t(c)), 
+                      label: Text(_categoryLabel(c)), 
                       selected: _category == c,
                       onSelected: (_) => setState(() => _category = c));
                 })),
