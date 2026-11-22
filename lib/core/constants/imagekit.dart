@@ -16,6 +16,27 @@ class ImageKit {
         ? '$source?tr=e-bgremove,f-png'
         : source;
   }
+
+  /// Preserve the alpha channel for PNG product assets delivered by ImageKit.
+  /// JPEG does not support transparency and can flatten transparent pixels
+  /// against black, so force PNG only for ImageKit PNG product sources.
+  static String _preserveProductTransparency(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null ||
+        uri.host != Uri.parse(baseUrl).host ||
+        !uri.path.toLowerCase().endsWith('.png')) {
+      return url;
+    }
+
+    final query = Map<String, String>.from(uri.queryParameters);
+    final transformation = query['tr'];
+    if (transformation == null || transformation.isEmpty) {
+      query['tr'] = 'f-png';
+    } else if (!transformation.split(',').contains('f-png')) {
+      query['tr'] = '$transformation,f-png';
+    }
+    return uri.replace(queryParameters: query).toString();
+  }
   static const String medicine1 = '$baseUrl/images/medicines/medicine_1.png'; static const String medicine2 = '$baseUrl/images/medicines/medicine_2.png'; static const String medicine3 = '$baseUrl/images/medicines/medicine_3.png'; static const String medicine4 = '$baseUrl/images/medicines/medicine_4.png';
   static const String pharmacy1 = '$baseUrl/images/pharmacies/pharmacy_1.png'; static const String pharmacy2 = '$baseUrl/images/pharmacies/pharmacy_2.png'; static const String pharmacy3 = '$baseUrl/images/pharmacies/pharmacy_3.png';
   static const String morningWalk = '$baseUrl/images/posts/morning_walk.png'; static const String immuneBoost = '$baseUrl/images/posts/immune_boost.png'; static const String sleepTips = '$baseUrl/images/posts/sleep_tips.png'; static const String skinCare = '$baseUrl/images/posts/skin_care.png'; static const String nutritionTips = '$baseUrl/images/posts/nutrition_tips.png';
@@ -42,7 +63,7 @@ class ImageKit {
     final match = RegExp(r'^med_0*([0-9]+)$').firstMatch(id);
     final number = match == null ? null : int.tryParse(match.group(1)!);
     if (number != null && number >= 1 && number <= 10) return medicineByNumber(number);
-    if (imageUrl != null && imageUrl.trim().isNotEmpty) return imageUrl.trim();
+    if (imageUrl != null && imageUrl.trim().isNotEmpty) return _preserveProductTransparency(imageUrl.trim());
     switch ((dosageForm ?? '').trim()) {
       case 'أقراص': return shapeTablet;
       case 'أقراص فوارة': return shapeTabletEff;
