@@ -47,6 +47,13 @@ class PatientDashboard extends StatefulWidget {
 }
 
 class _PatientDashboardState extends State<PatientDashboard> {
+  String get _displayPatientName {
+    final name = _userName.trim();
+    return name.isEmpty || name == 'مريض'
+        ? AppStrings.of(context).translate('مريض')
+        : name;
+  }
+  String get _displayBloodType => AppStrings.of(context).translate(_bloodType);
   String _userName = 'مريض';
   String _userEmail = '';
   String _userRole = 'مريض';
@@ -379,10 +386,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
       final shareText = '''
 🏥 ${AppStrings.of(context).translate('ملفي الصحي - صحتك')} (Sehatak)
 
-👤 ${AppStrings.of(context).translate('الاسم')}: $_userName
+👤 ${AppStrings.of(context).translate('الاسم')}: $_displayPatientName
 📧 ${AppStrings.of(context).translate('البريد')}: $_userEmail
 📱 ${AppStrings.of(context).translate('الهاتف')}: $_userPhone
-🩸 ${AppStrings.of(context).translate('فصيلة الدم')}: $_bloodType
+🩸 ${AppStrings.of(context).translate('فصيلة الدم')}: $_displayBloodType
 🔢 ${AppStrings.of(context).translate('رقم المريض')}: $_patientNumber
 ''';
       await Share.share(shareText, subject: AppStrings.of(context).translate('ملفي الصحي - صحتك'));
@@ -609,7 +616,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ),
             const SizedBox(height: 10),
             Text(
-              _userName,
+              _displayPatientName,
               style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Text(
@@ -621,7 +628,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
             Text(
-              '${AppStrings.of(context).translate('العمر')}: 29 ${AppStrings.of(context).translate('سنة')} • ${AppStrings.of(context).translate('فصيلة الدم')}: $_bloodType',
+              '${AppStrings.of(context).translate('العمر')}: 29 ${AppStrings.of(context).translate('سنة')} • ${AppStrings.of(context).translate('فصيلة الدم')}: $_displayBloodType',
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
             const SizedBox(height: 12),
