@@ -115,7 +115,6 @@ class NextcloudService {
     for (final part in _cleanLogicalPath(directory).split('/')) {
       if (part.isEmpty) continue;
       current = current.isEmpty ? part : '$current/$part';
-      debugPrint('📁 MKCOL: $current');
       final response = await _dio.request<void>(
         _davUrl(current),
         options: Options(
@@ -126,7 +125,6 @@ class NextcloudService {
         cancelToken: cancelToken,
       );
       final status = response.statusCode ?? 0;
-      debugPrint('📁 MKCOL response: $status');
       if (status != 201 && status != 405) {
         throw StateError('فشل إنشاء مجلد الوسائط في Nextcloud: HTTP $status');
       }
@@ -153,8 +151,7 @@ class NextcloudService {
       final remotePath = '$logicalDirectory/$name';
       final davUrl = _davUrl(remotePath);
       final fileLength = await file.length();
-      debugPrint('📤 PUT: $davUrl');
-      debugPrint('📤 file size: $fileLength');
+      debugPrint('📤 Nextcloud upload started (${fileLength} bytes)');
 
       await _ensureDirectories(logicalDirectory, cancelToken: cancelToken);
 
@@ -174,7 +171,7 @@ class NextcloudService {
         cancelToken: cancelToken,
       );
       final status = response.statusCode ?? 0;
-      debugPrint('📤 PUT status: $status');
+      debugPrint('📤 Nextcloud PUT status: $status');
       if (status != 201 && status != 204) {
         return NextcloudUploadResult(success: false, path: remotePath, fileName: name, error: 'فشل رفع الملف إلى Nextcloud: HTTP $status');
       }
@@ -243,8 +240,8 @@ class NextcloudService {
         final contentLength = response.contentLength;
         final contentType = response.headers['content-type'];
         debugPrint(
-          '🔗 verifyPublicUrl hop=$hop status=$status url=$current '
-          'location=${location ?? '(none)'} contentType=${contentType ?? '(none)'}',
+          '🔗 verifyPublicUrl hop=$hop status=$status '
+          'location=${location == null ? '(none)' : '(present)'} contentType=${contentType ?? '(none)'}',
         );
 
         if (status == 200 || status == 206) {
@@ -267,10 +264,10 @@ class NextcloudService {
         return false;
       }
 
-      debugPrint('❌ verifyPublicUrl exceeded redirect limit url=$url');
+      debugPrint('❌ verifyPublicUrl exceeded redirect limit');
       return false;
     } catch (e, st) {
-      debugPrint('❌ verifyPublicUrl failed for $url: $e');
+      debugPrint('❌ verifyPublicUrl failed: $e');
       debugPrint('❌ stack: $st');
       return false;
     } finally {
