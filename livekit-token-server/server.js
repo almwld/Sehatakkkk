@@ -285,7 +285,7 @@ app.post('/media/share', async (req, res) => {
 // medical-record authorization policy is provided.
 app.get('/media/download', requireFirebaseUser, async (req, res) => {
   try {
-    const remotePath = String(req.query.remotePath || '').replace(/^\\/+/, '');
+    const remotePath = String(req.query.remotePath || '').replace(/^\/+/, '');
     const segments = remotePath.split('/');
     const ownerUid = segments[2] || '';
     const requesterUid = String(req.firebaseUser.uid || '');
