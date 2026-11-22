@@ -30,7 +30,7 @@ class _ShareRecordScreenState extends State<ShareRecordScreen> {
         'email': _emailCtrl.text.trim(),
       });
       if (mounted) { ToastService.showSuccess(context, _t('تم مشاركة الملف بنجاح')); Navigator.pop(context); }
-    } catch (e) { debugPrint('Medical record sharing failed: $e'); if (mounted) ToastService.showError(context, _t('تعذر مشاركة الملف الطبي. حاول مرة أخرى.')); }
+    } catch (_) { if (mounted) ToastService.showError(context, _t('تعذر مشاركة الملف الطبي. حاول مرة أخرى.')); }
     finally { if (mounted) setState(() => _isLoading = false); }
   }
 
