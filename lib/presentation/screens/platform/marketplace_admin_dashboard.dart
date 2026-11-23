@@ -2,6 +2,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/localization/app_strings.dart';
+import '../../../core/localization/dynamic_localization.dart';
 import '../../../core/services/toast_service.dart';
 
 class MarketplaceAdminDashboard extends StatefulWidget {
@@ -11,6 +12,9 @@ class MarketplaceAdminDashboard extends StatefulWidget {
 
 class _MarketplaceAdminDashboardState extends State<MarketplaceAdminDashboard> {
   String _t(String value) => AppStrings.of(context).translate(value);
+  String _field(Map<String, dynamic> data, String field, {String fallback = ''}) =>
+      localizedField(data, field, AppStrings.of(context).locale, fallback: fallback);
+
   final _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
   List<Map<String, dynamic>> _products = [], _pharmacies = [];
   bool _loading = true; String? _error;
@@ -46,9 +50,17 @@ class _MarketplaceAdminDashboardState extends State<MarketplaceAdminDashboard> {
       body: _loading ? const Center(child: CircularProgressIndicator()) : _error != null ? Center(child: Text(_t('تعذر تحميل بيانات السوق'))) : RefreshIndicator(
         onRefresh: _load,
         child: ListView(padding: const EdgeInsets.all(12), children: [
-          _section(_t('طلبات اعتماد الصيدليات'), _pharmacies, (p) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${p['name'] ?? _t('صيدلية')}', style: const TextStyle(fontWeight: FontWeight.bold)), Text('${p['address'] ?? ''}'), _actions(() => _reviewPharmacy('${p['id']}', 'reject'), () => _reviewPharmacy('${p['id']}', 'approve'))])),
+          _section(_t('طلبات اعتماد الصيدليات'), _pharmacies, (p) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_field(p, 'name', fallback: _t('صيدلية')), style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(_field(p, 'address', fallback: _field(p, 'city'))),
+            _actions(() => _reviewPharmacy('${p['id']}', 'reject'), () => _reviewPharmacy('${p['id']}', 'approve')),
+          ])),
           const SizedBox(height: 16),
-          _section(_t('منتجات معلقة'), _products, (p) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${p['name'] ?? _t('منتج')}', style: const TextStyle(fontWeight: FontWeight.bold)), Text('${p['category'] ?? ''} • ${p['price'] ?? 0} ${_t('ر.ي')}'), _actions(() => _reviewProduct('${p['id']}', 'reject'), () => _reviewProduct('${p['id']}', 'approve'))])),
+          _section(_t('منتجات معلقة'), _products, (p) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_field(p, 'name', fallback: _t('منتج')), style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('${_t(_field(p, 'category', fallback: 'غير محدد'))} • ${p['price'] ?? 0} ${_t('ر.ي')}'),
+            _actions(() => _reviewProduct('${p['id']}', 'reject'), () => _reviewProduct('${p['id']}', 'approve')),
+          ])),
         ]),
       ),
     );
