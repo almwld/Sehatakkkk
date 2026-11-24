@@ -261,6 +261,12 @@ class _HealthDashboardState extends State<HealthDashboard>
     return TimeOfDay(hour: hour, minute: minute).format(context);
   }
 
+  String _formatDate(String value) {
+    final date = DateTime.tryParse(value.trim());
+    if (date == null) return value;
+    return MaterialLocalizations.of(context).formatMediumDate(date);
+  }
+
   // ✅ دالة عرض الأيقونة - بدون حاويات
   Widget _buildIcon(String path, {double size = 48, Color? color}) {
     return Image.asset(
@@ -976,7 +982,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${record['lab']} • ${record['date']}',
+                      '${record['lab']} • ${_formatDate(record['date'] as String)}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -1048,7 +1054,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${_t(appointment['specialty'] as String)} • ${appointment['date']}',
+                      '${_t(appointment['specialty'] as String)} • ${_formatDate(appointment['date'] as String)}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
