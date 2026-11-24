@@ -31,7 +31,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
   }
 
   String _fmt(DateTime? value) =>
-      value == null ? '' : DateFormat('dd/MM/yyyy').format(value);
+      value == null ? '' : DateFormat.yMMMd(AppStrings.of(context).locale.languageCode).format(value);
 
   Future<void> _add() async {
     final uid = _auth.currentUser?.uid;
