@@ -241,7 +241,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                               children: [
                                 Text(data['doctorName'] ?? AppStrings.of(context).translate('طبيب'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                 Text(AppStrings.of(context).translate(data['type'] ?? 'استشارة'), style: TextStyle(fontSize: 10, color: Colors.grey)),
-                                Text(DateFormat('dd/MM/yyyy').format(date), style: TextStyle(fontSize: 9, color: Colors.grey)),
+                                Text(DateFormat.yMMMd(AppStrings.of(context).locale.languageCode).format(date), style: TextStyle(fontSize: 9, color: Colors.grey)),
                               ],
                             ),
                           ),
@@ -300,7 +300,8 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
         _selectedTime = null;
       });
     } catch (e) {
-      ToastService.showError(context, AppStrings.of(context).locale.languageCode == 'ar' ? '❌ فشل الطلب: $e' : AppStrings.of(context).locale.languageCode == 'fr' ? '❌ Échec de la demande : $e' : '❌ Request failed: $e');
+      debugPrint('Video consultation request failed: $e');
+      ToastService.showError(context, '❌ ${AppStrings.of(context).translate('تعذر تنفيذ العملية')}');
     }
   }
 }
