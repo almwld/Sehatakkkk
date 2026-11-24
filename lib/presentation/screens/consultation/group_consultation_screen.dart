@@ -121,7 +121,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               ),
               const Spacer(),
               Text(
-                DateFormat('dd/MM/yyyy').format(date),
+                DateFormat.yMMMd(AppStrings.of(context).locale.languageCode).format(date),
                 style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ],
