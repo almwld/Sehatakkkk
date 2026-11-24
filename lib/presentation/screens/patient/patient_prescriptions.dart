@@ -110,7 +110,7 @@ class PatientPrescriptions extends StatelessWidget {
                           ),
                           if (date != null)
                             Text(
-                              DateFormat('yyyy/MM/dd').format(date),
+                              DateFormat.yMMMd(AppStrings.of(context).locale.languageCode).format(date),
                               style: const TextStyle(fontSize: 11),
                             ),
                         ],
