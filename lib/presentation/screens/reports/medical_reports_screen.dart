@@ -79,7 +79,7 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
     final rawDate = data['createdAt'];
     final date = rawDate is Timestamp ? rawDate.toDate() : DateTime.now();
     return Card(margin: const EdgeInsets.only(bottom: 10), child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [Text(_t(data['type']?.toString() ?? 'تقرير'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), const Spacer(), Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 11, color: Colors.grey))]),
+      Row(children: [Text(_t(data['type']?.toString() ?? 'تقرير'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), const Spacer(), Text(DateFormat.yMMMd(AppStrings.of(context).locale.languageCode).format(date), style: const TextStyle(fontSize: 11, color: Colors.grey))]),
       const SizedBox(height: 6), Text(_localizedField(data, 'title', fallback: _t('تقرير طبي')), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       const SizedBox(height: 4), Text(_localizedField(data, 'doctorName', fallback: _t('طبيب')), style: const TextStyle(color: Colors.grey)),
       if (data['notes'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(_localizedField(data, 'notes'), maxLines: 2, overflow: TextOverflow.ellipsis)),
