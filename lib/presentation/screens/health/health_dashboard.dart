@@ -248,7 +248,8 @@ class _HealthDashboardState extends State<HealthDashboard>
   }
 
   String _formatAppointmentTime(String value) {
-    final match = RegExp(r'^(\d{1,2}):(\d{2})\s*([صم])
+    final match =
+        RegExp(r'^(\d{1,2}):(\d{2})\s*([صم])
   Widget _buildIcon(String path, {double size = 48, Color? color}) {
     return Image.asset(
       path,
@@ -658,7 +659,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   title: _t(metric['label'] as String),
                   icon: metric['icon'] as String,
                   color: metric['color'] as Color,
-                  value: _t(metric['value'] as String),
+                  value: metric['value'] as String,
                   unit: _t(metric['unit'] as String),
                   data: metric['data'] as List<dynamic>,
                 ),
@@ -700,7 +701,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  _t(metric['value'] as String),
+                  metric['value'] as String,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -1516,7 +1517,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   title: _t(metric['label'] as String),
                   icon: metric['icon'] as String,
                   color: metric['color'] as Color,
-                  value: _t(metric['value'] as String),
+                  value: metric['value'] as String,
                   unit: _t(metric['unit'] as String),
                   data: metric['data'] as List<dynamic>,
                 ),
@@ -1558,7 +1559,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  _t(metric['value'] as String),
+                  metric['value'] as String,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
