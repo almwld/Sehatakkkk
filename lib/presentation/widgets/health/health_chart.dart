@@ -65,7 +65,7 @@ class HealthChart extends StatelessWidget {
           ],
           gridData: const FlGridData(show: true),
           borderData: FlBorderData(show: false),
-          titlesData: _buildTitles(),
+          titlesData: _buildTitles(AppStrings.of(context).locale.languageCode),
         ));
       },
     );
@@ -86,7 +86,7 @@ class HealthChart extends StatelessWidget {
     });
   }
 
-  FlTitlesData _buildTitles() {
+  FlTitlesData _buildTitles(String languageCode) {
     return FlTitlesData(
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
@@ -104,7 +104,7 @@ class HealthChart extends StatelessWidget {
             final i = value.toInt();
             if (i < 0 || i >= days) return const SizedBox();
             final date = DateTime.now().subtract(Duration(days: days - 1 - i));
-            return Text(DateFormat('E', 'ar').format(date), style: const TextStyle(fontSize: 10));
+            return Text(DateFormat('E', languageCode).format(date), style: const TextStyle(fontSize: 10));
           },
         ),
       ),
