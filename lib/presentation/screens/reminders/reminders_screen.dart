@@ -43,7 +43,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
             return Card(margin: const EdgeInsets.only(bottom: 10), child: ListTile(
               leading: Checkbox(value: completed, onChanged: (value) => doc.reference.update({'completed': value == true, 'completedAt': value == true ? FieldValue.serverTimestamp() : null})),
               title: Text(data['title']?.toString() ?? _t('تذكير'), style: TextStyle(fontWeight: FontWeight.bold, decoration: completed ? TextDecoration.lineThrough : null)),
-              subtitle: Text('${data['description']?.toString() ?? ''}\n${DateFormat('yyyy-MM-dd - hh:mm a').format(dateTime)}'),
+              subtitle: Text('${data['description']?.toString() ?? ''}\n${DateFormat.yMMMd(AppStrings.of(context).locale.languageCode).add_jm().format(dateTime)}'),
               isThreeLine: true,
               trailing: IconButton(icon: const Icon(Icons.delete_outline, color: AppColors.error), onPressed: () => doc.reference.delete()),
             ));
@@ -63,7 +63,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
         const SizedBox(height: 8),
         TextField(controller: _descCtrl, maxLines: 2, decoration: InputDecoration(labelText: AppStrings.of(context).translate('الوصف (اختياري)'), prefixIcon: const Icon(Icons.note))),
         const SizedBox(height: 12),
-        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)), onTap: () async { final d = await showDatePicker(context: dialogContext, initialDate: _selectedDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365))); if (d != null) setDialogState(() => _selectedDate = d); }),
+        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: Text(DateFormat.yMMMd(AppStrings.of(context).locale.languageCode).format(_selectedDate)), onTap: () async { final d = await showDatePicker(context: dialogContext, initialDate: _selectedDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365))); if (d != null) setDialogState(() => _selectedDate = d); }),
         ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.access_time, color: AppColors.primary), title: Text(_selectedTime.format(dialogContext)), onTap: () async { final t = await showTimePicker(context: dialogContext, initialTime: _selectedTime); if (t != null) setDialogState(() => _selectedTime = t); }),
       ])),
       actions: [TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext), child: Text(_t('إلغاء'))), ElevatedButton(onPressed: saving ? null : () async {
