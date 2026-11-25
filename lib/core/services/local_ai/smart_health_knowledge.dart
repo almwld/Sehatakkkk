@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/services/local_ai/medical_knowledge_catalog.dart';
 
 /// Unified knowledge catalogue used by the smart health assistant.
 /// Keeps service navigation and app guidance in one source of truth.
@@ -31,10 +32,10 @@ class SmartHealthKnowledge {
   ];
 
   static List<Map<String, dynamic>> findServices(String text) {
-    final normalized = _normalize(text);
+    final normalized = MedicalKnowledgeCatalog.normalize(text);
     return services.where((service) {
       final keywords = (service['keywords'] as List).cast<String>();
-      return keywords.any((keyword) => normalized.contains(_normalize(keyword)));
+      return keywords.any((keyword) => normalized.contains(MedicalKnowledgeCatalog.normalize(keyword)));
     }).toList();
   }
 
@@ -49,9 +50,4 @@ class SmartHealthKnowledge {
     return 'يمكنني توجيهك مباشرة إلى «${service['title']}».\\n${service['help']}';
   }
 
-  static String _normalize(String value) {
-    return value.toLowerCase().trim()
-        .replaceAll('أ', 'ا').replaceAll('إ', 'ا').replaceAll('آ', 'ا')
-        .replaceAll('ة', 'ه').replaceAll('ى', 'ي');
-  }
 }
