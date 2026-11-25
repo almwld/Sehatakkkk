@@ -36,7 +36,8 @@ class ChildSectionScreen extends StatelessWidget {
             children: [
               Card(child: ListTile(
                 leading: CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.12), child: Text(child.name.isEmpty ? 'ط' : child.name.substring(0,1))),
-                title: Text(child.name), subtitle: Text(child.ageLabel),
+                title: Text(child.name),
+                subtitle: Text(AppStrings.of(context).formatChildAge(ageInMonths: child.ageInMonths, ageInDays: child.ageInDays)),
               )),
               const SizedBox(height: 12),
               ..._content(child, context),

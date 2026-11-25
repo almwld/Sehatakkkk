@@ -50,7 +50,7 @@ class FamilyDashboardScreen extends StatelessWidget {
                     child: child.photoUrl?.isNotEmpty == true ? null : Text(initial),
                   ),
                   title: Text(child.name),
-                  subtitle: Text(child.ageLabel + ' • ' + strings.translate(child.gender == 'male' ? 'ذكر' : 'أنثى')),
+                  subtitle: Text(strings.formatChildAge(ageInMonths: child.ageInMonths, ageInDays: child.ageInDays) + ' • ' + strings.translate(child.gender == 'male' ? 'ذكر' : 'أنثى')),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChildHealthScreen(childId: child.id))),
                 ),

@@ -103,6 +103,86 @@ class AppStrings {
     return '$formatted ${locale.languageCode == 'ar' ? 'ر.ي' : 'YER'}';
   }
 
+  /// Formats a child's age in the active UI language.
+  /// The source model keeps numeric age values; wording belongs to the UI locale.
+  String formatChildAge({required int ageInMonths, required int ageInDays}) {
+    final months = ageInMonths < 0 ? 0 : ageInMonths;
+    if (months < 1) {
+      final days = ageInDays < 0 ? 0 : ageInDays;
+      return _pick(
+        _arabicAgeCount(
+          days,
+          one: 'يوم واحد',
+          two: 'يومان',
+          plural: 'أيام',
+          accusative: 'يوماً',
+        ),
+        '$days ${days == 1 ? 'day' : 'days'}',
+        '$days ${days == 1 ? 'jour' : 'jours'}',
+      );
+    }
+
+    if (months < 24) {
+      return _pick(
+        _arabicAgeCount(
+          months,
+          one: 'شهر واحد',
+          two: 'شهران',
+          plural: 'أشهر',
+          accusative: 'شهراً',
+        ),
+        '$months ${months == 1 ? 'month' : 'months'}',
+        '$months mois',
+      );
+    }
+
+    final years = months ~/ 12;
+    final remainingMonths = months % 12;
+    final yearLabel = _pick(
+      _arabicAgeCount(
+        years,
+        one: 'سنة واحدة',
+        two: 'سنتان',
+        plural: 'سنوات',
+        accusative: 'سنة',
+      ),
+      '$years ${years == 1 ? 'year' : 'years'}',
+      '$years ${years == 1 ? 'an' : 'ans'}',
+    );
+    if (remainingMonths == 0) return yearLabel;
+
+    final monthLabel = _pick(
+      _arabicAgeCount(
+        remainingMonths,
+        one: 'شهر واحد',
+        two: 'شهران',
+        plural: 'أشهر',
+        accusative: 'شهراً',
+      ),
+      '$remainingMonths ${remainingMonths == 1 ? 'month' : 'months'}',
+      '$remainingMonths mois',
+    );
+    final conjunction = switch (locale.languageCode) {
+      'fr' => ' et ',
+      'en' => ' and ',
+      _ => ' و',
+    };
+    return '$yearLabel$conjunction$monthLabel';
+  }
+
+  String _arabicAgeCount(
+    int count, {
+    required String one,
+    required String two,
+    required String plural,
+    required String accusative,
+  }) {
+    if (count == 1) return one;
+    if (count == 2) return two;
+    if (count >= 3 && count <= 10) return '$count $plural';
+    return '$count $accusative';
+  }
+
   /// Translates a literal Arabic UI label without network access. Unknown and
   /// user-generated content is intentionally preserved.
   String translate(String value) {
