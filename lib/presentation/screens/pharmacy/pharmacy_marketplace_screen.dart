@@ -118,8 +118,18 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
 
   List<String> get _categories {
     if (_tab == 0) return const ['الكل', 'مفتوحة الآن', 'توصيل'];
-    if (_tab == 3)
-      return const ['الكل', 'جديد', 'قيد التجهيز', 'قيد التوصيل', 'مكتمل'];
+    if (_tab == 3) {
+      return const [
+        'الكل',
+        'جديد',
+        'مؤكد',
+        'قيد التجهيز',
+        'جاهز',
+        'قيد التوصيل',
+        'مكتمل',
+        'ملغي',
+      ];
+    }
     final values = _products
         .map((p) => '${p['category'] ?? ''}'.trim())
         .where((v) => v.isNotEmpty)
@@ -216,13 +226,17 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
   }
 
   String _statusLabel(String status) {
-    switch (status.toLowerCase()) {
+    switch (status.trim().toLowerCase()) {
       case 'pending':
       case 'new':
         return 'جديد';
+      case 'confirmed':
+        return 'مؤكد';
       case 'processing':
       case 'preparing':
         return 'قيد التجهيز';
+      case 'ready':
+        return 'جاهز';
       case 'shipped':
       case 'out_for_delivery':
       case 'delivering':
@@ -230,8 +244,11 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen>
       case 'completed':
       case 'delivered':
         return 'مكتمل';
+      case 'cancelled':
+      case 'canceled':
+        return 'ملغي';
       default:
-        return status.isEmpty ? 'غير محدد' : status;
+        return status.trim().isEmpty ? 'غير محدد' : status.trim();
     }
   }
 
