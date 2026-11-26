@@ -166,7 +166,10 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> with SingleTickerProv
   String _topicLabel(String value) => value
       .trim()
       .replaceFirst(RegExp(r'^\['), '')
-      .replaceFirst(RegExp(r'\]((_){if(_scroll.hasClients)_scroll.animateTo(_scroll.position.maxScrollExtent,duration:const Duration(milliseconds:260),curve:Curves.easeOut);});
+      .replaceFirst(RegExp(r'\]$'), '')
+      .replaceAll(', ', '، ');
+
+  void _scrollToEnd()=>WidgetsBinding.instance.addPostFrameCallback((_){if(_scroll.hasClients)_scroll.animateTo(_scroll.position.maxScrollExtent,duration:const Duration(milliseconds:260),curve:Curves.easeOut);});
   void _toast(String message)=>Fluttertoast.showToast(msg:message,toastLength:Toast.LENGTH_SHORT,gravity:ToastGravity.BOTTOM,backgroundColor:const Color(0xDD263238),textColor:Colors.white,fontSize:13);
   Future<void> _openService(Map<String,dynamic> s)async{final route=s['route']?.toString()??'';if(route.isEmpty){_toast(_localized('لا يوجد مسار متاح لهذه الخدمة حالياً','This service is not available from this screen yet.','Ce service n’est pas encore accessible depuis cet écran.'));return;}try{await context.push(route);}catch(_){_toast(_localized('تعذر فتح الخدمة من المسار الحالي','Could not open this service from the current screen.','Impossible d’ouvrir ce service depuis l’écran actuel.'));}}
 
