@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sehatak/core/localization/app_strings.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/report_service.dart';
@@ -92,7 +93,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     child: Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
-      child: Row(children: [const Icon(Icons.calendar_today, size: 16), const SizedBox(width: 8), Text('${date.day}/${date.month}/${date.year}', style: const TextStyle(fontSize: 12))]),
+      child: Row(children: [const Icon(Icons.calendar_today, size: 16), const SizedBox(width: 8), Text(DateFormat.yMd(AppStrings.of(context).locale.languageCode).format(date), style: const TextStyle(fontSize: 12))]),
     ),
   );
 
