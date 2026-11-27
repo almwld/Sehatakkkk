@@ -25,6 +25,68 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
   String _field(Map<String, dynamic> data, String key, {String fallback = ''}) =>
       localizedField(data, key, AppStrings.of(context).locale, fallback: fallback);
 
+  String _paymentMethodLabel(String value) {
+    final normalized = value
+        .trim()
+        .toLowerCase()
+        .replaceAll('_', '')
+        .replaceAll('-', '')
+        .replaceAll(' ', '');
+    var key = value.trim();
+    switch (normalized) {
+      case 'wallet':
+        key = 'المحفظة الرقمية';
+        break;
+      case 'cash':
+      case 'cashondelivery':
+        key = 'الدفع عند الاستلام';
+        break;
+      case 'banktransfer':
+        key = 'تحويل بنكي';
+        break;
+      case 'yemenmobile':
+        key = 'يمن موبايل';
+        break;
+      case 'sabafon':
+        key = 'سبأفون';
+        break;
+      case 'youcash':
+        key = 'يو كاش';
+        break;
+      case 'kremi':
+      case 'kuraimi':
+        key = 'حاسب الكريمي';
+        break;
+      case 'floosak':
+        key = 'فلوسك';
+        break;
+      case 'jawali':
+        key = 'جوالي';
+        break;
+      case 'jeeb':
+        key = 'جيب';
+        break;
+      case 'kash':
+        key = 'كاش';
+        break;
+      case 'kashone':
+        key = 'كاش ون';
+        break;
+      case 'mobilemoney':
+        key = 'موبايل ماني';
+        break;
+      case 'yemenwallet':
+        key = 'يمن وولت';
+        break;
+      case 'easy':
+        key = 'إيزي';
+        break;
+      default:
+        key = 'طريقة الدفع';
+    }
+    return _t(key);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +98,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
             Text(_t('تفاصيل الفاتورة'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Divider(),
             _buildRow(_t('رقم الطلب'), widget.orderId),
-            _buildRow(_t('طريقة الدفع'), widget.paymentMethod),
+            _buildRow(_t('طريقة الدفع'), _paymentMethodLabel(widget.paymentMethod)),
             if (widget.items != null && widget.items!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(_t('المنتجات:'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
