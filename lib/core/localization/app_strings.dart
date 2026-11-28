@@ -4146,6 +4146,7 @@ class AppStrings {
       'تم استلام طلب الفحص وسنقوم بتحديثك عند تأكيده.': ['Your test request was received. We’ll update you when it’s confirmed.', 'Votre demande d’examen a été reçue. Nous vous informerons de sa confirmation.'],
       'تم إتمام الدفع': ['Payment completed', 'Paiement effectué'],
       'تم إتمام عملية الدفع بنجاح.': ['Your payment was completed successfully.', 'Votre paiement a été effectué avec succès.'],
+      'تعذر إتمام عملية الدفع.': ['The payment could not be completed.', 'Le paiement n’a pas pu être effectué.'],
       'تم استرداد المبلغ': ['Refund processed', 'Remboursement effectué'],
       'تمت معالجة استرداد المبلغ.': ['Your refund has been processed.', 'Votre remboursement a été traité.'],
       'تم إنشاء فاتورة جديدة في حسابك.': ['A new invoice has been created in your account.', 'Une nouvelle facture a été créée sur votre compte.'],
