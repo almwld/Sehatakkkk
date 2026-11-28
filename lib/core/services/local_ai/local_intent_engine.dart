@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/local_ai/smart_health_knowledge.dart';
+import 'package:sehatak/core/services/local_ai/medical_knowledge_catalog.dart';
 
 enum LocalAiIntent {
   greeting,
@@ -121,33 +122,8 @@ class LocalAiIntentEngine {
   }
 
   /// Canonical normalization shared by intent, symptom and safety matching.
-  static String normalize(String value) {
-    return value.toLowerCase()
-        .replaceAll(RegExp(r'[àáâäãå]'), 'a')
-        .replaceAll(RegExp(r'[èéêë]'), 'e')
-        .replaceAll(RegExp(r'[ìíîï]'), 'i')
-        .replaceAll(RegExp(r'[òóôöõ]'), 'o')
-        .replaceAll(RegExp(r'[ùúûü]'), 'u')
-        .replaceAll('ç', 'c')
-        .replaceAll('œ', 'oe')
-        .replaceAll('æ', 'ae')
-        .replaceAll('’', ' ')
-        .replaceAll("'", ' ')
-        .replaceAll('أ', 'ا')
-        .replaceAll('إ', 'ا')
-        .replaceAll('آ', 'ا')
-        .replaceAll('ٱ', 'ا')
-        .replaceAll('ة', 'ه')
-        .replaceAll('ى', 'ي')
-        .replaceAll('ؤ', 'و')
-        .replaceAll('ئ', 'ي')
-        .replaceAll('ک', 'ك')
-        .replaceAll('ی', 'ي')
-        .replaceAll(RegExp(r'[\u064B-\u065F\u0670\u0640]'), '')
-        .replaceAll(RegExp(r'[،,؛;.!؟?]+'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-  }
+  static String normalize(String value) =>
+      MedicalKnowledgeCatalog.normalize(value);
 }
 
 /// Shared safety vocabulary for the entire local assistant.
